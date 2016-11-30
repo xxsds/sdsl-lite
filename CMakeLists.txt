@@ -1,107 +1,34 @@
-cmake_minimum_required(VERSION 2.8.11)
+cmake_minimum_required(VERSION 3.2 FATAL_ERROR)
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
-include(AppendCompilerFlags)
 
-## Project information ##
-project(sdsl CXX C)
+## (1) Read and set library version 
+cmake_policy(SET CMP0048 NEW)
+file(READ "${CMAKE_CURRENT_SOURCE_DIR}/VERSION" LIBRARY_VERSION_FULL)
+string(REGEX REPLACE "[\n\r]" "" LIBRARY_VERSION_FULL "${LIBRARY_VERSION_FULL}")
+string(REGEX REPLACE "^([0-9]+)\\.[0-9]+\\.[0-9]+$" "\\1" LIBRARY_VERSION_MAJOR "${LIBRARY_VERSION_FULL}")
+string(REGEX REPLACE "^[0-9]+\\.([0-9]+)\\.[0-9]+$" "\\1" LIBRARY_VERSION_MINOR "${LIBRARY_VERSION_FULL}")
+string(REGEX REPLACE "^[0-9]+\\.[0-9]+\\.([0-9]+)$" "\\1" LIBRARY_VERSION_PATCH "${LIBRARY_VERSION_FULL}")
+
+## (2) CREATE PROJECT 
+project(sdsl VERSION ${LIBRARY_VERSION_FULL} LANGUAGES CXX C)
+
+## (3) Project information ##
 set(PROJECT_VENDOR "Simon Gog")
 set(PROJECT_CONTACT "simon.gog@gmail.com")
-set(PROJECT_URL "https://github.com/simongog/sdsl-lite")
+set(PROJECT_URL "https://github.com/xxsds/sdsl-lite")
 set(PROJECT_DESCRIPTION "SDSL: Succinct Data Structure Library")
+
+## (4) Build information
 set(CMAKE_BUILD_TYPE "Release")
 
-file(READ "${CMAKE_CURRENT_SOURCE_DIR}/VERSION" PROJECT_VERSION_FULL)
-string(REGEX REPLACE "[\n\r]" "" PROJECT_VERSION_FULL "${PROJECT_VERSION_FULL}")
-string(REGEX REPLACE "^([0-9]+)\\.[0-9]+\\.[0-9]+$" "\\1" PROJECT_VERSION_MAJOR "${PROJECT_VERSION_FULL}")
-string(REGEX REPLACE "^[0-9]+\\.([0-9]+)\\.[0-9]+$" "\\1" PROJECT_VERSION_MINOR "${PROJECT_VERSION_FULL}")
-string(REGEX REPLACE "^[0-9]+\\.[0-9]+\\.([0-9]+)$" "\\1" PROJECT_VERSION_PATCH "${PROJECT_VERSION_FULL}")
-set(PROJECT_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}")
-math(EXPR LIBRARY_VERSION_MAJOR "${PROJECT_VERSION_MAJOR}")
-set(LIBRARY_VERSION_MINOR "${PROJECT_VERSION_MINOR}")
-set(LIBRARY_VERSION_PATCH "${PROJECT_VERSION_PATCH}")
-set(LIBRARY_VERSION "${LIBRARY_VERSION_MAJOR}.${LIBRARY_VERSION_MINOR}")
-set(LIBRARY_VERSION_FULL "${LIBRARY_VERSION}.${LIBRARY_VERSION_PATCH}")
-
-
+## (5) Options
 option(CODE_COVERAGE "Set ON to add code coverage compile options" OFF)
 option(GENERATE_DOC "Set ON to genrate doxygen API reference in build/doc directory" OFF)
 
-# C++11 compiler Check
-if(NOT CMAKE_CXX_COMPILER_VERSION) # work around for cmake versions smaller than 2.8.10
-    execute_process(COMMAND ${CMAKE_CXX_COMPILER} -dumpversion OUTPUT_VARIABLE CMAKE_CXX_COMPILER_VERSION)
-endif()
-if(CMAKE_CXX_COMPILER MATCHES ".*clang.*" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-      set(CMAKE_COMPILER_IS_CLANGXX 1)
-endif()
-if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
-    set(CMAKE_COMPILER_IS_INTEL 1)
-endif()
-if( (CMAKE_COMPILER_IS_GNUCXX AND ${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS 4.7) OR
-    (CMAKE_COMPILER_IS_CLANGXX AND ${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS 3.2))
-  message(FATAL_ERROR "Your C++ compiler does not support C++11. Please install g++ 4.7 (or greater) or clang 3.2 (or greater)")
-else()
-  message(STATUS "Compiler is recent enough to support C++11.")
-endif()
+## (6) Compiler requirements
+set (CMAKE_CXX_STANDARD 14)
 
-if( CMAKE_COMPILER_IS_GNUCXX )
-    append_cxx_compiler_flags("-std=c++14 -Wall -Wextra -DNDEBUG" "GCC" CMAKE_CXX_FLAGS)
-    append_cxx_compiler_flags("-O3 -ffast-math -funroll-loops" "GCC" CMAKE_CXX_OPT_FLAGS)
-    if ( CODE_COVERAGE )
-        append_cxx_compiler_flags("-g -fprofile-arcs -ftest-coverage -lgcov" "GCC" CMAKE_CXX_FLAGS)
-    endif()
-
-else()
-    if( CMAKE_COMPILER_IS_CLANGXX )
-		append_cxx_compiler_flags("-std=c++14 -DNDEBUG" "CLANG" CMAKE_CXX_FLAGS)
-		append_cxx_compiler_flags("-stdlib=libc++" "CLANG" CMAKE_CXX_FLAGS)
-		append_cxx_compiler_flags("-O3 -ffast-math -funroll-loops -D__extern_always_inline=\"extern __always_inline\" " "CLANG" CMAKE_CXX_OPT_FLAGS)
-	else()
-        if( CMAKE_COMPILER_IS_INTEL )
-            append_cxx_compiler_flags("-std=c++14 -Wall -Wextra -DNDEBUG" "INTEL" CMAKE_CXX_FLAGS)
-            append_cxx_compiler_flags("-O3 -ffast-math -funroll-loops -no-inline-min-size -no-inline-max-size" "INTEL" CMAKE_CXX_OPT_FLAGS)
-        else()
-            append_cxx_compiler_flags("/EHsc" "MSVC" CMAKE_CXX_FLAGS)
-            append_cxx_compiler_flags("/Od" "MSVC" CMAKE_CXX_FLAGS_DEBUG)
-            append_cxx_compiler_flags("/Ox" "MSVC" CMAKE_CXX_FLAGS_RELEASE)
-            set(vars CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
-            foreach(var ${vars})
-                string(REPLACE "/MD" "-MT" ${var} "${${var}}")
-            endforeach(var)
-
-            add_definitions("/DMSVC_COMPILER")
-        endif()
-	endif()
-endif()
-
-try_compile(MODE_TI "${PROJECT_BINARY_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/check_mode_ti.cpp")
-if( MODE_TI )
-  if(MSVC)
-    add_definitions("/DMODE_TI")
-  else()
-    add_definitions("-DMODE_TI")
-  endif()
-endif()
-
-include(CheckSSE4_2)
-if( BUILTIN_POPCNT )
-    if( CMAKE_COMPILER_IS_GNUCXX )
-        append_cxx_compiler_flags("-msse4.2" "GCC" CMAKE_CXX_OPT_FLAGS)
-    else()
-        append_cxx_compiler_flags("-msse4.2" "CLANG" CMAKE_CXX_OPT_FLAGS)
-    endif()
-endif()
-
-# check for demangle support to get pretty C++ class names
-include(FindCxaDemangle)
-if( HAVE_CXA_DEMANGLE )
-    message(STATUS "Compiler supports DEMANGLE.")
-    if( CMAKE_COMPILER_IS_GNUCXX )
-        append_cxx_compiler_flags("-DHAVE_CXA_DEMANGLE" "GCC" CMAKE_CXX_OPT_FLAGS)
-    else()
-        append_cxx_compiler_flags("-DHAVE_CXA_DEMANGLE" "CLANG" CMAKE_CXX_OPT_FLAGS)
-    endif()
-endif()
-
+## (7) Configure scripts
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/Make.helper.cmake"
 		       "${CMAKE_CURRENT_SOURCE_DIR}/Make.helper" @ONLY)
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/lib/structure_tree.cpp.cmake"
