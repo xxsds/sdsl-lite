@@ -88,6 +88,7 @@ ram_filebuf::seekpos(pos_type sp, std::ios_base::openmode mode)
     } else {
         if (mode & std::ios_base::out) {
             // extend buffer
+            m_ram_file->reserve(sp);
             m_ram_file->resize(sp, 0);
             setg(m_ram_file->data(), m_ram_file->data()+sp, m_ram_file->data()+m_ram_file->size());
             setp(m_ram_file->data(), m_ram_file->data()+m_ram_file->size());

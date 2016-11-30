@@ -630,6 +630,27 @@ bool store_to_cache(const T& v, const std::string& key, cache_config& config, bo
     }
 }
 
+
+template<class T>
+bool remove_from_cache(const std::string& key, cache_config& config, bool add_type_hash=false) 
+{
+    std::string file;
+    if (add_type_hash) {
+        file = cache_file_name<T>(key, config);
+    } else {
+        file = cache_file_name(key, config);
+    }
+    config.file_map.erase(key);
+    if ( sdsl::remove(file) == 0 ) {
+        return true;
+    } else {
+        std::cerr<<"WARNING: delete_from_cache: could not delete file `"<< file <<"`" << std::endl;
+        return false;
+    }
+}
+
+
+
 //==================== Template functions ====================
 
 template<class T>

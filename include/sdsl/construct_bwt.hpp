@@ -51,29 +51,34 @@ void construct_bwt(cache_config& config)
     static_assert(t_width == 0 or t_width == 8 , "construct_bwt: width must be `0` for integer alphabet and `8` for byte alphabet");
 
     typedef int_vector<>::size_type size_type;
-    typedef int_vector<t_width> text_type;
-    typedef int_vector_buffer<t_width> bwt_type;
     const char* KEY_TEXT = key_text_trait<t_width>::KEY_TEXT;
     const char* KEY_BWT = key_bwt_trait<t_width>::KEY_BWT;
 
     //  (1) Load text from disk
-    text_type text;
-    load_from_cache(text, KEY_TEXT, config);
+    read_only_mapper<t_width> text(KEY_TEXT, config);
     size_type n = text.size();
     uint8_t bwt_width = text.width();
-
-    //  (2) Prepare to stream SA from disc and BWT to disc
-    size_type buffer_size = 1000000; // buffer_size is a multiple of 8!, TODO: still true?
-    int_vector_buffer<> sa_buf(cache_file_name(conf::KEY_SA, config), std::ios::in, buffer_size);
     std::string bwt_file = cache_file_name(KEY_BWT, config);
-    bwt_type bwt_buf(bwt_file, std::ios::out, buffer_size, bwt_width);
 
-    //  (3) Construct BWT sequentially by streaming SA and random access to text
-    size_type to_add[2] = {(size_type)-1,n-1};
-    for (size_type i=0; i < n; ++i) {
-        bwt_buf[i] = text[ sa_buf[i]+to_add[sa_buf[i]==0] ];
+    auto gen_bwt = [&n](auto& bwt, auto& text, auto& sa){
+        size_type to_add[2] = {(size_type)-1,n-1};
+        for (size_type i=0; i < n; ++i) {
+            bwt[i] = text[ sa[i]+to_add[sa[i]==0] ];
+        }   
+    };
+    //  (2) Prepare to stream SA from disc and BWT to disc
+    if ( is_ram_file(bwt_file) ) { 
+        int_vector_mapper<> sa(conf::KEY_SA, config);
+        auto bwt = write_out_mapper<t_width>::create(bwt_file, n, bwt_width);
+        gen_bwt(bwt, text, sa);
+    } else {
+        size_type buffer_size = 1000000; // buffer_size is a multiple of 8!
+        std::string sa_file = cache_file_name(conf::KEY_SA, config);
+        int_vector_buffer<> sa_buf(sa_file, std::ios::in, buffer_size);
+        auto bwt = write_out_mapper<t_width>::create(bwt_file, n, bwt_width);
+        //  (3) Construct BWT sequentially by streaming SA and random access to text
+        gen_bwt(bwt, text, sa_buf);
     }
-    bwt_buf.close();
     register_cache_file(KEY_BWT, config);
 }
 

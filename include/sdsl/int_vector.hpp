@@ -317,9 +317,7 @@ class int_vector
         friend class  coder::fibonacci;
         template<uint8_t> friend class coder::comma;
         friend class  memory_manager;
-
-        enum { fixed_int_width = t_width }; // make template parameter accessible
-
+        static constexpr uint8_t fixed_int_width = t_width;
     private:
 
         size_type      m_size;  //!< Number of bits needed to store int_vector.
@@ -1602,5 +1600,6 @@ void int_vector<t_width>::load(std::istream& in)
 }// end namespace sdsl
 
 #include "int_vector_buffer.hpp"
+#include "int_vector_mapper.hpp"
 
 #endif
