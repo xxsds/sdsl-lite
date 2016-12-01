@@ -25,3 +25,8 @@ configure_file("${CMAKE_CURRENT_SOURCE_DIR}/../sdsl-lite.pc.cmake"
                "${CMAKE_CURRENT_BINARY_DIR}/sdsl-lite.pc" @ONLY)
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/sdsl-lite.pc"
         DESTINATION "lib/pkgconfig")
+
+find_program(CLANG_FORMAT NAMES clang-format clang-format-4.0 clang-format-3.9 clang-format-3.8 clang-format-3.7 clang-format-3.6 clang-format-3.5 clang-format-3.4)
+
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/pre-commit.cmake"
+		       "${CMAKE_CURRENT_SOURCE_DIR}/pre-commit" @ONLY)

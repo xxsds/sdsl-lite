@@ -16,12 +16,12 @@ endif()
 ## (5) Options
 option(CODE_COVERAGE "Set ON to add code coverage compile options" OFF)
 option(GENERATE_DOC "Set ON to genrate doxygen API reference in build/doc directory" OFF)
+option(USE_LIBCPP "Use the LLVM libc++ instead of GCC libstdc++ on OS X" ON)
 
 ## (6) Compiler requirements and compile options
 include(CompilerFlags)
 
 ## (7) Configure scripts
-set(MY_CXX_FLAGS ${${CMAKE_CXX_FLAGS}})
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/Make.helper.cmake"
 		       "${CMAKE_CURRENT_SOURCE_DIR}/Make.helper" @ONLY)
 

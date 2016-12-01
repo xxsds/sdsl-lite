@@ -1,7 +1,5 @@
 find_package(Git)
-if(GIT_FOUND)
-    message("git found: ${GIT_EXECUTABLE}")
-else()      
+if(NOT GIT_FOUND)   
     message(WARNING "git not found. Cloning of submodules will not work.")
 endif()
 

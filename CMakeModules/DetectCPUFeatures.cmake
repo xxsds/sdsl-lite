@@ -21,6 +21,12 @@ if(NOT WIN32)
   set(BoldWhite   "${Esc}[1;37m")
 endif()
 
+if (${CMAKE_C_SIZEOF_DATA_PTR} MATCHES 4)
+  message(FATAL_ERROR "${Red}SDSL requires a 64 bit system. 32 bit system detected.${ColourReset}")
+else()
+  message(STATUS "${Green}Found 64 bit system${ColourReset}")
+endif()
+
 set(CMAKE_REQUIRED_FLAGS "-msse4.2")
 file(READ "CMakeModules/SSE42.cpp" test_source_sse42)
 CHECK_CXX_SOURCE_RUNS("${test_source_sse42}" HAVE_SSE42)

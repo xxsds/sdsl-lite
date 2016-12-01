@@ -26,23 +26,6 @@ OLD_DIR="$( cd "$( dirname "$0" )" && pwd )" # gets the directory where the scri
 cd "${OLD_DIR}"
 OLD_DIR=`pwd`
 
-# (1) Copy pre-commit hook
-
-
-if [ -d ".git/hooks" ]; then
-	echo "Copy pre-commit into .git/hooks"
-	cp extras/pre-commit .git/hooks/
-	if [ $? != 0 ]; then
-		echo "WARNING: could not copy pre-commit script into .git/hooks"
-	fi
-	chmod u+x .git/hooks/pre-commit
-	if [ $? != 0 ]; then
-		echo "WARNING: could not make pre-commit script executable"
-	fi
-else
-	echo "WARNING: .git/hooks directory does not exists."
-	echo "         The pre-commit hook is not installed."
-fi
 
 cd build # change into the build directory
 if [ $? != 0 ]; then
@@ -85,6 +68,22 @@ cd ..
 if [ "`pwd`" != "${OLD_DIR}" ]; then
 	echo "ERROR: we are not in the original dir ${OLD_DIR} now."
 	exit 1
+fi
+
+# (1) Copy pre-commit hook (only after cmake found clang-format)
+if [ -d ".git/hooks" ]; then
+	echo "Copy pre-commit into .git/hooks"
+	cp extras/pre-commit .git/hooks/
+	if [ $? != 0 ]; then
+		echo "WARNING: could not copy pre-commit script into .git/hooks"
+	fi
+	chmod u+x .git/hooks/pre-commit
+	if [ $? != 0 ]; then
+		echo "WARNING: could not make pre-commit script executable"
+	fi
+else
+	echo "WARNING: .git/hooks directory does not exists."
+	echo "         The pre-commit hook is not installed."
 fi
 
 STDFLAGS=$(grep "MY_CXX_FLAGS=" Make.helper | cut -d'=' -f2-)
