@@ -24,6 +24,7 @@ set (FIND_PACKAGE_MESSAGE_DETAILS_CxaDemangle "[1][v()]"
 find_package_handle_standard_args (CxaDemangle DEFAULT_MSG HAVE_CXA_DEMANGLE)
 
 if( HAVE_CXA_DEMANGLE )
-    message(STATUS "Compiler supports DEMANGLE.")
-    CheckAndAppendCompilerFlags(${CMAKE_BUILD_TYPE} "-DHAVE_CXA_DEMANGLE")
+    message(STATUS "${Green}Compiler support DEMANGLE${ColourReset}")
+else()
+    message(STATUS "${Red}Compiler NOT support DEMANGLE${ColourReset}")
 endif()

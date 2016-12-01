@@ -9,19 +9,16 @@ cmake_policy(SET CMP0048 NEW) # no more project version warnings
 project(sdsl VERSION ${LIBRARY_VERSION_FULL} LANGUAGES CXX C)
 
 ## (4) Build information
-set(CMAKE_BUILD_TYPE "Release")
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE "Release")
+endif()
 
 ## (5) Options
 option(CODE_COVERAGE "Set ON to add code coverage compile options" OFF)
 option(GENERATE_DOC "Set ON to genrate doxygen API reference in build/doc directory" OFF)
 
 ## (6) Compiler requirements and compile options
-set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_STANDARD_REQUIRED on)
-include(DetectCPUFeatures)
-include(FindCxaDemangle)
-CheckAndAppendCompilerFlags("Release" "-ffast-math")
-CheckAndAppendCompilerFlags("Release" "-funroll-loops")
+include(CompilerFlags)
 
 ## (7) Configure scripts
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/Make.helper.cmake"

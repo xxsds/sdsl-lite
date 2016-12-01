@@ -22,6 +22,6 @@ ADD_CUSTOM_TARGET(uninstall-sdsl
 
 # (3) packaging information 
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/../sdsl-lite.pc.cmake"
-               "${CMAKE_CURRENT_BINARY_DIR}/../sdsl-lite.pc" @ONLY)
+               "${CMAKE_CURRENT_BINARY_DIR}/sdsl-lite.pc" @ONLY)
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/sdsl-lite.pc"
         DESTINATION "lib/pkgconfig")
