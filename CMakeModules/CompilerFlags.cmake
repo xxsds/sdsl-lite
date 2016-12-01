@@ -30,7 +30,7 @@ if ( CODE_COVERAGE )
 endif()
 
 if(APPLE)
-    if(USE_LIBCPP AND ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang"))
+    if(USE_LIBCPP AND ("${CMAKE_CXX_COMPILER_ID}" MATCHES "^(Apple)?Clang$"))
         CheckAndAppendCompilerFlags(${CMAKE_BUILD_TYPE} "-stdlib=libc++")
     endif()
 endif()
