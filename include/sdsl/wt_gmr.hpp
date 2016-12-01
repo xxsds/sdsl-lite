@@ -331,18 +331,25 @@ class wt_gmr_rs
         const size_type&       sigma = m_sigma;
 
         //! Default constructor
-        wt_gmr_rs() {}
+        wt_gmr_rs() = default;
 
-        //! Semi-external constructor
-        /*! \param buf         File buffer of the int_vector for which the wt_gmr should be build.
-         *  \param size        Size of the prefix of v, which should be indexed.
+        //! Construct the wavelet tree from a sequence defined by two interators
+        /*! 
+         * \param begin   Iterator to the start of the input.
+         * \param end     Iterator one past the end of the input.
+         * \param tmp_dir Temporary directory for intermediate results.
+         *    \par Time complexity
+         *        \f$ \Order{n\log|\Sigma|}\f$, where \f$n=size\f$
+         *        I.e. we need \Order{n\log n} if rac is a permutation of 0..n-1.
          */
-        template<uint8_t int_width>
-        wt_gmr_rs(int_vector_buffer<int_width>& input, size_type size) : m_size(size)
+        template<typename t_it>
+        wt_gmr_rs(t_it begin, t_it end, std::string tmp_dir = ram_file_name(""))
+            : m_size(std::distance(begin, end))
         {
             // Determine max. symbol
-            for (uint64_t i=0; i<m_size; ++i) {
-                if (m_block_size < input[i]) m_block_size = input[i];
+            for (auto it = begin; it != end; ++it) {
+                value_type value = *it;
+                if (m_block_size < value) m_block_size = value;
             }
             ++m_block_size;
 
@@ -352,13 +359,13 @@ class wt_gmr_rs
             int_vector<> symbols(m_block_size, 0, bits::hi(m_size)+1);
             {
                 int_vector<> tmp(m_block_size*m_blocks, 0, bits::hi(m_block_size)+1);
-
-                for (uint64_t i=0, offset=0, j=0; i<m_size; ++i, ++j) {
+                uint64_t j = 0, offset = 0;
+                for (auto it = begin; it != end; ++it, ++j) {
                     if (j==m_block_size) {
                         ++offset;
                         j = 0;
                     }
-                    ++tmp[input[i]*m_blocks+offset];
+                    ++tmp[(*it)*m_blocks+offset];
                 }
 
                 for (uint64_t i=0; i<symbols.size(); ++i) {
@@ -398,12 +405,12 @@ class wt_gmr_rs
                 symbols[i] = sum;
                 sum += tmp;
             }
-            for (uint64_t i=0; i<m_size;) {
-                for (uint64_t j=0; j<m_block_size and i<m_size; ++i, ++j) {
-                    positions[symbols[input[i]]++] = j;
+            for (auto it = begin; it != end;) {
+                for (uint64_t j=0; j<m_block_size and it != end; ++it, ++j) {
+                    positions[symbols[*it]++] = j;
                 }
             }
-            _transform_to_compressed<t_rac>(positions, m_e, input.filename());
+            _transform_to_compressed<t_rac>(positions, m_e, tmp_dir);
 
             util::init_support(m_bv_blocks_select0, &m_bv_blocks);
             util::init_support(m_bv_blocks_select1, &m_bv_blocks);
@@ -672,18 +679,25 @@ class wt_gmr
         const size_type&       sigma = m_sigma;
 
         //! Default constructor
-        wt_gmr() {}
+        wt_gmr() = default;
 
-        //! Semi-external constructor
-        /*! \param buf         File buffer of the int_vector for which the wt_gmr should be build.
-         *  \param size        Size of the prefix of v, which should be indexed.
+        //! Construct the wavelet tree from a sequence defined by two interators
+        /*! 
+         * \param begin   Iterator to the start of the input.
+         * \param end     Iterator one past the end of the input.
+         * \param tmp_dir Temporary directory for intermediate results.
+         *    \par Time complexity
+         *        \f$ \Order{n\log|\Sigma|}\f$, where \f$n=size\f$
+         *        I.e. we need \Order{n\log n} if rac is a permutation of 0..n-1.
          */
-        template<uint8_t int_width>
-        wt_gmr(int_vector_buffer<int_width>& input, size_type size) : m_size(size)
+        template<typename t_it>
+        wt_gmr(t_it begin, t_it end, std::string tmp_dir = ram_file_name(""))
+            : m_size(std::distance(begin, end))
         {
             // Determine max. symbol
-            for (uint64_t i=0; i<m_size; ++i) {
-                if (m_max_symbol < input[i]) m_max_symbol = input[i];
+            for (auto it = begin; it != end; ++it) {
+                value_type value = *it;
+                if (m_max_symbol < value) m_max_symbol = value;
             }
             ++m_max_symbol;
             m_chunksize = (1ULL << (bits::hi(m_max_symbol-1)+1)); // In some cases this is better than m_max_smbol
@@ -694,12 +708,13 @@ class wt_gmr
                 bit_vector b(m_size+m_max_symbol*m_chunks+1, 0);
                 int_vector<> tmp(m_max_symbol*m_chunks, 0, bits::hi(m_max_symbol-1)+2);
 
-                for (uint64_t i=0, offset=0, j=0; i<m_size; ++i, ++j) {
+                uint64_t offset = 0, j = 0;
+                for (auto it = begin; it != end; ++it, ++j) {
                     if (j==m_chunksize) {
                         ++offset;
                         j = 0;
                     }
-                    ++tmp[input[i]*m_chunks+offset];
+                    ++tmp[(*it)*m_chunks+offset];
                 }
 
                 for (uint64_t i=0, l=1; i<tmp.size(); ++i, ++l)
@@ -737,7 +752,7 @@ class wt_gmr
 
                     // calc symbols
                     for (uint64_t j=i*m_chunksize; j<(i+1)*m_chunksize and j<m_size; ++j) {
-                        ++symbols[input[j]];
+                        ++symbols[*(begin+j)];
                     }
                     // calc m_bv_chunks
                     for (uint64_t j=0; j<m_max_symbol; ++j, ++x_pos)
@@ -752,12 +767,12 @@ class wt_gmr
                     }
                     // calc perm
                     for (uint64_t j=i* m_chunksize, k=0; j<(i+1)*m_chunksize and j<m_size; ++j, ++k) {
-                        perm[i*m_chunksize+(symbols[input[j]]++)] = k;
+                        perm[i*m_chunksize+(symbols[*(begin+j)]++)] = k;
                     }
                 }
                 m_bv_chunks = t_bitvector(std::move(x));
                 m_ips = t_inverse_support(&m_perm, perm, m_chunksize);
-                _transform_to_compressed<t_rac>(perm, m_perm, input.filename());
+                _transform_to_compressed<t_rac>(perm, m_perm, tmp_dir);
                 m_ips.set_vector(&m_perm);
             }
             util::init_support(m_bv_chunks_select1, &m_bv_chunks);

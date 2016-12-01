@@ -32,23 +32,18 @@ int_vector<>::size_type size(const range_type& r);
 /*!
  * \param C An array of size 256, which contains for each character the number of occurrences in rac[0..size-1]
  */
-template<class t_file_buffer,class t_rac>
-void calculate_character_occurences(t_file_buffer& text, const int_vector_size_type size, t_rac& C)
+template<typename t_it,typename t_rac>
+void calculate_character_occurences(t_it begin, t_it end, t_rac& C)
 {
     C = t_rac();
-    if (text.size() < size) {
-        throw std::logic_error("calculate_character_occurrences: stream size is smaller than size!");
-        return;
-    }
-    for (int_vector_size_type i=0; i < size; ++i) {
-        uint64_t c = text[i];
+    for (auto it = begin; it != end; ++it) {
+        uint64_t c = *it;
         if (c >= C.size()) { C.resize(c+1, 0); }
         ++C[c];
     }
 }
 
-
-template<class t_rac, class sigma_type>
+template<typename t_rac, typename sigma_type>
 void calculate_effective_alphabet_size(const t_rac& C, sigma_type& sigma)
 {
     sigma = std::count_if(begin(C),end(C),[](decltype(*begin(C)) &x) {
@@ -70,7 +65,7 @@ struct pc_node {
     pc_node& operator=(const pc_node& v);
 };
 
-template<class t_tree_strat_fat>
+template<typename t_tree_strat_fat>
 struct _node {
     using node_type = typename t_tree_strat_fat::node_type;
     typedef uint64_t size_type;
@@ -131,7 +126,7 @@ struct _node {
 //       m_path is only needed for sigma chars
 
 // Strategy class for tree representation of a WT
-template<bool t_dfs_shape, class t_wt>
+template<bool t_dfs_shape, typename t_wt>
 struct _byte_tree {
     using alphabet_category = byte_alphabet_tag;
     using value_type = uint8_t;
@@ -233,7 +228,7 @@ struct _byte_tree {
         }
     }
 
-    template<class t_rank_type>
+    template<typename t_rank_type>
     void init_node_ranks(const t_rank_type& rank) {
         for (uint64_t i=0; i<m_nodes.size(); ++i) {
             if (m_nodes[i].child[0] != undef)  // if node is not a leaf
@@ -367,12 +362,12 @@ struct _byte_tree {
 // Strategy class for tree representation of a WT
 template<bool t_dfs_shape=false>
 struct byte_tree {
-    template<class t_wt>
+    template<typename t_wt>
     using type = _byte_tree<t_dfs_shape, t_wt>;
 };
 
 // Strategy class for tree representation of a WT
-template<bool t_dfs_shape, class t_wt>
+template<bool t_dfs_shape, typename t_wt>
 struct _int_tree {
     using alphabet_category = int_alphabet_tag;
     using value_type = uint64_t;
@@ -479,7 +474,7 @@ struct _int_tree {
         }
     }
 
-    template<class t_rank_type>
+    template<typename t_rank_type>
     void init_node_ranks(const t_rank_type& rank) {
         for (uint64_t i=0; i<m_nodes.size(); ++i) {
             if (m_nodes[i].child[0] != undef)  // if node is not a leaf
@@ -633,7 +628,7 @@ struct _int_tree {
 // Strategy class for tree representation of a WT
 template<bool t_dfs_shape=false>
 struct int_tree {
-    template<class t_wt>
+    template<typename t_wt>
     using type = _int_tree<t_dfs_shape, t_wt>;
 };
 

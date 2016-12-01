@@ -155,51 +155,39 @@ class wt_int
         const uint32_t&        max_level = m_max_level; //!< Maximal level of the wavelet tree.
 
         //! Default constructor
-        wt_int()
-        {
-        };
+        wt_int() = default;
 
-        //! Semi-external constructor
-        /*! \param buf         File buffer of the int_vector for which the wt_int should be build.
-         *  \param size        Size of the prefix of v, which should be indexed.
-         *  \param max_level   Maximal level of the wavelet tree. If set to 0, determined automatically.
+        //! Construct the wavelet tree from a sequence defined by two interators
+        /*! 
+         * \param begin   Iterator to the start of the input.
+         * \param end     Iterator one past the end of the input.
+         * \param tmp_dir Temporary directory for intermediate results.
          *    \par Time complexity
          *        \f$ \Order{n\log|\Sigma|}\f$, where \f$n=size\f$
          *        I.e. we need \Order{n\log n} if rac is a permutation of 0..n-1.
-         *    \par Space complexity
-         *        \f$ n\log|\Sigma| + O(1)\f$ bits, where \f$n=size\f$.
          */
-        template<uint8_t int_width>
-        wt_int(int_vector_buffer<int_width>& buf, size_type size,
-               uint32_t max_level=0) : m_size(size)
+        template<typename t_it>
+        wt_int(t_it begin, t_it end, std::string tmp_dir = ram_file_name(""))
+            : m_size(std::distance(begin, end))
         {
             if (0 == m_size)
                 return;
-            size_type n = buf.size();  // set n
-            if (n < m_size) {
-                throw std::logic_error("n="+util::to_string(n)+" < "+util::to_string(m_size)+"=m_size");
-                return;
-            }
             m_sigma = 0;
-            int_vector<int_width> rac(m_size, 0, buf.width());
 
-            value_type x = 1;  // variable for the biggest value in rac
-            for (size_type i=0; i < m_size; ++i) {
-                if (buf[i] > x)
-                    x = buf[i];
-                rac[i] = buf[i];
+            value_type max_elem = 1;  // variable for the biggest value in rac
+            for (auto it = begin; it != end; ++it) {
+                value_type value = *it;
+                if (value > max_elem)
+                    max_elem = value;
             }
-
-            if (max_level == 0) {
-                m_max_level = bits::hi(x)+1; // max_level bits to represent all values range [0..x]
-            } else {
-                m_max_level = max_level;
-            }
+            m_max_level = bits::hi(max_elem)+1;
+            int_vector<> rac(m_size, 0, m_max_level);
+            std::copy(begin, end, rac.begin());
 
             // buffer for elements in the right node
-            int_vector_buffer<> buf1(tmp_file(buf.filename(), "_wt_constr_buf"),
-                                     std::ios::out, 10*(1<<20), buf.width());
-            std::string tree_out_buf_file_name = tmp_file(buf.filename(), "_m_tree");
+            int_vector_buffer<> buf1(tmp_file(tmp_dir, "_wt_constr_buf"),
+                                     std::ios::out, 10*(1<<20), m_max_level);
+            std::string tree_out_buf_file_name = tmp_file(tmp_dir, "_m_tree");
             osfstream tree_out_buf(tree_out_buf_file_name, std::ios::binary|
                                    std::ios::trunc|std::ios::out);
 
@@ -219,7 +207,7 @@ class wt_int
                     size_type cnt1        = 0;
                     uint64_t  start_value = (rac[i]&mask_old);
                     uint64_t  x;
-                    while (i < m_size and((x=rac[i])&mask_old)==start_value) {
+                    while (i < m_size and ((x=rac[i])&mask_old)==start_value) {
                         if (x&mask_new) {
                             tree_word |= (1ULL << (tree_pos&0x3FULL));
                             buf1[cnt1++] = x;

@@ -36,7 +36,7 @@ namespace sdsl
 template<typename T>
 void load_vector(std::vector<T>&, std::istream&);
 
-template<class T>
+template<typename T>
 uint64_t
 serialize_vector(const std::vector<T>&, std::ostream&,
                  sdsl::structure_tree_node* v=nullptr, std::string="");
@@ -82,7 +82,7 @@ struct has_load {
 };
 
 // Writes primitive-typed variable t to stream out
-template<class T>
+template<typename T>
 size_t write_member(const T& t, std::ostream& out, sdsl::structure_tree_node* v=nullptr, std::string name="")
 {
     sdsl::structure_tree_node* child = sdsl::structure_tree::add_child(v, name, util::class_name(t));
@@ -97,7 +97,7 @@ template<>
 size_t write_member<std::string>(const std::string& t, std::ostream& out, sdsl::structure_tree_node* v, std::string name);
 
 // Writes primitive-typed variable t to stream out
-template<class T>
+template<typename T>
 void read_member(T& t, std::istream& in)
 {
     in.read((char*)&t, sizeof(t));
@@ -168,12 +168,12 @@ void load(std::vector<X>& x, std::istream& in)
  * \param v sdsl-
  * \param file Name of the serialized file.
  */
-template<class T>
+template<typename T>
 bool load_from_file(T& v, const std::string& file);
 
 //! Load an int_vector from a plain array of `num_bytes`-byte integers with X in \{0, 1,2,4,8\} from disk.
 // TODO: Remove ENDIAN dependency.
-template<class t_int_vec>
+template<typename t_int_vec>
 bool load_vector_from_file(t_int_vec& v, const std::string& file, uint8_t num_bytes=1, uint8_t max_int_width=64)
 {
     if ((uint8_t)0 == num_bytes) {  // if byte size is variable read int_vector<0> from file
@@ -251,7 +251,7 @@ bool load_vector_from_file(t_int_vec& v, const std::string& file, uint8_t num_by
  *  \param file Name of the file where to store the data structure.
  *  \param Return if the data structure was stored successfully
  */
-template<class T>
+template<typename T>
 bool store_to_file(const T& v, const std::string& file);
 
 //! Specialization of store_to_file for a char array
@@ -263,7 +263,7 @@ bool store_to_file(const int_vector<t_width>& v, const std::string& file);
 
 
 //! Store an int_vector as plain int_type array to disk
-template<class int_type, class t_int_vec>
+template<typename int_type, typename t_int_vec>
 bool store_to_plain_array(t_int_vec& v, const std::string& file)
 {
     osfstream out(file, std::ios::out | std::ios::binary);
@@ -278,7 +278,7 @@ bool store_to_plain_array(t_int_vec& v, const std::string& file)
     }
 }
 
-template<class T>
+template<typename T>
 size_t serialize_empty_object(std::ostream&, structure_tree_node* v=nullptr, std::string name="", const T* t=nullptr)
 {
     structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*t));
@@ -293,14 +293,14 @@ size_t serialize_empty_object(std::ostream&, structure_tree_node* v=nullptr, std
 /*!
  *  \param v A reference to the data structure for which the size in bytes should be calculated.
  */
-template<class T>
+template<typename T>
 typename T::size_type size_in_bytes(const T& t);
 
 //! Get the size of a data structure in mega bytes (MiB).
 /*!
  *  \param t A reference to the data structure for which the size in bytes should be calculated.
  */
-template<class T>
+template<typename T>
 double size_in_mega_bytes(const T& t);
 
 struct nullstream : std::ostream {
@@ -325,7 +325,7 @@ struct nullstream : std::ostream {
  *            make one node w with size set to the cumulative sum of all
  *           sizes of the children)
  */
-template<class T>
+template<typename T>
 uint64_t
 serialize_vector(const std::vector<T>& vec, std::ostream& out, sdsl::structure_tree_node* v, std::string name)
 {
@@ -350,7 +350,7 @@ serialize_vector(const std::vector<T>& vec, std::ostream& out, sdsl::structure_t
  *   The vector has to be resized prior the loading
  *   of its elements.
  */
-template<class T>
+template<typename T>
 void load_vector(std::vector<T>& vec, std::istream& in)
 {
     for (typename std::vector<T>::size_type i = 0; i < vec.size(); ++i) {
@@ -403,44 +403,44 @@ void _write_structure(std::unique_ptr<structure_tree_node>&) {}
 uint64_t _parse_number(std::string::const_iterator& c, const std::string::const_iterator& end);
 
 //! Internal function used by csXprintf
-template<class t_csa>
+template<typename t_csa>
 const t_csa& _idx_csa(const t_csa& t, csa_tag)
 {
     return t;
 }
 
 //! Internal function used by csXprintf
-template<class t_cst>
+template<typename t_cst>
 const typename t_cst::csa_type& _idx_csa(const t_cst& t, cst_tag)
 {
     return t.csa;
 }
 
 //! Internal function used by csXprintf
-template<class t_csa>
+template<typename t_csa>
 std::string _idx_lcp_val(const t_csa&, uint64_t, uint64_t, csa_tag)
 {
     return "";
 }
 
 //! Internal function used by csXprintf
-template<class t_cst>
+template<typename t_cst>
 std::string _idx_lcp_val(const t_cst& t, uint64_t i, uint64_t w, cst_tag)
 {
     return util::to_string(t.lcp[i], w);
 }
 
-template<class t_csx, class t_alph=typename t_csx::alphabet_category>
+template<typename t_csx, typename t_alph=typename t_csx::alphabet_category>
 struct default_sentinel {
     static const char value = '$';
 };
 
-template<class t_csx>
+template<typename t_csx>
 struct default_sentinel<t_csx, byte_alphabet_tag> {
     static const char value = '$';
 };
 
-template<class t_csx>
+template<typename t_csx>
 struct default_sentinel<t_csx, int_alphabet_tag> {
     static const char value = '0';
 };
@@ -472,7 +472,7 @@ struct default_sentinel<t_csx, int_alphabet_tag> {
  *                 | suffix, each char formatted by setw(W).|
  *       %%        | %                                      |
  */
-template<class t_idx>
+template<typename t_idx>
 void
 csXprintf(std::ostream& out, const std::string& format,
           const t_idx& idx, char sentinel=default_sentinel<t_idx>::value)
@@ -587,7 +587,7 @@ std::string tmp_file(const cache_config& config, std::string name_part="");
 //! Returns a name for a temporary file. I.e. the name was not used before.
 std::string tmp_file(const std::string& filename, std::string name_part="");
 
-template<class T>
+template<typename T>
 bool load_from_cache(T& v, const std::string& key, const cache_config& config, bool add_type_hash=false)
 {
     std::string file;
@@ -612,7 +612,7 @@ bool load_from_cache(T& v, const std::string& key, const cache_config& config, b
 /*!
  *  \param
  */
-template<class T>
+template<typename T>
 bool store_to_cache(const T& v, const std::string& key, cache_config& config, bool add_type_hash=false)
 {
     std::string file;
@@ -631,7 +631,7 @@ bool store_to_cache(const T& v, const std::string& key, cache_config& config, bo
 }
 
 
-template<class T>
+template<typename T>
 bool remove_from_cache(const std::string& key, cache_config& config, bool add_type_hash=false) 
 {
     std::string file;
@@ -653,7 +653,7 @@ bool remove_from_cache(const std::string& key, cache_config& config, bool add_ty
 
 //==================== Template functions ====================
 
-template<class T>
+template<typename T>
 typename T::size_type size_in_bytes(const T& t)
 {
     if ((&t) == nullptr)
@@ -662,20 +662,20 @@ typename T::size_type size_in_bytes(const T& t)
     return serialize(t, ns);
 }
 
-template<class T>
+template<typename T>
 double size_in_mega_bytes(const T& t)
 {
     return size_in_bytes(t)/(1024.0*1024.0);
 }
 
-template<class T>
+template<typename T>
 void add_hash(const T& t, std::ostream& out)
 {
     uint64_t hash_value = util::hashvalue_of_classname(t);
     write_member(hash_value, out);
 }
 
-template<class T>
+template<typename T>
 bool store_to_file(const T& t, const std::string& file)
 {
     osfstream out(file, std::ios::binary | std::ios::trunc | std::ios::out);
@@ -693,7 +693,7 @@ bool store_to_file(const T& t, const std::string& file)
     return true;
 }
 
-template<class T>
+template<typename T>
 bool store_to_checked_file(const T& t, const std::string& file)
 {
     std::string checkfile = file+"_check";
@@ -748,7 +748,7 @@ bool store_to_checked_file(const int_vector<t_width>& v, const std::string& file
     return store_to_file(v, file);
 }
 
-template<class T>
+template<typename T>
 bool load_from_file(T& v, const std::string& file)
 {
     isfstream in(file, std::ios::binary | std::ios::in);
@@ -766,7 +766,7 @@ bool load_from_file(T& v, const std::string& file)
     return true;
 }
 
-template<class T>
+template<typename T>
 bool load_from_checked_file(T& v, const std::string& file)
 {
     isfstream in(file+"_check", std::ios::binary | std::ios::in);
@@ -788,7 +788,7 @@ bool load_from_checked_file(T& v, const std::string& file)
 }
 
 
-template<class t_iv>
+template<typename t_iv>
 inline typename std::enable_if<
 std::is_same<typename t_iv::index_category, iv_tag>::value or
 std::is_same<typename t_iv::index_category, csa_tag>::value or
@@ -804,7 +804,7 @@ operator<<(std::ostream& os, const t_iv& v)
 }
 
 
-template<class t_iv>
+template<typename t_iv>
 inline typename std::enable_if<std::is_same<typename t_iv::index_category ,wt_tag>::value, std::ostream&>::type
 operator<<(std::ostream& os, const t_iv& v)
 {
@@ -816,7 +816,7 @@ operator<<(std::ostream& os, const t_iv& v)
 }
 
 
-template<class t_int>
+template<typename t_int>
 inline typename std::enable_if<std::is_integral<t_int>::value, std::ostream&>::type
 operator<<(std::ostream& os, const std::vector<t_int>& v)
 {
@@ -827,7 +827,7 @@ operator<<(std::ostream& os, const std::vector<t_int>& v)
     return os;
 }
 
-template<class t_iv>
+template<typename t_iv>
 inline typename std::enable_if<std::is_same<typename t_iv::category ,csa_member_tag>::value, std::ostream&>::type
 operator<<(std::ostream& os, const t_iv& v)
 {

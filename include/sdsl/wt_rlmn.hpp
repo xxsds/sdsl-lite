@@ -166,37 +166,42 @@ class wt_rlmn
         const size_type& sigma = m_wt.sigma;
 
         // Default constructor
-        wt_rlmn() {};
+        wt_rlmn() = default; 
 
-        //! Construct the wavelet tree from a file_buffer
-        /*! \param text_buf  A int_vector_buffer to the original text.
-         *  \param size      The length of the prefix of the text, for which
-         *                   the wavelet tree should be build.
+        //! Construct the wavelet tree from a sequence defined by two interators
+        /*! 
+         * \param begin   Iterator to the start of the input.
+         * \param end     Iterator one past the end of the input.
+         * \param tmp_dir Temporary directory for intermediate results.
          */
-        wt_rlmn(int_vector_buffer<width>& text_buf, size_type size):m_size(size) {
-            std::string temp_file = text_buf.filename() +
+        template<typename t_it>
+        wt_rlmn(t_it begin, t_it end, std::string tmp_dir = ram_file_name(""))
+            : m_size(std::distance(begin, end))
+        {
+            std::string temp_file = tmp_dir +
                                     + "_wt_rlmn_" + util::to_string(util::pid())
                                     + "_" + util::to_string(util::id());
             {
-                if (0 == text_buf.size() or 0 == size)
+                if (0 == m_size)
                     return;
                 int_vector_buffer<width> condensed_wt(temp_file, std::ios::out);
                 // scope for bl and bf
-                bit_vector bl = bit_vector(size, 0);
+                bit_vector bl = bit_vector(m_size, 0);
 
                 auto C = wt_rlmn_trait<alphabet_category>::temp_C();
                 value_type last_c = (value_type)0;
-                for (size_type i=0; i < size; ++i) {
-                    value_type c = text_buf[i];
-                    if (last_c != c or i==0) {
-                        bl[i] = 1;
+                size_type j = 0;
+                for (auto it = begin; it != end; ++it, ++j) {
+                    value_type c = *it;
+                    if (last_c != c or it == begin) {
+                        bl[j] = 1;
                         condensed_wt.push_back(c);
                     }
                     ++C[c];
                     last_c = c;
                 }
                 condensed_wt.close();
-                m_C = wt_rlmn_trait<alphabet_category>::init_C(C, size);
+                m_C = wt_rlmn_trait<alphabet_category>::init_C(C, m_size);
 
                 for (size_type i=0, prefix_sum=0; i<m_C.size(); ++i) {
                     m_C[i] = prefix_sum;
@@ -204,18 +209,19 @@ class wt_rlmn
                 }
 
                 C_type lf_map = m_C;
-                bit_vector bf = bit_vector(size+1, 0);
-                bf[size] = 1; // initialize last element
-                for (size_type i=0; i < size; ++i) {
-                    value_type c = text_buf[i];
-                    if (bl[i]) {
+                bit_vector bf = bit_vector(m_size+1, 0);
+                bf[m_size] = 1; // initialize last element
+                j = 0;
+                for (auto it = begin; it != end; ++it, ++j) {
+                    value_type c = *it;
+                    if (bl[j]) {
                         bf[lf_map[c]] = 1;
                     }
                     ++lf_map[c];
                 }
                 {
                     int_vector_buffer<width> temp_bwt_buf(temp_file);
-                    m_wt = wt_type(temp_bwt_buf, temp_bwt_buf.size());
+                    m_wt = wt_type(temp_bwt_buf.begin(), temp_bwt_buf.end(), tmp_dir);
                 }
                 sdsl::remove(temp_file);
                 m_bl = bit_vector_type(std::move(bl));
@@ -227,7 +233,7 @@ class wt_rlmn
             util::init_support(m_bf_select, &m_bf);
             util::init_support(m_bl_select, &m_bl);
 
-            m_C_bf_rank = wt_rlmn_trait<alphabet_category>::init_C_bf_rank(m_C, size);
+            m_C_bf_rank = wt_rlmn_trait<alphabet_category>::init_C_bf_rank(m_C, m_size);
             for (size_type i=0; i<m_C.size(); ++i) {
                 m_C_bf_rank[i] = m_bf_rank(m_C[i]);
             }
