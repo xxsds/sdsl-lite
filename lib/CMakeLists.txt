@@ -1,3 +1,10 @@
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/structure_tree.cpp.cmake"
+               "${CMAKE_CURRENT_SOURCE_DIR}/structure_tree.cpp" @ONLY)
+
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/util.cpp.cmake"
+               "${CMAKE_CURRENT_SOURCE_DIR}/util.cpp" @ONLY)
+
+
 include_directories(#"${CMAKE_CURRENT_SOURCE_DIR}/../include"
         "${CMAKE_CURRENT_BINARY_DIR}/../include"
         "${CMAKE_CURRENT_BINARY_DIR}/../external/libdivsufsort/include"
@@ -23,6 +30,4 @@ math(EXPR SOVERSION "${LIBRARY_VERSION_MAJOR}+1")
 set_target_properties(sdsl PROPERTIES
         VERSION "${LIBRARY_VERSION_FULL}"
         SOVERSION "${SOVERSION}"
-        #	DEFINE_SYMBOL SDSL_BUILD_DLL
-        #	RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/../examples"
 )

@@ -1,3 +1,9 @@
+find_package(Git)
+if(NOT GIT_FOUND)   
+    message(WARNING "git not found. Cloning of submodules will not work.")
+endif()
+
+
 ## Add libdivsufsort
 set(divsufsort_cmake_file ${CMAKE_CURRENT_LIST_DIR}/libdivsufsort/CMakeLists.txt)
 if(NOT EXISTS ${divsufsort_cmake_file})
@@ -23,6 +29,6 @@ if(NOT EXISTS ${gtest_file})
             )
 endif(NOT EXISTS ${gtest_file})
 
-add_subdirectory(googletest)
+add_subdirectory(googletest EXCLUDE_FROM_ALL)
 
    

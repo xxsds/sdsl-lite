@@ -42,45 +42,22 @@ then
     exit 1
 fi
 
-version=`astyle --version 2> /dev/null`
-if test "x$version" != "x"; then
-echo "git pre-receive hook:"
-echo "Did not find astyle, please install it before continuing."
-exit 1
+CLANGFORMAT_BIN=@CLANG_FORMAT@
+
+if [ -x "$CLANGFORMAT_BIN" ];
+then
+    echo "--Formatting source code USING clang-format: $CLANGFORMAT_BIN --"
+
+    CLANG_FORMAT_PARAMS="-i"
+
+    files=`git-diff-index --diff-filter=ACMR --name-only -r --cached $against --`
+    for file in $files; do
+        x=`echo $file |grep -E '^.*(\.cc|\.h|\.cpp|\.c|\.hpp)$'`
+        if test "x$x" != "x"; then
+        #$CLANGFORMAT_BIN $CLANG_FORMAT_PARAMS $file
+            git add $file
+        fi
+    done
+
+    echo "--Formatting source code done--"
 fi
-ASTYLE=astyle
-
-case `$ASTYLE --version 2> /dev/null` in
-  Artistic*)
-      ;;
-  default)
-      echo "git pre-commit hook:"
-      echo "Did not find astyle, please install it before continuing."
-      exit 1
-      ;;
-esac
-
-ASTYLE_PARAMETERS="--suffix=none \
-    --style=linux \
-    --indent=spaces=4 \
-    --indent-switches \
-    --indent-classes \
-    --unpad-paren \
-    --align-pointer=type \
-    --keep-one-line-statements\
-    --keep-one-line-blocks\
-    --pad-header"
-
-echo "--Formatting source code--"
-
-files=`git-diff-index --diff-filter=ACMR --name-only -r --cached $against --`
-for file in $files; do
-    x=`echo $file |grep -E '^.*(\.cc|\.h|\.cpp|\.c|\.hpp)$'`
-    if test "x$x" != "x"; then
-        $ASTYLE ${ASTYLE_PARAMETERS} $file
-        git add $file
-    fi
-done
-
-echo "--Formatting source code done--"
-

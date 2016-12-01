@@ -1,6 +1,8 @@
 SET(sdsl_tests "")
 SET(generated_files "")
 
+
+
 FILE(STRINGS ${CMAKE_CURRENT_LIST_DIR}/download.config download_config_lines REGEX "^[^#].*")
 FOREACH(download_config_line ${download_config_lines})
     LIST(GET download_config_line 0 download_file)

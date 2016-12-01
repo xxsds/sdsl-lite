@@ -27,7 +27,7 @@
 namespace sdsl
 {
 
-#ifdef MODE_TI
+#if @HAVE_MODETI@
 
 typedef unsigned int uint128_t __attribute__((mode(TI)));
 

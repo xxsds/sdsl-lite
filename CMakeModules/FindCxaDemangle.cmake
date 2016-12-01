@@ -7,6 +7,7 @@
 #
 # perform tests
 include(CheckCXXSourceCompiles)
+include(AppendCompilerFlags)
 
 CHECK_CXX_SOURCE_COMPILES("#include <cxxabi.h>
 int main(void){
@@ -22,3 +23,9 @@ set (FIND_PACKAGE_MESSAGE_DETAILS_CxaDemangle "[1][v()]"
   CACHE INTERNAL "Details about finding CxaDemangle")
 find_package_handle_standard_args (CxaDemangle DEFAULT_MSG HAVE_CXA_DEMANGLE)
 
+if( HAVE_CXA_DEMANGLE )
+    message(STATUS "${Green}Compiler support DEMANGLE${ColourReset}")
+else()
+    set(HAVE_CXA_DEMANGLE 0)
+    message(STATUS "${Red}Compiler NOT support DEMANGLE${ColourReset}")
+endif()
