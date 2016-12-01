@@ -441,16 +441,6 @@ csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_str
         t_enc_vec tmp_psi(psi_buf);
         m_psi.swap(tmp_psi);
     }
-    {
-        auto event = memory_monitor::event("sample SA");
-        sa_sample_type tmp_sa_sample(config);
-        m_sa_sample.swap(tmp_sa_sample);
-    }
-    {
-        auto event = memory_monitor::event("sample ISA");
-        isa_sample_type isa_s(config, &m_sa_sample);
-        util::swap_support(m_isa_sample, isa_s, &m_sa_sample, (const sa_sample_type*)nullptr);
-    }
 }
 
 template<class t_enc_vec, uint32_t t_dens, uint32_t t_inv_dens, class t_sa_sample_strat, class t_isa, class t_alphabet_strat>
