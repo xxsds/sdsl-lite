@@ -61,13 +61,13 @@ TYPED_TEST(wt_int_test, constructor)
     }
     {
         int_vector_buffer<> iv_buf(test_file);
-        TypeParam wt(iv_buf, 0);
+        TypeParam wt(iv_buf.begin(), iv_buf.begin());
         ASSERT_EQ((size_type)0,  wt.size());
     }
     {
         int_vector_buffer<> iv_buf(test_file);
         size_type len = (iv.size() >= 6) ? 6 : iv.size();
-        TypeParam wt(iv_buf, len);
+        TypeParam wt(iv_buf.begin(), iv_buf.begin()+len);
         ASSERT_EQ(len, wt.size());
         for (size_type j=0; j < len; ++j) {
             ASSERT_EQ(iv[j], wt[j])<<j;

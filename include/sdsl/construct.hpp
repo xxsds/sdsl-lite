@@ -99,7 +99,7 @@ void construct(t_index& idx, const std::string& file, cache_config& config, uint
     if ((t_index::alphabet_category::WIDTH==8 and num_bytes <= 1)
         or (t_index::alphabet_category::WIDTH==0 and num_bytes != 'd')) {
         int_vector_buffer<t_index::alphabet_category::WIDTH> text_buf(file, std::ios::in, 1024*1024, num_bytes*8, (bool)num_bytes);
-        t_index tmp(text_buf, text_buf.size());
+        t_index tmp(text_buf.begin(), text_buf.end(), config.dir);
         idx.swap(tmp);
     } else {
         int_vector<t_index::alphabet_category::WIDTH> text;
@@ -110,7 +110,7 @@ void construct(t_index& idx, const std::string& file, cache_config& config, uint
         util::clear(text);
         {
             int_vector_buffer<t_index::alphabet_category::WIDTH> text_buf(tmp_file_name);
-            t_index tmp(text_buf, text_buf.size());
+            t_index tmp(text_buf.begin(), text_buf.end(), config.dir);
             idx.swap(tmp);
         }
         sdsl::remove(tmp_file_name);

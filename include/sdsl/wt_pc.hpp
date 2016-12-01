@@ -191,15 +191,16 @@ class wt_pc
         // Default constructor
         wt_pc() {};
 
-        //! Construct the wavelet tree from a file_buffer
+        //! Construct the wavelet tree from a sequence defined by two interators
         /*!
-         * \param input_buf    File buffer of the input.
-         * \param size         The length of the prefix.
+         * \param begin Iterator to the start of the input.
+         * \param end   Iterator one past the end of the input.
          * \par Time complexity
          *      \f$ \Order{n\log|\Sigma|}\f$, where \f$n=size\f$
          */
-        wt_pc(int_vector_buffer<tree_strat_type::int_width>& input_buf,
-              size_type size):m_size(size)
+        template<typename t_it>
+        wt_pc(t_it begin, t_it end)
+            : m_size(std::distance(begin, end))
         {
             if (0 == m_size)
                 return;
@@ -209,7 +210,7 @@ class wt_pc
             // used for integer alphabets...
             std::vector<size_type> C;
             // 1. Count occurrences of characters
-            calculate_character_occurences(input_buf, m_size, C);
+            calculate_character_occurences(begin, end, C);
             // 2. Calculate effective alphabet size
             calculate_effective_alphabet_size(C, m_sigma);
             // 3. Generate tree shape
@@ -222,14 +223,10 @@ class wt_pc
             for (size_type v=0; v < m_tree.size(); ++v) {
                 bv_node_pos[v] = m_tree.bv_pos(v);
             }
-            if (input_buf.size() < size) {
-                throw std::logic_error("Stream size is smaller than size!");
-                return;
-            }
-            value_type old_chr = input_buf[0];
+            value_type old_chr = *begin; 
             uint32_t times = 0;
-            for (size_type i=0; i < m_size; ++i) {
-                value_type chr = input_buf[i];
+            for (auto it = begin; it != end; ++it) {
+                value_type chr = *it;
                 if (chr != old_chr) {
                     insert_char(old_chr, bv_node_pos, times, temp_bv);
                     times = 1;
@@ -251,6 +248,10 @@ class wt_pc
             // 6. Finish inner nodes by precalculating the bv_pos_rank values
             m_tree.init_node_ranks(m_bv_rank);
         }
+
+        template<typename t_it>
+        wt_pc(t_it begin, t_it end, std::string) : wt_pc(begin, end) {}
+
 
 
         //! Copy constructor

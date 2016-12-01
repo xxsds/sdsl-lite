@@ -24,22 +24,22 @@ class wt_byte_test : public ::testing::Test { };
 using testing::Types;
 
 typedef Types<
-wt_pc<balanced_shape>
+ wt_pc<balanced_shape>
 ,wt_blcd<rrr_vector<63>>
-                      ,wt_blcd<bit_vector_il<>>
-                      ,wt_blcd<bit_vector>
-                      ,wt_huff<bit_vector_il<>>
-                      ,wt_huff<bit_vector, rank_support_v<>>
-                      ,wt_huff<bit_vector, rank_support_v5<>>
-                      ,wt_huff<rrr_vector<63>>
-                      ,wt_rlmn<>
-                      ,wt_rlmn<bit_vector>
-                      ,wt_gmr_rs<>
-                      ,wt_hutu<bit_vector_il<>>
-                      ,wt_hutu<bit_vector, rank_support_v<>>
-                      ,wt_hutu<bit_vector, rank_support_v5<>>
-                      ,wt_hutu<rrr_vector<63>>
-                      > Implementations;
+,wt_blcd<bit_vector_il<>>
+,wt_blcd<bit_vector>
+,wt_huff<bit_vector_il<>>
+,wt_huff<bit_vector, rank_support_v<>>
+,wt_huff<bit_vector, rank_support_v5<>>
+,wt_huff<rrr_vector<63>>
+,wt_rlmn<>
+,wt_rlmn<bit_vector>
+,wt_gmr_rs<>
+,wt_hutu<bit_vector_il<>>
+,wt_hutu<bit_vector, rank_support_v<>>
+,wt_hutu<bit_vector, rank_support_v5<>>
+,wt_hutu<rrr_vector<63>>
+> Implementations;
 
 TYPED_TEST_CASE(wt_byte_test, Implementations);
 
@@ -545,7 +545,7 @@ TYPED_TEST(wt_byte_test, create_partially_test)
     ASSERT_TRUE(load_vector_from_file(text, test_file, 1));
     size_type n = min(text.size(), (size_type)50);
     text.resize(n);
-    TypeParam wt(text_buf, n);
+    TypeParam wt(text_buf.begin(),text_buf.begin()+n);
     compare_wt(text, wt);
 }
 

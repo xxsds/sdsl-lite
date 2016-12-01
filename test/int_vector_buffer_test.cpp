@@ -391,6 +391,7 @@ void test_file_handling(size_type exp_w)
     ASSERT_EQ((size_type)100000, iv.size());
     t_T ivb2(file_name, std::ios::in, buffersize, 5);
     ASSERT_EQ((size_type)100000, ivb2.size());
+    ASSERT_EQ(ivb2.size(),(size_t)std::distance(ivb2.begin(), ivb2.end()));
     ASSERT_EQ(exp_w, ivb2.width());
     rng.seed(13);
     for (size_type i=0; i<iv.size(); ++i) {

@@ -106,18 +106,16 @@ class wt_ap
         //! Default constructor
         wt_ap() {}
 
-        //! Semi-external constructor
-        /*! \param buf         File buffer of the int_vector for which the wt_ap should be build.
-         *  \param size        Size of the prefix of v, which should be indexed.
+        //! Construct the wavelet tree from a sequence defined by two interators
+        /*! 
+         * \param begin   Iterator to the start of the input.
+         * \param end     Iterator one past the end of the input.
+         * \param tmp_dir Temporary directory for intermediate results.
          */
-        template<uint8_t int_width>
-        wt_ap(int_vector_buffer<int_width>& buf, size_type size) : m_size(size)
+        template<typename t_it>
+        wt_ap(t_it begin, t_it end, std::string tmp_dir = ram_file_name(""))
+            : m_size(std::distance(begin, end))
         {
-            if (buf.size() < m_size) {
-                throw std::logic_error("n="+util::to_string(buf.size())+" < "+util::to_string(m_size)+"=m_size");
-                return;
-            }
-
             const uint8_t wt_byte_width = wt_byte_type::alphabet_category::WIDTH;
             const uint8_t wt_int_width = wt_int_type::alphabet_category::WIDTH;
 
@@ -127,8 +125,8 @@ class wt_ap
             value_type pseudo_entries = 0;
             {
                 auto event = memory_monitor::event("char freq");
-                for (size_type i=0; i < m_size; ++i) {
-                    auto element = buf[i];
+                for (auto it = begin; it != end; ++it) {
+                    value_type element = *it;
                     while (element >= max_symbol) {
                         char_freq.emplace_back(0, max_symbol);
                         max_symbol++;
@@ -164,7 +162,7 @@ class wt_ap
                         m_char2class_buffer[char_freq[current_symbol].second] = i;
                     }
 
-                    std::string temp_file_offset = buf.filename()
+                    std::string temp_file_offset = tmp_dir
                                                    + "_wt_ap_offset_"
                                                    + util::to_string(i-m_singleton_class_cnt)
                                                    + "_" + util::to_string(util::pid())
@@ -178,15 +176,15 @@ class wt_ap
             }
 
             // calculate text-order classes and offsets
-            std::string temp_file_class = buf.filename()
+            std::string temp_file_class = tmp_dir
                                           + "_wt_ap_class_"
                                           + util::to_string(util::pid())
                                           + "_" + util::to_string(util::id());
             int_vector_buffer<wt_byte_width> class_buffer(temp_file_class, std::ios::out, 1024*1024, bits::hi(m_class_cnt)+1);
             {
                 auto event = memory_monitor::event("write class and offset");
-                for (size_type i=0; i < m_size; ++i) {
-                    value_type ch = buf[i];
+                for (auto it = begin; it != end; ++it) {
+                    value_type ch = *it;
                     value_type cl = m_char2class_buffer[ch];
                     class_buffer.push_back(cl);
                     if (cl >= m_singleton_class_cnt) {
@@ -201,7 +199,7 @@ class wt_ap
             {
                 auto event = memory_monitor::event("class WT");
                 int_vector_buffer<wt_byte_width> class_buffer(temp_file_class);
-                m_class = wt_byte_type(class_buffer, class_buffer.size());
+                m_class = wt_byte_type(class_buffer.begin(), class_buffer.end(), tmp_dir);
             }
             sdsl::remove(temp_file_class);
             {
@@ -212,7 +210,7 @@ class wt_ap
                     temp_file_offset_buffer.second.close();
                     {
                         int_vector_buffer<wt_int_width> offset_buffer(temp_file_offset_buffer.first);
-                        m_offset[i] = wt_int_type(offset_buffer, offset_buffer.size());
+                        m_offset[i] = wt_int_type(offset_buffer.begin(), offset_buffer.end(), tmp_dir);
                     }
                     sdsl::remove(temp_file_offset_buffer.first);
                 }
