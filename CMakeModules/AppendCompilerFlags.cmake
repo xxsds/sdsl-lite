@@ -1,6 +1,6 @@
 include(CheckCXXCompilerFlag)
 
-macro(AppendCompilerFlags)
+macro(CheckAndAppendCompilerFlags)
   cmake_parse_arguments(ARG "CONFIG" "" ${ARGN})
   # determine to which flags to add
   set(CXX_FLAGS CMAKE_CXX_FLAGS)
@@ -11,9 +11,10 @@ macro(AppendCompilerFlags)
   
   # add all the passed flags
   foreach(flag ${ARG_UNPARSED_ARGUMENTS})
-    check_cxx_compiler_flag( "${flag}"   COMPILER_SUPPORTS_${flag} )
-    if(COMPILER_SUPPORTS_${flag})
+    string(TOUPPER ${flag} FLAG)
+    check_cxx_compiler_flag( "${flag}"   HAVE_${FLAG} )
+    if(HAVE_${FLAG})
       set(${CXX_FLAGS} "${${CXX_FLAGS}} ${flag}")
     endif()
   endforeach()
-endmacro(AppendCompilerFlags)
+endmacro(CheckAndAppendCompilerFlags)

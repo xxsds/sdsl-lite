@@ -4,3 +4,4 @@
 !.gitignore
 !*.hpp
 !*.cmake
+bits.hpp

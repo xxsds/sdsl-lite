@@ -1,0 +1,26 @@
+include(CheckCXXSourceRuns)
+include(AppendCompilerFlags)
+
+set(CMAKE_REQUIRED_FLAGS "-msse4.2")
+file(READ "CMakeModules/SSE42.cpp" test_source_sse42)
+CHECK_CXX_SOURCE_RUNS("${test_source_sse42}" HAVE_SSE42)
+set(CMAKE_REQUIRED_FLAGS "")
+
+if(HAVE_SSE42)
+  message(STATUS "Compiler supports SSE4.2")
+  if(NOT MSVC)
+    CheckAndAppendCompilerFlags(${CMAKE_BUILD_TYPE} "-msse4.2")
+  endif()
+endif()
+
+file(READ "CMakeModules/MODETI.cpp" test_source_modeti)
+CHECK_CXX_SOURCE_RUNS("${test_source_modeti}" HAVE_MODETI)
+
+if(HAVE_MODETI)
+  message(STATUS "Compiler supports 128 bit integers")
+  if(MSVC)
+    add_definitions("/DMODE_TI")
+  else()
+    add_definitions("-DMODE_TI")
+  endif()
+endif()
