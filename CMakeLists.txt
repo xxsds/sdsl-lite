@@ -9,7 +9,6 @@ cmake_policy(SET CMP0048 NEW) # no more project version warnings
 project(sdsl VERSION ${LIBRARY_VERSION_FULL} LANGUAGES CXX C)
 set(PROJECT_URL "https://github.com/xxsds/sdsl-lite")
 set(PROJECT_DESCRIPTION "The Succinct Data Structure Library")
-set(PROJECT_VERSION ${LIBRARY_VERSION_FULL})
 
 ## (4) Build information. Default = Release 
 if(NOT CMAKE_BUILD_TYPE)
