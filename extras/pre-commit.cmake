@@ -44,7 +44,7 @@ fi
 
 CLANGFORMAT_BIN=@CLANG_FORMAT@
 
-if [[ -x "$CLANGFORMAT_BIN" ]]
+if [ -x "$CLANGFORMAT_BIN" ];
 then
     echo "--Formatting source code USING clang-format: $CLANGFORMAT_BIN --"
 
