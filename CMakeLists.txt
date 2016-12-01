@@ -8,7 +8,7 @@ include(ParseVersionFile)
 cmake_policy(SET CMP0048 NEW) # no more project version warnings
 project(sdsl VERSION ${LIBRARY_VERSION_FULL} LANGUAGES CXX C)
 
-## (4) Build information
+## (4) Build information. Default = Release 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Release")
 endif()
@@ -25,11 +25,11 @@ include(CompilerFlags)
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/Make.helper.cmake"
 		       "${CMAKE_CURRENT_SOURCE_DIR}/Make.helper" @ONLY)
 
+# (8) main library target
 add_subdirectory(external)
 add_subdirectory(include/sdsl)
 add_subdirectory(lib)
 
-# (8) main library target
 target_include_directories(sdsl PUBLIC include)
 
 # (9) test targets 
