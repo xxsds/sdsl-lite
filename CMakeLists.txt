@@ -21,6 +21,7 @@ option(GENERATE_DOC "Set ON to genrate doxygen API reference in build/doc direct
 include(CompilerFlags)
 
 ## (7) Configure scripts
+set(MY_CXX_FLAGS ${${CMAKE_CXX_FLAGS}})
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/Make.helper.cmake"
 		       "${CMAKE_CURRENT_SOURCE_DIR}/Make.helper" @ONLY)
 
@@ -36,3 +37,4 @@ add_subdirectory(test)
 
 # (10) perform extra tasks such as doxygen / packaging and uninstall target 
 add_subdirectory(extras)
+

@@ -6,7 +6,6 @@ macro(CheckAndAppendCompilerFlags CONFIG flags)
   if(NOT "${CONFIG}" STREQUAL "")
       string(TOUPPER ${CONFIG} UPCONFIG)
       set(CXX_FLAGS CMAKE_CXX_FLAGS_${UPCONFIG})
-      message("CXX_FLAGS =" "${CXX_FLAGS}")
   endif()
   
   # add all the passed flags
