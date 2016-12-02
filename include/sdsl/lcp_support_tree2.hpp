@@ -201,9 +201,7 @@ void construct_first_child_and_lf_lcp(int_vector_buffer<>& lcp_buf,
     bwt_buf.buffersize(buf_len);
     size_type n = lcp_buf.size();
 
-    osfstream sml_lcp_out(small_lcp_file, std::ios::out | std::ios::trunc | std::ios::binary);
-    uint64_t bit_size = 8*n;
-    sml_lcp_out.write((char*) &bit_size, sizeof(bit_size));
+    int_vector_buffer<8> sml_lcp_out(small_lcp_file,std::ios::out);
 
     osfstream big_lcp_out(big_lcp_file, std::ios::out | std::ios::trunc | std::ios::binary);
 
@@ -237,7 +235,7 @@ void construct_first_child_and_lf_lcp(int_vector_buffer<>& lcp_buf,
                 } else {
                     val = y;
                 }
-                sml_lcp_out.write((const char*)&val, 1);
+                sml_lcp_out.push_back(val);
                 ++fc_cnt;
                 is_one_big_and_not_reducable = false;
             }
@@ -267,15 +265,10 @@ void construct_first_child_and_lf_lcp(int_vector_buffer<>& lcp_buf,
             } else {
                 val = y;
             }
-            sml_lcp_out.write((const char*)&val, 1);
+            sml_lcp_out.push_back(val);
             ++fc_cnt;
         }
     }
-    // write number of elements of sml_lcp into the out file stream
-    sml_lcp_out.seekp(0);
-    bit_size = 8*fc_cnt;
-    sml_lcp_out.write((char*) &bit_size, sizeof(bit_size));
-    sml_lcp_out.close();
 
     big_lcp_out.close();
     isfstream big_lcp_in(big_lcp_file, std::ios::in | std::ios::binary);
