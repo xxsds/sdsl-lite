@@ -132,16 +132,6 @@ class rmq_succinct_sada
             }
         }
 
-        void copy(const rmq_succinct_sada& rm) {
-            m_ect_bp = rm.m_ect_bp;
-            m_ect_bp_support = rm.m_ect_bp_support;
-            m_ect_bp_support.set_vector(&m_ect_bp);
-            m_ect_bp_rank10 = rm.m_ect_bp_rank10;
-            m_ect_bp_rank10.set_vector(&m_ect_bp);
-            m_ect_bp_select10 = rm.m_ect_bp_select10;
-            m_ect_bp_select10.set_vector(&m_ect_bp);
-        }
-
     public:
         //! Default Constructor
         rmq_succinct_sada() {}
@@ -160,15 +150,20 @@ class rmq_succinct_sada
         }
 
         //! Copy constructor
-        rmq_succinct_sada(const rmq_succinct_sada& rm) {
-            if (this != &rm) { // if v is not the same object
-                copy(rm);
-            }
+        rmq_succinct_sada(const rmq_succinct_sada& rm) :
+            m_ect_bp(rm.m_ect_bp),
+            m_ect_bp_support(rm.m_ect_bp_support),
+            m_ect_bp_rank10(rm.m_ect_bp_rank10),
+            m_ect_bp_select10(rm.m_ect_bp_select10)
+        {
+            m_ect_bp_support.set_vector(&m_ect_bp);
+            m_ect_bp_rank10.set_vector(&m_ect_bp);
+            m_ect_bp_select10.set_vector(&m_ect_bp);
         }
 
         //! Move constructor
         rmq_succinct_sada(rmq_succinct_sada&& rm) {
-            *this = rm;
+            *this = std::move(rm);
         }
 
         //! Destructor
@@ -176,7 +171,8 @@ class rmq_succinct_sada
 
         rmq_succinct_sada& operator=(const rmq_succinct_sada& rm) {
             if (this != &rm) {
-                copy(rm);
+                rmq_succinct_sada tmp(rm);
+                *this = std::move(tmp);
             }
             return *this;
         }
@@ -192,14 +188,6 @@ class rmq_succinct_sada
                 m_ect_bp_select10.set_vector(&m_ect_bp);
             }
             return *this;
-        }
-
-        //! Swap operator
-        void swap(rmq_succinct_sada& rm) {
-            m_ect_bp.swap(rm.m_ect_bp);
-            util::swap_support(m_ect_bp_support, rm.m_ect_bp_support, &m_ect_bp, &(rm.m_ect_bp));
-            util::swap_support(m_ect_bp_rank10, rm.m_ect_bp_rank10, &m_ect_bp, &(rm.m_ect_bp));
-            util::swap_support(m_ect_bp_select10, rm.m_ect_bp_select10, &m_ect_bp, &(rm.m_ect_bp));
         }
 
         //! Range minimum/maximum query for the supported random access container v.

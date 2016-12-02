@@ -61,14 +61,6 @@ class rmq_support_sparse_table
         std::vector<int_vector<>> m_table;
         typedef min_max_trait<t_rac, t_min> mm_trait;
 
-        void copy(const rmq_support_sparse_table& rm)
-        {
-            m_v = rm.m_v;
-            m_k = rm.m_k;
-            m_table.resize(m_k);
-            std::copy(rm.m_table.begin(), rm.m_table.end(),
-                      m_table.begin());
-        }
 
     public:
         typedef typename t_rac::size_type size_type;
@@ -100,43 +92,15 @@ class rmq_support_sparse_table
         }
 
         //! Copy constructor
-        rmq_support_sparse_table(const rmq_support_sparse_table& rm)
-        {
-            if (this != &rm) { // if v is not the same object
-                copy(rm);
-            }
-        }
-
+        rmq_support_sparse_table(const rmq_support_sparse_table& rm) = default;
+        
         //! Move constructor
-        rmq_support_sparse_table(rmq_support_sparse_table&& rm)
-        {
-            *this = std::move(rm);
-        }
+        rmq_support_sparse_table(rmq_support_sparse_table&& rm) = default;
 
-        rmq_support_sparse_table& operator=(const rmq_support_sparse_table& rm)
-        {
-            if (this != &rm) {
-                copy(rm);
-            }
-            return *this;
-        }
+        rmq_support_sparse_table& operator=(const rmq_support_sparse_table& rm) = default;
 
-        rmq_support_sparse_table& operator=(rmq_support_sparse_table&& rm)
-        {
-            if (this != &rm) {
-                m_v = rm.m_v;
-                m_k = rm.m_k;
-                m_table = rm.m_table;
-            }
-            return *this;
-        }
-
-        void swap(rmq_support_sparse_table& rm)
-        {
-            std::swap(m_k, rm.m_k);
-            m_table.swap(rm.m_table);
-        }
-
+        rmq_support_sparse_table& operator=(rmq_support_sparse_table&& rm) = default;
+        
         void set_vector(const t_rac* v)
         {
             m_v = v;
