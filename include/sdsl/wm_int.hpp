@@ -96,22 +96,7 @@ class wm_int
         int_vector<64>         m_zero_cnt;     // m_zero_cnt[i] contains the number of zeros in level i
         int_vector<64>         m_rank_level;   // m_rank_level[i] contains m_tree_rank(i*size())
 
-        void copy(const wm_int& wt)
-        {
-            m_size          = wt.m_size;
-            m_sigma         = wt.m_sigma;
-            m_tree          = wt.m_tree;
-            m_tree_rank     = wt.m_tree_rank;
-            m_tree_rank.set_vector(&m_tree);
-            m_tree_select1  = wt.m_tree_select1;
-            m_tree_select1.set_vector(&m_tree);
-            m_tree_select0  = wt.m_tree_select0;
-            m_tree_select0.set_vector(&m_tree);
-            m_max_level     = wt.m_max_level;
-            m_zero_cnt      = wt.m_zero_cnt;
-            m_rank_level    = wt.m_rank_level;
-        }
-
+      
     public:
 
         const size_type&       sigma = m_sigma;         //!< Effective alphabet size of the wavelet tree.
@@ -207,22 +192,55 @@ class wm_int
         }
 
         //! Copy constructor
-        wm_int(const wm_int& wt)
+        wm_int(const wm_int& wt) :
+            m_size(wt.m_size),
+            m_sigma(wt.m_sigma),
+            m_tree(wt.m_tree),
+            m_tree_rank(wt.m_tree_rank),
+            m_tree_select1(wt.m_tree_select1),
+            m_tree_select0(wt.m_tree_select0),
+            m_max_level(wt.m_max_level),
+            m_zero_cnt(wt.m_zero_cnt),
+            m_rank_level(wt.m_rank_level)
         {
-            copy(wt);
+            m_tree_rank.set_vector(&m_tree);
+            m_tree_select1.set_vector(&m_tree);
+            m_tree_select0.set_vector(&m_tree);
         }
 
-        //! Copy constructor
-        wm_int(wm_int&& wt)
+        //! Move copy constructor
+        wm_int(wm_int&& wt) :
+            m_size(wt.m_size),
+            m_sigma(wt.m_sigma),
+            m_tree(std::move(wt.m_tree)),
+            m_tree_rank(std::move(wt.m_tree_rank)),
+            m_tree_select1(std::move(wt.m_tree_select1)),
+            m_tree_select0(std::move(wt.m_tree_select0)),
+            m_max_level(wt.m_max_level),
+            m_zero_cnt(wt.m_zero_cnt),
+            m_rank_level(wt.m_rank_level)
         {
-            *this = std::move(wt);
+            m_tree_rank.set_vector(&m_tree);
+            m_tree_select1.set_vector(&m_tree);
+            m_tree_select0.set_vector(&m_tree);
         }
 
         //! Assignment operator
         wm_int& operator=(const wm_int& wt)
         {
             if (this != &wt) {
-                copy(wt);
+                m_size          = wt.m_size;
+                m_sigma         = wt.m_sigma;
+                m_tree          = wt.m_tree;
+                m_tree_rank     = wt.m_tree_rank;
+                m_tree_rank.set_vector(&m_tree);
+                m_tree_select1  = wt.m_tree_select1;
+                m_tree_select1.set_vector(&m_tree);
+                m_tree_select0  = wt.m_tree_select0;
+                m_tree_select0.set_vector(&m_tree);
+                m_max_level     = wt.m_max_level;
+                m_zero_cnt      = wt.m_zero_cnt;
+                m_rank_level    = wt.m_rank_level;
             }
             return *this;
         }
@@ -245,22 +263,6 @@ class wm_int
                 m_rank_level    = std::move(wt.m_rank_level);
             }
             return *this;
-        }
-
-        //! Swap operator
-        void swap(wm_int& wt)
-        {
-            if (this != &wt) {
-                std::swap(m_size, wt.m_size);
-                std::swap(m_sigma,  wt.m_sigma);
-                m_tree.swap(wt.m_tree);
-                util::swap_support(m_tree_rank, wt.m_tree_rank, &m_tree, &(wt.m_tree));
-                util::swap_support(m_tree_select1, wt.m_tree_select1, &m_tree, &(wt.m_tree));
-                util::swap_support(m_tree_select0, wt.m_tree_select0, &m_tree, &(wt.m_tree));
-                std::swap(m_max_level,  wt.m_max_level);
-                m_zero_cnt.swap(wt.m_zero_cnt);
-                m_rank_level.swap(wt.m_rank_level);
-            }
         }
 
         //! Returns the size of the original vector.
