@@ -361,7 +361,7 @@ class k2_tree
             k_l(tr.k_l),
             k_k(tr.k_k),
             k_height(tr.k_height),
-            k_t_rank(tr.k_t_rank),
+            k_t_rank(tr.k_t_rank)
         {
             k_t_rank.set_vector(&k_t);
         }
