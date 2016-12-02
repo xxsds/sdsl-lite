@@ -144,23 +144,6 @@ class wt_rlmn
         // the prefixes m_bf[0..m_C[0]],m_bf[0..m_C[1]],....,m_bf[0..m_C[255]];
         // named C_s in the original paper
 
-        void copy(const wt_rlmn& wt) {
-            m_size          = wt.m_size;
-            m_bl            = wt.m_bl;
-            m_bf            = wt.m_bf;
-            m_wt            = wt.m_wt;
-            m_bl_rank       = wt.m_bl_rank;
-            m_bl_rank.set_vector(&m_bl);
-            m_bf_rank       = wt.m_bf_rank;
-            m_bf_rank.set_vector(&m_bf);
-            m_bl_select     = wt.m_bl_select;
-            m_bl_select.set_vector(&m_bl);
-            m_bf_select     = wt.m_bf_select;
-            m_bf_select.set_vector(&m_bf);
-            m_C             = wt.m_C;
-            m_C_bf_rank     = wt.m_C_bf_rank;
-        }
-
     public:
 
         const size_type& sigma = m_wt.sigma;
@@ -240,19 +223,48 @@ class wt_rlmn
         }
 
         //! Copy constructor
-        wt_rlmn(const wt_rlmn& wt) {
-            copy(wt);
+        wt_rlmn(const wt_rlmn& wt) :
+            m_size(wt.m_size),
+            m_bl(wt.m_bl),
+            m_bf(wt.m_bf),
+            m_wt(wt.m_wt),
+            m_bl_rank(wt.m_bl_rank),
+            m_bf_rank(wt.m_bf_rank),
+            m_bl_select(wt.m_bl_select),
+            m_bf_select(wt.m_bf_select),
+            m_C(wt.m_C),
+            m_C_bf_rank(wt.m_C_bf_rank)
+        {
+            m_bl_rank.set_vector(&m_bl);
+            m_bf_rank.set_vector(&m_bf);
+            m_bl_select.set_vector(&m_bl);
+            m_bf_select.set_vector(&m_bf);
         }
 
         //! Move constructor
-        wt_rlmn(wt_rlmn&& wt) {
-            *this = std::move(wt);
+        wt_rlmn(wt_rlmn&& wt) :
+            m_size(wt.m_size),
+            m_bl(std::move(wt.m_bl)),
+            m_bf(std::move(wt.m_bf)),
+            m_wt(std::move(wt.m_wt)),
+            m_bl_rank(std::move(wt.m_bl_rank)),
+            m_bf_rank(std::move(wt.m_bf_rank)),
+            m_bl_select(std::move(wt.m_bl_select)),
+            m_bf_select(std::move(wt.m_bf_select)),
+            m_C(std::move(wt.m_C)),
+            m_C_bf_rank(std::move(wt.m_C_bf_rank))
+        {
+            m_bl_rank.set_vector(&m_bl);
+            m_bf_rank.set_vector(&m_bf);
+            m_bl_select.set_vector(&m_bl);
+            m_bf_select.set_vector(&m_bf);
         }
 
         //! Assignment operator
         wt_rlmn& operator=(const wt_rlmn& wt) {
             if (this != &wt) {
-                copy(wt);
+                wt_rlmn tmp(wt);
+                *this = std::move(tmp);
             }
             return *this;
         }
@@ -276,33 +288,6 @@ class wt_rlmn
                 m_C_bf_rank     = std::move(wt.m_C_bf_rank);
             }
             return *this;
-        }
-
-        //! Swap operator
-        void swap(wt_rlmn& wt) {
-            if (this != &wt) {
-                std::swap(m_size, wt.m_size);
-                m_bl.swap(wt.m_bl);
-                m_bf.swap(wt.m_bf);
-                m_wt.swap(wt.m_wt);
-
-                m_bl_rank.swap(wt.m_bl_rank);
-                m_bl_rank.set_vector(&m_bl);
-                wt.m_bl_rank.set_vector(&(wt.m_bl));
-                m_bf_rank.swap(wt.m_bf_rank);
-                m_bf_rank.set_vector(&m_bf);
-                wt.m_bf_rank.set_vector(&(wt.m_bf));
-
-                m_bl_select.swap(wt.m_bl_select);
-                m_bl_select.set_vector(&m_bl);
-                wt.m_bl_select.set_vector(&(wt.m_bl));
-                m_bf_select.swap(wt.m_bf_select);
-                m_bf_select.set_vector(&m_bf);
-                wt.m_bf_select.set_vector(&(wt.m_bf));
-
-                m_C.swap(wt.m_C);
-                m_C_bf_rank.swap(wt.m_C_bf_rank);
-            }
         }
 
         //! Returns the size of the original vector.

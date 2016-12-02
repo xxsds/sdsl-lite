@@ -223,48 +223,37 @@ class wt_ap
             copy(wt);
         }
 
-        //! Copy constructor
-        wt_ap(wt_ap&& wt)
-        {
-            *this = std::move(wt);
-        }
+        //! Move copy constructor
+        wt_ap(wt_ap&& wt) : 
+            m_size(wt.m_size),
+            m_sigma(wt.m_sigma),
+            m_singleton_class_cnt(wt.m_singleton_class_cnt),
+            m_class_cnt(wt.m_class_cnt),
+            m_char2class(std::move(wt.m_char2class)),
+            m_class(std::move(wt.m_class)),
+            m_offset(std::move(wt.m_offset))
+        { }
 
         //! Assignment operator
         wt_ap& operator=(const wt_ap& wt)
         {
             if (this != &wt) {
-                copy(wt);
+                wt_ap tmp(wt);
+                *this = std::move(tmp);
             }
             return *this;
         }
 
         //! Assignment move operator
-        wt_ap& operator=(wt_ap&& wt)
-        {
-            if (this != &wt) {
-                m_size              = wt.m_size;
-                m_sigma             = wt.m_sigma;
-                m_singleton_class_cnt = wt.m_singleton_class_cnt;
-                m_class_cnt           = wt.m_class_cnt;
-                m_char2class        = std::move(wt.m_char2class);
-                m_class             = std::move(wt.m_class);
-                m_offset            = std::move(wt.m_offset);
-            }
+        wt_ap& operator=(wt_ap&& wt) {
+            m_size = wt.m_size;
+            m_sigma = wt.m_sigma;
+            m_singleton_class_cnt = wt.m_singleton_class_cnt;
+            m_class_cnt = wt.m_class_cnt;
+            m_char2class = std::move(wt.m_char2class);
+            m_class = std::move(wt.m_class);
+            m_offset = std::move(wt.m_offset);
             return *this;
-        }
-
-        //! Swap operator
-        void swap(wt_ap& wt)
-        {
-            if (this != &wt) {
-                std::swap(m_size, wt.m_size);
-                std::swap(m_sigma, wt.m_sigma);
-                std::swap(m_singleton_class_cnt, wt.m_singleton_class_cnt);
-                std::swap(m_class_cnt, wt.m_class_cnt);
-                m_char2class.swap(wt.m_char2class);
-                m_class.swap(wt.m_class);
-                std::swap(m_offset,  wt.m_offset);
-            }
         }
 
         //! Returns the size of the original vector.

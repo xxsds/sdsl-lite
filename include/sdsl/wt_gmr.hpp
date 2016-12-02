@@ -141,8 +141,11 @@ class inv_multi_perm_support
         }
 
         //! Copy constructor
-        inv_multi_perm_support(const inv_multi_perm_support& p) : m_perm(p.m_perm),
-            m_chunksize(p.m_chunksize), m_back_pointer(p.m_back_pointer), m_marked(p.m_marked),
+        inv_multi_perm_support(const inv_multi_perm_support& p) :
+            m_perm(p.m_perm),
+            m_chunksize(p.m_chunksize),
+            m_back_pointer(p.m_back_pointer),
+            m_marked(p.m_marked),
             m_marked_rank(p.m_marked_rank)
         {
             m_marked_rank.set_vector(&m_marked);
@@ -180,17 +183,6 @@ class inv_multi_perm_support
                 m_marked_rank.set_vector(&m_marked);
             }
             return *this;
-        }
-
-        //! Swap operation
-        void swap(inv_multi_perm_support& p)
-        {
-            if (this != &p) {
-                std::swap(m_chunksize, p.m_chunksize);
-                m_back_pointer.swap(p.m_back_pointer);
-                m_marked.swap(p.m_marked);
-                util::swap_support(m_marked_rank, p.m_marked_rank, &m_marked, &(p.m_marked));
-            }
         }
 
         //! Returns the size of the original vector.
@@ -417,41 +409,58 @@ class wt_gmr_rs
         }
 
         //! Copy constructor
-        wt_gmr_rs(const wt_gmr_rs& wt)
+        wt_gmr_rs(const wt_gmr_rs& wt) :
+            m_bv_blocks(wt.m_bv_blocks),
+            m_e(wt.m_e),
+            m_bv_blocks_select1(wt.m_bv_blocks_select1),
+            m_bv_blocks_select0(wt.m_bv_blocks_select0),
+            m_size(wt.m_size),
+            m_block_size(wt.m_block_size),
+            m_blocks(wt.m_blocks),
+            m_sigma(wt.m_sigma)
         {
-            m_bv_blocks = wt.m_bv_blocks;
-            m_e = wt.m_e;
-            m_bv_blocks_select1 = wt.m_bv_blocks_select1;
             m_bv_blocks_select1.set_vector(&m_bv_blocks);
-            m_bv_blocks_select0 = wt.m_bv_blocks_select0;
             m_bv_blocks_select0.set_vector(&m_bv_blocks);
-            m_size = wt.m_size;
-            m_block_size = wt.m_block_size;
-            m_blocks = wt.m_blocks;
-            m_sigma = wt.m_sigma;
         }
+
+        //! Move copy constructor
+        wt_gmr_rs(wt_gmr_rs&& wt) :
+            m_bv_blocks(std::move(wt.m_bv_blocks)),
+            m_e(std::move(wt.m_e)),
+            m_bv_blocks_select1(std::move(wt.m_bv_blocks_select1)),
+            m_bv_blocks_select0(std::move(wt.m_bv_blocks_select0)),
+            m_size(wt.m_size),
+            m_block_size(wt.m_block_size),
+            m_blocks(wt.m_blocks),
+            m_sigma(wt.m_sigma)
+        {
+            m_bv_blocks_select1.set_vector(&m_bv_blocks);
+            m_bv_blocks_select0.set_vector(&m_bv_blocks);
+        }
+
 
         //! Assignment operator
         wt_gmr_rs& operator=(const wt_gmr_rs& wt)
         {
             wt_gmr_rs tmp(wt);
-            tmp.swap(*this);
+            *this = std::move(wt);
             return *this;
         }
 
-        //! Swap operator
-        void swap(wt_gmr_rs& fs)
+        //! Move assignment operator
+        wt_gmr_rs& operator=(wt_gmr_rs&& wt)
         {
-            if (this != &fs) {
-                m_bv_blocks.swap(fs.m_bv_blocks);
-                m_e.swap(fs.m_e);
-                util::swap_support(m_bv_blocks_select0, fs.m_bv_blocks_select0, &m_bv_blocks, &(fs.m_bv_blocks));
-                util::swap_support(m_bv_blocks_select1, fs.m_bv_blocks_select1, &m_bv_blocks, &(fs.m_bv_blocks));
-                std::swap(m_size, fs.m_size);
-                std::swap(m_block_size, fs.m_block_size);
-                std::swap(m_blocks, fs.m_blocks);
-                std::swap(m_sigma, fs.m_sigma);
-            }
+            m_bv_blocks = std::move(wt.m_bv_blocks);
+            m_e = std::move(wt.m_e);
+            m_bv_blocks_select1 = std::move(wt.m_bv_blocks_select1);
+            m_bv_blocks_select1.set_vector(&m_bv_blocks);
+            m_bv_blocks_select0 = std::move(wt.m_bv_blocks_select0);
+            m_bv_blocks_select0.set_vector(&m_bv_blocks);
+            m_size = wt.m_size;
+            m_block_size = wt.m_block_size;
+            m_blocks = wt.m_blocks;
+            m_sigma = wt.m_sigma;
+            return *this;
         }
 
         //! Returns the size of the original vector.
@@ -782,53 +791,81 @@ class wt_gmr
         }
 
         //! Copy constructor
-        wt_gmr(const wt_gmr& wt)
+        wt_gmr(const wt_gmr& wt) : 
+            m_bv_blocks(wt.m_bv_blocks),
+            m_bv_chunks(wt.m_bv_chunks),
+            m_perm(wt.m_perm),
+            m_ips(wt.m_ips),
+            m_bv_blocks_select1(wt.m_bv_blocks_select1),
+            m_bv_chunks_select1(wt.m_bv_chunks_select1),
+            m_bv_blocks_select0(wt.m_bv_blocks_select0),
+            m_bv_chunks_select0(wt.m_bv_chunks_select0),
+            m_size(wt.m_size),
+            m_max_symbol(wt.m_max_symbol),
+            m_chunks(wt.m_chunks),
+            m_chunksize(wt.m_chunksize),
+            m_sigma(wt.m_sigma)
         {
-            m_bv_blocks         = wt.m_bv_blocks;
-            m_bv_chunks         = wt.m_bv_chunks;
-            m_perm              = wt.m_perm;
-            m_ips               = wt.m_ips;
-            m_bv_blocks_select1 = wt.m_bv_blocks_select1;
+            m_ips.set_vector(&m_perm);
             m_bv_blocks_select1.set_vector(&m_bv_blocks);
-            m_bv_chunks_select1 = wt.m_bv_chunks_select1;
             m_bv_chunks_select1.set_vector(&m_bv_chunks);
-            m_bv_blocks_select0 = wt.m_bv_blocks_select0;
             m_bv_blocks_select0.set_vector(&m_bv_blocks);
-            m_bv_chunks_select0 = wt.m_bv_chunks_select0;
             m_bv_chunks_select0.set_vector(&m_bv_chunks);
-            m_size              = wt.m_size;
-            m_max_symbol        = wt.m_max_symbol;
-            m_chunks            = wt.m_chunks;
-            m_chunksize         = wt.m_chunksize;
-            m_sigma             = wt.m_sigma;
+        }
+
+        //! Move constructor
+        wt_gmr(wt_gmr&& wt) : 
+            m_bv_blocks(std::move(wt.m_bv_blocks)),
+            m_bv_chunks(std::move(wt.m_bv_chunks)),
+            m_perm(std::move(wt.m_perm)),
+            m_ips(std::move(wt.m_ips)),
+            m_bv_blocks_select1(std::move(wt.m_bv_blocks_select1)),
+            m_bv_chunks_select1(std::move(wt.m_bv_chunks_select1)),
+            m_bv_blocks_select0(std::move(wt.m_bv_blocks_select0)),
+            m_bv_chunks_select0(std::move(wt.m_bv_chunks_select0)),
+            m_size(wt.m_size),
+            m_max_symbol(wt.m_max_symbol),
+            m_chunks(wt.m_chunks),
+            m_chunksize(wt.m_chunksize),
+            m_sigma(wt.m_sigma)
+        {
+            m_ips.set_vector(&m_perm);
+            m_bv_blocks_select1.set_vector(&m_bv_blocks);
+            m_bv_chunks_select1.set_vector(&m_bv_chunks);
+            m_bv_blocks_select0.set_vector(&m_bv_blocks);
+            m_bv_chunks_select0.set_vector(&m_bv_chunks);
         }
 
         //! Assignment operator
         wt_gmr& operator=(const wt_gmr& wt)
         {
             wt_gmr tmp(wt);
-            tmp.swap(*this);
+            *this = std::move(tmp);
             return *this;
         }
 
-        //! Swap operator
-        void swap(wt_gmr& fs)
+        //! Move assignment operator
+        wt_gmr& operator=(wt_gmr&& wt)
         {
-            if (this != &fs) {
-                m_bv_blocks.swap(fs.m_bv_blocks);
-                m_bv_chunks.swap(fs.m_bv_chunks);
-                m_perm.swap(fs.m_perm);
-                util::swap_support(m_ips, fs.m_ips, &m_perm, &(fs.m_perm));
-                util::swap_support(m_bv_blocks_select0, fs.m_bv_blocks_select0, &m_bv_blocks, &(fs.m_bv_blocks));
-                util::swap_support(m_bv_blocks_select1, fs.m_bv_blocks_select1, &m_bv_blocks, &(fs.m_bv_blocks));
-                util::swap_support(m_bv_chunks_select1, fs.m_bv_chunks_select1, &m_bv_chunks, &(fs.m_bv_chunks));
-                util::swap_support(m_bv_chunks_select0, fs.m_bv_chunks_select0, &m_bv_chunks, &(fs.m_bv_chunks));
-                std::swap(m_size, fs.m_size);
-                std::swap(m_max_symbol, fs.m_max_symbol);
-                std::swap(m_chunks, fs.m_chunks);
-                std::swap(m_chunksize, fs.m_chunksize);
-                std::swap(m_sigma, fs.m_sigma);
-            }
+            m_bv_blocks = std::move(wt.m_bv_blocks);
+            m_bv_chunks = std::move(wt.m_bv_chunks);
+            m_perm = std::move(wt.m_perm);
+            m_ips = std::move(wt.m_ips);
+            m_ips.set_vector(&m_perm);
+            m_bv_blocks_select1 = std::move(wt.m_bv_blocks_select1);
+            m_bv_blocks_select1.set_vector(&m_bv_blocks);
+            m_bv_chunks_select1 = std::move(wt.m_bv_chunks_select1);
+            m_bv_chunks_select1.set_vector(&m_bv_chunks);
+            m_bv_blocks_select0 = std::move(wt.m_bv_blocks_select0);
+            m_bv_blocks_select0.set_vector(&m_bv_blocks);
+            m_bv_chunks_select0 = std::move(wt.m_bv_chunks_select0);
+            m_bv_chunks_select0.set_vector(&m_bv_chunks);
+            m_size = wt.m_size;
+            m_max_symbol = wt.m_max_symbol;
+            m_chunks = wt.m_chunks;
+            m_chunksize = wt.m_chunksize;
+            m_sigma = wt.m_sigma;
+            return *this;
         }
 
         //! Returns the size of the original vector.
