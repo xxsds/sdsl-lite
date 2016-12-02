@@ -120,7 +120,9 @@ class rrr_vector
             m_btnr(v.m_btnr),
             m_btnrp(v.m_btnrp),
             m_rank(v.m_rank),
-            m_invert(v.m_invert) {}
+            m_invert(v.m_invert) 
+        {}
+
         rrr_vector(rrr_vector&& v) {
             *this = std::move(v);
         }
