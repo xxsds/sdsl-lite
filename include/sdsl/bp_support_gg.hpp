@@ -111,7 +111,7 @@ class bp_support_gg
             {
                 bit_vector pioneer;
                 pioneer = calculate_pioneers_bitmap_succinct(*m_bp, t_bs);
-                util::assign(m_nnd, nnd_type(pioneer));
+                m_nnd = nnd_type(pioneer);
             }
 
             m_pioneer_bp.resize(m_nnd.ones());

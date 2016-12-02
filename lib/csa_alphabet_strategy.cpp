@@ -30,9 +30,9 @@ byte_alphabet::byte_alphabet(int_vector_buffer<8>& text_buf, int_vector_size_typ
         return;
     assert(len <= text_buf.size());
     // initialize vectors
-    util::assign(m_C	    , int_vector<64>(257, 0));
-    util::assign(m_char2comp, int_vector<8>(256,0));
-    util::assign(m_comp2char, int_vector<8>(256,0));
+    m_C	        =  int_vector<64>(257, 0);
+    m_char2comp = int_vector<8>(256,0);
+    m_comp2char = int_vector<8>(256,0);
     // count occurrences of each symbol
     for (size_type i=0; i < len; ++i) {
         ++m_C[text_buf[i]];

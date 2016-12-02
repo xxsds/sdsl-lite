@@ -238,7 +238,7 @@ class sd_vector
                     w >>= 1;
                 }
             }
-            util::assign(m_high, high);
+            m_high = std::move(high);
             util::init_support(m_high_1_select, &m_high);
             util::init_support(m_high_0_select, &m_high);
         }

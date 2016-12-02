@@ -540,7 +540,7 @@ class _bwt_sampling : public int_vector<t_width>
                     base_type::operator[](sa_cnt++) = sa;
                 }
             }
-            util::assign(m_marked, marked);
+            m_marked = std::move(marked);
             util::init_support(m_rank_marked, &m_marked);
         }
 
