@@ -36,8 +36,8 @@ typedef Types<
         cst_sada<cst_sada<>::csa_type, lcp_dac<>>,
         cst_sada<cst_sada<>::csa_type, lcp_vlc<>>,
         cst_sada<cst_sada<>::csa_type, lcp_byte<>>,
-        // cst_sada<cst_sada<>::csa_type, lcp_support_tree2<>, bp_support_gg<>>
-        // cst_sct3<cst_sct3<>::csa_type, lcp_support_tree<>, bp_support_gg<>>,
+        cst_sada<cst_sada<>::csa_type, lcp_support_tree2<>, bp_support_gg<>>,
+        cst_sct3<cst_sct3<>::csa_type, lcp_support_tree<>, bp_support_gg<>>,
         cst_sada<cst_sada<>::csa_type, lcp_support_tree<> >,
         cst_sct3<cst_sct3<>::csa_type, lcp_support_sada<> >,
         cst_sct3<cst_sct3<>::csa_type, lcp_wt<> >,
