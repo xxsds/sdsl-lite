@@ -231,6 +231,11 @@ class succinct_byte_alphabet
                 }
         };
 
+        const char2comp_type char2comp;
+        const comp2char_type comp2char;
+        const C_type&        C;
+        const sigma_type&    sigma;
+
     private:
         bit_vector_type     m_char;        // `m_char[i]` indicates if character with code i is present or not
         rank_support_type   m_char_rank;   // rank data structure for `m_char` to answer char2comp
@@ -239,11 +244,6 @@ class succinct_byte_alphabet
         sigma_type          m_sigma;       // effective size of the alphabet
 
     public:
-
-        const char2comp_type char2comp;
-        const comp2char_type comp2char;
-        const C_type&        C;
-        const sigma_type&    sigma;
 
         //! Default constructor
         succinct_byte_alphabet() : char2comp(this),

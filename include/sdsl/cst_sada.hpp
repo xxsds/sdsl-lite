@@ -238,7 +238,8 @@ class cst_sada
             }
             {
                 auto event = memory_monitor::event("bpss-dfs");
-                util::assign(m_bp_support, bp_support_type(&m_bp));
+
+                util::init_support(m_bp_support, &m_bp);
                 util::init_support(m_bp_rank10,   &m_bp);
                 util::init_support(m_bp_select10, &m_bp);
             }

@@ -77,32 +77,27 @@ class bp_support_gg
         typedef t_select              select_type;
         typedef bp_support_gg<nnd_type, rank_type, select_support_scan<>, t_bs> bp_support_type;
     private:
-        const bit_vector* m_bp;         // balanced parentheses sequence
-        rank_type         m_rank_bp;    // rank support for m_bp => see excess() and rank()
-        select_type       m_select_bp;  // select support for m_bp => see select()
+        const bit_vector* m_bp = nullptr; // balanced parentheses sequence
+        rank_type         m_rank_bp;      // rank support for m_bp => see excess() and rank()
+        select_type       m_select_bp;    // select support for m_bp => see select()
 
-        nnd_type          m_nnd;        // nearest neighbour dictionary for pioneers bit_vector
+        nnd_type          m_nnd;          // nearest neighbour dictionary for pioneers bit_vector
 
-        bit_vector        m_pioneer_bp; // pioneer sequence
-        bp_support_type*  m_pioneer_bp_support;
+        bit_vector        m_pioneer_bp;   // pioneer sequence
+        bp_support_type*  m_pioneer_bp_support = nullptr;
 
-        size_type m_size;
-        size_type m_blocks; // number of blocks
+        size_type m_size   = 0;
+        size_type m_blocks = 0; // number of blocks
 
     public:
 
         const rank_type& bp_rank     = m_rank_bp;
         const select_type& bp_select = m_select_bp;
 
-        bp_support_gg(): m_bp(nullptr),
-                         m_pioneer_bp_support(nullptr),
-                         m_size(0),
-                         m_blocks(0)
-        {}
+        bp_support_gg() = default;
 
         //! Constructor
         explicit bp_support_gg(const bit_vector* bp):m_bp(bp),
-            m_pioneer_bp_support(nullptr),
             m_size(bp==nullptr?0:bp->size()),
             m_blocks((m_size+t_bs-1)/t_bs),
             bp_rank(m_rank_bp),bp_select(m_select_bp)
@@ -110,6 +105,7 @@ class bp_support_gg
             if (bp == nullptr) { // -> m_bp == nullptr
                 return;
             }
+
             util::init_support(m_rank_bp, bp);
             util::init_support(m_select_bp, bp);
             {
@@ -138,15 +134,16 @@ class bp_support_gg
                 m_select_bp(v.m_select_bp),
                 m_nnd(v.m_nnd),
                 m_pioneer_bp(v.m_pioneer_bp),
-                m_pioneer_bp_support(nullptr),
                 m_size(v.m_size),
                 m_blocks(v.m_blocks)
         {
-            // m_rank_bp.set_vector(m_bp);
-            // m_select_bp.set_vector(m_bp);
+
+            m_rank_bp.set_vector(m_bp);
+            m_select_bp.set_vector(m_bp);
+
             m_pioneer_bp_support = nullptr;
             if(v.m_pioneer_bp_support != nullptr) {
-                m_pioneer_bp_support = new bp_support_type(&m_pioneer_bp);
+                m_pioneer_bp_support = new bp_support_type(*(v.m_pioneer_bp_support));
                 m_pioneer_bp_support->set_vector(&m_pioneer_bp);
             }
         }
@@ -177,8 +174,9 @@ class bp_support_gg
         bp_support_gg& operator=(bp_support_gg&& bp_support)
         {
             if (this != &bp_support) {
-                m_bp = std::move(bp_support.m_bp);
+                m_bp = bp_support.m_bp;
                 bp_support.m_bp = nullptr;
+
                 m_rank_bp = std::move(bp_support.m_rank_bp);
                 m_rank_bp.set_vector(m_bp);
                 m_select_bp = std::move(bp_support.m_select_bp);
@@ -186,14 +184,18 @@ class bp_support_gg
 
                 m_nnd = std::move(bp_support.m_nnd);
 
-                m_size = std::move(bp_support.m_size);
-                m_blocks = std::move(bp_support.m_blocks);
+                m_size = bp_support.m_size;
+                m_blocks = bp_support.m_blocks;
 
                 m_pioneer_bp = std::move(bp_support.m_pioneer_bp);
+               
                 delete m_pioneer_bp_support;
-                m_pioneer_bp_support = bp_support.m_pioneer_bp_support;
-                if (m_pioneer_bp_support != nullptr) m_pioneer_bp_support->set_vector(&m_pioneer_bp);
-                bp_support.m_pioneer_bp_support = nullptr;
+                m_pioneer_bp_support = nullptr;
+                if ( bp_support.m_pioneer_bp_support != nullptr) {
+                    m_pioneer_bp_support = bp_support.m_pioneer_bp_support;
+                    bp_support.m_pioneer_bp_support = nullptr;
+                        m_pioneer_bp_support->set_vector(&m_pioneer_bp);
+                }
             }
             return *this;
         }
