@@ -384,8 +384,7 @@ construct(k2_treap<t_k, t_bv, t_rank, t_max_vec>& idx, std::string file)
     int_vector_buffer<> buf_x(file+".x", std::ios::in);
     int_vector_buffer<> buf_y(file+".y", std::ios::in);
     int_vector_buffer<> buf_w(file+".w", std::ios::in);
-    k2_treap<t_k, t_bv, t_rank, t_max_vec> tmp(buf_x, buf_y, buf_w);
-    tmp.swap(idx);
+    tmp = k2_treap<t_k, t_bv, t_rank, t_max_vec>(buf_x, buf_y, buf_w);
 }
 
 //! Specialized version of method ,,construct_im'' for k2_treaps.
@@ -402,8 +401,7 @@ construct_im(k2_treap<t_k, t_bv, t_rank, t_max_vec>& idx, std::vector<std::array
     for (auto x : data) {
         d.push_back(std::make_tuple(x[0],x[1],x[2]));
     }
-    k2_treap<t_k, t_bv, t_rank, t_max_vec> tmp(d, tmp_prefix);
-    tmp.swap(idx);
+    idx = k2_treap<t_k, t_bv, t_rank, t_max_vec>(d, tmp_prefix);
 }
 
 

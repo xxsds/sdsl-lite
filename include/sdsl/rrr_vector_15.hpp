@@ -555,8 +555,6 @@ class rank_support_rrr<t_b, 15, t_rac, t_k>
             return *this;
         }
 
-        void swap(rank_support_rrr&) { }
-
         //! Load the data structure from a stream and set the supported vector.
         void load(std::istream&, const bit_vector_type* v=nullptr)
         {
@@ -699,8 +697,6 @@ class select_support_rrr<t_b, 15, t_rac, t_k>
             }
             return *this;
         }
-
-        void swap(select_support_rrr&) { }
 
         void load(std::istream&, const bit_vector_type* v=nullptr)
         {

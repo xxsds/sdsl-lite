@@ -84,8 +84,7 @@ class _lcp_support_tree
             }
             {
                 {
-                    t_lcp tmp_lcp(config, fc_lcp_key); // works for lcp_kurtz, lcp_wt and lcp_bitcompressed
-                    m_lcp.swap(tmp_lcp);
+                    m_lcp = t_lcp(config, fc_lcp_key); // works for lcp_kurtz, lcp_wt and lcp_bitcompressed
                 }
             }
             sdsl::remove(tmp_file);

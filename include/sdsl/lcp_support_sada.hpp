@@ -89,22 +89,18 @@ class _lcp_support_sada
         bit_vector_type m_data;
         select_type     m_select_support;
 
-        void copy(const _lcp_support_sada& lcp_c)
-        {
-            m_csa            = lcp_c.m_csa;
-            m_data           = lcp_c.m_data;
-            m_select_support = lcp_c.m_select_support;
-            m_select_support.set_vector(&m_data);
-        }
     public:
         const t_csa*& csa = m_csa;
         //! Default Constructor
         _lcp_support_sada() {}
 
         //! Copy constructor
-        _lcp_support_sada(const _lcp_support_sada& lcp_c)
+        _lcp_support_sada(const _lcp_support_sada& lcp_c) :
+            m_csa(lcp_c.m_csa),
+            m_data(lcp_c,m_data),
+            m_select_support(lcp_c.m_select_support)
         {
-            copy(lcp_c);
+            m_select_support.set_vector(&m_data);
         }
 
         //! Move constructor
@@ -112,6 +108,29 @@ class _lcp_support_sada
         {
             *this = std::move(lcp_c);
         }
+
+        //! Assignment Operator.
+        _lcp_support_sada& operator=(const _lcp_support_sada& lcp_c)
+        {
+            if (this != &lcp_c) {
+                _lcp_support_sada tmp(lcp_c);
+                *this = std::move(tmp);
+            }
+            return *this;
+        }
+
+        //! Assignment Move Operator.
+        _lcp_support_sada& operator=(_lcp_support_sada&& lcp_c)
+        {
+            if (this != &lcp_c) {
+                m_csa            = std::move(lcp_c.m_csa);
+                m_data           = std::move(lcp_c.m_data);
+                m_select_support = std::move(lcp_c.m_select_support);
+                m_select_support.set_vector(&m_data);
+            }
+            return *this;
+        }
+
 
         //! Constructor
         _lcp_support_sada(cache_config& config, const t_csa* f_csa)
@@ -162,14 +181,6 @@ class _lcp_support_sada
             return m_csa->empty();
         }
 
-        //! Swap method for _lcp_support_sada
-        void swap(_lcp_support_sada& lcp_c)
-        {
-            m_data.swap(lcp_c.m_data);
-            util::swap_support(m_select_support, lcp_c.m_select_support,
-                               &m_data, &(lcp_c.m_data));
-        }
-
         //! Returns a const_iterator to the first element.
         const_iterator begin()const
         {
@@ -192,27 +203,6 @@ class _lcp_support_sada
             size_type j = (*m_csa)[i];
             size_type s = m_select_support.select(j+1);
             return s-(j<<1);
-        }
-
-        //! Assignment Operator.
-        _lcp_support_sada& operator=(const _lcp_support_sada& lcp_c)
-        {
-            if (this != &lcp_c) {
-                copy(lcp_c);
-            }
-            return *this;
-        }
-
-        //! Assignment Move Operator.
-        _lcp_support_sada& operator=(_lcp_support_sada&& lcp_c)
-        {
-            if (this != &lcp_c) {
-                m_csa            = std::move(lcp_c.m_csa);
-                m_data           = std::move(lcp_c.m_data);
-                m_select_support = std::move(lcp_c.m_select_support);
-                m_select_support.set_vector(&m_data);
-            }
-            return *this;
         }
 
         //! Serialize to a stream.

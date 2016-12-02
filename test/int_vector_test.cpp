@@ -142,7 +142,7 @@ TEST_F(IntVectorTest, Swap)
         {
             sdsl::int_vector<> tmp;
             ASSERT_EQ((size_type)0, tmp.size());
-            tmp.swap(iv);
+            std::swap(tmp,iv);
             ASSERT_EQ((size_type)0, iv.size());
             ASSERT_EQ(vec_sizes[i], tmp.size());
             for (size_type j=0; j < tmp.size(); ++j) {

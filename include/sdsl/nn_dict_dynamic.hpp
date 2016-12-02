@@ -110,9 +110,14 @@ class nn_dict_dynamic
         }
 
         //! Copy constructor
-        nn_dict_dynamic(const nn_dict_dynamic& nn):depth(m_depth)
+        nn_dict_dynamic(const nn_dict_dynamic& nn)
+            : m_depth(nn.m_depth),
+              m_v_begin_leaves(nn.m_v_begin_leaves),
+              m_size(nn.m_size),
+              m_offset(nn.m_offset),
+              m_tree(nn.m_tree),
+              depth(m_depth)
         {
-            copy(nn);
         }
 
         //! move constructor
@@ -125,7 +130,8 @@ class nn_dict_dynamic
         nn_dict_dynamic& operator=(const nn_dict_dynamic& nn)
         {
             if (this != &nn) {
-                copy(nn);
+                nn_dict_dynamic tmp(nn);
+                *this = std::move(tmp);
             }
             return *this;
         }
@@ -145,17 +151,6 @@ class nn_dict_dynamic
                 nn.m_v_begin_leaves = 0;
             }
             return *this;
-        }
-
-        void swap(nn_dict_dynamic& nn)
-        {
-            if (this != &nn) {
-                std::swap(m_depth, nn.m_depth);
-                std::swap(m_v_begin_leaves, nn.m_v_begin_leaves);
-                std::swap(m_size, nn.m_size);
-                m_offset.swap(nn.m_offset);
-                m_tree.swap(nn.m_tree);
-            }
         }
 
         //! Access the bit at index idx

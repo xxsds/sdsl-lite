@@ -88,8 +88,14 @@ class louds_tree
             util::init_support(m_bv_select0, &m_bv);
         }
 
-        louds_tree(const louds_tree& lt) : bv(m_bv) {
-            *this = lt;
+        louds_tree(const louds_tree& lt) 
+           : m_bv(lt.m_bv),
+             m_bv_select1(lt.m_bv_select1),
+             m_bv_select0(lt.m_bv_select0),
+             bv(m_bv)
+        {
+            m_bv_select1.set_vector(&m_bv);
+            m_bv_select0.set_vector(&m_bv);
         }
 
         louds_tree(louds_tree&& lt) : bv(m_bv) {
@@ -98,11 +104,8 @@ class louds_tree
 
         louds_tree& operator=(const louds_tree& lt) {
             if (this != &lt) {
-                m_bv = lt.m_bv;
-                m_bv_select1 = lt.m_bv_select1;
-                m_bv_select1.set_vector(&m_bv);
-                m_bv_select0 = lt.m_bv_select0;
-                m_bv_select0.set_vector(&m_bv);
+                louds_tree tmp(lt);
+                *this = std::move(tmp);
             }
             return *this;
         }
@@ -174,13 +177,6 @@ class louds_tree
         //! Returns an unique id for each node in [0..size()-1]
         size_type id(const node_type& v)const {
             return v.nr;
-        }
-
-
-        void swap(louds_tree& tree) {
-            m_bv.swap(tree.m_bv);
-            util::swap_support(m_bv_select1, tree.m_select1, &m_bv, &(tree.m_bv));
-            util::swap_support(m_bv_select0, tree.m_select0, &m_bv, &(tree.m_bv));
         }
 
         size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {

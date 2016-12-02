@@ -76,7 +76,6 @@ class select_support_scan : public select_support
             set_vector(ss.m_v);
             return *this;
         }
-        void swap(select_support_scan<t_b, t_pat_len>&) {}
 };
 
 template<uint8_t t_b, uint8_t t_pat_len>

@@ -275,7 +275,7 @@ void assign(T& x, const U& y)
 template<class T>
 void assign(T& x, T& y)
 {
-    x.swap(y);
+    std::swap(x,y);
 }
 
 //! clear the space used by x
