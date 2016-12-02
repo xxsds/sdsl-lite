@@ -384,7 +384,7 @@ construct(k2_treap<t_k, t_bv, t_rank, t_max_vec>& idx, std::string file)
     int_vector_buffer<> buf_x(file+".x", std::ios::in);
     int_vector_buffer<> buf_y(file+".y", std::ios::in);
     int_vector_buffer<> buf_w(file+".w", std::ios::in);
-    tmp = k2_treap<t_k, t_bv, t_rank, t_max_vec>(buf_x, buf_y, buf_w);
+    idx = k2_treap<t_k, t_bv, t_rank, t_max_vec>(buf_x, buf_y, buf_w);
 }
 
 //! Specialized version of method ,,construct_im'' for k2_treaps.
