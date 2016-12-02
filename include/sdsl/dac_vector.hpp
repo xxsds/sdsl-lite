@@ -81,22 +81,17 @@ class dac_vector
         int_vector<64>    m_level_pointer_and_rank = int_vector<64>(4,0);
         uint8_t           m_max_level;      // maximum level < (log n)/b+1
 
-        void copy(const dac_vector& v)
-        {
-            m_data                   = v.m_data;
-            m_overflow               = v.m_overflow;
-            m_overflow_rank          = v.m_overflow_rank;
-            m_overflow_rank.set_vector(&m_overflow);
-            m_level_pointer_and_rank = v.m_level_pointer_and_rank;
-            m_max_level              = v.m_max_level;
-        }
-
     public:
         dac_vector() = default;
 
-        dac_vector(const dac_vector& v)
+        dac_vector(const dac_vector& v) :
+            m_data(v.m_data),
+            m_overflow(v.m_overflow),
+            m_overflow_rank(v.m_overflow_rank),
+            m_level_pointer_and_rank(v.m_level_pointer_and_rank),
+            m_max_level(v.m_max_level)
         {
-            copy(v);
+            m_overflow_rank.set_vector(&m_overflow);
         }
 
         dac_vector(dac_vector&& v)
@@ -106,7 +101,8 @@ class dac_vector
         dac_vector& operator=(const dac_vector& v)
         {
             if (this != &v) {
-                copy(v);
+                dac_vector tmp(v);
+                *this = std::move(tmp);
             }
             return *this;
         }
@@ -150,18 +146,6 @@ class dac_vector
         bool empty() const
         {
             return 0 == m_level_pointer_and_rank[2];
-        }
-
-        //! Swap method for dac_vector
-        void swap(dac_vector& v)
-        {
-            m_data.swap(v.m_data);
-            m_overflow.swap(v.m_overflow);
-            util::swap_support(m_overflow_rank, v.m_overflow_rank,
-                               &m_overflow, &(v.m_overflow));
-
-            m_level_pointer_and_rank.swap(v.m_level_pointer_and_rank);
-            std::swap(m_max_level, v.m_max_level);
         }
 
         //! Iterator that points to the first element of the dac_vector.

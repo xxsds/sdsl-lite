@@ -356,9 +356,14 @@ class k2_tree
 		}
 
 
-        k2_tree(const k2_tree& tr)
+        k2_tree(const k2_tree& tr) :
+            k_t(tr.k_t),
+            k_l(tr.k_l),
+            k_k(tr.k_k),
+            k_height(tr.k_height),
+            k_t_rank(tr.k_t_rank),
         {
-            *this = tr;
+            k_t_rank.set_vector(&k_t);
         }
 
         k2_tree(k2_tree&& tr)
@@ -384,27 +389,12 @@ class k2_tree
         k2_tree& operator=(k2_tree& tr)
         {
             if (this != &tr) {
-                k_t = tr.k_t;
-                k_l = tr.k_l;
-                k_t_rank = tr.k_t_rank;
-                k_t_rank.set_vector(&k_t);
-                k_k = tr.k_k;
-                k_height = tr.k_height;
+                k2_tree tmp(tr);
+                *this = std::move(tmp);
             }
             return *this;
         }
 
-        //! Swap operator
-        void swap(k2_tree& tr)
-        {
-            if (this != &tr) {
-                std::swap(k_t, tr.k_t);
-                std::swap(k_l, tr.k_l);
-                util::swap_support(k_t_rank, tr.k_t_rank, &k_t, &(tr.k_t));
-                std::swap(k_k, tr.k_k);
-                std::swap(k_height, tr.k_height);
-            }
-        }
 
         //! Equal operator
         bool operator==(const k2_tree& tr) const

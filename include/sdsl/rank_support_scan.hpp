@@ -48,14 +48,10 @@ class rank_support_scan : public rank_support
         enum { bit_pat = t_b };
         enum { bit_pat_len = t_pat_len };
     public:
-        explicit rank_support_scan(const bit_vector* v = nullptr)
-        {
-            set_vector(v);
-        }
-        rank_support_scan(const rank_support_scan& rs)
-        {
-            set_vector(rs.m_v);
-        }
+        explicit rank_support_scan(const bit_vector* v = nullptr) : rank_support(v) {};
+        rank_support_scan(const rank_support_scan& rs) = default;
+        rank_support_scan& operator=(const rank_support_scan& rs) = default;
+        rank_support_scan& operator=(const rank_support_scan&& rs) = default;
         size_type rank(size_type idx) const;
         size_type operator()(size_type idx)const
         {
@@ -77,16 +73,6 @@ class rank_support_scan : public rank_support
         {
             m_v=v;
         }
-
-        //! Assign Operator
-        rank_support_scan& operator=(const rank_support_scan& rs)
-        {
-            set_vector(rs.m_v);
-            return *this;
-        }
-
-        //! swap Operator
-        void swap(rank_support_scan&) {}
 };
 
 template<uint8_t t_b, uint8_t t_pat_len>

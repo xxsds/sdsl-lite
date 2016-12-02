@@ -74,7 +74,7 @@ void read_member<std::string>(std::string& t, std::istream& in)
     in.read(buf, size);
     std::string temp(buf, size);
     delete [] buf;
-    t.swap(temp);
+    t = std::move(temp);
 }
 
 uint64_t _parse_number(std::string::const_iterator& c, const std::string::const_iterator& end)

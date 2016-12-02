@@ -96,12 +96,6 @@ class lcp_bitcompressed
             return m_lcp.empty();
         }
 
-        //! Swap method for lcp_bitcompressed
-        void swap(lcp_bitcompressed& lcp_c)
-        {
-            m_lcp.swap(lcp_c.m_lcp);
-        }
-
         //! Returns a const_iterator to the first element.
         const_iterator begin()const
         {

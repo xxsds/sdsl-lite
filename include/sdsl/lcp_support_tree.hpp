@@ -84,8 +84,7 @@ class _lcp_support_tree
             }
             {
                 {
-                    t_lcp tmp_lcp(config, fc_lcp_key); // works for lcp_kurtz, lcp_wt and lcp_bitcompressed
-                    m_lcp.swap(tmp_lcp);
+                    m_lcp = t_lcp(config, fc_lcp_key); // works for lcp_kurtz, lcp_wt and lcp_bitcompressed
                 }
             }
             sdsl::remove(tmp_file);
@@ -105,10 +104,6 @@ class _lcp_support_tree
 
         size_type empty()const {
             return m_lcp.empty();
-        }
-
-        void swap(_lcp_support_tree& lcp_c) {
-            m_lcp.swap(lcp_c.m_lcp);
         }
 
         //! Returns a const_iterator to the first element.

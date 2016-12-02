@@ -151,8 +151,24 @@ class bp_support_g
         }
 
         //! Copy constructor
-        bp_support_g(const bp_support_g& bp_support) {
-            copy(bp_support);
+        bp_support_g(const bp_support_g& v) :
+            m_bp(v.m_bp),
+            m_rank_bp(v.m_rank_bp),
+            m_select_bp(v.m_rank_bp),
+            m_nnd(v.m_rank_bp),
+            m_pioneer_bp(v.m_rank_bp),
+            m_rank_pioneer_bp(v.m_rank_bp),
+            m_nnd2(v.m_rank_bp),
+            m_match(v.m_rank_bp),
+            m_enclose(v.m_rank_bp),
+            m_range_max_match(v.m_rank_bp),
+            m_size(v.m_size),
+            m_blocks(v.m_blocks)
+        {
+            m_rank_bp.set_vector(m_bp);
+            m_select_bp.set_vector(m_bp);
+            m_rank_pioneer_bp.set_vector(&m_pioneer_bp);
+            m_range_max_match.set_vector(&m_match);
         }
 
         //! Move constructor
@@ -163,7 +179,8 @@ class bp_support_g
         //! Assignment operator
         bp_support_g& operator=(const bp_support_g& bp_support) {
             if (this != &bp_support) {
-                copy(bp_support);
+                bp_support_g tmp(bp_support);
+                *this = std::move(tmp);
             }
             return *this;
         }
@@ -192,27 +209,6 @@ class bp_support_g
                 m_blocks = std::move(bp_support.m_blocks);
             }
             return *this;
-        }
-
-        void swap(bp_support_g& bp_support) {
-            m_rank_bp.swap(bp_support.m_rank_bp);
-            m_select_bp.swap(bp_support.m_select_bp);
-
-            m_nnd.swap(bp_support.m_nnd);
-
-            m_pioneer_bp.swap(bp_support.m_pioneer_bp);
-            util::swap_support(m_rank_pioneer_bp, bp_support.m_rank_pioneer_bp,
-                               &m_pioneer_bp, &(bp_support.m_pioneer_bp));
-
-            m_nnd2.swap(bp_support.m_nnd2);
-
-            m_match.swap(bp_support.m_match);
-            m_enclose.swap(bp_support.m_enclose);
-            util::swap_support(m_range_max_match, bp_support.m_range_max_match,
-                               &m_match, &(bp_support.m_match));
-
-            std::swap(m_size, bp_support.m_size);
-            std::swap(m_blocks, bp_support.m_blocks);
         }
 
         void set_vector(const bit_vector* bp) {

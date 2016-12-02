@@ -165,11 +165,8 @@ class inv_perm_support
         //! Assignment operation
         inv_perm_support& operator=(const inv_perm_support& p) {
             if (this != &p) {
-                m_v            = p.m_v;
-                m_back_pointer = p.m_back_pointer;
-                m_marked       = p.m_marked;
-                m_rank_marked  = p.m_rank_marked;
-                m_rank_marked.set_vector(&m_marked);
+                inv_perm_support tmp(p);
+                *this = std::move(tmp);
             }
             return *this;
         }
@@ -184,15 +181,6 @@ class inv_perm_support
                 m_rank_marked.set_vector(&m_marked);
             }
             return *this;
-        }
-
-        //! Swap operation
-        void swap(inv_perm_support& p) {
-            if (this != &p) {
-                m_back_pointer.swap(p.m_back_pointer);
-                m_marked.swap(p.m_marked);
-                util::swap_support(m_rank_marked, p.m_rank_marked, &m_marked, &(p.m_marked));
-            }
         }
 
         //! Serialize into stream

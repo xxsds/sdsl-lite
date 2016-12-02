@@ -174,16 +174,42 @@ class rrr_vector<15, t_rac, t_k>
         rrr_vector() {};
 
         //! Copy constructor
-        rrr_vector(const rrr_vector& rrr)
+        rrr_vector(const rrr_vector& v) :
+            m_size(v.m_size),
+            m_bt(v.m_bt),
+            m_btnr(v.m_btnr),
+            m_btnrp(v.m_btnrp),
+            m_rank(v.m_rank)
         {
-            copy(rrr);
         }
 
         //! Move constructor
-        rrr_vector(rrr_vector&& rrr) : m_size(std::move(rrr.m_size)),
-            m_bt(std::move(rrr.m_bt)),
-            m_btnr(std::move(rrr.m_btnr)), m_btnrp(std::move(rrr.m_btnrp)),
-            m_rank(std::move(rrr.m_rank)) {}
+        rrr_vector(rrr_vector&& v) {
+            *this = std::move(v);
+        }
+
+        //! Assignment operator
+        rrr_vector& operator=(const rrr_vector& v)
+        {
+            if (this != &v) {
+                rrr_vector tmp(v);
+                *this = std::move(tmp);
+            }
+            return *this;
+        }
+
+        //! Move assignment
+        rrr_vector& operator=(rrr_vector&& v)
+        {
+            if (this != &v) {
+                m_size = v.m_size;
+                m_bt = std::move(v.m_bt);
+                m_btnr = std::move(v.m_btnr);
+                m_btnrp = std::move(v.m_btnrp);
+                m_rank = std::move(v.m_rank);
+            }
+            return *this;
+        }
 
         //! Constructor
         /*!
@@ -251,18 +277,6 @@ class rrr_vector<15, t_rac, t_k>
             // for technical reasons add an additional element to m_rank
             m_rank[ m_rank.size()-1 ] = sum_rank; // sum_rank contains the total number of set bits in bv
             m_bt = rac_type(std::move(bt_array));
-        }
-
-        //! Swap method
-        void swap(rrr_vector& rrr)
-        {
-            if (this != &rrr) {
-                std::swap(m_size, rrr.m_size);
-                m_bt.swap(rrr.m_bt);
-                m_btnr.swap(rrr.m_btnr);
-                m_btnrp.swap(rrr.m_btnrp);
-                m_rank.swap(rrr.m_rank);
-            }
         }
 
         //! Accessing the i-th element of the original bit_vector
@@ -346,23 +360,6 @@ class rrr_vector<15, t_rac, t_k>
                 } while (len > 0);
             }
             return res;
-        }
-
-
-        //! Assignment operator
-        rrr_vector& operator=(const rrr_vector& rrr)
-        {
-            if (this != &rrr) {
-                copy(rrr);
-            }
-            return *this;
-        }
-
-        //! Move assignment
-        rrr_vector& operator=(rrr_vector&& rrr)
-        {
-            swap(rrr);
-            return *this;
         }
 
         //! Returns the size of the original bit vector.
@@ -558,8 +555,6 @@ class rank_support_rrr<t_b, 15, t_rac, t_k>
             return *this;
         }
 
-        void swap(rank_support_rrr&) { }
-
         //! Load the data structure from a stream and set the supported vector.
         void load(std::istream&, const bit_vector_type* v=nullptr)
         {
@@ -702,8 +697,6 @@ class select_support_rrr<t_b, 15, t_rac, t_k>
             }
             return *this;
         }
-
-        void swap(select_support_rrr&) { }
 
         void load(std::istream&, const bit_vector_type* v=nullptr)
         {

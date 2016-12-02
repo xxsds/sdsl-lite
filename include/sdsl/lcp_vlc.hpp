@@ -86,8 +86,7 @@ class lcp_vlc
                 lcp_key = other_key;
             }
             int_vector_buffer<> lcp_buf(cache_file_name(lcp_key, config));
-            vlc_vec_type tmp_vec(lcp_buf);
-            m_vec.swap(tmp_vec);
+            m_vec = vlc_vec_type(lcp_buf);
         }
 
         //! Number of elements in the instance.
@@ -106,12 +105,6 @@ class lcp_vlc
         bool empty()const
         {
             return m_vec.empty();
-        }
-
-        //! Swap method for lcp_vlc
-        void swap(lcp_vlc& lcp_c)
-        {
-            m_vec.swap(lcp_c.m_vec);
         }
 
         //! Returns a const_iterator to the first element.

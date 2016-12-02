@@ -106,7 +106,7 @@ TYPED_TEST(bit_vector_test, swap)
     ASSERT_EQ(bv.size(), c_bv.size());
     TypeParam bv_empty;
     ASSERT_EQ((uint64_t)0, bv_empty.size());
-    bv_empty.swap(c_bv);
+    std::swap(bv_empty,c_bv);
     ASSERT_EQ((uint64_t)0, c_bv.size());
     ASSERT_EQ(bv.size(), bv_empty.size());
     for (uint64_t j=0; j < bv.size(); ++j) {

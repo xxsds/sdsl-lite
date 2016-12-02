@@ -9,12 +9,9 @@ void construct_first_child_lcp(int_vector_buffer<>& lcp_buf, int_vector<>& fc_lc
     size_type n = lcp_buf.size();
     if (n == 0) {	// if n == 0 we are done
         fc_lcp = int_vector<>(0);
+        return;
     }
-    {
-        int_vector<> tmp(n, 0, bits::hi(n)+1);
-        fc_lcp.swap(tmp);
-    }
-
+    fc_lcp = int_vector<>(n, 0, bits::hi(n)+1);
     size_type fc_cnt=0; // first child counter
     sorted_multi_stack_support vec_stack(n);
     size_type y;

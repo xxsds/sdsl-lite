@@ -157,12 +157,6 @@ class rank_support_v5 : public rank_support
         void set_vector(const bit_vector* v=nullptr) {
             m_v = v;
         }
-        //! swap Operator
-        void swap(rank_support_v5& rs) {
-            if (this != &rs) { // if rs and _this_ are not the same object
-                m_basic_block.swap(rs.m_basic_block);
-            }
-        }
 };
 
 }// end namespace sds

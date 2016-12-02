@@ -33,19 +33,6 @@ sd_vector_builder::sd_vector_builder(size_type n, size_type m) :
     m_high = bit_vector(m_capacity + (1ULL << logm), 0);
 }
 
-void
-sd_vector_builder::swap(sd_vector_builder& sdb)
-{
-    std::swap(m_size, sdb.m_size);
-    std::swap(m_capacity, sdb.m_capacity);
-    std::swap(m_wl, sdb.m_wl);
-    std::swap(m_tail, sdb.m_tail);
-    std::swap(m_items, sdb.m_items);
-    std::swap(m_last_high, sdb.m_last_high);
-    std::swap(m_highpos, sdb.m_highpos);
-    m_low.swap(sdb.m_low);
-    m_high.swap(sdb.m_high);
-}
 
 template<>
 sd_vector<>::sd_vector(sd_vector_builder& builder)
@@ -57,8 +44,8 @@ sd_vector<>::sd_vector(sd_vector_builder& builder)
 
     m_size = builder.m_size;
     m_wl = builder.m_wl;
-    m_low.swap(builder.m_low);
-    m_high.swap(builder.m_high);
+    m_low = std::move(builder.m_low);
+    m_high = std::move(builder.m_high);
     util::init_support(m_high_1_select, &m_high);
     util::init_support(m_high_0_select, &m_high);
 

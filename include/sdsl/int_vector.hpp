@@ -366,9 +366,6 @@ class int_vector
             return 0==m_size;
         }
 
-        //! Swap method for int_vector.
-        void swap(int_vector& v);
-
         //! Resize the int_vector in terms of elements.
         /*! \param size The size to resize the int_vector in terms of elements.
          */
@@ -1289,13 +1286,8 @@ template<uint8_t t_width>
 int_vector<t_width>& int_vector<t_width>::operator=(const int_vector& v)
 {
     if (this != &v) {// if v is not the same object
-        bit_resize(v.bit_size());
-        if (v.bit_size()>0) {
-            if (memcpy(m_data, v.data() ,v.capacity()/8)==nullptr) {
-                throw std::bad_alloc(); // LCOV_EXCL_LINE
-            }
-        }
-        width(v.width());
+        int_vector<t_width> tmp(v);
+        *this = std::move(tmp);
     }
     return *this;
 }
@@ -1303,7 +1295,13 @@ int_vector<t_width>& int_vector<t_width>::operator=(const int_vector& v)
 template<uint8_t t_width>
 int_vector<t_width>& int_vector<t_width>::operator=(int_vector&& v)
 {
-    swap(v);
+    if (this != &v) {// if v is not the same object
+        m_size = v.m_size;
+        m_data = v.m_data;
+        m_width = v.m_width;
+        v.m_data = nullptr;
+        v.m_size = 0;
+    }
     return *this;
 }
 
@@ -1312,22 +1310,6 @@ template<uint8_t t_width>
 int_vector<t_width>::~int_vector()
 {
     memory_manager::clear(*this);
-}
-
-template<uint8_t t_width>
-void int_vector<t_width>::swap(int_vector& v)
-{
-    if (this != &v) { // if v and _this_ are not the same object
-        size_type size     = m_size;
-        uint64_t* data     = m_data;
-        uint8_t  int_width = m_width;
-        m_size   = v.m_size;
-        m_data   = v.m_data;
-        width(v.m_width);
-        v.m_size = size;
-        v.m_data = data;
-        v.width(int_width);
-    }
 }
 
 template<uint8_t t_width>

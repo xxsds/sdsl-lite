@@ -223,18 +223,6 @@ class bit_vector_il
             m_rank_samples.load(in);
         }
 
-        void swap(bit_vector_il& bv)
-        {
-            if (this != &bv) {
-                std::swap(m_size, bv.m_size);
-                std::swap(m_block_num, bv.m_block_num);
-                std::swap(m_superblocks, bv.m_superblocks);
-                std::swap(m_block_shift, bv.m_block_shift);
-                m_data.swap(bv.m_data);
-                m_rank_samples.swap(bv.m_rank_samples);
-            }
-        }
-
         iterator begin() const
         {
             return iterator(this, 0);
@@ -333,8 +321,6 @@ class rank_support_il
             }
             return *this;
         }
-
-        void swap(rank_support_il&) { }
 
         void load(std::istream&, const bit_vector_type* v=nullptr)
         {
@@ -503,8 +489,6 @@ class select_support_il
             }
             return *this;
         }
-
-        void swap(select_support_il&) { }
 
         void load(std::istream&, const bit_vector_type* v=nullptr)
         {

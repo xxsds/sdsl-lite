@@ -108,35 +108,41 @@ class rrr_vector
         // have to be considered as inverted i.e. 1 and
         // 0 are swapped
 
-        void copy(const rrr_vector& rrr)
-        {
-            m_size = rrr.m_size;
-            m_bt = rrr.m_bt;
-            m_btnr = rrr.m_btnr;
-            m_btnrp = rrr.m_btnrp;
-            m_rank = rrr.m_rank;
-            m_invert = rrr.m_invert;
-        }
-
     public:
         const rac_type& bt     = m_bt;
         const bit_vector& btnr = m_btnr;
 
         //! Default constructor
         rrr_vector() {};
-
-        //! Copy constructor
-        rrr_vector(const rrr_vector& rrr)
-        {
-            copy(rrr);
+        rrr_vector(const rrr_vector& v) :
+            m_size(v.m_size),
+            m_bt(v.m_bt),
+            m_btnr(v.m_btnr),
+            m_btnrp(v.btnrp),
+            m_rank(v.m_rank),
+            m_invert(v.m_invert) {}
+        rrr_vector(rrr_vector&& v) {
+            *this = std::move(v);
         }
-
-        //! Move constructor
-        rrr_vector(rrr_vector&& rrr) : m_size(std::move(rrr.m_size)),
-            m_bt(std::move(rrr.m_bt)),
-            m_btnr(std::move(rrr.m_btnr)), m_btnrp(std::move(rrr.m_btnrp)),
-            m_rank(std::move(rrr.m_rank)), m_invert(std::move(rrr.m_invert)) {}
-
+        rrr_vector& operator=(const rrr_vector& v) {
+            if (this != &v) {
+                rrr_vector tmp(v);    // re-use copy-constructor
+                *this = std::move(tmp); // re-use move-assignment
+            }
+            return *this;
+        }
+        rrr_vector& operator=(rrr_vector&& v) {
+            if (this != &v) {
+                m_size = v.m_size;
+                m_bt = std::move(v.m_bt);
+                m_btnr = std::move(v.m_btnr);
+                m_btnrp = std::move(v.m_btnrp);
+                m_rank =  std::move(v.m_rank);
+                m_invert = std::move(v.m_invert);
+            }
+            return *this;
+        }
+        
         //! Constructor
         /*!
         *  \param bv  Uncompressed bitvector.
@@ -236,18 +242,6 @@ class rrr_vector
             m_bt = bt_array;
         }
 
-        //! Swap method
-        void swap(rrr_vector& rrr)
-        {
-            if (this != &rrr) {
-                std::swap(m_size, rrr.m_size);
-                m_bt.swap(rrr.m_bt);
-                m_btnr.swap(rrr.m_btnr);
-                m_btnrp.swap(rrr.m_btnrp);
-                m_rank.swap(rrr.m_rank);
-                m_invert.swap(rrr.m_invert);
-            }
-        }
 
         //! Accessing the i-th element of the original bit_vector
         /*! \param i An index i with \f$ 0 \leq i < size()  \f$.
@@ -322,21 +316,6 @@ class rrr_vector
             return res;
         }
 
-        //! Assignment operator
-        rrr_vector& operator=(const rrr_vector& rrr)
-        {
-            if (this != &rrr) {
-                copy(rrr);
-            }
-            return *this;
-        }
-
-        //! Move assignment operator
-        rrr_vector& operator=(rrr_vector&& rrr)
-        {
-            swap(rrr);
-            return *this;
-        }
 
         //! Returns the size of the original bit vector.
         size_type size()const
@@ -505,8 +484,6 @@ class rank_support_rrr
             return *this;
         }
 
-        void swap(rank_support_rrr&) { }
-
         //! Load the data structure from a stream and set the supported vector.
         void load(std::istream&, const bit_vector_type* v=nullptr)
         {
@@ -662,8 +639,6 @@ class select_support_rrr
             }
             return *this;
         }
-
-        void swap(select_support_rrr&) { }
 
         void load(std::istream&, const bit_vector_type* v=nullptr)
         {

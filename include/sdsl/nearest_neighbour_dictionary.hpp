@@ -61,17 +61,6 @@ class nearest_neighbour_dictionary
         rank_support_v<>  m_rank_contains_abs_sample; // rank support for m_contains_abs_sample. Corresponds to array \f$ A_4 \f$ in the paper.
         // NOTE: A faster version should store the absolute samples and the differences interleaved
 
-        void copy(const nearest_neighbour_dictionary& nnd) {
-            // copy all members of the data structure
-            m_abs_samples 	= 		nnd.m_abs_samples;
-            m_differences 	= 		nnd.m_differences;
-            m_ones 			= 		nnd.m_ones;
-            m_size			= 		nnd.m_size;
-            m_contains_abs_sample =	nnd.m_contains_abs_sample;
-            m_rank_contains_abs_sample = nnd.m_rank_contains_abs_sample;
-            m_rank_contains_abs_sample.set_vector(&m_contains_abs_sample);
-        }
-
     public:
 
         //! Default constructor
@@ -121,9 +110,15 @@ class nearest_neighbour_dictionary
         }
 
         //! Copy constructor
-        nearest_neighbour_dictionary(const nearest_neighbour_dictionary& nnd) {
-            // copy all members of the data structure
-            copy(nnd);
+        nearest_neighbour_dictionary(const nearest_neighbour_dictionary& nnd) :
+            m_abs_samples(nnd.m_abs_samples),
+            m_differences(nnd.m_differences),
+            m_ones(nnd.m_ones),
+            m_size(nnd.m_size),
+            m_contains_abs_sample(nnd.m_contains_abs_sample),
+            m_rank_contains_abs_sample(nnd.m_rank_contains_abs_sample)
+        {
+            m_rank_contains_abs_sample.set_vector(&m_contains_abs_sample);
         }
 
         //! Move constructor
@@ -135,8 +130,9 @@ class nearest_neighbour_dictionary
         ~nearest_neighbour_dictionary() {}
 
         nearest_neighbour_dictionary& operator=(const nearest_neighbour_dictionary& nnd) {
-            if (this != &nnd) {
-                copy(nnd);
+            if(*this != &nnd) {
+                nearest_neighbour_dictionary tmp(nnd);
+                *this = std::move(tmp);
             }
             return *this;
         }
@@ -152,17 +148,6 @@ class nearest_neighbour_dictionary
                 m_rank_contains_abs_sample.set_vector(&m_contains_abs_sample);
             }
             return *this;
-        }
-
-        void swap(nearest_neighbour_dictionary& nnd) {
-            // copy all members of the data structure
-            m_abs_samples.swap(nnd.m_abs_samples);
-            m_differences.swap(nnd.m_differences);
-            std::swap(m_ones, nnd.m_ones);
-            std::swap(m_size, nnd.m_size);
-            m_contains_abs_sample.swap(nnd.m_contains_abs_sample);
-            util::swap_support(m_rank_contains_abs_sample, nnd.m_rank_contains_abs_sample,
-                               &m_contains_abs_sample, &(nnd.m_contains_abs_sample));
         }
 
         //! Answers rank queries for the supported bit_vector

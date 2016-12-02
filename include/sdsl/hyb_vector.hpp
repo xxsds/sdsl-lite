@@ -86,30 +86,13 @@ class hyb_vector
         int_vector<8> m_sblock_header;  // sblock headers
         int_vector<64> m_hblock_header; // hblock headers
 
-        void copy(const hyb_vector& hybrid)
-        {
-            m_size = hybrid.m_size;
-            m_trunk = hybrid.m_trunk;
-            m_sblock_header = hybrid.m_sblock_header;
-            m_hblock_header = hybrid.m_hblock_header;
-        }
-
     public:
         //! Default constructor
         hyb_vector() = default;
-
-        //! Copy constructor
-        hyb_vector(const hyb_vector& hybrid)
-        {
-            copy(hybrid);
-        }
-
-        //! Move constructor
-        hyb_vector(hyb_vector&& hybrid)
-            : m_size(std::move(hybrid.m_size)),
-              m_trunk(std::move(hybrid.m_trunk)),
-              m_sblock_header(std::move(hybrid.m_sblock_header)),
-              m_hblock_header(std::move(hybrid.m_hblock_header)) {}
+        hyb_vector(const hyb_vector& hybrid) = default;
+        hyb_vector(hyb_vector&& hybrid) = default;
+        hyb_vector& operator=(const hyb_vector& hybrid) = default;
+        hyb_vector& operator=(hyb_vector&& hybrid) = default;
 
         //! Constructor
         hyb_vector(const bit_vector& bv)
@@ -504,16 +487,6 @@ class hyb_vector
         }
 
     public:
-        //! Swap method
-        void swap(hyb_vector& hybrid)
-        {
-            if (this != &hybrid) {
-                std::swap(m_size, hybrid.m_size);
-                std::swap(m_trunk, hybrid.m_trunk);
-                std::swap(m_sblock_header, hybrid.m_sblock_header);
-                std::swap(m_hblock_header, hybrid.m_hblock_header);
-            }
-        }
 
         //! Get the integer value of the binary string of length len starting at position idx.
         /*! \param idx Starting index of the binary representation of the integer.
@@ -537,21 +510,6 @@ class hyb_vector
         value_type operator[](size_type i) const
         {
             return access0(i + 1);
-        }
-
-        //! Assignment operator
-        hyb_vector& operator=(const hyb_vector& hybrid)
-        {
-            if (this != &hybrid)
-                copy(hybrid);
-            return *this;
-        }
-
-        //! Move assignment operator
-        hyb_vector& operator=(hyb_vector&& hybrid)
-        {
-            swap(hybrid);
-            return *this;
         }
 
         //! Returns the size of the original bitvector
@@ -802,9 +760,6 @@ class rank_support_hyb
             return *this;
         }
 
-        //! Swap method
-        void swap(rank_support_hyb&) {}
-
         //! Load the data structure from a stream and set the supported vector
         void load(std::istream&, const bit_vector_type* v = nullptr)
         {
@@ -877,9 +832,6 @@ class select_support_hyb
             }
             return *this;
         }
-
-        //! Swap method
-        void swap(select_support_hyb&) {}
 
         //! Load the data structure from a stream and set the supported vector
         void load(std::istream&, const bit_vector_type* v = nullptr)

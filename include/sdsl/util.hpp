@@ -275,7 +275,7 @@ void assign(T& x, const U& y)
 template<class T>
 void assign(T& x, T& y)
 {
-    x.swap(y);
+    std::swap(x,y);
 }
 
 //! clear the space used by x
@@ -286,7 +286,7 @@ template<class T>
 void clear(T& x)
 {
     T y;
-    x.swap(y);
+    x = std::move(y);
 }
 
 //! Swap support data structure and assign to new vector
@@ -314,7 +314,7 @@ template<class S, class X>
 void init_support(S& s, const X* x)
 {
     S temp(x);       // generate a temporary support object
-    s.swap(temp);    // swap its content with the target object
+    s = std::move(temp);    // swap its content with the target object
     s.set_vector(x); // set the support object's  pointer to x
 }
 

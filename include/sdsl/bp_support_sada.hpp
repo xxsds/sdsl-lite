@@ -101,23 +101,6 @@ class bp_support_sada
         mutable fast_cache select_cache;
 #endif
 
-        void copy(const bp_support_sada& bp_support)
-        {
-            m_bp        = bp_support.m_bp;
-            m_bp_rank   = bp_support.m_bp_rank;
-            m_bp_rank.set_vector(m_bp);
-            m_bp_select = bp_support.m_bp_select;
-            m_bp_select.set_vector(m_bp);
-
-            m_sml_block_min_max = bp_support.m_sml_block_min_max;
-            m_med_block_min_max = bp_support.m_med_block_min_max;
-
-            m_size             = bp_support.m_size;
-            m_sml_blocks       = bp_support.m_sml_blocks;
-            m_med_blocks       = bp_support.m_med_blocks;
-            m_med_inner_blocks = bp_support.m_med_inner_blocks;
-        }
-
         inline static size_type sml_block_idx(size_type i)
         {
             return i/t_sml_blk;
@@ -366,6 +349,59 @@ class bp_support_sada
 
         bp_support_sada() {}
 
+        //! Copy constructor
+        bp_support_sada(const bp_support_sada& v) :
+            m_bp(v.m_bp),
+            m_bp_rank(v.m_bp_rank),
+            m_bp_select(v.m_bp_select),
+            m_sml_block_min_max(v.m_sml_block_min_max),
+            m_med_block_min_max(v.m_med_block_min_max),
+            m_size(v.m_size),
+            m_sml_blocks(v.m_sml_blocks),
+            m_med_blocks(v.m_med_blocks),
+            m_med_inner_blocks(v.m_med_inner_blocks)
+        {
+            m_bp_rank.set_vector(m_bp);
+            m_bp_select.set_vector(m_bp);
+        }
+
+        //! Move constructor
+        bp_support_sada(bp_support_sada&& bp_support)
+        {
+            *this = std::move(bp_support);
+        }
+
+        //! Assignment operator
+        bp_support_sada& operator=(bp_support_sada&& bp_support)
+        {
+            if (this != &bp_support) {
+                m_bp        = std::move(bp_support.m_bp);
+                m_bp_rank   = std::move(bp_support.m_bp_rank);
+                m_bp_rank.set_vector(m_bp);
+                m_bp_select = std::move(bp_support.m_bp_select);
+                m_bp_select.set_vector(m_bp);
+
+                m_sml_block_min_max = std::move(bp_support.m_sml_block_min_max);
+                m_med_block_min_max = std::move(bp_support.m_med_block_min_max);
+
+                m_size             = std::move(bp_support.m_size);
+                m_sml_blocks       = std::move(bp_support.m_sml_blocks);
+                m_med_blocks       = std::move(bp_support.m_med_blocks);
+                m_med_inner_blocks = std::move(bp_support.m_med_inner_blocks);
+            }
+            return *this;
+        }
+
+        //! Assignment operator
+        bp_support_sada& operator=(const bp_support_sada& v)
+        {
+            if (this != &bp_support) {
+                bp_support_sada tmp(v);
+                *this = std::move(tmp);
+            }
+            return *this;
+        }
+        
         //! Constructor
         explicit bp_support_sada(const bit_vector* bp): m_bp(bp),
             m_size(bp==nullptr?0:bp->size()),
@@ -428,74 +464,7 @@ class bp_support_sada
             }
         }
 
-        //! Copy constructor
-        bp_support_sada(const bp_support_sada& bp_support)
-        {
-            copy(bp_support);
-        }
-
-        //! Move constructor
-        bp_support_sada(bp_support_sada&& bp_support)
-        {
-            *this = std::move(bp_support);
-        }
-
-        //! Assignment operator
-        bp_support_sada& operator=(bp_support_sada&& bp_support)
-        {
-            if (this != &bp_support) {
-                m_bp        = std::move(bp_support.m_bp);
-                m_bp_rank   = std::move(bp_support.m_bp_rank);
-                m_bp_rank.set_vector(m_bp);
-                m_bp_select = std::move(bp_support.m_bp_select);
-                m_bp_select.set_vector(m_bp);
-
-                m_sml_block_min_max = std::move(bp_support.m_sml_block_min_max);
-                m_med_block_min_max = std::move(bp_support.m_med_block_min_max);
-
-                m_size             = std::move(bp_support.m_size);
-                m_sml_blocks       = std::move(bp_support.m_sml_blocks);
-                m_med_blocks       = std::move(bp_support.m_med_blocks);
-                m_med_inner_blocks = std::move(bp_support.m_med_inner_blocks);
-            }
-            return *this;
-        }
-
-        //! Swap method
-        /*! Swaps the content of the two data structure.
-         *  You have to use set_vector to adjust the supported bit_vector.
-         *  \param bp_support Object which is swapped.
-         */
-        void swap(bp_support_sada& bp_support)
-        {
-            // m_bp.swap(bp_support.m_bp); use set_vector to set the supported bit_vector
-            m_bp_rank.swap(bp_support.m_bp_rank);
-            m_bp_select.swap(bp_support.m_bp_select);
-
-            m_sml_block_min_max.swap(bp_support.m_sml_block_min_max);
-            m_med_block_min_max.swap(bp_support.m_med_block_min_max);
-
-            std::swap(m_size, bp_support.m_size);
-            std::swap(m_sml_blocks, bp_support.m_sml_blocks);
-            std::swap(m_med_blocks, bp_support.m_med_blocks);
-            std::swap(m_med_inner_blocks, bp_support.m_med_inner_blocks);
-        }
-
-        //! Assignment operator
-        bp_support_sada& operator=(const bp_support_sada& bp_support)
-        {
-            if (this != &bp_support) {
-                copy(bp_support);
-            }
-            return *this;
-        }
-        /*
-                bp_support_sada& operator=(bp_support_sada&& bps)
-                {
-                    this->swap(bps);
-                    return *this;
-                }
-        */
+        
         void set_vector(const bit_vector* bp)
         {
             m_bp = bp;
