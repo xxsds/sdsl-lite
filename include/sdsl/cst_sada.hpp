@@ -121,19 +121,6 @@ class cst_sada
             return m_bp_rank10(m_bp_support.find_close(v+1)+1);
         }
 
-        void copy(const cst_sada& cst)
-        {
-            m_csa           = cst.m_csa;
-            copy_lcp(m_lcp, cst.m_lcp, *this);
-            m_bp            = cst.m_bp;
-            m_bp_support    = cst.m_bp_support;
-            m_bp_support.set_vector(&m_bp);
-            m_bp_rank10     = cst.m_bp_rank10;
-            m_bp_rank10.set_vector(&m_bp);
-            m_bp_select10   = cst.m_bp_select10;
-            m_bp_select10.set_vector(&m_bp);
-        }
-
     public:
         const t_csa&           csa          = m_csa;
         const lcp_type&        lcp          = m_lcp;
@@ -142,23 +129,38 @@ class cst_sada
         const rank_10_type&    bp_rank_10   = m_bp_rank10;
         const select_10_type&  bp_select_10 = m_bp_select10;
 
-//! Default constructor
-        cst_sada() { }
+        //! Default constructor
+        cst_sada() = default;
 
-
-//! Copy constructor
-        cst_sada(const cst_sada& cst)
+        //! Copy constructor
+        cst_sada(const cst_sada& cst) :
+            m_csa(cst.m_csa),
+            m_bp(cst.m_bp),
+            m_bp_support(cst.m_bp_support),
+            m_bp_rank10(cst.m_bp_rank10),
+            m_bp_select10(cst.m_bp_select10)
         {
-            copy(cst);
+            copy_lcp(m_lcp, cst.m_lcp, *this);
+            m_bp_support.set_vector(&m_bp);
+            m_bp_rank10.set_vector(&m_bp);
+            m_bp_select10.set_vector(&m_bp);
         }
 
-//! Move constructor
-        cst_sada(cst_sada&& cst)
+        //! Move constructor
+        cst_sada(cst_sada&& cst) :
+            m_csa(std::move(cst.m_csa)),
+            m_bp(std::move(cst.m_bp)),
+            m_bp_support(std::move(cst.m_bp_support)),
+            m_bp_rank10(std::move(cst.m_bp_rank10)),
+            m_bp_select10(std::move(cst.m_bp_select10))
         {
-            *this = std::move(cst);
+            move_lcp(m_lcp, cst.m_lcp, *this);
+            m_bp_support.set_vector(&m_bp);
+            m_bp_rank10.set_vector(&m_bp);
+            m_bp_select10.set_vector(&m_bp);
         }
 
-//! Construct CST from file_map
+        //! Construct CST from file_map
         cst_sada(cache_config& config)
         {
             {
@@ -252,7 +254,7 @@ class cst_sada
             }
         }
 
-//! Number of leaves in the suffix tree.
+        //! Number of leaves in the suffix tree.
         /*! Required for the Container Concept of the STL.
          *  \sa max_size, empty
          */
@@ -261,7 +263,7 @@ class cst_sada
             return m_csa.size();
         }
 
-//! Returns the maximal lenght of text for that a suffix tree can be build.
+        //! Returns the maximal lenght of text for that a suffix tree can be build.
         /*! Required for the Container Concept of the STL.
          *  \sa size
          */
@@ -270,7 +272,7 @@ class cst_sada
             return t_csa::max_size();
         }
 
-//! Returns if the data strucutre is empty.
+        //! Returns if the data strucutre is empty.
         /*! Required for the Container Concept of the STL.
          * \sa size
          */
@@ -279,29 +281,7 @@ class cst_sada
             return m_csa.empty();
         }
 
-//! Swap method for cst_sada
-        /*! The swap method can be defined in terms of assignment.
-            This requires three assignments, each of which, for a container type, is linear
-            in the container's size. In a sense, then, a.swap(b) is redundant.
-            This implementation guaranties a run-time complexity that is constant rather than linear.
-            \param cst cst_sada to swap.
-
-            Required for the Assignable Conecpt of the STL.
-          */
-        void swap(cst_sada& cst)
-        {
-            if (this != &cst) {
-                m_csa.swap(cst.m_csa);
-                m_bp.swap(cst.m_bp);
-                util::swap_support(m_bp_support, cst.m_bp_support, &m_bp, &(cst.m_bp));
-                util::swap_support(m_bp_rank10, cst.m_bp_rank10, &m_bp, &(cst.m_bp));
-                util::swap_support(m_bp_select10, cst.m_bp_select10, &m_bp, &(cst.m_bp));
-                // anything else has to be swapped before swapping lcp
-                swap_lcp(m_lcp, cst.m_lcp, *this, cst);
-            }
-        }
-
-//! Returns a const_iterator to the first element.
+        //! Returns a const_iterator to the first element.
         /*! Required for the STL Container Concept.
          *  \sa end
          */
@@ -320,7 +300,7 @@ class cst_sada
             return const_iterator(this, v, false, true);
         }
 
-//! Returns a const_iterator to the element after the last element.
+        //! Returns a const_iterator to the element after the last element.
         /*! Required for the STL Container Concept.
          *  \sa begin.
          */
@@ -337,7 +317,7 @@ class cst_sada
             return ++const_iterator(this, v, true, true);
         }
 
-//! Returns an iterator to the first element of a bottom-up traversal of the tree.
+        //! Returns an iterator to the first element of a bottom-up traversal of the tree.
         const_bottom_up_iterator begin_bottom_up()const
         {
             if (0 == m_bp.size())  // special case: tree is uninitialized
@@ -345,25 +325,26 @@ class cst_sada
             return const_bottom_up_iterator(this, leftmost_leaf(root()));
         }
 
-//! Returns an iterator to the element after the last element of a bottom-up traversal of the tree.
+        //! Returns an iterator to the element after the last element of a bottom-up traversal of the tree.
         const_bottom_up_iterator end_bottom_up()const
         {
             return const_bottom_up_iterator(this, root(), false);
         }
 
-//! Assignment Operator.
+        //! Assignment Operator.
         /*!
          *    Required for the Assignable Concept of the STL.
          */
         cst_sada& operator=(const cst_sada& cst)
         {
             if (this != &cst) {
-                copy(cst);
+                cst_sada tmp(cst);
+                *this = std::move(tmp);
             }
             return *this;
         }
 
-//! Assignment Move Operator.
+        //! Move assignment Operator.
         /*!
          *    Required for the Assignable Concept of the STL.
          */
@@ -383,7 +364,7 @@ class cst_sada
             return *this;
         }
 
-//! Serialize to a stream.
+        //! Serialize to a stream.
         /*! \param out Outstream to write the data structure.
          *  \return The number of written bytes.
          */

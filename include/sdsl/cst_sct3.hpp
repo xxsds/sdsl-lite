@@ -133,21 +133,6 @@ class cst_sct3
         sel_type        m_first_child_select;
         size_type       m_nodes;
 
-        void copy(const cst_sct3& cst)
-        {
-            m_csa              = cst.m_csa;
-            copy_lcp(m_lcp, cst.m_lcp, *this);
-            m_bp               = cst.m_bp;
-            m_bp_support       = cst.m_bp_support;
-            m_bp_support.set_vector(&m_bp);
-            m_first_child      = cst.m_first_child;
-            m_first_child_rank = cst.m_first_child_rank;
-            m_first_child_rank.set_vector(&m_first_child);
-            m_first_child_select = cst.m_first_child_select;
-            m_first_child_select.set_vector(&m_first_child);
-            m_nodes            = cst.m_nodes;
-        }
-
         // Get the first l index of a [i,j] interval.
         /* I.e. given an interval [i,j], the function returns the position of
          * the smallest entry lcp[k] with \f$ i<k\leq j \f$
@@ -335,7 +320,7 @@ class cst_sct3
         /* @{ */
 
         //! Default constructor
-        cst_sct3() {}
+        cst_sct3() = default;
 
         //! Construct CST from cache config
         cst_sct3(cache_config& cache, bool build_only_bps=false);
@@ -346,18 +331,38 @@ class cst_sct3
          *  \par Time complexity
          *       \f$ \Order{n} \f$, where \f$n=\f$cst_sct3.size()
          */
-        cst_sct3(const cst_sct3& cst)
+        cst_sct3(const cst_sct3& cst) :
+            m_csa(cst.m_csa),
+            m_bp(cst.m_bp),
+            m_bp_support(cst.m_bp_support),
+            m_first_child(cst.m_first_child),
+            m_first_child_rank(cst.m_first_child_rank),
+            m_first_child_select(cst.m_first_child_select),
+            m_nodes(cst.m_nodes)
         {
-            copy(cst);
+            copy_lcp(m_lcp, cst.m_lcp, *this);
+            m_bp_support.set_vector(&m_bp);
+            m_first_child_rank.set_vector(&m_first_child);
+            m_first_child_select.set_vector(&m_first_child);
         }
 
         //! Move constructor
         /*!
          *  \param cst The cst_sct3 which should be moved.
          */
-        cst_sct3(cst_sct3&& cst)
+        cst_sct3(cst_sct3&& cst) :
+            m_csa(std::move(cst.m_csa)),
+            m_bp(std::move(cst.m_bp)),
+            m_bp_support(std::move(cst.m_bp_support)),
+            m_first_child(std::move(cst.m_first_child)),
+            m_first_child_rank(std::move(cst.m_first_child_rank)),
+            m_first_child_select(std::move(cst.m_first_child_select)),
+            m_nodes(cst.m_nodes)
         {
-            *this = std::move(cst);
+            move_lcp(m_lcp, cst.m_lcp, *this);
+            m_bp_support.set_vector(&m_bp);
+            m_first_child_rank.set_vector(&m_first_child);
+            m_first_child_select.set_vector(&m_first_child);
         }
 
         /* @} */
@@ -387,30 +392,6 @@ class cst_sct3
         bool empty()const
         {
             return m_csa.empty();
-        }
-
-        //! Swap method for cst_sct3
-        /*! The swap method can be defined in terms of assignment.
-            This requires three assignments, each of which, for a container type, is linear
-            in the container's size. In a sense, then, a.swap(b) is redundant.
-            This implementation guaranties a run-time complexity that is constant rather than linear.
-            \param cst cst_sct3 to swap.
-
-            Required for the Assignable Conecpt of the STL.
-          */
-        void swap(cst_sct3& cst)
-        {
-            if (this != &cst) {
-                m_csa.swap(cst.m_csa);
-                m_bp.swap(cst.m_bp);
-                util::swap_support(m_bp_support, cst.m_bp_support, &m_bp, &(cst.m_bp));
-                m_first_child.swap(cst.m_first_child);
-                util::swap_support(m_first_child_rank, cst.m_first_child_rank, &m_first_child, &(cst.m_first_child));
-                util::swap_support(m_first_child_select, cst.m_first_child_select, &m_first_child, &(cst.m_first_child));
-                std::swap(m_nodes, cst.m_nodes);
-                // anything else has to be swapped before swapping lcp
-                swap_lcp(m_lcp, cst.m_lcp, *this, cst);
-            }
         }
 
         //! Returns a const_iterator to the first element of a depth first traversal of the tree.
@@ -467,13 +448,36 @@ class cst_sct3
         /*!
          *    Required for the Assignable Concept of the STL.
          */
-        cst_sct3& operator=(const cst_sct3& cst);
+        cst_sct3& operator=(const cst_sct3& cst) {
+            if (this != &cst) {
+                cst_sct3 tmp(cst);
+                *this = std::move(tmp);
+            }
+            return *this;
+        }
 
         //! Assignment Move Operator.
         /*!
          *    Required for the Assignable Concept of the STL.
          */
-        cst_sct3& operator=(cst_sct3&& cst);
+        cst_sct3& operator=(cst_sct3&& cst) {
+            if (this != &cst) {
+                m_csa              = std::move(cst.m_csa);
+                move_lcp(m_lcp, cst.m_lcp, *this);
+                m_bp               = std::move(cst.m_bp);
+                m_bp_support       = std::move(cst.m_bp_support);
+                m_bp_support.set_vector(&m_bp);
+                m_first_child      = std::move(cst.m_first_child);
+                m_first_child_rank = std::move(cst.m_first_child_rank);
+                m_first_child_rank.set_vector(&m_first_child);
+                m_first_child_select = std::move(cst.m_first_child_select);
+                m_first_child_select.set_vector(&m_first_child);
+                m_nodes            = std::move(cst.m_nodes);
+            }
+            return *this;
+        }
+
+
 
         //! Serialize to a stream.
         /*! \param out Outstream to write the data structure.
@@ -1200,34 +1204,6 @@ void cst_sct3<t_csa, t_lcp, t_bp_support, t_bv, t_rank, t_sel>::load(std::istrea
     m_first_child_rank.load(in,&m_first_child);
     m_first_child_select.load(in,&m_first_child);
     read_member(m_nodes, in);
-}
-
-template<class t_csa, class t_lcp, class t_bp_support, class t_bv, class t_rank, class t_sel>
-cst_sct3<t_csa, t_lcp, t_bp_support, t_bv, t_rank, t_sel>& cst_sct3<t_csa, t_lcp, t_bp_support, t_bv, t_rank, t_sel>::operator=(const cst_sct3& cst)
-{
-    if (this != &cst) {
-        copy(cst);
-    }
-    return *this;
-}
-
-template<class t_csa, class t_lcp, class t_bp_support, class t_bv, class t_rank, class t_sel>
-cst_sct3<t_csa, t_lcp, t_bp_support, t_bv, t_rank, t_sel>& cst_sct3<t_csa, t_lcp, t_bp_support, t_bv, t_rank, t_sel>::operator=(cst_sct3&& cst)
-{
-    if (this != &cst) {
-        m_csa              = std::move(cst.m_csa);
-        move_lcp(m_lcp, cst.m_lcp, *this);
-        m_bp               = std::move(cst.m_bp);
-        m_bp_support       = std::move(cst.m_bp_support);
-        m_bp_support.set_vector(&m_bp);
-        m_first_child      = std::move(cst.m_first_child);
-        m_first_child_rank = std::move(cst.m_first_child_rank);
-        m_first_child_rank.set_vector(&m_first_child);
-        m_first_child_select = std::move(cst.m_first_child_select);
-        m_first_child_select.set_vector(&m_first_child);
-        m_nodes            = std::move(cst.m_nodes);
-    }
-    return *this;
 }
 
 template<class t_int>

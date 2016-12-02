@@ -140,19 +140,18 @@ class byte_alphabet
         enum { int_width = 8 };
 
         typedef byte_alphabet_tag       alphabet_category;
-    private:
-        char2comp_type m_char2comp; // Mapping from a character into the compact alphabet.
-        comp2char_type m_comp2char; // Inverse mapping of m_char2comp.
-        C_type         m_C;         // Cumulative counts for the compact alphabet [0..sigma].
-        sigma_type     m_sigma;     // Effective size of the alphabet.
-
-        void copy(const byte_alphabet&);
-    public:
 
         const char2comp_type& char2comp;
         const comp2char_type& comp2char;
         const C_type&         C;
         const sigma_type&     sigma;
+
+    private:
+        char2comp_type m_char2comp; // Mapping from a character into the compact alphabet.
+        comp2char_type m_comp2char; // Inverse mapping of m_char2comp.
+        C_type         m_C;         // Cumulative counts for the compact alphabet [0..sigma].
+        sigma_type     m_sigma;     // Effective size of the alphabet.
+    public:
 
         //! Default constructor
         byte_alphabet();
@@ -165,18 +164,11 @@ class byte_alphabet
         byte_alphabet(int_vector_buffer<8>& text_buf, int_vector_size_type len);
 
         byte_alphabet(const byte_alphabet&);
-        byte_alphabet(byte_alphabet&& b) : byte_alphabet()
-        {
-            *this = std::move(b);
-        }
-
+        byte_alphabet(byte_alphabet&&);
         byte_alphabet& operator=(const byte_alphabet&);
         byte_alphabet& operator=(byte_alphabet&&);
 
-        void swap(byte_alphabet&);
-
         size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const;
-
         void load(std::istream& in);
 };
 
@@ -246,16 +238,6 @@ class succinct_byte_alphabet
         C_type              m_C;            // cumulative counts for the compact alphabet [0..sigma]
         sigma_type          m_sigma;       // effective size of the alphabet
 
-        void copy(const succinct_byte_alphabet& strat)
-        {
-            m_char        = strat.m_char;
-            m_char_rank   = strat.m_char_rank;
-            m_char_rank.set_vector(&m_char);
-            m_char_select = strat.m_char_select;
-            m_char_select.set_vector(&m_char);
-            m_C           = strat.m_C;
-            m_sigma       = strat.m_sigma;
-        }
     public:
 
         const char2comp_type char2comp;
@@ -264,10 +246,12 @@ class succinct_byte_alphabet
         const sigma_type&    sigma;
 
         //! Default constructor
-        succinct_byte_alphabet() : char2comp(this), comp2char(this), C(m_C), sigma(m_sigma)
-        {
-            m_sigma = 0;
-        }
+        succinct_byte_alphabet() : char2comp(this),
+                                   comp2char(this),
+                                   C(m_C),
+                                   sigma(m_sigma),
+                                   m_sigma(0)
+        { }
 
         //! Construct from a byte-stream
         /*!
@@ -309,21 +293,41 @@ class succinct_byte_alphabet
         }
 
         //! Copy constructor
-        succinct_byte_alphabet(const succinct_byte_alphabet& strat): char2comp(this), comp2char(this), C(m_C), sigma(m_sigma)
+        succinct_byte_alphabet(const succinct_byte_alphabet& strat): char2comp(this),
+                                                                     comp2char(this),
+                                                                     C(m_C),
+                                                                     sigma(m_sigma),
+                                                                     m_char(strat.m_char),
+                                                                     m_char_rank(strat.m_char_rank),
+                                                                     m_char_select(strat.m_char_select),
+                                                                     m_C(strat.m_C),
+                                                                     m_sigma(strat.m_sigma)
         {
-            copy(strat);
+            m_char_rank.set_vector(&m_char);
+            m_char_select.set_vector(&m_char);
         }
 
         //! Move constructor
-        succinct_byte_alphabet(succinct_byte_alphabet&& strat)
+        succinct_byte_alphabet(succinct_byte_alphabet&& strat): char2comp(this),
+                                                                comp2char(this),
+                                                                C(m_C),
+                                                                sigma(m_sigma),
+                                                                m_char(std::move(strat.m_char)),
+                                                                m_char_rank(std::move(strat.m_char_rank)),
+                                                                m_char_select(std::move(strat.m_char_select)),
+                                                                m_C(std::move(strat.m_C)),
+                                                                m_sigma(std::move(strat.m_sigma))
         {
-            *this = std::move(strat);
+            m_char_rank.set_vector(&m_char);
+            m_char_select.set_vector(&m_char);
         }
+
 
         succinct_byte_alphabet& operator=(const succinct_byte_alphabet& strat)
         {
             if (this != &strat) {
-                copy(strat);
+                succinct_byte_alphabet tmp(strat);
+                *this = std::move(tmp);
             }
             return *this;
         }
@@ -340,16 +344,6 @@ class succinct_byte_alphabet
                 m_sigma       = std::move(strat.m_sigma);
             }
             return *this;
-        }
-
-        //! Swap operator
-        void swap(succinct_byte_alphabet& strat)
-        {
-            m_char.swap(strat.m_char);
-            util::swap_support(m_char_rank, strat.m_char_rank, &m_char, &(strat.m_char));
-            util::swap_support(m_char_select, strat.m_char_select, &m_char, &(strat.m_char));
-            m_C.swap(strat.m_C);
-            std::swap(m_sigma,strat.m_sigma);
         }
 
         //! Serialize method
@@ -456,17 +450,6 @@ class int_alphabet
         C_type              m_C;           // cumulative counts for the compact alphabet [0..sigma]
         sigma_type          m_sigma;       // effective size of the alphabet
 
-        void copy(const int_alphabet& strat)
-        {
-            m_char        = strat.m_char;
-            m_char_rank   = strat.m_char_rank;
-            m_char_rank.set_vector(&m_char);
-            m_char_select = strat.m_char_select;
-            m_char_select.set_vector(&m_char);
-            m_C           = strat.m_C;
-            m_sigma       = strat.m_sigma;
-        }
-
         //! Check if the alphabet is continuous.
         bool is_continuous_alphabet(std::map<size_type, size_type>& D)
         {
@@ -485,10 +468,12 @@ class int_alphabet
         const sigma_type&    sigma;
 
         //! Default constructor
-        int_alphabet() : char2comp(this), comp2char(this), C(m_C), sigma(m_sigma)
-        {
-            m_sigma = 0;
-        }
+        int_alphabet() : char2comp(this),
+                         comp2char(this),
+                         C(m_C),
+                         sigma(m_sigma),
+                         m_sigma(0)
+        { }
 
         //! Construct from a byte-stream
         /*!
@@ -535,21 +520,40 @@ class int_alphabet
         }
 
         //! Copy constructor
-        int_alphabet(const int_alphabet& strat): char2comp(this), comp2char(this), C(m_C), sigma(m_sigma)
+        int_alphabet(const int_alphabet& strat): char2comp(this),
+                                                 comp2char(this),
+                                                 C(m_C),
+                                                 sigma(m_sigma),
+                                                 m_char(strat.m_char),
+                                                 m_char_rank(strat.m_char_rank),
+                                                 m_char_select(strat.m_char_select),
+                                                 m_C(strat.m_C),
+                                                 m_sigma(strat.m_sigma)
         {
-            copy(strat);
+            m_char_rank.set_vector(&m_char);
+            m_char_select.set_vector(&m_char);
         }
 
         //! Copy constructor
-        int_alphabet(int_alphabet&& strat)
+        int_alphabet(int_alphabet&& strat): char2comp(this),
+                                            comp2char(this),
+                                            C(m_C),
+                                            sigma(m_sigma),
+                                            m_char(std::move(strat.m_char)),
+                                            m_char_rank(std::move(strat.m_char_rank)),
+                                            m_char_select(std::move(strat.m_char_select)),
+                                            m_C(std::move(strat.m_C)),
+                                            m_sigma(std::move(strat.m_sigma))
         {
-            *this = std::move(strat);
+            m_char_rank.set_vector(&m_char);
+            m_char_select.set_vector(&m_char);
         }
 
         int_alphabet& operator=(const int_alphabet& strat)
         {
             if (this != &strat) {
-                copy(strat);
+                int_alphabet tmp(strat);
+                *this = std::move(tmp);
             }
             return *this;
         }
@@ -566,16 +570,6 @@ class int_alphabet
                 m_sigma       = std::move(strat.m_sigma);
             }
             return *this;
-        }
-
-        //! Swap operator
-        void swap(int_alphabet& strat)
-        {
-            m_char.swap(strat.m_char);
-            util::swap_support(m_char_rank, strat.m_char_rank, &m_char, &(strat.m_char));
-            util::swap_support(m_char_select, strat.m_char_select, &m_char, &(strat.m_char));
-            m_C.swap(strat.m_C);
-            std::swap(m_sigma,strat.m_sigma);
         }
 
         //! Serialize method

@@ -55,28 +55,39 @@ byte_alphabet::byte_alphabet(int_vector_buffer<8>& text_buf, int_vector_size_typ
 }
 
 
-byte_alphabet::byte_alphabet(): char2comp(m_char2comp), comp2char(m_comp2char), C(m_C), sigma(m_sigma)
-{
-    m_sigma = 0;
-}
+byte_alphabet::byte_alphabet(): char2comp(m_char2comp),
+                                comp2char(m_comp2char),
+                                C(m_C),
+                                sigma(m_sigma),
+                                m_sigma(0)
+{ }
 
-void byte_alphabet::copy(const byte_alphabet& bas)
-{
-    m_char2comp = bas.m_char2comp;
-    m_comp2char = bas.m_comp2char;
-    m_C			= bas.m_C;
-    m_sigma		= bas.m_sigma;
-}
+byte_alphabet::byte_alphabet(const byte_alphabet& bas): char2comp(m_char2comp),
+                                                        comp2char(m_comp2char),
+                                                        C(m_C),
+                                                        sigma(m_sigma),
+                                                        m_char2comp(bas.m_char2comp),
+                                                        m_comp2char(bas.m_comp2char),
+                                                        m_C(bas.m_C),
+                                                        m_sigma(bas.m_sigma)
+{}
 
-byte_alphabet::byte_alphabet(const byte_alphabet& bas): char2comp(m_char2comp), comp2char(m_comp2char), C(m_C), sigma(m_sigma)
-{
-    copy(bas);
-}
+byte_alphabet::byte_alphabet(byte_alphabet&& bas): char2comp(m_char2comp),
+                                                   comp2char(m_comp2char),
+                                                   C(m_C),
+                                                   sigma(m_sigma),
+                                                   m_char2comp(std::move(bas.m_char2comp)),
+                                                   m_comp2char(std::move(bas.m_comp2char)),
+                                                   m_C(std::move(bas.m_C)),
+                                                   m_sigma(bas.m_sigma)
+{}
+
 
 byte_alphabet& byte_alphabet::operator=(const byte_alphabet& bas)
 {
     if (this != &bas) {
-        copy(bas);
+        byte_alphabet tmp(bas);
+        *this = std::move(tmp);
     }
     return *this;
 }
@@ -90,14 +101,6 @@ byte_alphabet& byte_alphabet::operator=(byte_alphabet&& bas)
         m_sigma     = std::move(bas.m_sigma);
     }
     return *this;
-}
-
-void byte_alphabet::swap(byte_alphabet& bas)
-{
-    m_char2comp.swap(bas.m_char2comp);
-    m_comp2char.swap(bas.m_comp2char);
-    m_C.swap(bas.m_C);
-    std::swap(m_sigma, bas.m_sigma);
 }
 
 byte_alphabet::size_type byte_alphabet::serialize(std::ostream& out, structure_tree_node* v, std::string name)const
