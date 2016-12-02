@@ -479,9 +479,6 @@ class int_vector
         //! Load the int_vector for a stream.
         void load(std::istream& in);
 
-        //! Swap method for int_vector.
-        void swap(int_vector& v);
-
         //! non const version of [] operator
         /*! \param i Index the i-th integer of length width().
          *  \return A reference to the i-th integer of length width().
@@ -1313,23 +1310,6 @@ template<uint8_t t_width>
 int_vector<t_width>::~int_vector()
 {
     memory_manager::clear(*this);
-}
-
-
-template<uint8_t t_width>
-void int_vector<t_width>::swap(int_vector& v)
-{
-    if (this != &v) { // if v and _this_ are not the same object
-        size_type size     = m_size;
-        uint64_t* data     = m_data;
-        uint8_t  int_width = m_width;
-        m_size   = v.m_size;
-        m_data   = v.m_data;
-        width(v.m_width);
-        v.m_size = size;
-        v.m_data = data;
-        v.width(int_width);
-    }
 }
 
 template<uint8_t t_width>

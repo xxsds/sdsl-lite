@@ -139,15 +139,6 @@ class lcp_byte
             return m_small_lcp.empty();
         }
 
-        //! Swap method for lcp_byte
-        void swap(lcp_byte& lcp_c)
-        {
-            m_small_lcp.swap(lcp_c.m_small_lcp);
-            m_big_lcp.swap(lcp_c.m_big_lcp);
-            m_big_lcp_idx.swap(lcp_c.m_big_lcp_idx);
-        }
-
-
         //! Returns a const_iterator to the first element.
         const_iterator begin()const
         {

@@ -107,10 +107,6 @@ class _lcp_support_tree
             return m_lcp.empty();
         }
 
-        void swap(_lcp_support_tree& lcp_c) {
-            m_lcp.swap(lcp_c.m_lcp);
-        }
-
         //! Returns a const_iterator to the first element.
         const_iterator begin()const {
             return const_iterator(this, 0);
