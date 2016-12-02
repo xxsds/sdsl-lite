@@ -73,17 +73,6 @@ class wt_ap
         wt_byte_type             m_class;
         std::vector<wt_int_type> m_offset;
 
-        void copy(const wt_ap& wt)
-        {
-            m_size                = wt.m_size;
-            m_sigma               = wt.m_sigma;
-            m_singleton_class_cnt = wt.m_singleton_class_cnt;
-            m_class_cnt           = wt.m_class_cnt;
-            m_char2class          = wt.m_char2class;
-            m_class               = wt.m_class;
-            m_offset              = wt.m_offset;
-        }
-
     private:
 
         // retrieves a character's class and offset - if the character exists in the text
@@ -218,21 +207,22 @@ class wt_ap
         }
 
         //! Copy constructor
-        wt_ap(const wt_ap& wt)
-        {
-            copy(wt);
-        }
-
-        //! Move copy constructor
-        wt_ap(wt_ap&& wt) : 
+        wt_ap(const wt_ap& wt): 
             m_size(wt.m_size),
             m_sigma(wt.m_sigma),
             m_singleton_class_cnt(wt.m_singleton_class_cnt),
             m_class_cnt(wt.m_class_cnt),
-            m_char2class(std::move(wt.m_char2class)),
-            m_class(std::move(wt.m_class)),
-            m_offset(std::move(wt.m_offset))
-        { }
+            m_char2class(wt.m_char2class),
+            m_class(wt.m_class),
+            m_offset(wt.m_offset)
+        {
+        }
+
+        //! Move copy constructor
+        wt_ap(wt_ap&& wt) 
+        { 
+            *this = std::move(wt);
+        }
 
         //! Assignment operator
         wt_ap& operator=(const wt_ap& wt)
@@ -246,13 +236,15 @@ class wt_ap
 
         //! Assignment move operator
         wt_ap& operator=(wt_ap&& wt) {
-            m_size = wt.m_size;
-            m_sigma = wt.m_sigma;
-            m_singleton_class_cnt = wt.m_singleton_class_cnt;
-            m_class_cnt = wt.m_class_cnt;
-            m_char2class = std::move(wt.m_char2class);
-            m_class = std::move(wt.m_class);
-            m_offset = std::move(wt.m_offset);
+            if (this != &wt) {
+                m_size = wt.m_size;
+                m_sigma = wt.m_sigma;
+                m_singleton_class_cnt = wt.m_singleton_class_cnt;
+                m_class_cnt = wt.m_class_cnt;
+                m_char2class = std::move(wt.m_char2class);
+                m_class = std::move(wt.m_class);
+                m_offset = std::move(wt.m_offset);
+            }
             return *this;
         }
 
