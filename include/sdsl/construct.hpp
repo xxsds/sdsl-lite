@@ -220,8 +220,7 @@ void construct(t_index& idx, const std::string& file, cache_config& config, uint
     }
     {
         auto event = memory_monitor::event("compressed LCP");
-        t_index tmp(config);
-        tmp.swap(idx);
+        idx = t_index(config);
     }
     if (config.delete_files) {
         auto event = memory_monitor::event("delete temporary files");
@@ -279,8 +278,7 @@ void construct(t_index& idx, const std::string& file, cache_config& config, uint
     }
     {
         auto event = memory_monitor::event("CST");
-        t_index tmp(config);
-        tmp.swap(idx);
+        idx = t_index(config);
     }
     if (config.delete_files) {
         auto event = memory_monitor::event("delete temporary files");

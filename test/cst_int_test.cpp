@@ -78,7 +78,7 @@ TYPED_TEST(cst_int_test, swap_method)
     size_type n = cst1.size();
     TypeParam cst2;
     ASSERT_EQ((size_type)0, cst2.size());
-    cst1.swap(cst2);
+    std::swap(cst1, cst2);
     ASSERT_EQ((size_type)0, cst1.size());
     ASSERT_EQ(n, cst2.size());
     ASSERT_EQ(n, cst2.csa.size());

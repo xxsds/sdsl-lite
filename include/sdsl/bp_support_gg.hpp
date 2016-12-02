@@ -91,12 +91,14 @@ class bp_support_gg
 
     public:
 
-        const rank_type& bp_rank;
-        const select_type& bp_select;
+        const rank_type& bp_rank     = m_rank_bp;
+        const select_type& bp_select = m_select_bp;
 
-        bp_support_gg(): m_bp(nullptr), m_pioneer_bp_support(nullptr),
-            m_size(0), m_blocks(0),bp_rank(m_rank_bp),
-            bp_select(m_select_bp) {}
+        bp_support_gg(): m_bp(nullptr),
+                         m_pioneer_bp_support(nullptr),
+                         m_size(0),
+                         m_blocks(0)
+        {}
 
         //! Constructor
         explicit bp_support_gg(const bit_vector* bp):m_bp(bp),
@@ -131,27 +133,26 @@ class bp_support_gg
         }
 
         //! Copy constructor
-        bp_support_gg(const bp_support_gg& v) 
-            : bp_support_gg(),
+        bp_support_gg(const bp_support_gg& v) : 
                 m_bp(v.m_bp),
                 m_rank_bp(v.m_rank_bp),
-                m_select_bp(v.m_rank_bp),
-                m_nnd(v.m_rank_bp),
-                m_pioneer_bp(v.m_rank_bp),
+                m_select_bp(v.m_select_bp),
+                m_nnd(v.m_nnd),
+                m_pioneer_bp(v.m_pioneer_bp),
                 m_pioneer_bp_support(nullptr),
                 m_size(v.m_size),
-                m_blocks(v.m_blocks),
+                m_blocks(v.m_blocks)
         {
             m_rank_bp.set_vector(m_bp);
             m_select_bp.set_vector(m_bp);
-            if(v.m_pioneer_bp_support != nullptr)
+            if(v.m_pioneer_bp_support != nullptr) {
                 m_pioneer_bp_support = new bp_support_type(*(v.m_pioneer_bp_support));
                 m_pioneer_bp_support->set_vector(&m_pioneer_bp);
             }
         }
 
         //! Move constructor
-        bp_support_gg(bp_support_gg&& bp_support) : bp_support_gg()
+        bp_support_gg(bp_support_gg&& bp_support) 
         {
             *this = std::move(bp_support);
         }

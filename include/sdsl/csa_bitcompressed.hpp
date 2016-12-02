@@ -96,13 +96,7 @@ class csa_bitcompressed
         isa_sample_type m_isa; // vector for inverse suffix array values
         alphabet_type   m_alphabet;
 
-        void copy(const csa_bitcompressed& csa)
-        {
-            m_sa       = csa.m_sa;
-            m_isa      = csa.m_isa;
-            m_alphabet = csa.m_alphabet;
-        }
-    public:
+        public:
         const typename alphabet_type::char2comp_type& char2comp  = m_alphabet.char2comp;
         const typename alphabet_type::comp2char_type& comp2char  = m_alphabet.comp2char;
         const typename alphabet_type::C_type&         C          = m_alphabet.C;
@@ -120,10 +114,12 @@ class csa_bitcompressed
         //! Default constructor
         csa_bitcompressed() {}
         //! Copy constructor
-        csa_bitcompressed(const csa_bitcompressed& csa)
-        {
-            copy(csa);
-        }
+        csa_bitcompressed(const csa_bitcompressed& csa) :
+            m_sa(csa.m_sa),
+            m_isa(csa.m_isa),
+            m_alphabet(csa.m_alphabet)
+        { }
+
         //! Move constructor
         csa_bitcompressed(csa_bitcompressed&& csa)
         {
@@ -137,18 +133,10 @@ class csa_bitcompressed
             int_vector_buffer<alphabet_type::int_width> text_buf(text_file);
             int_vector_buffer<>  sa_buf(cache_file_name(conf::KEY_SA,config));
             size_type n = text_buf.size();
-            {
-                alphabet_type tmp_alphabet(text_buf, n);
-                m_alphabet.swap(tmp_alphabet);
-            }
-            {
-                sa_sample_type tmp_sample(config);
-                m_sa.swap(tmp_sample);
-            }
-            {
-                isa_sample_type tmp_sample(config);
-                m_isa.swap(tmp_sample);
-            }
+            
+            m_alphabet = alphabet_type(text_buf, n);
+            m_sa = sa_sample_type(config);
+            m_isa = isa_sample_type(config);
         }
 
 
@@ -177,16 +165,6 @@ class csa_bitcompressed
         bool empty()const
         {
             return m_sa.empty();
-        }
-
-        //! Swap method for csa_bitcompressed
-        void swap(csa_bitcompressed& csa)
-        {
-            if (this != &csa) {
-                m_sa.swap(csa.m_sa);
-                m_isa.swap(csa.m_isa);
-                m_alphabet.swap(csa.m_alphabet);
-            }
         }
 
         //! Returns a const_iterator to the first element.
@@ -224,7 +202,8 @@ class csa_bitcompressed
         csa_bitcompressed& operator=(const csa_bitcompressed& csa)
         {
             if (this != &csa) {
-                copy(csa);
+                csa_bitcompressed tmp(csa);
+                *this = std::move(tmp);
             }
             return *this;
         }

@@ -132,14 +132,14 @@ class bp_support_g
         bp_support_g(const bp_support_g& v) :
             m_bp(v.m_bp),
             m_rank_bp(v.m_rank_bp),
-            m_select_bp(v.m_rank_bp),
-            m_nnd(v.m_rank_bp),
-            m_pioneer_bp(v.m_rank_bp),
-            m_rank_pioneer_bp(v.m_rank_bp),
-            m_nnd2(v.m_rank_bp),
-            m_match(v.m_rank_bp),
-            m_enclose(v.m_rank_bp),
-            m_range_max_match(v.m_rank_bp),
+            m_select_bp(v.m_select_bp),
+            m_nnd(v.m_nnd),
+            m_pioneer_bp(v.m_pioneer_bp),
+            m_rank_pioneer_bp(v.m_rank_pioneer_bp),
+            m_nnd2(v.m_nnd2),
+            m_match(v.m_match),
+            m_enclose(v.m_enclose),
+            m_range_max_match(v.m_range_max_match),
             m_size(v.m_size),
             m_blocks(v.m_blocks)
         {

@@ -395,7 +395,7 @@ class bp_support_sada
         //! Assignment operator
         bp_support_sada& operator=(const bp_support_sada& v)
         {
-            if (this != &bp_support) {
+            if (this != &v) {
                 bp_support_sada tmp(v);
                 *this = std::move(tmp);
             }

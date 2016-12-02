@@ -94,9 +94,7 @@ class _lcp_support_tree2
             construct_first_child_and_lf_lcp<t_dens>(lcp_buf, bwt_buf, sml_lcp_file, big_lcp_file, m_big_lcp);
             int_vector_buffer<8> sml_lcp_buf(sml_lcp_file);
 
-            {
-                m_small_lcp = small_lcp_type(sml_lcp_buf, sml_lcp_buf.size(), config.dir);
-            }
+            m_small_lcp = small_lcp_type(sml_lcp_buf.begin(), sml_lcp_buf.end(), config.dir);
             sml_lcp_buf.close(true);
             sdsl::remove(big_lcp_file);
         }

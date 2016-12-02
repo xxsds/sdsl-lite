@@ -97,7 +97,7 @@ class _lcp_support_sada
         //! Copy constructor
         _lcp_support_sada(const _lcp_support_sada& lcp_c) :
             m_csa(lcp_c.m_csa),
-            m_data(lcp_c,m_data),
+            m_data(lcp_c.m_data),
             m_select_support(lcp_c.m_select_support)
         {
             m_select_support.set_vector(&m_data);

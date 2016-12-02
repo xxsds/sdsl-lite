@@ -104,8 +104,8 @@ void copy_lcp(t_lcp& lcp, const t_lcp& lcp_c, const t_cst& cst, lcp_tree_and_lf_
 template<class t_lcp, class t_cst>
 void move_lcp(t_lcp&& lcp, t_lcp&& lcp_c, const t_cst& cst)
 {
-    typename t_lcp::lcp_category tag;
-    move_lcp(lcp, lcp_c, cst, tag);
+    typename std::remove_reference<t_lcp>::type::lcp_category tag;
+    move_lcp(std::forward<t_lcp>(lcp), std::forward<t_lcp>(lcp_c), cst, tag);
 }
 
 template<class t_lcp, class t_cst>

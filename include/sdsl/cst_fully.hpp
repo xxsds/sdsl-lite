@@ -155,22 +155,6 @@ class cst_fully
         depth_type       m_depth;
         lcp_type         m_lcp = lcp_type(this);
 
-        void copy(const cst_fully& cst)
-        {
-            m_delta     = cst.m_delta;
-            m_nodes     = cst.m_nodes;
-            m_csa       = cst.m_csa;
-            m_s         = cst.m_s;
-            m_s_support = cst.m_s_support;
-            m_s_support.set_vector(&m_s);
-            m_b         = cst.m_b;
-            m_b_select0 = cst.m_b_select0;
-            m_b_select0.set_vector(&m_b);
-            m_b_select1 = cst.m_b_select1;
-            m_b_select1.set_vector(&m_b);
-            m_depth     = cst.m_depth;
-        }
-
     public:
         const size_type&       delta = m_delta;
         const csa_type&        csa = m_csa;
@@ -183,12 +167,23 @@ class cst_fully
         const lcp_type&        lcp = m_lcp;
 
 //! Default constructor
-        cst_fully() {}
+        cst_fully() = default;
 
 //! Copy constructor
-        cst_fully(const cst_fully& cst)
+        cst_fully(const cst_fully& cst) :
+                    m_delta(cst.m_delta),
+                    m_nodes(cst.m_nodes),
+                    m_csa(cst.m_csa),
+                    m_s(cst.m_s),
+                    m_s_support(cst.m_s_support),
+                    m_b(cst.m_b),
+                    m_b_select0(cst.m_b_select0),
+                    m_b_select1(cst.m_b_select1),
+                    m_depth(cst.m_depth)
         {
-            copy(cst);
+            m_s_support.set_vector(&m_s);
+            m_b_select0.set_vector(&m_b);
+            m_b_select1.set_vector(&m_b);
         }
 
 //! Move constructor
@@ -215,21 +210,6 @@ class cst_fully
             return m_csa.empty();
         }
 
-        void swap(cst_fully& cst)
-        {
-            if (this != &cst) {
-                std::swap(m_delta, cst.m_delta);
-                std::swap(m_nodes, cst.m_nodes);
-                m_csa.swap(cst.m_csa);
-                m_s.swap(cst.m_s);
-                util::swap_support(m_s_support, cst.m_s_support, &m_s, &(cst.m_s));
-                m_b.swap(cst.m_b);
-                util::swap_support(m_b_select0, cst.m_b_select0, &m_b, &(cst.m_b));
-                util::swap_support(m_b_select1, cst.m_b_select1, &m_b, &(cst.m_b));
-                m_depth.swap(cst.m_depth);
-            }
-        }
-
         const_iterator begin() const
         {
             if (m_b.size() == 0) {
@@ -243,16 +223,17 @@ class cst_fully
             return const_iterator(this, root(), true, false);
         }
 
-//! Copy Assignment Operator.
+        //! Copy Assignment Operator.
         cst_fully& operator=(const cst_fully& cst)
         {
             if (this != &cst) {
-                copy(cst);
+                cst_fully tmp(cst);
+                *this = std::move(tmp);
             }
             return *this;
         }
 
-//! Move Assignment Operator.
+        //! Move Assignment Operator.
         cst_fully& operator=(cst_fully &&cst)
         {
             if (this != &cst) {
@@ -272,7 +253,7 @@ class cst_fully
             return *this;
         }
 
-//! Serialize to a stream.
+        //! Serialize to a stream.
         /*! \param out Outstream to write the data structure.
          *  \return The number of written bytes.
          */
@@ -293,7 +274,7 @@ class cst_fully
             return written_bytes;
         }
 
-//! Load from a stream.
+        //! Load from a stream.
         /*! \param in Inputstream to load the data structure from.
          */
         void load(std::istream& in)
