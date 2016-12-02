@@ -443,7 +443,7 @@ class wt_gmr_rs
         wt_gmr_rs& operator=(const wt_gmr_rs& wt)
         {
             wt_gmr_rs tmp(wt);
-            *this = std::move(wt);
+            *this = std::move(tmp);
             return *this;
         }
 
