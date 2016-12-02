@@ -115,6 +115,51 @@ public:
 //! Default constructor
 doc_list_index_sada() { }
 
+doc_list_index_sada(const doc_list_index_sada& idx) :
+    m_doc_cnt(idx.m_doc_cnt)
+    m_csa_full(idx.m_csa_full),
+    m_doc_isa(idx.m_doc_isa),
+    m_rminq(idx.m_rminq),
+    m_rmaxq(idx.m_rmaxq),
+    m_doc_border(idx.m_doc_border),
+    m_doc_max_len(idx.m_doc_max_len)
+{ 
+    m_doc_border_rank.set_vector(&m_doc_border);
+    m_doc_border_select.set_vector(&m_doc_border);
+    m_doc_rmin_marked = bit_vector(m_doc_cnt, 0);
+    m_doc_rmax_marked = bit_vector(m_doc_cnt, 0);
+}
+
+doc_list_index_sada(doc_list_index_sada&& idx) { 
+    *this = std::move(idx);
+}
+
+
+doc_list_index_sada& operator=(const doc_list_index_sada& idx) {
+    if(*this != &idx) {
+        doc_list_index_sada tmp(idx);
+        *this = std::move(tmp);
+    }
+    return *this;
+}
+
+doc_list_index_sada& operator=(doc_list_index_sada&& dr) {
+    if(*this != &dr) {
+        m_doc_cnt = dr.m_doc_cnt;
+        m_csa_full = std::move(dr.m_csa_full);
+        m_doc_isa = std::move(dr.m_doc_isa);
+        m_rminq = std::move(dr.m_rminq);
+        m_rmaxq = std::move(dr.m_rmaxq);
+        m_doc_border = std::move(dr.m_doc_border);
+        m_doc_border_rank.set_vector(&m_doc_border);
+        m_doc_border_select.set_vector(&m_doc_border);
+        m_doc_max_len = dr.m_doc_max_len;
+        m_doc_rmin_marked = std::move(dr.m_doc_rmin_marked);
+        m_doc_rmax_marked = std::move(dr.m_doc_rmax_marked);
+    }
+    return *this;
+}
+
 doc_list_index_sada(std::string file_name, sdsl::cache_config& cconfig, uint8_t num_bytes) {
     construct(m_csa_full, file_name, cconfig, num_bytes);
 
@@ -190,24 +235,6 @@ void load(std::istream& in) {
     // also initialize the helper bitvectors
     m_doc_rmin_marked = bit_vector(m_doc_cnt);
     m_doc_rmax_marked = bit_vector(m_doc_cnt);
-}
-
-void swap(doc_list_index_sada& dr) {
-    if (this != &dr) {
-        std::swap(m_doc_cnt, dr.m_doc_cnt);
-        m_csa_full.swap(dr.m_csa_full);
-        m_doc_isa.swap(dr.m_doc_isa);
-        m_rminq.swap(dr.m_rminq);
-        m_rmaxq.swap(dr.m_rmaxq);
-        m_doc_border.swap(dr.m_doc_border);
-        util::swap_support(m_doc_border_rank, dr.m_doc_border_rank,
-                           &m_doc_border, &(dr.m_doc_border));
-        util::swap_support(m_doc_border_select, dr.m_doc_border_select,
-                           &m_doc_border, &(dr.m_doc_border));
-        std::swap(m_doc_max_len, dr.m_doc_max_len);
-        m_doc_rmin_marked.swap(dr.m_doc_rmin_marked);
-        m_doc_rmax_marked.swap(dr.m_doc_rmax_marked);
-    }
 }
 
 //! Search for the k documents which contains the search term most frequent
