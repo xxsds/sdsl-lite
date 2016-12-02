@@ -126,15 +126,6 @@ class csa_wt
         mutable fast_cache csa_cache;
 #endif
 
-        void copy(const csa_wt& csa)
-        {
-            m_wavelet_tree = csa.m_wavelet_tree;
-            m_sa_sample    = csa.m_sa_sample;
-            m_isa_sample   = csa.m_isa_sample;
-            m_isa_sample.set_vector(&m_sa_sample);
-            m_alphabet     = csa.m_alphabet;
-        }
-
     public:
         const typename alphabet_type::char2comp_type& char2comp    = m_alphabet.char2comp;
         const typename alphabet_type::comp2char_type& comp2char    = m_alphabet.comp2char;
@@ -152,18 +143,26 @@ class csa_wt
         const wavelet_tree_type&                      wavelet_tree = m_wavelet_tree;
 
         //! Default constructor
-        csa_wt() {}
+        csa_wt() = default;
 
         //! Copy constructor
-        csa_wt(const csa_wt& csa)
+        csa_wt(const csa_wt& csa) :
+            m_wavelet_tree(csa.m_wavelet_tree),
+            m_sa_sample(csa.m_sa_sample),
+            m_isa_sample(csa.m_isa_sample),
+            m_alphabet(csa.m_alphabet)
         {
-            copy(csa);
+            m_isa_sample.set_vector(&m_sa_sample);
         }
 
         //! Move constructor
-        csa_wt(csa_wt&& csa)
+        csa_wt(csa_wt&& csa) : 
+            m_wavelet_tree(std::move(csa.m_wavelet_tree)),
+            m_sa_sample(std::move(csa.m_sa_sample)),
+            m_isa_sample(std::move(csa.m_isa_sample)),
+            m_alphabet(std::move(csa.m_alphabet))
         {
-            *this = std::move(csa);
+            m_isa_sample.set_vector(&m_sa_sample);
         }
 
         //! Constructor taking a cache_config
@@ -198,17 +197,6 @@ class csa_wt
             return m_wavelet_tree.empty();
         }
 
-        //! Swap method for csa_wt
-        /*! The swap method can be defined in terms of assignment.
-            This requires three assignments, each of which, for a container type, is linear
-            in the container's size. In a sense, then, a.swap(b) is redundant.
-            This implementation guaranties a run-time complexity that is constant rather than linear.
-            \param csa csa_wt to swap.
-
-            Required for the Assignable Conecpt of the STL.
-          */
-        void swap(csa_wt& csa);
-
         //! Returns a const_iterator to the first element.
         /*! Required for the STL Container Concept.
          *  \sa end
@@ -240,13 +228,32 @@ class csa_wt
         /*!
          *    Required for the Assignable Concept of the STL.
          */
-        csa_wt& operator=(const csa_wt& csa);
+        csa_wt& operator=(const csa_wt& csa) {
+            if (this != &csa) {
+                csa_wt tmp(csa);
+                *this = std::move(tmp);
+            }
+            return *this;
+        }
 
         //! Assignment Move Operator.
         /*!
          *    Required for the Assignable Concept of the STL.
          */
-        csa_wt& operator=(csa_wt&& csa);
+        csa_wt& operator=(csa_wt&& csa)
+        {
+            if (this != &csa)
+            {
+                m_wavelet_tree = std::move(csa.m_wavelet_tree);
+                m_sa_sample    = std::move(csa.m_sa_sample);
+                m_isa_sample   = std::move(csa.m_isa_sample);
+                m_isa_sample.set_vector(&m_sa_sample);
+                m_alphabet     = std::move(csa.m_alphabet);
+            }
+            return *this;
+        }
+
+
 
         //! Serialize to a stream.
         /*! \param out Output stream to write the data structure.
@@ -308,13 +315,11 @@ csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::cs
         auto event = memory_monitor::event("construct csa-alpbabet");
         int_vector_buffer<alphabet_type::int_width> bwt_buf(cache_file_name(key_trait<alphabet_type::int_width>::KEY_BWT,config));
         size_type n = bwt_buf.size();
-        alphabet_type tmp_alphabet(bwt_buf, n);
-        m_alphabet.swap(tmp_alphabet);
+        m_alphabet = alphabet_type(bwt_buf, n);
     }
     {
         auto event = memory_monitor::event("sample SA");
-        sa_sample_type tmp_sa_sample(config);
-        m_sa_sample.swap(tmp_sa_sample);
+        m_sa_sample = sa_sample_type(config);
     }
     {
         auto event = memory_monitor::event("sample ISA");
@@ -328,9 +333,7 @@ csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::cs
     {
         auto event = memory_monitor::event("construct wavelet tree");
         int_vector_buffer<alphabet_type::int_width> bwt_buf(cache_file_name(key_trait<alphabet_type::int_width>::KEY_BWT,config));
-        size_type n = bwt_buf.size();
-        wavelet_tree_type tmp_wt(bwt_buf, n);
-        m_wavelet_tree.swap(tmp_wt);
+        m_wavelet_tree = wavelet_tree_type(bwt_buf.begin(), bwt_buf.end(), config.dir);
     }
 }
 
@@ -350,29 +353,6 @@ inline auto csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabe
         return result + off - size();
     }
 }
-
-
-template<class t_wt, uint32_t t_dens, uint32_t t_inv_dens, class t_sa_sample_strat, class t_isa, class t_alphabet_strat>
-auto csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::operator=(const csa_wt<t_wt,t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>& csa) -> csa_wt& {
-    if (this != &csa)
-    {
-        copy(csa);
-    }
-    return *this;
-}
-
-template<class t_wt, uint32_t t_dens, uint32_t t_inv_dens, class t_sa_sample_strat, class t_isa, class t_alphabet_strat>
-auto csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::operator=(csa_wt<t_wt,t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>&& csa) -> csa_wt& {
-    if (this != &csa)
-    {
-        m_wavelet_tree = std::move(csa.m_wavelet_tree);
-        m_sa_sample    = std::move(csa.m_sa_sample);
-        m_isa_sample   = std::move(csa.m_isa_sample);
-        m_alphabet     = std::move(csa.m_alphabet);
-    }
-    return *this;
-}
-
 
 template<class t_wt, uint32_t t_dens, uint32_t t_inv_dens, class t_sa_sample_strat, class t_isa, class t_alphabet_strat>
 auto csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::serialize(std::ostream& out, structure_tree_node* v, std::string name)const -> size_type
@@ -394,17 +374,6 @@ void csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat
     m_sa_sample.load(in);
     m_isa_sample.load(in, &m_sa_sample);
     m_alphabet.load(in);
-}
-
-template<class t_wt, uint32_t t_dens, uint32_t t_inv_dens, class t_sa_sample_strat, class t_isa, class t_alphabet_strat>
-void csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::swap(csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>& csa)
-{
-    if (this != &csa) {
-        m_wavelet_tree.swap(csa.m_wavelet_tree);
-        m_sa_sample.swap(csa.m_sa_sample);
-        util::swap_support(m_isa_sample, csa.m_isa_sample, &m_sa_sample, &(csa.m_sa_sample));
-        m_alphabet.swap(csa.m_alphabet);
-    }
 }
 
 } // end namespace sdsl

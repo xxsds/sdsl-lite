@@ -170,8 +170,7 @@ void construct(t_index& idx, const std::string& file, cache_config& config, uint
     {
         //  (4) use BWT to construct the CSA
         auto event = memory_monitor::event("construct CSA");
-        t_index tmp(config);
-        idx.swap(tmp);
+        idx = t_index(config);
     }
     if (config.delete_files) {
         auto event = memory_monitor::event("delete temporary files");

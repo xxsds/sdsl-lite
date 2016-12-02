@@ -119,15 +119,6 @@ class csa_sada
 
         mutable std::vector<uint64_t> m_psi_buf; // buffer for decoded psi values
 
-        void copy(const csa_sada& csa)
-        {
-            m_psi        = csa.m_psi;
-            m_sa_sample  = csa.m_sa_sample;
-            m_isa_sample = csa.m_isa_sample;
-            m_isa_sample.set_vector(&m_sa_sample);
-            m_alphabet   = csa.m_alphabet;
-        };
-
         void create_buffer()
         {
             if (enc_vector_type::sample_dens < linear_decode_limit) {
@@ -160,16 +151,25 @@ class csa_sada
         ~csa_sada() { }
 
         //! Copy constructor
-        csa_sada(const csa_sada& csa)
+        csa_sada(const csa_sada& csa) :
+            m_psi(csa.m_psi),
+            m_sa_sample(csa.m_sa_sample),
+            m_isa_sample(csa.m_isa_sample),
+            m_alphabet(csa.m_alphabet)
         {
             create_buffer();
-            copy(csa);
+            m_isa_sample.set_vector(&m_sa_sample);
         }
 
         //! Move constructor
-        csa_sada(csa_sada&& csa)
+        csa_sada(csa_sada&& csa) : 
+            m_psi(std::move(csa.m_psi)),
+            m_sa_sample(std::move(csa.m_sa_sample)),
+            m_isa_sample(std::move(csa.m_isa_sample)),
+            m_alphabet(std::move(csa.m_alphabet))
         {
-            *this = std::move(csa);
+            create_buffer();
+            m_isa_sample.set_vector(&m_sa_sample);
         }
 
         csa_sada(cache_config& config);
@@ -202,17 +202,6 @@ class csa_sada
         {
             return m_psi.empty();
         }
-
-        //! Swap method for csa_sada
-        /*! The swap method can be defined in terms of assignment.
-            This requires three assignments, each of which, for a container type, is linear
-            in the container's size. In a sense, then, a.swap(b) is redundant.
-            This implementation guaranties a run-time complexity that is constant rather than linear.
-            \param csa csa_sada to swap.
-
-            Required for the Assignable Conecpt of the STL.
-          */
-        void swap(csa_sada& csa);
 
         //! Returns a const_iterator to the first element.
         /*! Required for the STL Container Concept.
@@ -248,7 +237,8 @@ class csa_sada
         csa_sada& operator=(const csa_sada& csa)
         {
             if (this != &csa) {
-                copy(csa);
+                csa_sada tmp(csa);
+                *this = std::move(tmp);
             }
             return *this;
         }
@@ -263,6 +253,7 @@ class csa_sada
                 m_psi        = std::move(csa.m_psi);
                 m_sa_sample  = std::move(csa.m_sa_sample);
                 m_isa_sample = std::move(csa.m_isa_sample);
+                m_isa_sample.set_vector(&m_sa_sample);
                 m_alphabet   = std::move(csa.m_alphabet);
                 m_psi_buf    = std::move(csa.m_psi_buf);
             }
@@ -403,13 +394,11 @@ csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_str
         int_vector_buffer<alphabet_type::int_width> bwt_buf(cache_file_name(key_trait<alphabet_type::int_width>::KEY_BWT,config));
         n = bwt_buf.size();
         auto event = memory_monitor::event("construct csa-alpbabet");
-        alphabet_type tmp_alphabet(bwt_buf, n);
-        m_alphabet.swap(tmp_alphabet);
+        m_alphabet = alphabet_type(bwt_buf, n);
     }
     {
         auto event = memory_monitor::event("sample SA");
-        sa_sample_type tmp_sa_sample(config);
-        m_sa_sample.swap(tmp_sa_sample);
+        m_sa_sample = sa_sample_type(config);
     }
     {
         auto event = memory_monitor::event("sample ISA");
@@ -438,8 +427,7 @@ csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_str
     {
         auto event = memory_monitor::event("encode PSI");
         int_vector_buffer<> psi_buf(cache_file_name(conf::KEY_PSI, config));
-        t_enc_vec tmp_psi(psi_buf);
-        m_psi.swap(tmp_psi);
+        m_psi = t_enc_vec(psi_buf);
     }
 }
 
@@ -479,17 +467,6 @@ void csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabe
     m_sa_sample.load(in);
     m_isa_sample.load(in, &m_sa_sample);
     m_alphabet.load(in);
-}
-
-template<class t_enc_vec, uint32_t t_dens, uint32_t t_inv_dens, class t_sa_sample_strat, class t_isa, class t_alphabet_strat>
-void csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::swap(csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>& csa)
-{
-    if (this != &csa) {
-        m_psi.swap(csa.m_psi);
-        m_sa_sample.swap(csa.m_sa_sample);
-        util::swap_support(m_isa_sample, csa.m_isa_sample, &m_sa_sample, &(csa.m_sa_sample));
-        m_alphabet.swap(csa.m_alphabet);
-    }
 }
 
 } // end namespace sdsl
