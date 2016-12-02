@@ -346,15 +346,27 @@ class _fuzzy_sa_sampling
         }
 
         //! Copy constructor
-        _fuzzy_sa_sampling(const _fuzzy_sa_sampling& st)
+        _fuzzy_sa_sampling(const _fuzzy_sa_sampling& st) : 
+            m_marked_sa(st.m_marked_sa),
+            m_rank_marked_sa(st.m_rank_marked_sa),
+            m_marked_isa(st.m_marked_isa),
+            m_select_marked_isa(st.m_select_marked_isa),
+            m_inv_perm(st.m_inv_perm)
         {
-            m_marked_sa = st.m_marked_sa;
-            m_rank_marked_sa = st.m_rank_marked_sa;
             m_rank_marked_sa.set_vector(&m_marked_sa);
-            m_marked_isa = st.m_marked_isa;
-            m_select_marked_isa = st.m_select_marked_isa;
             m_select_marked_isa.set_vector(&m_marked_isa);
-            m_inv_perm = st.m_inv_perm;
+        }
+
+        //! Move constructor
+        _fuzzy_sa_sampling(_fuzzy_sa_sampling&& st) : 
+            m_marked_sa(std::move(st.m_marked_sa)),
+            m_rank_marked_sa(std::move(st.m_rank_marked_sa)),
+            m_marked_isa(std::move(st.m_marked_isa)),
+            m_select_marked_isa(std::move(st.m_select_marked_isa)),
+            m_inv_perm(std::move(st.m_inv_perm))
+        {
+            m_rank_marked_sa.set_vector(&m_marked_sa);
+            m_select_marked_isa.set_vector(&m_marked_isa);
         }
 
         //! Determine if index i is sampled or not
@@ -384,26 +396,25 @@ class _fuzzy_sa_sampling
         _fuzzy_sa_sampling& operator=(const _fuzzy_sa_sampling& st)
         {
             if (this != &st) {
-                m_marked_sa = st.m_marked_sa;
-                m_rank_marked_sa = st.m_rank_marked_sa;
-                m_rank_marked_sa.set_vector(&m_marked_sa);
-                m_marked_isa = st.m_marked_isa;
-                m_select_marked_isa = st.m_select_marked_isa;
-                m_select_marked_isa.set_vector(&m_marked_isa);
-                m_inv_perm = st.m_inv_perm;
+                _fuzzy_sa_sampling tmp(st);
+                *this = std::move(tmp);
             }
             return *this;
         }
 
-        //! Swap operation
-        void swap(_fuzzy_sa_sampling& st)
+        //! Move assignment operation
+        _fuzzy_sa_sampling& operator=(_fuzzy_sa_sampling&& st)
         {
-            m_marked_sa.swap(st.m_marked_sa);
-            util::swap_support(m_rank_marked_sa, st.m_rank_marked_sa, &m_marked_sa, &(st.m_marked_sa));
-            m_marked_isa.swap(st.m_marked_isa);
-            util::swap_support(m_select_marked_isa, st.m_select_marked_isa, &m_marked_isa, &(st.m_marked_isa));
-            m_inv_perm.swap(st.m_inv_perm);
+            m_marked_sa = std::move(st.m_marked_sa);
+            m_rank_marked_sa = std::move(st.m_rank_marked_sa);
+            m_marked_isa = std::move(st.m_marked_isa);
+            m_select_marked_isa = std::move(st.m_select_marked_isa);
+            m_inv_perm = std::move(st.m_inv_perm);
+            m_rank_marked_sa.set_vector(&m_marked_sa);
+            m_select_marked_isa.set_vector(&m_marked_isa);
+            return *this;
         }
+
 
         size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const
         {

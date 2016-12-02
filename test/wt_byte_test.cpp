@@ -105,11 +105,6 @@ TYPED_TEST(wt_byte_test, access_copy_move_and_swap)
     TypeParam wt5;
     wt5 = std::move(wt4);
     compare_wt(text, wt5);
-
-    // Swap
-    TypeParam wt6;
-    wt6.swap(wt5);
-    compare_wt(text, wt6);
 }
 
 //! Test rank methods

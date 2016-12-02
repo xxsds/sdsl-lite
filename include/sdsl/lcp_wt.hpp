@@ -119,8 +119,7 @@ class lcp_wt
             }
             {
                 int_vector_buffer<8> lcp_sml_buf(temp_file);
-                small_lcp_type tmp(lcp_sml_buf, lcp_sml_buf.size());
-                m_small_lcp.swap(tmp);
+                m_small_lcp = small_lcp_type(lcp_sml_buf.begin(), lcp_sml_buf.end(), config.dir);
             }
             sdsl::remove(temp_file);
             m_big_lcp = int_vector<>(big_sum, 0, bits::hi(max_l)+1);
@@ -151,19 +150,11 @@ class lcp_wt
             return 0==m_small_lcp.size();
         }
 
-        //! Swap method for lcp_wt
-        void swap(lcp_wt& lcp_c)
-        {
-            m_small_lcp.swap(lcp_c.m_small_lcp);
-            m_big_lcp.swap(lcp_c.m_big_lcp);
-        }
-
         //! Returns a const_iterator to the first element.
         const_iterator begin()const
         {
             return const_iterator(this, 0);
         }
-
 
         //! Returns a const_iterator to the element after the last element.
         const_iterator end()const

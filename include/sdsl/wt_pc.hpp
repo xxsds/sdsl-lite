@@ -92,20 +92,6 @@ class wt_pc
         select_0_type    m_bv_select0;
         tree_strat_type  m_tree;
 
-        void copy(const wt_pc& wt)
-        {
-            m_size            = wt.m_size;
-            m_sigma           = wt.m_sigma;
-            m_bv              = wt.m_bv;
-            m_bv_rank         = wt.m_bv_rank;
-            m_bv_rank.set_vector(&m_bv);
-            m_bv_select1    = wt.m_bv_select1;
-            m_bv_select1.set_vector(&m_bv);
-            m_bv_select0    = wt.m_bv_select0;
-            m_bv_select0.set_vector(&m_bv);
-            m_tree          = wt.m_tree;
-        }
-
         // insert a character into the wavelet tree, see construct method
         void insert_char(value_type old_chr, std::vector<uint64_t>& bv_node_pos,
                          size_type times, bit_vector& bv)
@@ -255,23 +241,45 @@ class wt_pc
 
 
         //! Copy constructor
-        wt_pc(const wt_pc& wt) { copy(wt); }
-
-        wt_pc(wt_pc&& wt)
+        wt_pc(const wt_pc& wt) :
+            m_size(wt.m_size),
+            m_sigma(wt.m_sigma),
+            m_bv(wt.m_bv),
+            m_bv_rank(wt.m_bv_rank),
+            m_bv_select1(wt.m_bv_select1),
+            m_bv_select0(wt.m_bv_select0),
+            m_tree(wt.m_tree)
         {
-            *this = std::move(wt);
+            m_bv_rank.set_vector(&m_bv);
+            m_bv_select1.set_vector(&m_bv);
+            m_bv_select0.set_vector(&m_bv);
+        }
+
+        wt_pc(wt_pc&& wt) :
+            m_size(wt.m_size),
+            m_sigma(wt.m_sigma),
+            m_bv(std::move(wt.m_bv)),
+            m_bv_rank(std::move(wt.m_bv_rank)),
+            m_bv_select1(std::move(wt.m_bv_select1)),
+            m_bv_select0(std::move(wt.m_bv_select0)),
+            m_tree(std::move(wt.m_tree))
+        {
+            m_bv_rank.set_vector(&m_bv);
+            m_bv_select1.set_vector(&m_bv);
+            m_bv_select0.set_vector(&m_bv);
         }
 
         //! Assignment operator
         wt_pc& operator=(const wt_pc& wt)
         {
             if (this != &wt) {
-                copy(wt);
+                wt_pc tmp(wt);         // re-use copy-constructor
+                *this = std::move(tmp); // re-use move-assignment
             }
             return *this;
         }
 
-        //! Assignment operator
+        //! Move assignment operator
         wt_pc& operator=(wt_pc&& wt)
         {
             if (this != &wt) {
@@ -287,25 +295,6 @@ class wt_pc
                 m_tree          = std::move(wt.m_tree);
             }
             return *this;
-        }
-
-
-        //! Swap operator
-        void swap(wt_pc& wt)
-        {
-            if (this != &wt) {
-                std::swap(m_size, wt.m_size);
-                std::swap(m_sigma,  wt.m_sigma);
-                m_bv.swap(wt.m_bv);
-                util::swap_support(m_bv_rank, wt.m_bv_rank,
-                                   &m_bv, &(wt.m_bv));
-
-                util::swap_support(m_bv_select1, wt.m_bv_select1,
-                                   &m_bv, &(wt.m_bv));
-                util::swap_support(m_bv_select0, wt.m_bv_select0,
-                                   &m_bv, &(wt.m_bv));
-                m_tree.swap(wt.m_tree);
-            }
         }
 
         //! Returns the size of the original vector.

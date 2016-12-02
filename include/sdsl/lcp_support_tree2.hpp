@@ -95,8 +95,7 @@ class _lcp_support_tree2
             int_vector_buffer<8> sml_lcp_buf(sml_lcp_file);
 
             {
-                small_lcp_type tmp_small_lcp(sml_lcp_buf, sml_lcp_buf.size());
-                m_small_lcp.swap(tmp_small_lcp);
+                m_small_lcp = small_lcp_type(sml_lcp_buf, sml_lcp_buf.size(), config.dir);
             }
             sml_lcp_buf.close(true);
             sdsl::remove(big_lcp_file);
@@ -120,12 +119,6 @@ class _lcp_support_tree2
         size_type empty()const
         {
             return m_small_lcp.empty();
-        }
-
-        void swap(_lcp_support_tree2& lcp_c)
-        {
-            m_small_lcp.swap(lcp_c.m_small_lcp);
-            m_big_lcp.swap(lcp_c.m_big_lcp);
         }
 
         //! Returns a const_iterator to the first element.

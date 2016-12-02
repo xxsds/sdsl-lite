@@ -89,20 +89,6 @@ class wt_int
         select_0_type          m_tree_select0;
         uint32_t               m_max_level = 0;
 
-        void copy(const wt_int& wt)
-        {
-            m_size          = wt.m_size;
-            m_sigma         = wt.m_sigma;
-            m_tree          = wt.m_tree;
-            m_tree_rank     = wt.m_tree_rank;
-            m_tree_rank.set_vector(&m_tree);
-            m_tree_select1  = wt.m_tree_select1;
-            m_tree_select1.set_vector(&m_tree);
-            m_tree_select0  = wt.m_tree_select0;
-            m_tree_select0.set_vector(&m_tree);
-            m_max_level     = wt.m_max_level;
-        }
-
     private:
 
         // recursive internal version of the method interval_symbols
@@ -250,20 +236,38 @@ class wt_int
         //! Copy constructor
         wt_int(const wt_int& wt)
         {
-            copy(wt);
+            m_size          = wt.m_size;
+            m_sigma         = wt.m_sigma;
+            m_tree          = wt.m_tree;
+            m_tree_rank     = wt.m_tree_rank;
+            m_tree_rank.set_vector(&m_tree);
+            m_tree_select1  = wt.m_tree_select1;
+            m_tree_select1.set_vector(&m_tree);
+            m_tree_select0  = wt.m_tree_select0;
+            m_tree_select0.set_vector(&m_tree);
+            m_max_level     = wt.m_max_level;
         }
 
-        //! Copy constructor
-        wt_int(wt_int&& wt)
+        //! Move constructor
+        wt_int(wt_int&& wt) : m_size(wt.m_size),
+                              m_sigma(wt.m_sigma),
+                              m_tree(std::move(wt.m_tree)),
+                              m_tree_rank(std::move(wt.m_tree_rank)),
+                              m_tree_select1(std::move(wt.m_tree_select1)),
+                              m_tree_select0(std::move(wt.m_tree_select0)),
+                              m_max_level(wt.m_max_level)
         {
-            *this = std::move(wt);
+            m_tree_rank.set_vector(&m_tree);
+            m_tree_select1.set_vector(&m_tree);
+            m_tree_select0.set_vector(&m_tree);
         }
 
         //! Assignment operator
-        wt_int& operator=(const wt_int& wt)
+        wt_int& operator=(const wt_int& wt) 
         {
             if (this != &wt) {
-                copy(wt);
+                wt_int tmp(wt);         // re-use copy-constructor
+                *this = std::move(tmp); // re-use move-assignment
             }
             return *this;
         }
@@ -284,20 +288,6 @@ class wt_int
                 m_max_level     = std::move(wt.m_max_level);
             }
             return *this;
-        }
-
-        //! Swap operator
-        void swap(wt_int& wt)
-        {
-            if (this != &wt) {
-                std::swap(m_size, wt.m_size);
-                std::swap(m_sigma,  wt.m_sigma);
-                m_tree.swap(wt.m_tree);
-                util::swap_support(m_tree_rank, wt.m_tree_rank, &m_tree, &(wt.m_tree));
-                util::swap_support(m_tree_select1, wt.m_tree_select1, &m_tree, &(wt.m_tree));
-                util::swap_support(m_tree_select0, wt.m_tree_select0, &m_tree, &(wt.m_tree));
-                std::swap(m_max_level,  wt.m_max_level);
-            }
         }
 
         //! Returns the size of the original vector.
