@@ -85,7 +85,7 @@ class _lcp_support_sada
         };
 
     private:
-        const csa_type* m_csa;
+        const csa_type* m_csa = nullptr;
         bit_vector_type m_data;
         select_type     m_select_support;
 

@@ -50,8 +50,9 @@ class rank_support_scan : public rank_support
     public:
         explicit rank_support_scan(const bit_vector* v = nullptr) : rank_support(v) {};
         rank_support_scan(const rank_support_scan& rs) = default;
+        rank_support_scan(rank_support_scan&& rs) = default;
         rank_support_scan& operator=(const rank_support_scan& rs) = default;
-        rank_support_scan& operator=(const rank_support_scan&& rs) = default;
+        rank_support_scan& operator=(rank_support_scan&& rs) = default;
         size_type rank(size_type idx) const;
         size_type operator()(size_type idx)const
         {

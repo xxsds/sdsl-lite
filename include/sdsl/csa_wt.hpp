@@ -327,9 +327,9 @@ csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::cs
         util::swap_support(m_isa_sample, isa_s, &m_sa_sample, &m_sa_sample);
     }
 
-    if ( config.delete_files ) {
-        remove_from_cache<int_vector<>>(conf::KEY_SA, config);
-    }
+    // if ( config.delete_files ) {
+    //     remove_from_cache<int_vector<>>(conf::KEY_SA, config);
+    // }
     {
         auto event = memory_monitor::event("construct wavelet tree");
         int_vector_buffer<alphabet_type::int_width> bwt_buf(cache_file_name(key_trait<alphabet_type::int_width>::KEY_BWT,config));

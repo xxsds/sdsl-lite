@@ -118,7 +118,7 @@ class rrr_vector
             m_size(v.m_size),
             m_bt(v.m_bt),
             m_btnr(v.m_btnr),
-            m_btnrp(v.btnrp),
+            m_btnrp(v.m_btnrp),
             m_rank(v.m_rank),
             m_invert(v.m_invert) {}
         rrr_vector(rrr_vector&& v) {

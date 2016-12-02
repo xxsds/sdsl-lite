@@ -405,9 +405,9 @@ csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_str
         isa_sample_type isa_s(config, &m_sa_sample);
         util::swap_support(m_isa_sample, isa_s, &m_sa_sample, (const sa_sample_type*)nullptr);
     }
-    if ( config.delete_files ) {
-        remove_from_cache<int_vector<>>(conf::KEY_SA, config);
-    }
+    // if ( config.delete_files ) {
+    //     remove_from_cache<int_vector<>>(conf::KEY_SA, config);
+    // }
 
     int_vector<> cnt_chr(sigma, 0, bits::hi(n)+1);
     for (typename alphabet_type::sigma_type i=0; i < sigma; ++i) {
