@@ -100,9 +100,6 @@ class sd_vector_builder
             m_high[m_highpos++] = 1;  // write 1 for the entry
             m_tail = i + 1;
         }
-
-        //! Swap method
-        void swap(sd_vector_builder& sdb);
 };
 
 //! A bit vector which compresses very sparse populated bit vectors by
@@ -158,18 +155,6 @@ class sd_vector
         select_1_support_type m_high_1_select; // select support for the ones in m_high
         select_0_support_type m_high_0_select; // select support for the zeros in m_high
 
-        void copy(const sd_vector& v)
-        {
-            m_size = v.m_size;
-            m_wl   = v.m_wl;
-            m_low  = v.m_low;
-            m_high = v.m_high;
-            m_high_1_select = v.m_high_1_select;
-            m_high_1_select.set_vector(&m_high);
-            m_high_0_select = v.m_high_0_select;
-            m_high_0_select.set_vector(&m_high);
-        }
-
     public:
         const uint8_t&               wl            = m_wl;
         const hi_bit_vector_type&    high          = m_high;
@@ -179,9 +164,40 @@ class sd_vector
 
         sd_vector() { }
 
-        sd_vector(const sd_vector& sd)
+        sd_vector(const sd_vector& sd) : 
+            m_size(sd.m_size),
+            m_wl(sd.m_wl),
+            m_low(sd.m_low),
+            m_high(sd.m_high),
+            m_high_1_select(sd.m_high_1_select),
+            m_high_0_select(sd.m_high_0_select)
         {
-            copy(sd);
+            m_high_1_select.set_vector(&m_high);
+            m_high_0_select.set_vector(&m_high);
+        }
+
+        sd_vector& operator=(const sd_vector& v)
+        {
+            if (this != &v) {
+                sd_vector tmp(v);
+                *this = std::move(tmp);
+            }
+            return *this;
+        }
+
+        sd_vector& operator=(sd_vector&& v)
+        {
+            if (this != &v) {
+                m_size = v.m_size;
+                m_wl   = v.m_wl;
+                m_low  = std::move(v.m_low);
+                m_high = std::move(v.m_high);
+                m_high_1_select = std::move(v.m_high_1_select);
+                m_high_1_select.set_vector(&m_high);
+                m_high_0_select = std::move(v.m_high_0_select);
+                m_high_0_select.set_vector(&m_high);
+            }
+            return *this;
         }
 
         sd_vector(sd_vector&& sd)
@@ -260,7 +276,7 @@ class sd_vector
                 ++itr;
             }
 
-            util::assign(m_high, high);
+            m_high = std::move(high);
             util::init_support(m_high_1_select, &m_high);
             util::init_support(m_high_0_select, &m_high);
         }
@@ -273,8 +289,8 @@ class sd_vector
 
             m_size = builder.m_size;
             m_wl = builder.m_wl;
-            m_low.swap(builder.m_low);
-            util::assign(m_high, builder.m_high);
+            m_low = std::move(builder.m_low);
+            m_high = std::move(builder.m_high);
             util::init_support(m_high_1_select, &(this->m_high));
             util::init_support(m_high_0_select, &(this->m_high));
 
@@ -358,46 +374,10 @@ class sd_vector
             }
         }
 
-        //! Swap method
-        void swap(sd_vector& v)
-        {
-            if (this != &v) {
-                std::swap(m_size, v.m_size);
-                std::swap(m_wl, v.m_wl);
-                m_low.swap(v.m_low);
-                m_high.swap(v.m_high);
-                util::swap_support(m_high_1_select, v.m_high_1_select, &m_high, &v.m_high);
-                util::swap_support(m_high_0_select, v.m_high_0_select, &m_high, &v.m_high);
-            }
-        }
-
         //! Returns the size of the original bit vector.
         size_type size()const
         {
             return m_size;
-        }
-
-        sd_vector& operator=(const sd_vector& v)
-        {
-            if (this != &v) {
-                copy(v);
-            }
-            return *this;
-        }
-
-        sd_vector& operator=(sd_vector&& v)
-        {
-            if (this != &v) {
-                m_size = v.m_size;
-                m_wl   = v.m_wl;
-                m_low  = std::move(v.m_low);
-                m_high = std::move(v.m_high);
-                m_high_1_select = std::move(v.m_high_1_select);
-                m_high_1_select.set_vector(&m_high);
-                m_high_0_select = std::move(v.m_high_0_select);
-                m_high_0_select.set_vector(&m_high);
-            }
-            return *this;
         }
 
         //! Serializes the data structure into the given ostream
@@ -476,7 +456,6 @@ class rank_support_sd
         enum { bit_pat_len = (uint8_t)1 };
     private:
         const bit_vector_type* m_v;
-
     public:
 
         explicit rank_support_sd(const bit_vector_type* v=nullptr)
@@ -519,16 +498,6 @@ class rank_support_sd
         {
             m_v = v;
         }
-
-        rank_support_sd& operator=(const rank_support_sd& rs)
-        {
-            if (this != &rs) {
-                set_vector(rs.m_v);
-            }
-            return *this;
-        }
-
-        void swap(rank_support_sd&) { }
 
         void load(std::istream&, const bit_vector_type* v=nullptr)
         {
@@ -624,16 +593,6 @@ class select_support_sd
         {
             m_v = v;
         }
-
-        select_support_sd& operator=(const select_support_sd& ss)
-        {
-            if (this != &ss) {
-                set_vector(ss.m_v);
-            }
-            return *this;
-        }
-
-        void swap(select_support_sd&) { }
 
         void load(std::istream&, const bit_vector_type* v=nullptr)
         {
@@ -796,22 +755,6 @@ class select_0_support_sd
         void set_vector(const bit_vector_type* v=nullptr)
         {
             m_v = v;
-        }
-
-        select_0_support_sd& operator=(const select_0_support_sd& ss)
-        {
-            if (this != &ss) {
-                m_pointer = ss.m_pointer;
-                m_rank1   = ss.m_rank1;
-                set_vector(ss.m_v);
-            }
-            return *this;
-        }
-
-        void swap(select_0_support_sd& ss)
-        {
-            m_pointer.swap(ss.m_pointer);
-            m_rank1.swap(ss.m_rank1);
         }
 
         void load(std::istream& in, const bit_vector_type* v=nullptr)

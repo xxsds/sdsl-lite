@@ -458,9 +458,8 @@ void _construct_sa_se(int_vector_type& text, std::string filename_sa, uint64_t s
             store_to_file(text_rec, filename_sa_rec);
         }
     } else {
-        isa_rec.swap(text_rec);
+        isa_rec = std::move(text_rec);
     }
-    util::clear(text_rec);
 
     // Step 9 - Initiate left for scan in step 12
     if (isa_rec.size() > 0) {

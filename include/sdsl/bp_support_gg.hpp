@@ -89,32 +89,6 @@ class bp_support_gg
         size_type m_size;
         size_type m_blocks; // number of blocks
 
-        void copy(const bp_support_gg& bp_support)
-        {
-            m_bp = bp_support.m_bp;
-            m_rank_bp = bp_support.m_rank_bp;
-            m_rank_bp.set_vector(m_bp);
-            m_select_bp = bp_support.m_select_bp;
-            m_select_bp.set_vector(m_bp);
-
-            m_nnd = bp_support.m_nnd;
-
-            m_size = bp_support.m_size;
-            m_blocks = bp_support.m_blocks;
-
-
-            m_pioneer_bp = bp_support.m_pioneer_bp;
-            if (bp_support.m_pioneer_bp_support == nullptr) {
-                delete m_pioneer_bp_support;
-                m_pioneer_bp_support = nullptr;
-            } else {
-                delete m_pioneer_bp_support;
-                m_pioneer_bp_support = new bp_support_type(*(bp_support.m_pioneer_bp_support));
-                assert(m_pioneer_bp_support != nullptr);
-                m_pioneer_bp_support->set_vector(&m_pioneer_bp);
-            }
-        }
-
     public:
 
         const rank_type& bp_rank;
@@ -157,9 +131,23 @@ class bp_support_gg
         }
 
         //! Copy constructor
-        bp_support_gg(const bp_support_gg& bp_support) : bp_support_gg()
+        bp_support_gg(const bp_support_gg& v) 
+            : bp_support_gg(),
+                m_bp(v.m_bp),
+                m_rank_bp(v.m_rank_bp),
+                m_select_bp(v.m_rank_bp),
+                m_nnd(v.m_rank_bp),
+                m_pioneer_bp(v.m_rank_bp),
+                m_pioneer_bp_support(nullptr),
+                m_size(v.m_size),
+                m_blocks(v.m_blocks),
         {
-            copy(bp_support);
+            m_rank_bp.set_vector(m_bp);
+            m_select_bp.set_vector(m_bp);
+            if(v.m_pioneer_bp_support != nullptr)
+                m_pioneer_bp_support = new bp_support_type(*(v.m_pioneer_bp_support));
+                m_pioneer_bp_support->set_vector(&m_pioneer_bp);
+            }
         }
 
         //! Move constructor
@@ -174,32 +162,12 @@ class bp_support_gg
             delete m_pioneer_bp_support;
         }
 
-        //! Swap operator
-        void swap(bp_support_gg& bp_support)
-        {
-            m_rank_bp.swap(bp_support.m_rank_bp);
-            m_select_bp.swap(bp_support.m_select_bp);
-            m_nnd.swap(bp_support.m_nnd);
-
-            std::swap(m_size, bp_support.m_size);
-            std::swap(m_blocks, bp_support.m_blocks);
-
-            m_pioneer_bp.swap(bp_support.m_pioneer_bp);
-
-            std::swap(m_pioneer_bp_support, bp_support.m_pioneer_bp_support);
-            if (m_pioneer_bp_support != nullptr) {
-                m_pioneer_bp_support->set_vector(&m_pioneer_bp);
-            }
-            if (bp_support.m_pioneer_bp_support != nullptr) {
-                bp_support.m_pioneer_bp_support->set_vector(&(bp_support.m_pioneer_bp));
-            }
-        }
-
         //! Assignment operator
-        bp_support_gg& operator=(const bp_support_gg& bp_support)
+        bp_support_gg& operator=(const bp_support_gg& v)
         {
-            if (this != &bp_support) {
-                copy(bp_support);
+            if (this != &v) {
+                bp_support_gg tmp(v);
+                *this = std::move(tmp);
             }
             return *this;
         }

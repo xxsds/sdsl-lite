@@ -99,7 +99,7 @@ void construct_lcp_kasai(cache_config& config)
             sa[i-1] = sa[i-2];
         }
         sa[0] = 0;
-        lcp.swap(sa);
+        lcp = std::move(sa);
     }
     store_to_cache(lcp, conf::KEY_LCP, config);
 }

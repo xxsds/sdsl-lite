@@ -369,32 +369,6 @@ class int_vector_buffer
             return iterator(*this, size());
         }
 
-        //! Swap method for int_vector_buffer.
-        void swap(int_vector_buffer<t_width>& ivb)
-        {
-            if (this != &ivb) {
-                m_ifile.close();
-                ivb.m_ifile.close();
-                m_ofile.close();
-                ivb.m_ofile.close();
-                std::swap(m_filename, ivb.m_filename);
-                m_ifile.open(m_filename, std::ios::in|std::ios::binary);
-                assert(m_ifile.good());
-                m_ofile.open(m_filename, std::ios::in|std::ios::out|std::ios::binary);
-                assert(m_ofile.good());
-                ivb.m_ifile.open(ivb.m_filename, std::ios::in|std::ios::binary);
-                assert(ivb.m_ifile.good());
-                ivb.m_ofile.open(ivb.m_filename, std::ios::in|std::ios::out|std::ios::binary);
-                assert(ivb.m_ofile.good());
-                std::swap(m_buffer, ivb.m_buffer);
-                std::swap(m_need_to_write, ivb.m_need_to_write);
-                std::swap(m_offset, ivb.m_offset);
-                std::swap(m_buffersize, ivb.m_buffersize);
-                std::swap(m_size, ivb.m_size);
-                std::swap(m_begin, ivb.m_begin);
-            }
-        }
-
         class reference
         {
                 friend class int_vector_buffer<t_width>;

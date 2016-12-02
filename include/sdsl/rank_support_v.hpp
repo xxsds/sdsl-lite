@@ -151,11 +151,6 @@ class rank_support_v : public rank_support
             m_v = v;
         }
 
-        void swap(rank_support_v& rs) {
-            if (this != &rs) { // if rs and _this_ are not the same object
-                m_basic_block.swap(rs.m_basic_block);
-            }
-        }
 };
 
 }// end namespace sds

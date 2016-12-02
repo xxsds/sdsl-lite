@@ -74,8 +74,6 @@ class vlc_vector
         size_type       m_size        = 0;    // number of elements
         uint32_t        m_sample_dens = t_dens;
 
-        void copy(const vlc_vector& v);
-
         void clear()
         {
             m_z.resize(0);
@@ -118,8 +116,6 @@ class vlc_vector
             return 0 == m_size;
         }
 
-        //! Swap method for vlc_vector
-        void swap(vlc_vector& v);
 
         //! Iterator that points to the first element of the vlc_vector.
         const const_iterator begin()const
@@ -172,16 +168,6 @@ inline typename vlc_vector<t_coder, t_dens,t_width>::value_type vlc_vector<t_cod
     assert(i < m_size);
     size_type idx = i/get_sample_dens();
     return (t_coder::template decode<false, false, int*>(m_z.data(), m_sample_pointer[idx], i-t_dens*idx+1)) - 1;
-}
-
-template<class t_coder, uint32_t t_dens, uint8_t t_width>
-void vlc_vector<t_coder, t_dens,t_width>::swap(vlc_vector<t_coder, t_dens,t_width>& v)
-{
-    if (this != &v) { // if v and _this_ are not the same object
-        m_z.swap(v.m_z);                    // swap compressed bit streams
-        m_sample_pointer.swap(v.m_sample_pointer);
-        std::swap(m_size, v.m_size);// swap the number of elements
-    }
 }
 
 

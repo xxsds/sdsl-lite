@@ -91,6 +91,7 @@ class select_support_mcl : public select_support
         select_support_mcl(const select_support_mcl<t_b,t_pat_len>& ss);
         select_support_mcl(select_support_mcl<t_b,t_pat_len>&& ss);
         ~select_support_mcl();
+        
         void init_slow(const bit_vector* v=nullptr);
         //! Select function
         inline size_type select(size_type i) const;
@@ -101,7 +102,6 @@ class select_support_mcl : public select_support
         void set_vector(const bit_vector* v=nullptr);
         select_support_mcl<t_b, t_pat_len>& operator=(const select_support_mcl& ss);
         select_support_mcl<t_b, t_pat_len>& operator=(select_support_mcl&&);
-        void swap(select_support_mcl<t_b, t_pat_len>& ss);
 };
 
 
@@ -116,9 +116,28 @@ select_support_mcl<t_b,t_pat_len>::select_support_mcl(const bit_vector* f_v):sel
 }
 
 template<uint8_t t_b, uint8_t t_pat_len>
-select_support_mcl<t_b,t_pat_len>::select_support_mcl(const select_support_mcl& ss):select_support(ss.m_v)
+select_support_mcl<t_b,t_pat_len>::select_support_mcl(const select_support_mcl& ss) :
+    select_support(ss.m_v),
+    m_logn(ss.m_logn),
+    m_logn2(ss.m_logn2),
+    m_logn4(ss.m_logn4),
+    m_superblock(ss.m_superblock),
+    m_arg_cnt(ss.m_arg_cnt)
 {
-    copy(ss);
+    size_type sb = (m_arg_cnt+4095)>>12;
+    if (ss.m_longsuperblock!=nullptr) {
+        m_longsuperblock = new int_vector<0>[sb]; //copy longsuperblocks
+        for (size_type i=0; i<sb; ++i) {
+            m_longsuperblock[i] = ss.m_longsuperblock[i];
+        }
+    }
+    m_miniblock = nullptr;
+    if (ss.m_miniblock!=nullptr) {
+        m_miniblock = new int_vector<0>[sb]; // copy miniblocks
+        for (size_type i=0; i<sb; ++i) {
+            m_miniblock[i] = ss.m_miniblock[i];
+        }
+    }
 }
 
 template<uint8_t t_b, uint8_t t_pat_len>
@@ -131,7 +150,8 @@ template<uint8_t t_b, uint8_t t_pat_len>
 select_support_mcl<t_b, t_pat_len>& select_support_mcl<t_b,t_pat_len>::operator=(const select_support_mcl& ss)
 {
     if (this != &ss) {
-        copy(ss);
+        select_support_mcl tmp(ss);
+        *this = std::move(tmp);
     }
     return *this;
 }
@@ -156,46 +176,6 @@ select_support_mcl<t_b, t_pat_len>& select_support_mcl<t_b,t_pat_len>::operator=
         ss.m_miniblock = nullptr;
     }
     return *this;
-}
-
-template<uint8_t t_b, uint8_t t_pat_len>
-void select_support_mcl<t_b,t_pat_len>::swap(select_support_mcl& ss)
-{
-    std::swap(m_logn, ss.m_logn);
-    std::swap(m_logn2, ss.m_logn2);
-    std::swap(m_logn4, ss.m_logn4);
-    m_superblock.swap(ss.m_superblock);
-    std::swap(m_longsuperblock, ss.m_longsuperblock);
-    std::swap(m_miniblock, ss.m_miniblock);
-    std::swap(m_arg_cnt, ss.m_arg_cnt);
-}
-
-template<uint8_t t_b, uint8_t t_pat_len>
-void select_support_mcl<t_b,t_pat_len>::copy(const select_support_mcl<t_b, t_pat_len>& ss)
-{
-    m_logn        = ss.m_logn;      // copy log n
-    m_logn2      = ss.m_logn2;      // copy (logn)^2
-    m_logn4      = ss.m_logn4;      // copy (logn)^4
-    m_superblock = ss.m_superblock; // copy long superblock
-    m_arg_cnt    = ss.m_arg_cnt;    // copy count of 1-bits
-    m_v          = ss.m_v;          // copy pointer to the supported bit vector
-    size_type sb = (m_arg_cnt+4095)>>12;
-    delete [] m_longsuperblock;
-    m_longsuperblock = nullptr;
-    if (ss.m_longsuperblock!=nullptr) {
-        m_longsuperblock = new int_vector<0>[sb]; //copy longsuperblocks
-        for (size_type i=0; i<sb; ++i) {
-            m_longsuperblock[i] = ss.m_longsuperblock[i];
-        }
-    }
-    delete [] m_miniblock;
-    m_miniblock = nullptr;
-    if (ss.m_miniblock!=nullptr) {
-        m_miniblock = new int_vector<0>[sb]; // copy miniblocks
-        for (size_type i=0; i<sb; ++i) {
-            m_miniblock[i] = ss.m_miniblock[i];
-        }
-    }
 }
 
 template<uint8_t t_b, uint8_t t_pat_len>
