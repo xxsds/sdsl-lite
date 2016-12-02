@@ -109,14 +109,6 @@ class doc_list_index_sort
             m_d.load(in);
         }
 
-        void swap(doc_list_index_sort& dr) {
-            if (this != &dr) {
-                std::swap(m_doc_cnt, dr.m_doc_cnt);
-                m_csa_full.swap(dr.m_csa_full);
-                m_d.swap(dr.m_d);
-            }
-        }
-
         //! Search for the k documents which contain the search term most frequent
         template<class t_pat_iter>
         size_type search(t_pat_iter begin, t_pat_iter end, result& res, size_t k) const {

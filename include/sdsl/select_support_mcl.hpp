@@ -83,7 +83,6 @@ class select_support_mcl : public select_support
         int_vector<0>* m_longsuperblock = nullptr;
         int_vector<0>* m_miniblock      = nullptr;
         size_type m_arg_cnt             = 0;
-        void copy(const select_support_mcl<t_b, t_pat_len>& ss);
         void initData();
         void init_fast(const bit_vector* v=nullptr);
     public:

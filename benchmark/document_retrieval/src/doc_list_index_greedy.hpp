@@ -145,14 +145,6 @@ void load(std::istream& in) {
     m_wtd.load(in);
 }
 
-void swap(doc_list_index_greedy& dr) {
-    if (this != &dr) {
-        std::swap(m_doc_cnt, dr.m_doc_cnt);
-        m_csa_full.swap(dr.m_csa_full);
-        m_wtd.swap(dr.m_wtd);
-    }
-}
-
 //! Search for the k documents which contain the search term most frequent
 template<class t_pat_iter>
 size_type search(t_pat_iter begin, t_pat_iter end, result& res, size_t k) const {

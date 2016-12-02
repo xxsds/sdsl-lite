@@ -119,8 +119,7 @@ class wt_pc
             // Convert code tree into BFS order in memory and
             // calculate bv_pos values
             size_type bv_size = 0;
-            tree_strat_type temp_tree(temp_nodes, bv_size, this);
-            m_tree.swap(temp_tree);
+            m_tree = tree_strat_type(temp_nodes, bv_size, this);
             return bv_size;
         }
 

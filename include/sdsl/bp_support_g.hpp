@@ -92,28 +92,6 @@ class bp_support_g
         size_type m_size;
         size_type m_blocks; // number of blocks
 
-        void copy(const bp_support_g& bp_support) {
-            m_bp = bp_support.m_bp;
-            m_rank_bp = bp_support.m_rank_bp;
-            m_rank_bp.set_vector(m_bp);
-            m_select_bp = bp_support.m_select_bp;
-            m_select_bp.set_vector(m_bp);
-
-            m_nnd = bp_support.m_nnd;
-
-            m_pioneer_bp = bp_support.m_pioneer_bp;
-            m_rank_pioneer_bp = bp_support.m_rank_pioneer_bp;
-            m_rank_pioneer_bp.set_vector(&m_pioneer_bp);
-            m_nnd2 = bp_support.m_nnd2;
-            m_match = bp_support.m_match;
-            m_enclose = bp_support.m_enclose;
-            m_range_max_match = bp_support.m_range_max_match;
-            m_range_max_match.set_vector(&m_match);
-
-            m_size = bp_support.m_size;
-            m_blocks = bp_support.m_blocks;
-        }
-
         /*! Calculates the excess value at index i in the pioneer bitmap.
          * \param i The index of which the excess value should be calculated.
          */

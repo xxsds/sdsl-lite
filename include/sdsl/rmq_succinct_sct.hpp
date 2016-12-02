@@ -56,12 +56,6 @@ class rmq_succinct_sct
         bit_vector    m_sct_bp;         //!< A bit vector which contains the BPS-SCT of the input container.
         t_bp_support  m_sct_bp_support; //!< Support structure for the BPS-SCT
 
-        void copy(const rmq_succinct_sct& rm) {
-            m_sct_bp = rm.m_sct_bp;
-            m_sct_bp_support = rm.m_sct_bp_support;
-            m_sct_bp_support.set_vector(&m_sct_bp);
-        }
-
     public:
         typedef typename bit_vector::size_type size_type;
         typedef typename bit_vector::size_type value_type;
@@ -93,8 +87,11 @@ class rmq_succinct_sct
         }
 
         //! Copy constructor
-        rmq_succinct_sct(const rmq_succinct_sct& rm) {
-            *this = rm;
+        rmq_succinct_sct(const rmq_succinct_sct& rm) :
+            m_sct_bp(rm.m_sct_bp),
+            m_sct_bp_support(rm.m_sct_bp_support)
+        {
+            m_sct_bp_support.set_vector(&m_sct_bp);
         }
 
         //! Move constructor
@@ -104,9 +101,8 @@ class rmq_succinct_sct
 
         rmq_succinct_sct& operator=(const rmq_succinct_sct& rm) {
             if (this != &rm) {
-                m_sct_bp = rm.m_sct_bp;
-                m_sct_bp_support = rm.m_sct_bp_support;
-                m_sct_bp_support.set_vector(&m_sct_bp);
+                rmq_succinct_sct tmp(rm);
+                *this = std::move(tmp);
             }
             return *this;
         }
@@ -118,12 +114,6 @@ class rmq_succinct_sct
                 m_sct_bp_support.set_vector(&m_sct_bp);
             }
             return *this;
-        }
-
-        void swap(rmq_succinct_sct& rm) {
-            m_sct_bp.swap(rm.m_sct_bp);
-            util::swap_support(m_sct_bp_support, rm.m_sct_bp_support,
-                               &m_sct_bp, &(rm.m_sct_bp));
         }
 
         //! Range minimum/maximum query for the supported random access container v.

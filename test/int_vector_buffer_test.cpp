@@ -487,7 +487,7 @@ void test_swap(size_type exp_w_ivb1, size_type exp_w_ivb2, std::vector<size_type
             size_type buffersize_ivb2 = ivb2.buffersize();
 
             // Swap ivb1 and ivb2
-            ivb1.swap(ivb2);
+            std::swap(ivb1,ivb2);
 
             // Check ivb1
             ASSERT_TRUE(ivb1.is_open());

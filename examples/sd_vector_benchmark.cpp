@@ -46,7 +46,7 @@ int main()
     stop = timer::now();
     cout << "sd_construction in (ms): " << duration_cast<milliseconds>(stop-start).count() << endl;
     {
-        bit_vector().swap(bv);
+        bv.clear();
     }
     cout << "size in MiB: " << size_in_mega_bytes(bv_sd) << endl;
     cout << "wl = " << (size_t) bv_sd.wl << endl;

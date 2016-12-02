@@ -136,8 +136,6 @@ struct _byte_tree {
     enum :uint32_t {fixed_sigma = 256};
     enum :uint8_t {int_width   = 8};      // width of the input integers
 
-
-
     std::vector<data_node> m_nodes;              // nodes for the prefix code tree structure
     node_type          m_c_to_leaf[fixed_sigma]; // map symbol c to a leaf in the tree structure
     // if m_c_to_leaf[c] == undef the char does
@@ -145,14 +143,6 @@ struct _byte_tree {
     uint64_t           m_path[fixed_sigma];      // path information for each char; the bits at position
     // 0..55 hold path information; bits 56..63 the length
     // of the path in binary representation
-
-    void copy(const _byte_tree& bt) {
-        m_nodes = bt.m_nodes;
-        for (uint32_t i=0; i<fixed_sigma; ++i)
-            m_c_to_leaf[i] = bt.m_c_to_leaf[i];
-        for (uint32_t i=0; i<fixed_sigma; ++i)
-            m_path[i] = bt.m_path[i];
-    }
 
     _byte_tree() {}
 
@@ -236,21 +226,29 @@ struct _byte_tree {
         }
     }
 
-    _byte_tree(const _byte_tree& bt) {
-        copy(bt);
-    }
-
-    void swap(_byte_tree& bt) {
-        std::swap(m_nodes, bt.m_nodes);
-        for (uint32_t i=0; i<fixed_sigma; ++i) {
-            std::swap(m_c_to_leaf[i], bt.m_c_to_leaf[i]);
-            std::swap(m_path[i], bt.m_path[i]);
-        }
+    _byte_tree(const _byte_tree& bt) : m_nodes(bt.m_nodes) {
+        
+        for (uint32_t i=0; i<fixed_sigma; ++i)
+            m_c_to_leaf[i] = bt.m_c_to_leaf[i];
+        for (uint32_t i=0; i<fixed_sigma; ++i)
+            m_path[i] = bt.m_path[i];
     }
 
     _byte_tree& operator=(const _byte_tree& bt) {
         if (this != &bt) {
-            copy(bt);
+            _byte_tree tmp(bt);
+            *this = std::move(tmp);
+        }
+        return *this;
+    }
+
+    _byte_tree& operator=(_byte_tree&& bt) {
+        if (this != &bt) {
+            m_nodes = std::move(bt.m_nodes);
+            for (uint32_t i=0; i<fixed_sigma; ++i)
+                m_c_to_leaf[i] = bt.m_c_to_leaf[i];
+            for (uint32_t i=0; i<fixed_sigma; ++i)
+                m_path[i] = bt.m_path[i];
         }
         return *this;
     }
@@ -386,13 +384,7 @@ struct _int_tree {
     // 0..55 hold path information; bits 56..63 the length
     // of the path in binary representation
 
-    void copy(const _int_tree& bt) {
-        m_nodes     = bt.m_nodes;
-        m_c_to_leaf = bt.m_c_to_leaf;
-        m_path      = bt.m_path;
-    }
-
-    _int_tree() {}
+    _int_tree() = default;
 
     _int_tree(const std::vector<pc_node>& temp_nodes, uint64_t& bv_size, const t_wt*) {
         m_nodes.resize(temp_nodes.size());
@@ -482,22 +474,11 @@ struct _int_tree {
         }
     }
 
-    _int_tree(const _int_tree& bt) {
-        copy(bt);
-    }
-
-    void swap(_int_tree& bt) {
-        std::swap(m_nodes, bt.m_nodes);
-        std::swap(m_c_to_leaf, bt.m_c_to_leaf);
-        std::swap(m_path, bt.m_path);
-    }
-
-    _int_tree& operator=(const _int_tree& bt) {
-        if (this != &bt) {
-            copy(bt);
-        }
-        return *this;
-    }
+    _int_tree(const _int_tree& bt) = default;
+    _int_tree(_int_tree&& bt) = default;
+    
+    _int_tree& operator=(const _int_tree& bt) = default;
+    _int_tree& operator=(_int_tree&& bt) = default;
 
     //! Serializes the data structure into the given ostream
     uint64_t serialize(std::ostream& out, structure_tree_node* v=nullptr,

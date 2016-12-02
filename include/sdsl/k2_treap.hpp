@@ -105,9 +105,15 @@ class k2_treap
 
         k2_treap() = default;
 
-        k2_treap(const k2_treap& tr)
+        k2_treap(const k2_treap& tr) :
+            m_t(tr.m_t),
+            m_bp(tr.m_bp),
+            m_bp_rank(tr.m_bp_rank),
+            m_maxval(tr.m_maxval),
+            m_coord(tr.m_coord),
+            m_level_idx(tr.m_level_idx)
         {
-            *this = tr;
+            m_bp_rank.set_vector(&m_bp);
         }
 
         k2_treap(k2_treap&& tr)
@@ -134,13 +140,8 @@ class k2_treap
         k2_treap& operator=(k2_treap& tr)
         {
             if (this != &tr) {
-                m_t = tr.m_t;
-                m_bp = tr.m_bp;
-                m_bp_rank = tr.m_bp_rank;
-                m_bp_rank.set_vector(&m_bp);
-                m_maxval = tr.m_maxval;
-                m_coord = tr.m_coord;
-                m_level_idx = tr.m_level_idx;
+                k2_treap tmp(tr);
+                *this = std::move(tmp);
             }
             return *this;
         }
@@ -150,19 +151,6 @@ class k2_treap
         size() const
         {
             return m_maxval.size();
-        }
-
-        //! Swap operator
-        void swap(k2_treap& tr)
-        {
-            if (this != &tr) {
-                std::swap(m_t, tr.m_t);
-                m_bp.swap(tr.m_bp);
-                util::swap_support(m_bp_rank, tr.m_bp_rank, &m_bp, &(tr.m_bp));
-                m_maxval.swap(tr.m_maxval);
-                m_coord.swap(tr.m_coord);
-                m_level_idx.swap(tr.m_level_idx);
-            }
         }
 
         k2_treap(int_vector_buffer<>& buf_x,
@@ -352,8 +340,7 @@ class k2_treap
                 m_maxval = t_max_vec(val_r);
             }
             {
-                bit_vector _bp;
-                _bp.swap(bp);
+                bit_vector _bp(std::move(bp));
                 m_bp = t_bv(_bp);
             }
             util::init_support(m_bp_rank, &m_bp);

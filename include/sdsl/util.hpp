@@ -301,7 +301,7 @@ void clear(T& x)
 template<class S, class P>
 void swap_support(S& s1, S& s2, const P* p1, const P* p2)
 {
-    s1.swap(s2);
+    std::swap(s1,s2);
     s1.set_vector(p1);
     s2.set_vector(p2);
 }

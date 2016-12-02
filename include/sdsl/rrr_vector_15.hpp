@@ -156,14 +156,6 @@ class rrr_vector<15, t_rac, t_k>
         int_vector<> m_btnrp;    // Sample pointers into m_btnr.
         int_vector<> m_rank;     // Sample rank values.
 
-        void copy(const rrr_vector& rrr)
-        {
-            m_size = rrr.m_size;
-            m_bt = rrr.m_bt;
-            m_btnr = rrr.m_btnr;
-            m_btnrp = rrr.m_btnrp;
-            m_rank = rrr.m_rank;
-        }
     public:
         const rac_type& bt     = m_bt;
         const bit_vector& btnr = m_btnr;

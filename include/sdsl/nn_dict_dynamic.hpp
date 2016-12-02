@@ -54,15 +54,6 @@ class nn_dict_dynamic
         int_vector<64> m_offset;	 	// Number of nodes to skip on each level
         int_vector<64> m_tree; 			// Tree
 
-        void copy(const nn_dict_dynamic& nn)
-        {
-            m_depth = nn.m_depth;
-            m_v_begin_leaves = nn.m_v_begin_leaves;
-            m_size = nn.m_size;
-            m_offset = nn.m_offset;
-            m_tree = nn.m_tree;
-        }
-
     public:
 
         const uint64_t& depth;
