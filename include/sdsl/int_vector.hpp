@@ -62,15 +62,6 @@ class int_vector;
 template<class int_vector_type>
 class mm_item;
 
-namespace algorithm
-{
-template<uint8_t t_width>
-static void calculate_sa(const unsigned char* c,
-                         typename int_vector<t_width>::size_type len,
-                         int_vector<t_width>& sa);
-}
-
-
 //! bit_vector is a specialization of the int_vector.
 typedef int_vector<1> bit_vector;
 
