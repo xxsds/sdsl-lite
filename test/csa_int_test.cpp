@@ -199,7 +199,7 @@ TYPED_TEST(csa_int_test, swap_test)
     TypeParam csa1;
     ASSERT_TRUE(load_from_file(csa1, temp_file));
     TypeParam csa2;
-    csa1.swap(csa2);
+    std::swap(csa1, csa2);
     int_vector<> sa;
     load_from_file(sa, test_case_file_map[conf::KEY_SA]);
     size_type n = sa.size();

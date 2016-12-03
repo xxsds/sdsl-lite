@@ -381,7 +381,7 @@ test_range_search_2d(typename enable_if<has_range_search_2d<t_wt>::value,
         size_type r1 = dice_rank() % (unique_end - unique_buf.begin());
         size_type r2 = dice_rank() % (unique_end - unique_buf.begin());
         if (r1 > r2)
-            swap(r1, r2);
+            std::swap(r1, r2);
         auto vlb = unique_buf[r1];
         auto vrb = unique_buf[r2];
 
