@@ -2,7 +2,7 @@
 # (1) generate docs
 if(GENERATE_DOC)
   find_package(Doxygen)
-    if(DOXYGEN_FOUND) 
+    if(DOXYGEN_FOUND)
         configure_file(${CMAKE_CURRENT_SOURCE_DIR}/extras/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
         add_custom_target(docs ALL
         ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
@@ -20,13 +20,13 @@ CONFIGURE_FILE(
 ADD_CUSTOM_TARGET(uninstall-sdsl
   "${CMAKE_COMMAND}" -P "${CMAKE_CURRENT_BINARY_DIR}/CMakeModules/cmake_uninstall.cmake")
 
-# (3) packaging information 
+# (3) packaging information
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/../sdsl-lite.pc.cmake"
                "${CMAKE_CURRENT_BINARY_DIR}/sdsl-lite.pc" @ONLY)
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/sdsl-lite.pc"
         DESTINATION "lib/pkgconfig")
 
-find_program(CLANG_FORMAT NAMES clang-format clang-format-4.0 clang-format-3.9 clang-format-3.8 clang-format-3.7 clang-format-3.6 clang-format-3.5 clang-format-3.4)
+find_program(CLANG_FORMAT NAMES clang-format-4.0 clang-format-3.9 clang-format-3.8 clang-format-3.7 clang-format-3.6 clang-format-3.5 clang-format-3.4 clang-format)
 
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/pre-commit.cmake"
 		       "${CMAKE_CURRENT_SOURCE_DIR}/pre-commit" @ONLY)
