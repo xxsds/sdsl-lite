@@ -1,3 +1,4 @@
+#include "common.hpp"
 #include "sdsl/suffix_arrays.hpp"
 #include "sdsl/coder.hpp"
 #include "gtest/gtest.h"
@@ -24,24 +25,7 @@ class csa_byte_test : public ::testing::Test { };
 
 using testing::Types;
 
-typedef Types<
-csa_wt<>,
-       csa_sada<>,
-       csa_sada<enc_vector<coder::fibonacci>>,
-       csa_sada<enc_vector<coder::elias_gamma>>,
-       csa_wt<wt_huff<>, 8, 16, text_order_sa_sampling<>>,
-       csa_wt<wt_huff<>,32,32,fuzzy_sa_sampling<>>,
-       csa_wt<wt_huff<>,32,32,fuzzy_sa_sampling<bit_vector, bit_vector>, fuzzy_isa_sampling_support<>>,
-       csa_wt<wt_huff<>,32,32,fuzzy_sa_sampling<>, fuzzy_isa_sampling_support<>>,
-       csa_wt<wt_huff<>,32,32,text_order_sa_sampling<>,isa_sampling<>>,
-       csa_wt<wt_huff<>,32,32,text_order_sa_sampling<>,text_order_isa_sampling_support<>>,
-       csa_sada<enc_vector<>, 32,32,text_order_sa_sampling<>,isa_sampling<>>,
-       csa_sada<enc_vector<>, 32,32,text_order_sa_sampling<>,text_order_isa_sampling_support<>>,
-       csa_wt<wt_huff<>, 8, 16, sa_order_sa_sampling<>>,
-       csa_wt<wt_huff<>, 8, 16, sa_order_sa_sampling<>, isa_sampling<>, succinct_byte_alphabet<bit_vector, rank_support_v<>, select_support_mcl<>>>,
-       csa_wt<wt_huff<>, 8, 16, sa_order_sa_sampling<>, isa_sampling<>, succinct_byte_alphabet<>>,
-       csa_bitcompressed<>
-       > Implementations;
+typedef Types<@typedef_line@> Implementations;
 
 TYPED_TEST_CASE(csa_byte_test, Implementations);
 
@@ -284,28 +268,8 @@ TYPED_TEST(csa_byte_test, delete_)
 int main(int argc, char** argv)
 {
     ::testing::InitGoogleTest(&argc, argv);
-    if (argc < 4) {
-        // LCOV_EXCL_START
-        cout << "Usage: " << argv[0] << " test_file temp_file tmp_dir [in-memory]" << endl;
-        cout << " (1) Generates a CSA out of test_file; stores it in temp_file." << endl;
-        cout << "     Temporary files (SA/BWT/TEXT) are stored in tmp_dir." << endl;
-        cout << "     If `in-memory` is specified, the in-memory construction is tested." << endl;
-        cout << " (2) Performs tests." << endl;
-        cout << " (3) Deletes temp_file." << endl;
+     if ( init_2_arg_test(argc, argv, "CSA_BYTE", test_file, temp_dir, temp_file) != 0 ) {
         return 1;
-        // LCOV_EXCL_STOP
-    }
-    test_file = argv[1];
-    temp_file = argv[2];
-    temp_dir  = argv[3];
-    in_memory    = argc > 4;
-    if (in_memory) {
-        temp_dir = "@";
-        int_vector<8> data;
-        load_vector_from_file(data, test_file, 1);
-        test_file = ram_file_name(test_file);
-        store_to_plain_array<uint8_t>(data, test_file);
-        temp_file = ram_file_name(temp_file);
     }
     return RUN_ALL_TESTS();
 }

@@ -1,4 +1,5 @@
 #include "sdsl/wavelet_trees.hpp"
+#include "common.hpp"
 #include "gtest/gtest.h"
 #include <vector>
 #include <string>
@@ -16,30 +17,13 @@ typedef int_vector<>::size_type size_type;
 string test_file;
 string temp_file;
 string temp_dir;
-bool in_memory;
 
 template<class T>
 class wt_byte_test : public ::testing::Test { };
 
 using testing::Types;
 
-typedef Types<
- wt_pc<balanced_shape>
-,wt_blcd<rrr_vector<63>>
-,wt_blcd<bit_vector_il<>>
-,wt_blcd<bit_vector>
-,wt_huff<bit_vector_il<>>
-,wt_huff<bit_vector, rank_support_v<>>
-,wt_huff<bit_vector, rank_support_v5<>>
-,wt_huff<rrr_vector<63>>
-,wt_rlmn<>
-,wt_rlmn<bit_vector>
-,wt_gmr_rs<>
-,wt_hutu<bit_vector_il<>>
-,wt_hutu<bit_vector, rank_support_v<>>
-,wt_hutu<bit_vector, rank_support_v5<>>
-,wt_hutu<rrr_vector<63>>
-> Implementations;
+typedef Types<@typedef_line@> Implementations;
 
 TYPED_TEST_CASE(wt_byte_test, Implementations);
 
@@ -554,26 +538,8 @@ TYPED_TEST(wt_byte_test, delete_)
 int main(int argc, char** argv)
 {
     ::testing::InitGoogleTest(&argc, argv);
-    if (argc < 3) {
-        // LCOV_EXCL_START
-        cout << "Usage: " << argv[0] << " test_file temp_file tmp_dir [in-memory]" << endl;
-        cout << " (1) Generates a WT out of test_file; stores it in temp_file." << endl;
-        cout << "     If `in-memory` is specified, the in-memory construction is tested." << endl;
-        cout << " (2) Performs tests." << endl;
-        cout << " (3) Deletes temp_file." << endl;
+    if ( init_2_arg_test(argc, argv, "WT_BYTE", test_file, temp_dir, temp_file) != 0 ) {
         return 1;
-        // LCOV_EXCL_STOP
-    }
-    test_file    = argv[1];
-    temp_file    = argv[2];
-    temp_dir     = argv[3];
-    in_memory    = argc > 4;
-    if (in_memory) {
-        int_vector<8> data;
-        load_vector_from_file(data, test_file, 1);
-        test_file = ram_file_name(test_file);
-        store_to_plain_array<uint8_t>(data, test_file);
-        temp_file = ram_file_name(temp_file);
     }
     return RUN_ALL_TESTS();
 }

@@ -1,14 +1,17 @@
+#include "common.hpp"
 #include "sdsl/bit_vectors.hpp" // for rrr_vector
 #include "gtest/gtest.h"
 #include <string>
+
+namespace
+{
 
 using namespace sdsl;
 using namespace std;
 
 string test_file;
-
-namespace
-{
+string temp_file;
+string temp_dir;
 
 template<class T>
 class bit_vector_test : public ::testing::Test { };
@@ -18,28 +21,7 @@ class bit_vector_test_bv_only : public ::testing::Test { };
 
 using testing::Types;
 
-typedef Types<
-bit_vector,
-bit_vector_il<64>,
-bit_vector_il<128>,
-bit_vector_il<256>,
-bit_vector_il<512>,
-bit_vector_il<1024>,
-rrr_vector<64>,
-rrr_vector<256>,
-rrr_vector<129>,
-rrr_vector<192>,
-rrr_vector<255>,
-rrr_vector<15>,
-rrr_vector<31>,
-rrr_vector<63>,
-rrr_vector<83>,
-rrr_vector<127>,
-rrr_vector<128>,
-sd_vector<>,
-sd_vector<rrr_vector<63> >,
-hyb_vector<>
-> Implementations;
+typedef Types<@typedef_line@> Implementations;
 
 typedef Types<
 bit_vector
@@ -48,10 +30,27 @@ bit_vector
 
 TYPED_TEST_CASE(bit_vector_test, Implementations);
 
+TYPED_TEST(bit_vector_test, store_and_load)
+{
+    static_assert(sdsl::util::is_regular<TypeParam>::value, "Type is not regular");
+    bit_vector bv;
+    ASSERT_TRUE(load_from_file(bv, test_file));
+    TypeParam c_bv(bv);
+    ASSERT_TRUE(store_to_file(c_bv, temp_file));
+    TypeParam cc_bv;
+    ASSERT_TRUE(load_from_file(cc_bv, temp_file));
+    ASSERT_EQ(c_bv.size(), cc_bv.size());
+    for (uint64_t j=0; j+64 < c_bv.size(); j+=64) {
+        ASSERT_EQ(c_bv.get_int(j, 64), cc_bv.get_int(j, 64));
+    }
+    for (uint64_t j = (c_bv.size()/64)/64; j < c_bv.size(); j += 64) {
+        ASSERT_EQ((bool)(bv[j]), (bool)(c_bv[j]));
+    }
+}
+
 //! Test operator[]
 TYPED_TEST(bit_vector_test, access)
 {
-    static_assert(sdsl::util::is_regular<TypeParam>::value, "Type is not regular");
     bit_vector bv;
     ASSERT_TRUE(load_from_file(bv, test_file));
     TypeParam c_bv(bv);
@@ -112,6 +111,11 @@ TYPED_TEST(bit_vector_test, swap)
     for (uint64_t j=0; j < bv.size(); ++j) {
         ASSERT_EQ((bool)(bv[j]), (bool)(bv_empty[j]));
     }
+}
+
+TYPED_TEST(bit_vector_test, delete_)
+{
+    sdsl::remove(temp_file);
 }
 
 TYPED_TEST_CASE(bit_vector_test_bv_only, Implementations_BV_Only);
@@ -196,14 +200,9 @@ TYPED_TEST(bit_vector_test_bv_only, xor_with)
 int main(int argc, char* argv[])
 {
     ::testing::InitGoogleTest(&argc, argv);
-    if (argc < 2) {
-        // LCOV_EXCL_START
-        cout << "Usage: " << argv[0] << " FILE " << endl;
-        cout << "  Reads a bitvector from FILE and executes tests." << endl;
+    if ( init_2_arg_test(argc, argv, "BV", test_file, temp_dir, temp_file) != 0 ) {
         return 1;
-        // LCOV_EXCL_STOP
     }
-    test_file = argv[1];
     return RUN_ALL_TESTS();
 }
 

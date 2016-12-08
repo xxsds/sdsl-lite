@@ -1,4 +1,5 @@
 #include "sdsl/wavelet_trees.hpp"
+#include "common.hpp"
 #include "gtest/gtest.h"
 #include <vector>
 #include <string>
@@ -18,7 +19,6 @@ typedef map<int_vector<>::value_type,size_type> tMII;
 string test_file;
 string temp_file;
 string temp_dir;
-bool in_memory;
 
 template<class T>
 class wt_int_test : public ::testing::Test { };
@@ -839,26 +839,9 @@ TYPED_TEST(wt_int_test, delete_)
 int main(int argc, char** argv)
 {
     ::testing::InitGoogleTest(&argc, argv);
-    if (argc < 3) {
-        // LCOV_EXCL_START
-        cout << "Usage: " << argv[0] << " test_file temp_file tmp_dir [in-memory]" << endl;
-        cout << " (1) Generates a WT out of test_file; stores it in temp_file." << endl;
-        cout << "     If `in-memory` is specified, the in-memory construction is tested." << endl;
-        cout << " (2) Performs tests." << endl;
-        cout << " (3) Deletes temp_file." << endl;
+    if ( init_2_arg_test(argc, argv, "WT_INT", test_file, temp_dir, temp_file) != 0 ) {
         return 1;
-        // LCOV_EXCL_STOP
     }
-    test_file = argv[1];
-    temp_file = argv[2];
-    temp_dir  = argv[3];
-    in_memory = argc > 4;
-    if (in_memory) {
-        int_vector<> data;
-        load_from_file(data, test_file);
-        test_file = ram_file_name(test_file);
-        store_to_file(data, test_file);
-        temp_file = ram_file_name(temp_file);
-    }
+ 
     return RUN_ALL_TESTS();
 }

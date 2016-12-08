@@ -292,23 +292,6 @@ TEST_F(IntVectorTest, SerializeAndLoad)
     test_SerializeAndLoad<sdsl::int_vector<64> >();
 }
 
-TEST_F(IntVectorTest, SerializeFixedToVariable)
-{
-    sdsl::int_vector<32> iv(123456,0x733D);
-    std::string file_name = temp_dir+"/int_vector_fixed_to_var";
-    {
-        std::ofstream out(file_name);
-        iv.serialize(out, nullptr, "", true);
-    }
-    sdsl::int_vector<> iv2;
-    sdsl::load_from_file(iv2, file_name);
-    ASSERT_EQ(iv.size(), iv2.size());
-    for (size_type i=0; i < iv.size(); ++i) {
-        ASSERT_EQ(iv[i], iv2[i]);
-    }
-    sdsl::remove(file_name);
-}
-
 TEST_F(IntVectorTest, IteratorTest)
 {
     for (auto i : vec_sizes) {
