@@ -57,7 +57,8 @@ rm -f "${SDSL_INSTALL_PREFIX}/lib/libsdsl*"
 if [ $? != 0 ]; then
 	echo "WARNING: Could not remove old library file."
 fi
-make install # install library
+echo "Installing sdsl to ${SDSL_INSTALL_PREFIX}"
+make install | grep -E -v ".hpp|pc" # install library
 if [ $? != 0 ]; then
 	echo "ERROR: Installation failed."
 	exit 1

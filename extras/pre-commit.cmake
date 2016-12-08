@@ -55,9 +55,11 @@ then
         x=`echo $file |grep -E '^.*(\.cc|\.h|\.cpp|\.c|\.hpp|\.hpp\.cmake|\.cpp\.cmake)$'`
         if test "x$x" != "x"; then
         $CLANGFORMAT_BIN $CLANG_FORMAT_PARAMS $file
-            git add $file
+        git add $file
         fi
     done
 
     echo "--Formatting source code done--"
+else
+	echo "WARNING: clang-format not found. not formatting code!"
 fi

@@ -1,19 +1,6 @@
-/* sdsl - succinct data structures library
-    Copyright (C) 2010 Simon Gog
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see http://www.gnu.org/licenses/ .
-*/
+// Copyright (c) 2016, the SDSL Project Authors.  All rights reserved.
+// Please see the AUTHORS file for details.  Use of this source code is governed
+// by a BSD license that can be found in the LICENSE file.
 /*! \file construct_sa.hpp
     \brief construct_sa.hpp contains an interface to access suffix array construction algorithms
     \author Simon Gog
@@ -33,8 +20,7 @@
 #include "construct_sa_se.hpp"
 #include "construct_config.hpp"
 
-namespace sdsl
-{
+namespace sdsl {
 
 //! Constructs the Suffix Array (SA) from text over byte-alphabet.
 /*! The algorithm constructs the SA and stores it to disk.
@@ -60,8 +46,7 @@ namespace sdsl
  */
 void construct_sa_se(cache_config& config);
 
-namespace algorithm
-{
+namespace algorithm {
 
 //
 // Forward declarations
@@ -75,58 +60,57 @@ namespace algorithm
  * \pre sa.size() has to be equal to len.
  */
 
-template<typename t_int_vec>
+template <typename t_int_vec>
 void calculate_sa(const unsigned char* c, typename t_int_vec::size_type len, t_int_vec& sa)
 {
-    typedef typename t_int_vec::size_type size_type;
-    constexpr uint8_t t_width = t_int_vec::fixed_int_width;
-    if (len <= 1) { // handle special case
-          sa.width(1);
-        sa.resize(len);
-        if ( len > 0 )
-            sa[0] = 0;
-        return;
-    }
-    bool small_file = (sizeof(len) <= 4 or len < 0x7FFFFFFFULL);
-    if (small_file) {
-        uint8_t sa_width = sa.width();
-        if (32 == t_width or ( 0 == t_width and 32 >= sa_width)) {
-            sa.width(32);
-            sa.resize(len);
-            divsufsort(c, (int32_t*)sa.data(), len);
-            // copy integers back to the right positions
-            if (sa_width!=32) {
-                for (size_type i=0, p=0; i<len; ++i,p+=sa_width) {
-                    sa.set_int(p, sa.get_int(i<<5, 32), sa_width);
-                }
-                sa.width(sa_width);
-                sa.resize(len);
-            }
-        } else {
-            if (sa.width() < bits::hi(len)+1) {
-                throw std::logic_error("width of int_vector is to small for the text!!!");
-            }
-            int_vector<> sufarray(len,0,32);
-            divsufsort(c, (int32_t*)sufarray.data(), len);
-            sa.resize(len);
-            for (size_type i=0; i<len; ++i) {
-                sa[i] = sufarray[i];
-            }
-        }
-    } else {
-        uint8_t sa_width = sa.width();
-        sa.width(64);
-        sa.resize(len);
-        divsufsort64(c, (int64_t*)sa.data(), len);
-        // copy integers back to the right positions
-        if (sa_width!=64) {
-            for (size_type i=0, p=0; i<len; ++i,p+=sa_width) {
-                sa.set_int(p, sa.get_int(i<<6, 64), sa_width);
-            }
-            sa.width(sa_width);
-            sa.resize(len);
-        }
-    }
+	typedef typename t_int_vec::size_type size_type;
+	constexpr uint8_t					  t_width = t_int_vec::fixed_int_width;
+	if (len <= 1) { // handle special case
+		sa.width(1);
+		sa.resize(len);
+		if (len > 0) sa[0] = 0;
+		return;
+	}
+	bool small_file = (sizeof(len) <= 4 or len < 0x7FFFFFFFULL);
+	if (small_file) {
+		uint8_t sa_width = sa.width();
+		if (32 == t_width or (0 == t_width and 32 >= sa_width)) {
+			sa.width(32);
+			sa.resize(len);
+			divsufsort(c, (int32_t*)sa.data(), len);
+			// copy integers back to the right positions
+			if (sa_width != 32) {
+				for (size_type i = 0, p = 0; i < len; ++i, p += sa_width) {
+					sa.set_int(p, sa.get_int(i << 5, 32), sa_width);
+				}
+				sa.width(sa_width);
+				sa.resize(len);
+			}
+		} else {
+			if (sa.width() < bits::hi(len) + 1) {
+				throw std::logic_error("width of int_vector is to small for the text!!!");
+			}
+			int_vector<> sufarray(len, 0, 32);
+			divsufsort(c, (int32_t*)sufarray.data(), len);
+			sa.resize(len);
+			for (size_type i = 0; i < len; ++i) {
+				sa[i] = sufarray[i];
+			}
+		}
+	} else {
+		uint8_t sa_width = sa.width();
+		sa.width(64);
+		sa.resize(len);
+		divsufsort64(c, (int64_t*)sa.data(), len);
+		// copy integers back to the right positions
+		if (sa_width != 64) {
+			for (size_type i = 0, p = 0; i < len; ++i, p += sa_width) {
+				sa.set_int(p, sa.get_int(i << 6, 64), sa_width);
+			}
+			sa.width(sa_width);
+			sa.resize(len);
+		}
+	}
 }
 
 
@@ -148,30 +132,30 @@ void calculate_sa(const unsigned char* c, typename t_int_vec::size_type len, t_i
  *    For t_width=8: DivSufSort (http://code.google.com/p/libdivsufsort/)
  *    For t_width=0: qsufsort (http://www.larsson.dogma.net/qsufsort.c)
  */
-template<uint8_t t_width>
+template <uint8_t t_width>
 void construct_sa(cache_config& config)
 {
-    static_assert(t_width == 0 or t_width == 8 , "construct_sa: width must be `0` for integer alphabet and `8` for byte alphabet");
-    const char* KEY_TEXT = key_text_trait<t_width>::KEY_TEXT;
-    if (t_width == 8) {
-        if (construct_config::byte_algo_sa == LIBDIVSUFSORT) {
-            read_only_mapper<t_width> text(KEY_TEXT, config);
-            auto sa = write_out_mapper<0>::create(
-                    cache_file_name(conf::KEY_SA, config),
-                    0, bits::hi(text.size())+1);
-            // call divsufsort
-            algorithm::calculate_sa((const unsigned char*)text.data(), text.size(), sa);
-        } else if (construct_config::byte_algo_sa == SE_SAIS) {
-            construct_sa_se(config);
-        }
-    } else if (t_width == 0) {
-        // call qsufsort
-        int_vector<> sa;
-        sdsl::qsufsort::construct_sa(sa, cache_file_name(KEY_TEXT, config).c_str(), 0);
-        store_to_cache(sa, conf::KEY_SA, config);
-    } else {
-        std::cerr << "Unknown alphabet type" << std::endl;
-    }
+	static_assert(t_width == 0 or t_width == 8,
+				  "construct_sa: width must be `0` for integer alphabet and `8` for byte alphabet");
+	const char* KEY_TEXT = key_text_trait<t_width>::KEY_TEXT;
+	if (t_width == 8) {
+		if (construct_config::byte_algo_sa == LIBDIVSUFSORT) {
+			read_only_mapper<t_width> text(KEY_TEXT, config);
+			auto					  sa = write_out_mapper<0>::create(
+			cache_file_name(conf::KEY_SA, config), 0, bits::hi(text.size()) + 1);
+			// call divsufsort
+			algorithm::calculate_sa((const unsigned char*)text.data(), text.size(), sa);
+		} else if (construct_config::byte_algo_sa == SE_SAIS) {
+			construct_sa_se(config);
+		}
+	} else if (t_width == 0) {
+		// call qsufsort
+		int_vector<> sa;
+		sdsl::qsufsort::construct_sa(sa, cache_file_name(KEY_TEXT, config).c_str(), 0);
+		store_to_cache(sa, conf::KEY_SA, config);
+	} else {
+		std::cerr << "Unknown alphabet type" << std::endl;
+	}
 }
 
 } // end namespace sdsl

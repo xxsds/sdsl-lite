@@ -1,19 +1,6 @@
-/* sdsl - succinct data structures library
-    Copyright (C) 2009-2013 Simon Gog
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see http://www.gnu.org/licenses/ .
-*/
+// Copyright (c) 2016, the SDSL Project Authors.  All rights reserved.
+// Please see the AUTHORS file for details.  Use of this source code is governed
+// by a BSD license that can be found in the LICENSE file.
 /*! \file lcp_byte.hpp
     \brief lcp_byte.hpp contains a (compressed) lcp array.
     \author Simon Gog
@@ -32,8 +19,7 @@
 #include <vector>
 #include <utility> // for pair
 
-namespace sdsl
-{
+namespace sdsl {
 
 //! A class for a simple compressed version of LCP information
 /*! Each small LCP value x=LCP[i] (\f$\leq 254\f$) is represented in a byte.
@@ -47,147 +33,127 @@ namespace sdsl
  *   Replacing suffix trees with enhanced suffix arrays.
  *   J. Discrete Algorithms 2(1): 53-86 (2004)
  */
-template<uint8_t t_width=0>
-class lcp_byte
-{
-    public:
+template <uint8_t t_width = 0>
+class lcp_byte {
+public:
+	typedef typename int_vector<t_width>::value_type value_type;
+	typedef random_access_const_iterator<lcp_byte>   const_iterator;
+	typedef const_iterator							 iterator;
+	typedef const value_type						 const_reference;
+	typedef const_reference							 reference;
+	typedef const_reference*						 pointer;
+	typedef const pointer							 const_pointer;
+	typedef int_vector<>::size_type					 size_type;
+	typedef ptrdiff_t								 difference_type;
 
-        typedef typename int_vector<t_width>::value_type value_type;
-        typedef random_access_const_iterator<lcp_byte>   const_iterator;
-        typedef const_iterator                           iterator;
-        typedef const value_type                         const_reference;
-        typedef const_reference                          reference;
-        typedef const_reference*                         pointer;
-        typedef const pointer                            const_pointer;
-        typedef int_vector<>::size_type                  size_type;
-        typedef ptrdiff_t                                difference_type;
+	typedef lcp_plain_tag lcp_category;
+	typedef lcp_tag		  index_tag;
 
-        typedef lcp_plain_tag                            lcp_category;
-        typedef lcp_tag                                  index_tag;
+	enum {
+		fast_access = 0,
+		text_order  = 0,
+		sa_order	= 1
+	}; // as the lcp_byte is not fast for texts with long repetition
 
-        enum { fast_access = 0,
-               text_order  = 0,
-               sa_order    = 1
-             }; // as the lcp_byte is not fast for texts with long repetition
+	template <class Cst>
+	using type = lcp_byte;
 
-        template<class Cst>
-        using type = lcp_byte;
+private:
+	int_vector<8>		m_small_lcp;   // vector for LCP values < 255
+	int_vector<t_width> m_big_lcp;	 // vector for LCP values > 254
+	int_vector<t_width> m_big_lcp_idx; // index of LCP entries in the LCP array
 
-    private:
+	typedef std::pair<size_type, size_type> tPII;
+	typedef std::vector<tPII> tVPII;
 
-        int_vector<8>       m_small_lcp;   // vector for LCP values < 255
-        int_vector<t_width> m_big_lcp;     // vector for LCP values > 254
-        int_vector<t_width> m_big_lcp_idx; // index of LCP entries in the LCP array
+public:
+	//! Default Constructor
+	lcp_byte()				  = default;
+	lcp_byte(const lcp_byte&) = default;
+	lcp_byte(lcp_byte&&)	  = default;
+	lcp_byte& operator=(const lcp_byte&) = default;
+	lcp_byte& operator=(lcp_byte&&) = default;
 
-        typedef std::pair<size_type, size_type> tPII;
-        typedef std::vector<tPII> tVPII;
+	//! Constructor
+	lcp_byte(cache_config& config)
+	{
+		std::string			lcp_file = cache_file_name(conf::KEY_LCP, config);
+		int_vector_buffer<> lcp_buf(lcp_file);
+		m_small_lcp = int_vector<8>(lcp_buf.size());
+		size_type l = 0, max_l = 0, max_big_idx = 0, big_sum = 0;
 
-    public:
+		for (size_type i = 0; i < m_small_lcp.size(); ++i) {
+			if ((l = lcp_buf[i]) < 255) {
+				m_small_lcp[i] = l;
+			} else {
+				m_small_lcp[i]		 = 255;
+				if (l > max_l) max_l = l;
+				max_big_idx			 = i;
+				++big_sum;
+			}
+		}
+		m_big_lcp	 = int_vector<>(big_sum, 0, bits::hi(max_l) + 1);
+		m_big_lcp_idx = int_vector<>(big_sum, 0, bits::hi(max_big_idx) + 1);
 
-        //! Default Constructor
-        lcp_byte() = default;
-        lcp_byte(const lcp_byte&) = default;
-        lcp_byte(lcp_byte&&) = default;
-        lcp_byte& operator=(const lcp_byte&) = default;
-        lcp_byte& operator=(lcp_byte&&) = default;
+		for (size_type i = 0, ii = 0; i < m_small_lcp.size(); ++i) {
+			if ((l = lcp_buf[i]) >= 255) {
+				m_big_lcp[ii]	 = l;
+				m_big_lcp_idx[ii] = i;
+				++ii;
+			}
+		}
+	}
 
-        //! Constructor
-        lcp_byte(cache_config& config)
-        {
-            std::string lcp_file = cache_file_name(conf::KEY_LCP, config);
-            int_vector_buffer<> lcp_buf(lcp_file);
-            m_small_lcp = int_vector<8>(lcp_buf.size());
-            size_type l=0, max_l=0, max_big_idx=0, big_sum=0;
+	//! Number of elements in the instance.
+	size_type size() const { return m_small_lcp.size(); }
 
-            for (size_type i=0; i < m_small_lcp.size(); ++i) {
-                if ((l=lcp_buf[i]) < 255) {
-                    m_small_lcp[i] = l;
-                } else {
-                    m_small_lcp[i] = 255;
-                    if (l > max_l) max_l = l;
-                    max_big_idx = i;
-                    ++big_sum;
-                }
-            }
-            m_big_lcp     = int_vector<>(big_sum, 0, bits::hi(max_l)+1);
-            m_big_lcp_idx = int_vector<>(big_sum, 0, bits::hi(max_big_idx)+1);
+	//! Returns the largest size that lcp_byte can ever have.
+	static size_type max_size() { return int_vector<8>::max_size(); }
 
-            for (size_type i=0,ii=0; i<m_small_lcp.size(); ++i) {
-                if ((l=lcp_buf[i]) >= 255) {
-                    m_big_lcp[ii] = l;
-                    m_big_lcp_idx[ii] = i;
-                    ++ii;
-                }
-            }
-        }
+	//! Returns if the data strucutre is empty.
+	bool empty() const { return m_small_lcp.empty(); }
 
-        //! Number of elements in the instance.
-        size_type size()const
-        {
-            return m_small_lcp.size();
-        }
+	//! Returns a const_iterator to the first element.
+	const_iterator begin() const { return const_iterator(this, 0); }
 
-        //! Returns the largest size that lcp_byte can ever have.
-        static size_type max_size()
-        {
-            return int_vector<8>::max_size();
-        }
+	//! Returns a const_iterator to the element after the last element.
+	const_iterator end() const { return const_iterator(this, size()); }
 
-        //! Returns if the data strucutre is empty.
-        bool empty()const
-        {
-            return m_small_lcp.empty();
-        }
-
-        //! Returns a const_iterator to the first element.
-        const_iterator begin()const
-        {
-            return const_iterator(this, 0);
-        }
-
-        //! Returns a const_iterator to the element after the last element.
-        const_iterator end()const
-        {
-            return const_iterator(this, size());
-        }
-
-        //! []-operator
-        /*! \param i Index of the value. \f$ i \in [0..size()-1]\f$.
+	//! []-operator
+	/*! \param i Index of the value. \f$ i \in [0..size()-1]\f$.
          * Time complexity: O(1) for small and O(log n) for large values
          */
-        inline value_type operator[](size_type i)const
-        {
-            if (m_small_lcp[i]!=255) {
-                return m_small_lcp[i];
-            } else {
-                size_type idx = lower_bound(m_big_lcp_idx.begin(),
-                                            m_big_lcp_idx.end(),i)
-                                - m_big_lcp_idx.begin();
-                return m_big_lcp[idx];
-            }
-        }
+	inline value_type operator[](size_type i) const
+	{
+		if (m_small_lcp[i] != 255) {
+			return m_small_lcp[i];
+		} else {
+			size_type idx =
+			lower_bound(m_big_lcp_idx.begin(), m_big_lcp_idx.end(), i) - m_big_lcp_idx.begin();
+			return m_big_lcp[idx];
+		}
+	}
 
-        //! Serialize to a stream.
-        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr,
-                            std::string name="")const
-        {
-            structure_tree_node* child = structure_tree::add_child(v, name,
-                                         util::class_name(*this));
-            size_type written_bytes = 0;
-            written_bytes += m_small_lcp.serialize(out, child, "small_lcp");
-            written_bytes += m_big_lcp.serialize(out, child, "large_lcp");
-            written_bytes += m_big_lcp_idx.serialize(out, child, "large_lcp_idx");
-            structure_tree::add_size(child, written_bytes);
-            return written_bytes;
-        }
+	//! Serialize to a stream.
+	size_type
+	serialize(std::ostream& out, structure_tree_node* v = nullptr, std::string name = "") const
+	{
+		structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
+		size_type			 written_bytes = 0;
+		written_bytes += m_small_lcp.serialize(out, child, "small_lcp");
+		written_bytes += m_big_lcp.serialize(out, child, "large_lcp");
+		written_bytes += m_big_lcp_idx.serialize(out, child, "large_lcp_idx");
+		structure_tree::add_size(child, written_bytes);
+		return written_bytes;
+	}
 
-        //! Load from a stream.
-        void load(std::istream& in)
-        {
-            m_small_lcp.load(in);
-            m_big_lcp.load(in);
-            m_big_lcp_idx.load(in);
-        }
+	//! Load from a stream.
+	void load(std::istream& in)
+	{
+		m_small_lcp.load(in);
+		m_big_lcp.load(in);
+		m_big_lcp_idx.load(in);
+	}
 };
 
 } // end namespace sdsl

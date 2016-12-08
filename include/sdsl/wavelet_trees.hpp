@@ -1,19 +1,6 @@
-/* sdsl - succinct data structures library
-    Copyright (C) 2011 Simon Gog
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see http://www.gnu.org/licenses/ .
-*/
+// Copyright (c) 2016, the SDSL Project Authors.  All rights reserved.
+// Please see the AUTHORS file for details.  Use of this source code is governed
+// by a BSD license that can be found in the LICENSE file.
 /*! \file wavelet_trees.hpp
     \brief wavelet_trees.hpp contains wavelet tree implementations.
 	\author Simon Gog
@@ -41,42 +28,26 @@
 #include "construct.hpp"
 #include "wt_algorithm.hpp"
 
-namespace sdsl
-{
+namespace sdsl {
 
-template<class t_bitvector   = bit_vector,
-         class t_rank        = typename t_bitvector::rank_1_type,
-         class t_select      = typename t_bitvector::select_1_type,
-         class t_select_zero = typename t_bitvector::select_0_type
-         >
-using wt_hutu_int = wt_pc<hutu_shape,
-      t_bitvector,
-      t_rank,
-      t_select,
-      t_select_zero,
-      int_tree<>>;
+template <class t_bitvector   = bit_vector,
+		  class t_rank		  = typename t_bitvector::rank_1_type,
+		  class t_select	  = typename t_bitvector::select_1_type,
+		  class t_select_zero = typename t_bitvector::select_0_type>
+using wt_hutu_int = wt_pc<hutu_shape, t_bitvector, t_rank, t_select, t_select_zero, int_tree<>>;
 
-template<class t_bitvector   = bit_vector,
-         class t_rank        = typename t_bitvector::rank_1_type,
-         class t_select      = typename t_bitvector::select_1_type,
-         class t_select_zero = typename t_bitvector::select_0_type>
-using wt_huff_int = wt_pc<huff_shape,
-      t_bitvector,
-      t_rank,
-      t_select,
-      t_select_zero,
-      int_tree<>>;
+template <class t_bitvector   = bit_vector,
+		  class t_rank		  = typename t_bitvector::rank_1_type,
+		  class t_select	  = typename t_bitvector::select_1_type,
+		  class t_select_zero = typename t_bitvector::select_0_type>
+using wt_huff_int = wt_pc<huff_shape, t_bitvector, t_rank, t_select, t_select_zero, int_tree<>>;
 
-template<class t_bitvector   = bit_vector,
-         class t_rank        = typename t_bitvector::rank_1_type,
-         class t_select_one  = typename t_bitvector::select_1_type,
-         class t_select_zero = typename t_bitvector::select_0_type>
-using wt_blcd_int = wt_pc<balanced_shape,
-      t_bitvector,
-      t_rank,
-      t_select_one,
-      t_select_zero,
-      int_tree<>>;
+template <class t_bitvector   = bit_vector,
+		  class t_rank		  = typename t_bitvector::rank_1_type,
+		  class t_select_one  = typename t_bitvector::select_1_type,
+		  class t_select_zero = typename t_bitvector::select_0_type>
+using wt_blcd_int =
+wt_pc<balanced_shape, t_bitvector, t_rank, t_select_one, t_select_zero, int_tree<>>;
 }
 
 #endif
