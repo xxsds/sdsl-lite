@@ -52,7 +52,7 @@ then
 
     files=`git-diff-index --diff-filter=ACMR --name-only -r --cached $against --`
     for file in $files; do
-        x=`echo $file |grep -E '^.*(\.cc|\.h|\.cpp|\.c|\.hpp|\.hpp\.cmake|\.cpp\.cmake)$'`
+        x=`echo $file |grep -E '^.*(\.cc|\.h|\.cpp|\.c|\.hpp)$'`
         if test "x$x" != "x"; then
         $CLANGFORMAT_BIN $CLANG_FORMAT_PARAMS $file
         git add $file

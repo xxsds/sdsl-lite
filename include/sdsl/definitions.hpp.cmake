@@ -7,21 +7,21 @@
 
 #include <string>
 
-#if @HAVE_SSE42 @
+#if @HAVE_SSE42@
 #define HAVE_SSE42 1
 #endif
 
-#if @HAVE_MODETI @
+#if @HAVE_MODETI@
 #define HAVE_MODETI
 #endif
 
-#if @HAVE_CXA_DEMANGLE @
+#if @HAVE_CXA_DEMANGLE@
 #define HAVE_DEMANGLE
 #endif
 
 #define SDSL_PROJECT_DIR "@PROJECT_SOURCE_DIR@"
 
-#if @MSVC_COMPILER @
+#if @MSVC_COMPILER@
 #define MSVC_COMPILER
 #endif
 
