@@ -12,8 +12,9 @@
 #include "sfstream.hpp"
 #include "ram_fs.hpp"
 #include "config.hpp" // for constants
-#include <iosfwd>	 // forward declaration of ostream
-#include <stdint.h>   // for uint64_t uint32_t declaration
+#
+#include <iosfwd>   // forward declaration of ostream
+#include <stdint.h> // for uint64_t uint32_t declaration
 #include <cassert>
 #include <ctime> // for rand initialization
 #include <string>
@@ -30,6 +31,10 @@
 #include <atomic>
 #include <mutex>
 #include <algorithm>
+#include <type_traits>
+#include <sys/types.h> // for file_size
+#include <sys/stat.h>  // for file_size
+#include <iomanip>
 
 // macros to transform a defined name to a string
 #define SDSL_STR(x) #x
@@ -40,6 +45,7 @@
 #include <sys/resource.h> // for struct rusage
 #include <libgen.h>		  // for basename
 #include <unistd.h>		  // for getpid, file_size, clock_gettime
+#include <cxxabi.h>
 #else
 #include <process.h>
 #include <iso646.h>
@@ -156,28 +162,109 @@ typename t_int_vec::size_type prev_bit(const t_int_vec& v, uint64_t idx);
 /*! \param file  Path to a file.
  *  \returns     Size of the specified file in bytes.
  */
-size_t file_size(const std::string& file);
+inline size_t file_size(const std::string& file)
+{
+	if (is_ram_file(file)) {
+		return ram_fs::file_size(file);
+	} else {
+		struct stat fs;
+		stat(file.c_str(), &fs);
+		return fs.st_size;
+	}
+}
+
 
 //! Returns the basename of a file
 /*! \param file  Path to a file.
  *  \returns     Basename of the specified file.
  */
-std::string basename(std::string file);
+inline std::string basename(std::string file)
+{
+	file = disk_file_name(file); // remove RAM-prefix
+#ifdef MSVC_COMPILER
+	char* c						= _strdup((const char*)file.c_str());
+	char  file_name[_MAX_FNAME] = {0};
+	::_splitpath_s(c, NULL, 0, NULL, NULL, file_name, _MAX_FNAME, NULL, 0);
+	std::string res(file_name);
+#else
+	char*		c   = strdup((const char*)file.c_str());
+	std::string res = std::string(::basename(c));
+#endif
+	free(c);
+	return res;
+}
 
 //! Returns the directory of a file. A trailing `/` will be removed.
 /*! \param file  Path to a file.
  *  \returns     Directory name part of the specified path.
  */
-std::string dirname(std::string file);
+inline std::string dirname(std::string file)
+{
+	bool ram_file = is_ram_file(file);
+	file		  = disk_file_name(file); // remove RAM-prefix
+#ifdef MSVC_COMPILER
+	char* c					 = _strdup((const char*)file.c_str());
+	char  dir_name[_MAX_DIR] = {0};
+	char  drive[_MAX_DRIVE]  = {0};
+	::_splitpath_s(c, drive, _MAX_DRIVE, dir_name, _MAX_DIR, NULL, 0, NULL, 0);
+	std::string res = std::string(drive) + std::string(dir_name);
+#else
+	char*		c   = strdup((const char*)file.c_str());
+	std::string res = std::string(::dirname(c));
+#endif
+	free(c);
+	if (ram_file) {
+		if ("." == res) {
+			res = ram_file_name("");
+		} else if ("/" == res) {
+			res = ram_file_name(res);
+		}
+	}
+	return res;
+}
 
 //! Demangle the class name of typeid(...).name()
 /*!
  * \param name A pointer to the result of typeid(...).name()
  */
-std::string demangle(const std::string& name);
+inline std::string demangle(const std::string& name)
+{
+#ifdef HAVE_DEMANGLE
+	char   buf[4096];
+	size_t size   = 4096;
+	int	status = 0;
+	abi::__cxa_demangle(name.c_str(), buf, &size, &status);
+	if (status == 0) return std::string(buf);
+	return name;
+#else
+	return name;
+#endif
+}
+
 
 //! Demangle the class name of typeid(...).name() and remove the "sdsl::"-prefix, "unsigned int",...
-std::string demangle2(const std::string& name);
+inline std::string demangle2(const std::string& name)
+{
+	std::string				 result = demangle(name);
+	std::vector<std::string> words_to_delete;
+	words_to_delete.push_back("sdsl::");
+	words_to_delete.push_back("(unsigned char)");
+	words_to_delete.push_back(", unsigned long");
+
+	for (size_t k = 0; k < words_to_delete.size(); ++k) {
+		std::string w = words_to_delete[k];
+		for (size_t i = result.find(w); i != std::string::npos; i = result.find(w, i)) {
+			result.erase(i, w.length());
+			++i;
+		}
+	}
+	size_t		index	  = 0;
+	std::string to_replace = "int_vector<1>";
+	while ((index = result.find(to_replace, index)) != std::string::npos) {
+		result.replace(index, to_replace.size(), "bit_vector");
+	}
+	return result;
+}
 
 //! Convert type to string
 template <typename T>
@@ -211,30 +298,62 @@ std::string class_name(const T& t)
 }
 
 //! Get the process id of the current process
-uint64_t pid();
+inline uint64_t pid()
+{
+#ifdef MSVC_COMPILER
+	return _getpid();
+#else
+	return getpid();
+#endif
+}
 
 // convert an errno number to a readable msg
-char* str_from_errno();
+inline char* str_from_errno()
+{
+#ifdef MSVC_COMPILER
+#pragma warning(disable : 4996)
+	return strerror(errno);
+#pragma warning(default : 4996)
+#else
+	return strerror(errno);
+#endif
+}
 
 class _id_helper {
-private:
-	static uint64_t id;
-
 public:
-	static uint64_t getId() { return id++; }
+	static uint64_t getId()
+	{
+		static uint64_t id = 0;
+		id++;
+		return id - 1;
+	}
 };
 
 
 //! Get a unique id inside the process
-uint64_t id();
+inline uint64_t id() { return _id_helper::getId(); }
 
 template <typename T>
 std::string to_latex_string(const T& t);
 
-std::string to_latex_string(unsigned char c);
+inline std::string to_latex_string(unsigned char c)
+{
+	if (c == '_')
+		return "\\_";
+	else if (c == '\0')
+		return "\\$";
+	else
+		return to_string(c);
+}
 
 //! Delete all files of the file_map.
-void delete_all_files(tMSS& file_map);
+inline void delete_all_files(tMSS& file_map)
+{
+	for (auto file_pair : file_map) {
+		sdsl::remove(file_pair.second);
+	}
+	file_map.clear();
+}
 
 //! clear the space used by x
 /*!

@@ -378,7 +378,7 @@ public:
 			sort_split(m_SA, n + 1); /* quicksort on first r positions.*/
 		}
 		m_hh = m_rr; /* number of symbols aggregated by transform.*/
-					 //            while ( is_neg(*m_SA) and mark_pos(*m_SA) <= n) {
+		//            while ( is_neg(*m_SA) and mark_pos(*m_SA) <= n) {
 		while (to_sign(*m_SA) >= -n) {
 			//std::cout<<"m_hh="<<m_hh<<std::endl;
 			DBG_OUT << "SA = ";

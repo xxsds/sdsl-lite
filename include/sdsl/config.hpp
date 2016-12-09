@@ -4,15 +4,18 @@
 #ifndef SDSL_CONFIG
 #define SDSL_CONFIG
 
-#include "uintx_t.hpp"
-#include <map>
-#include <string>
 
 #ifndef MSVC_COMPILER
 #define SDSL_UNUSED __attribute__((unused))
 #else
 #define SDSL_UNUSED
 #endif
+
+
+#include "uintx_t.hpp"
+
+#include <map>
+#include <string>
 
 namespace sdsl {
 namespace conf // namespace for library constant

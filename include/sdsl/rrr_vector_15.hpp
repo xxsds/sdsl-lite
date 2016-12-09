@@ -381,10 +381,10 @@ public:
 
 private:
 	const bit_vector_type* m_v; //!< Pointer to the rank supported rrr_vector
-	// TODO cache for sequential ranks
-	//        mutable size_type m_last_bt;
-	//        mutable size_type m_last_w; // store the last decoded word
-	//        uint16_t m_space_for_bt[256];
+								// TODO cache for sequential ranks
+								//        mutable size_type m_last_bt;
+								//        mutable size_type m_last_w; // store the last decoded word
+								//        uint16_t m_space_for_bt[256];
 public:
 	//! Standard constructor
 	/*! \param v Pointer to the rrr_vector, which should be supported

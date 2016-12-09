@@ -14,10 +14,10 @@
 
 namespace sdsl {
 
-class nn_dict_dynamic; // forward declaration
+class nn_dict_dynamic;
 
 namespace util {
-void set_zero_bits(nn_dict_dynamic& nn);
+inline void set_zero_bits(nn_dict_dynamic&);
 }
 
 
@@ -328,6 +328,9 @@ public:
 	};
 };
 
+namespace util {
+inline void set_zero_bits(nn_dict_dynamic& nn) { util::set_to_value(nn.m_tree, 0); }
+}
 
 } // end of namespace
 

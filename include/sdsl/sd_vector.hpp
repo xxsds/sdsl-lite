@@ -55,13 +55,30 @@ private:
 	bit_vector   m_high;
 
 public:
-	sd_vector_builder();
-
+	sd_vector_builder()
+		: m_size(0), m_capacity(0), m_wl(0), m_tail(0), m_items(0), m_last_high(0), m_highpos(0)
+	{
+	}
 	//! Constructor
 	/*! \param n Vector size.
          *  \param m The number of 1-bits.
          */
-	sd_vector_builder(size_type n, size_type m);
+	sd_vector_builder(size_type n, size_type m)
+		: m_size(n), m_capacity(m), m_wl(0), m_tail(0), m_items(0), m_last_high(0), m_highpos(0)
+	{
+		if (m_capacity > m_size) {
+			throw std::runtime_error(
+			"sd_vector_builder: requested capacity is larger than vector size.");
+		}
+
+		size_type logm = bits::hi(m_capacity) + 1, logn = bits::hi(m_size) + 1;
+		if (logm == logn) {
+			logm--; // to ensure logn-logm > 0
+		}
+		m_wl   = logn - logm;
+		m_low  = int_vector<>(m_capacity, 0, m_wl);
+		m_high = bit_vector(m_capacity + (1ULL << logm), 0);
+	}
 
 	inline size_type size() const { return m_size; }
 	inline size_type capacity() const { return m_capacity; }

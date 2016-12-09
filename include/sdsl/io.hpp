@@ -89,10 +89,19 @@ size_t write_member(const T&				   t,
 
 // Specialization for std::string
 template <>
-size_t write_member<std::string>(const std::string&			t,
-								 std::ostream&				out,
-								 sdsl::structure_tree_node* v,
-								 std::string				name);
+inline size_t write_member<std::string>(const std::string&		   t,
+										std::ostream&			   out,
+										sdsl::structure_tree_node* v,
+										std::string				   name)
+{
+	structure_tree_node* child		   = structure_tree::add_child(v, name, util::class_name(t));
+	size_t				 written_bytes = 0;
+	written_bytes += write_member(t.size(), out, child, "length");
+	out.write(t.c_str(), t.size());
+	written_bytes += t.size();
+	structure_tree::add_size(v, written_bytes);
+	return written_bytes;
+}
 
 // Writes primitive-typed variable t to stream out
 template <typename T>
@@ -103,7 +112,16 @@ void read_member(T& t, std::istream& in)
 
 // Specialization for std::string
 template <>
-void read_member<std::string>(std::string& t, std::istream& in);
+inline void read_member<std::string>(std::string& t, std::istream& in)
+{
+	std::string::size_type size;
+	read_member(size, in);
+	char* buf = new char[size];
+	in.read(buf, size);
+	std::string temp(buf, size);
+	delete[] buf;
+	t = std::move(temp);
+}
 
 
 template <typename X>
@@ -238,23 +256,6 @@ bool load_vector_from_file(t_int_vec&		  v,
 		}
 	}
 }
-
-//! Store a data structure to a file.
-/*! The data structure has to provide a serialize function.
- *  \param v Data structure to store.
- *  \param file Name of the file where to store the data structure.
- *  \param Return if the data structure was stored successfully
- */
-template <typename T>
-bool store_to_file(const T& v, const std::string& file);
-
-//! Specialization of store_to_file for a char array
-bool store_to_file(const char* v, const std::string& file);
-
-//! Specialization of store_to_file for int_vector
-template <uint8_t t_width>
-bool store_to_file(const int_vector<t_width>& v, const std::string& file);
-
 
 //! Store an int_vector as plain int_type array to disk
 template <typename int_type, typename t_int_vec>
@@ -395,7 +396,18 @@ void _write_structure(std::unique_ptr<structure_tree_node>& st_node, X x, Xs... 
 inline void _write_structure(std::unique_ptr<structure_tree_node>&) {}
 
 //! Internal function used by csXprintf
-uint64_t _parse_number(std::string::const_iterator& c, const std::string::const_iterator& end);
+inline uint64_t _parse_number(std::string::const_iterator&		 c,
+							  const std::string::const_iterator& end)
+{
+	std::string::const_iterator s = c;
+	while (c != end and isdigit(*c))
+		++c;
+	if (c > s) {
+		return std::stoull(std::string(s, c));
+	} else {
+		return 0;
+	}
+}
 
 //! Internal function used by csXprintf
 template <typename t_csa>
@@ -548,7 +560,13 @@ void csXprintf(std::ostream&	  out,
  * \param  config    Cache configuration.
  * \return The file name of the resource.
  */
-std::string cache_file_name(const std::string& key, const cache_config& config);
+inline std::string cache_file_name(const std::string& key, const cache_config& config)
+{
+	if (config.file_map.count(key) != 0) {
+		return config.file_map.at(key);
+	}
+	return config.dir + "/" + key + "_" + config.id + ".sdsl";
+}
 
 //! Returns the file name of the resource.
 /*!
@@ -571,7 +589,14 @@ std::string cache_file_name(const std::string& key, const cache_config& config)
  *  Note: If the resource does not exist under the given key,
  *  it will be not added to the cache configuration.
  */
-void register_cache_file(const std::string& key, cache_config& config);
+inline void register_cache_file(const std::string& key, cache_config& config)
+{
+	std::string file_name = cache_file_name(key, config);
+	isfstream   in(file_name);
+	if (in) { // if file exists, register it.
+		config.file_map[key] = file_name;
+	}
+}
 
 //! Checks if the resource specified by the key exists in the cache.
 /*!
@@ -579,7 +604,16 @@ void register_cache_file(const std::string& key, cache_config& config);
   \param config Cache configuration.
   \return True, if the file exists, false otherwise.
 */
-bool cache_file_exists(const std::string& key, const cache_config& config);
+inline bool cache_file_exists(const std::string& key, const cache_config& config)
+{
+	std::string file_name = cache_file_name(key, config);
+	isfstream   in(file_name);
+	if (in) {
+		in.close();
+		return true;
+	}
+	return false;
+}
 
 //! Checks if the resource specified by the key and type exists in the cache.
 /*!
@@ -595,10 +629,18 @@ bool cache_file_exists(const std::string& key, const cache_config& config)
 }
 
 //! Returns a name for a temporary file. I.e. the name was not used before.
-std::string tmp_file(const cache_config& config, std::string name_part = "");
+inline std::string tmp_file(const cache_config& config, std::string name_part = "")
+{
+	return config.dir + "/" + util::to_string(util::pid()) + "_" + util::to_string(util::id()) +
+		   name_part + ".sdsl";
+}
 
 //! Returns a name for a temporary file. I.e. the name was not used before.
-std::string tmp_file(const std::string& filename, std::string name_part = "");
+inline std::string tmp_file(const std::string& filename, std::string name_part = "")
+{
+	return util::dirname(filename) + "/" + util::to_string(util::pid()) + "_" +
+		   util::to_string(util::id()) + name_part + ".sdsl";
+}
 
 template <typename T>
 bool load_from_cache(T&					 v,
@@ -728,9 +770,52 @@ bool store_to_checked_file(const T& t, const std::string& file)
 	return store_to_file(t, file);
 }
 
-bool store_to_file(const char* v, const std::string& file);
+inline bool store_to_checked_file(const char* v, const std::string& file)
+{
+	std::string checkfile = file + "_check";
+	osfstream   out(checkfile, std::ios::binary | std::ios::trunc | std::ios::out);
+	if (!out) {
+		if (util::verbose) {
+			std::cerr << "ERROR: store_to_checked_file(const char *v, const std::string&)"
+					  << std::endl;
+			return false;
+		}
+	}
+	add_hash(v, out);
+	out.close();
+	return store_to_file(v, file);
+}
 
-bool store_to_file(const std::string& v, const std::string& file);
+
+inline bool store_to_file(const char* v, const std::string& file)
+{
+	osfstream out(file, std::ios::binary | std::ios::trunc | std::ios::out);
+	if (!out) {
+		if (util::verbose) {
+			std::cerr << "ERROR: store_to_file(const char *v, const std::string&)" << std::endl;
+			return false;
+		}
+	}
+	uint64_t n = strlen((const char*)v);
+	out.write(v, n);
+	out.close();
+	return true;
+}
+
+inline bool store_to_file(const std::string& v, const std::string& file)
+{
+	osfstream out(file, std::ios::binary | std::ios::trunc | std::ios::out);
+	if (!out) {
+		if (util::verbose) {
+			std::cerr << "ERROR: store_to_file(const std::string& v, const std::string&)"
+					  << std::endl;
+			return false;
+		}
+	}
+	out.write(v.data(), v.size());
+	out.close();
+	return true;
+}
 
 template <uint8_t t_width>
 bool store_to_file(const int_vector<t_width>& v, const std::string& file)

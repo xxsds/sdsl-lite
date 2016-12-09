@@ -65,9 +65,21 @@ struct pc_node {
 			uint64_t sym		 = 0,
 			uint64_t parent		 = undef,
 			uint64_t child_left  = undef,
-			uint64_t child_right = undef);
-
-	pc_node& operator=(const pc_node& v);
+			uint64_t child_right = undef)
+		: freq(freq), sym(sym), parent(parent)
+	{
+		child[0] = child_left;
+		child[1] = child_right;
+	}
+	pc_node& operator=(const pc_node& v)
+	{
+		freq	 = v.freq;
+		sym		 = v.sym;
+		parent   = v.parent;
+		child[0] = v.child[0];
+		child[1] = v.child[1];
+		return *this;
+	}
 };
 
 template <typename t_tree_strat_fat>
@@ -646,6 +658,14 @@ public:
 	iterator						begin() const { return m_begin; }
 	iterator						end() const { return m_end; }
 };
+
+
+inline bool empty(const range_type& r) { return std::get<0>(r) == (std::get<1>(r) + 1); }
+
+inline int_vector<>::size_type size(const range_type& r)
+{
+	return std::get<1>(r) - std::get<0>(r) + 1;
+}
 
 
 } // end namespace sdsl

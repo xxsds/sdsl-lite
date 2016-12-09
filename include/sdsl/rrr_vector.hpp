@@ -93,8 +93,8 @@ private:
 	int_vector<> m_btnrp;  // Sample pointers into m_btnr.
 	int_vector<> m_rank;   // Sample rank values.
 	bit_vector   m_invert; // Specifies if a superblock (i.e. t_k blocks)
-	// have to be considered as inverted i.e. 1 and
-	// 0 are swapped
+						   // have to be considered as inverted i.e. 1 and
+						   // 0 are swapped
 
 public:
 	const rac_type&   bt   = m_bt;

@@ -37,7 +37,11 @@ public:
 	bool operator!=(const louds_node& v) const { return !(v == *this); }
 };
 
-std::ostream& operator<<(std::ostream& os, const louds_node& v);
+inline std::ostream& operator<<(std::ostream& os, const louds_node& v)
+{
+	os << "(" << v.nr << "," << v.pos << ")";
+	return os;
+}
 
 //! A tree class based on the level order unary degree sequence (LOUDS) representation.
 /*!

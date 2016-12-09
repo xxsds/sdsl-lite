@@ -243,37 +243,31 @@ SDSL_UNUSED typename std::enable_if<std::is_same<csa_tag, typename t_csa::index_
  *         Bidirectional search in a string with wavelet trees and bidirectional matching statistics.
  *         Inf. Comput. 213: 13-22
  */
-template <class t_wt,
-		  uint32_t t_dens,
-		  uint32_t t_inv_dens,
-		  class t_sa_sample_strat,
-		  class t_isa,
-		  class t_alphabet_strat>
-typename csa_wt<t_wt>::size_type bidirectional_search(
-const csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>& csa_fwd,
-typename csa_wt<>::size_type  l_fwd,
-typename csa_wt<>::size_type  r_fwd,
-typename csa_wt<>::size_type  l_bwd,
-typename csa_wt<>::size_type  r_bwd,
-typename csa_wt<>::char_type  c,
-typename csa_wt<>::size_type& l_fwd_res,
-typename csa_wt<>::size_type& r_fwd_res,
-typename csa_wt<>::size_type& l_bwd_res,
-typename csa_wt<>::size_type& r_bwd_res,
-SDSL_UNUSED typename std::enable_if<t_wt::lex_ordered, csa_tag>::type x = csa_tag())
+template <class t_csa>
+typename t_csa::size_type bidirectional_search(
+const t_csa&			   csa_fwd,
+typename t_csa::size_type  l_fwd,
+typename t_csa::size_type  r_fwd,
+typename t_csa::size_type  l_bwd,
+typename t_csa::size_type  r_bwd,
+typename t_csa::char_type  c,
+typename t_csa::size_type& l_fwd_res,
+typename t_csa::size_type& r_fwd_res,
+typename t_csa::size_type& l_bwd_res,
+typename t_csa::size_type& r_bwd_res,
+SDSL_UNUSED
+typename std::enable_if<decltype(csa_fwd.wavelet_tree)::lex_ordered, csa_tag>::type x = csa_tag())
 {
 	assert(l_fwd <= r_fwd);
 	assert(r_fwd < csa_fwd.size());
-	typedef
-	typename csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::size_type
-			  size_type;
-	size_type c_begin = csa_fwd.C[csa_fwd.char2comp[c]];
-	auto	  r_s_b   = csa_fwd.wavelet_tree.lex_count(l_fwd, r_fwd + 1, c);
-	size_type rank_l  = std::get<0>(r_s_b);
-	size_type s = std::get<1>(r_s_b), b = std::get<2>(r_s_b);
-	size_type rank_r = r_fwd - l_fwd - s - b + rank_l;
-	l_fwd_res		 = c_begin + rank_l;
-	r_fwd_res		 = c_begin + rank_r;
+	typedef typename t_csa::size_type size_type;
+	size_type						  c_begin = csa_fwd.C[csa_fwd.char2comp[c]];
+	auto							  r_s_b   = csa_fwd.wavelet_tree.lex_count(l_fwd, r_fwd + 1, c);
+	size_type						  rank_l  = std::get<0>(r_s_b);
+	size_type						  s = std::get<1>(r_s_b), b = std::get<2>(r_s_b);
+	size_type						  rank_r = r_fwd - l_fwd - s - b + rank_l;
+	l_fwd_res								 = c_begin + rank_l;
+	r_fwd_res								 = c_begin + rank_r;
 	assert(r_fwd_res + 1 >= l_fwd_res);
 	l_bwd_res = l_bwd + s;
 	r_bwd_res = r_bwd - b;
@@ -311,28 +305,22 @@ SDSL_UNUSED typename std::enable_if<t_wt::lex_ordered, csa_tag>::type x = csa_ta
  *         Bidirectional search in a string with wavelet trees and bidirectional matching statistics.
  *         Inf. Comput. 213: 13-22
  */
-template <class t_pat_iter,
-		  class t_wt,
-		  uint32_t t_dens,
-		  uint32_t t_inv_dens,
-		  class t_sa_sample_strat,
-		  class t_isa,
-		  class t_alphabet_strat>
-typename csa_wt<>::size_type bidirectional_search_backward(
-const csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>& csa_fwd,
-SDSL_UNUSED const csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>&
-				  csa_bwd,
-typename csa_wt<>::size_type  l_fwd,
-typename csa_wt<>::size_type  r_fwd,
-typename csa_wt<>::size_type  l_bwd,
-typename csa_wt<>::size_type  r_bwd,
-t_pat_iter					  begin,
-t_pat_iter					  end,
-typename csa_wt<>::size_type& l_fwd_res,
-typename csa_wt<>::size_type& r_fwd_res,
-typename csa_wt<>::size_type& l_bwd_res,
-typename csa_wt<>::size_type& r_bwd_res,
-SDSL_UNUSED typename std::enable_if<t_wt::lex_ordered, csa_tag>::type x = csa_tag())
+template <class t_pat_iter, class t_csa>
+typename t_csa::size_type bidirectional_search_backward(
+const t_csa&	  csa_fwd,
+SDSL_UNUSED const t_csa&   csa_bwd,
+typename t_csa::size_type  l_fwd,
+typename t_csa::size_type  r_fwd,
+typename t_csa::size_type  l_bwd,
+typename t_csa::size_type  r_bwd,
+t_pat_iter				   begin,
+t_pat_iter				   end,
+typename t_csa::size_type& l_fwd_res,
+typename t_csa::size_type& r_fwd_res,
+typename t_csa::size_type& l_bwd_res,
+typename t_csa::size_type& r_bwd_res,
+SDSL_UNUSED
+typename std::enable_if<decltype(csa_fwd.wavelet_tree)::lex_ordered, csa_tag>::type x = csa_tag())
 {
 	t_pat_iter it = end;
 	while (begin < it and r_fwd + 1 - l_fwd > 0) {
@@ -342,7 +330,7 @@ SDSL_UNUSED typename std::enable_if<t_wt::lex_ordered, csa_tag>::type x = csa_ta
 							 r_fwd,
 							 l_bwd,
 							 r_bwd,
-							 (typename csa_wt<>::char_type) * it,
+							 (typename t_csa::char_type) * it,
 							 l_fwd,
 							 r_fwd,
 							 l_bwd,
@@ -385,28 +373,22 @@ SDSL_UNUSED typename std::enable_if<t_wt::lex_ordered, csa_tag>::type x = csa_ta
  *         Bidirectional search in a string with wavelet trees and bidirectional matching statistics.
  *         Inf. Comput. 213: 13-22
  */
-template <class t_pat_iter,
-		  class t_wt,
-		  uint32_t t_dens,
-		  uint32_t t_inv_dens,
-		  class t_sa_sample_strat,
-		  class t_isa,
-		  class t_alphabet_strat>
-typename csa_wt<t_wt>::size_type bidirectional_search_forward(
-SDSL_UNUSED const csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>&
-				  csa_fwd,
-const csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>& csa_bwd,
-typename csa_wt<>::size_type  l_fwd,
-typename csa_wt<>::size_type  r_fwd,
-typename csa_wt<>::size_type  l_bwd,
-typename csa_wt<>::size_type  r_bwd,
-t_pat_iter					  begin,
-t_pat_iter					  end,
-typename csa_wt<>::size_type& l_fwd_res,
-typename csa_wt<>::size_type& r_fwd_res,
-typename csa_wt<>::size_type& l_bwd_res,
-typename csa_wt<>::size_type& r_bwd_res,
-SDSL_UNUSED typename std::enable_if<t_wt::lex_ordered, csa_tag>::type x = csa_tag())
+template <class t_pat_iter, class t_csa>
+typename t_csa::size_type bidirectional_search_forward(
+SDSL_UNUSED const t_csa&   csa_fwd,
+const t_csa&			   csa_bwd,
+typename t_csa::size_type  l_fwd,
+typename t_csa::size_type  r_fwd,
+typename t_csa::size_type  l_bwd,
+typename t_csa::size_type  r_bwd,
+t_pat_iter				   begin,
+t_pat_iter				   end,
+typename t_csa::size_type& l_fwd_res,
+typename t_csa::size_type& r_fwd_res,
+typename t_csa::size_type& l_bwd_res,
+typename t_csa::size_type& r_bwd_res,
+SDSL_UNUSED
+typename std::enable_if<decltype(csa_fwd.wavelet_tree)::lex_ordered, csa_tag>::type x = csa_tag())
 {
 	t_pat_iter it = begin;
 	while (it < end and r_fwd + 1 - l_fwd > 0) {
@@ -415,7 +397,7 @@ SDSL_UNUSED typename std::enable_if<t_wt::lex_ordered, csa_tag>::type x = csa_ta
 							 r_bwd,
 							 l_fwd,
 							 r_fwd,
-							 (typename csa_wt<>::char_type) * it,
+							 (typename t_csa::char_type) * it,
 							 l_bwd,
 							 r_bwd,
 							 l_fwd,
