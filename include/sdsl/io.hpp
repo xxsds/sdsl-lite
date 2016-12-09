@@ -176,7 +176,23 @@ void load(std::vector<X>& x, std::istream& in)
  * \param file Name of the serialized file.
  */
 template <typename T>
-bool load_from_file(T& v, const std::string& file);
+bool load_from_file(T& v, const std::string& file)
+{
+	isfstream in(file, std::ios::binary | std::ios::in);
+	if (!in) {
+		if (util::verbose) {
+			std::cerr << "Could not load file `" << file << "`" << std::endl;
+		}
+		return false;
+	}
+	load(v, in);
+	in.close();
+	if (util::verbose) {
+		std::cerr << "Load file `" << file << "`" << std::endl;
+	}
+	return true;
+}
+
 
 //! Load an int_vector from a plain array of `num_bytes`-byte integers with X in \{0, 1,2,4,8\} from disk.
 // TODO: Remove ENDIAN dependency.
@@ -852,24 +868,6 @@ bool store_to_checked_file(const int_vector<t_width>& v, const std::string& file
 	add_hash(v, out);
 	out.close();
 	return store_to_file(v, file);
-}
-
-template <typename T>
-bool load_from_file(T& v, const std::string& file)
-{
-	isfstream in(file, std::ios::binary | std::ios::in);
-	if (!in) {
-		if (util::verbose) {
-			std::cerr << "Could not load file `" << file << "`" << std::endl;
-		}
-		return false;
-	}
-	load(v, in);
-	in.close();
-	if (util::verbose) {
-		std::cerr << "Load file `" << file << "`" << std::endl;
-	}
-	return true;
 }
 
 template <typename T>
