@@ -733,7 +733,6 @@ bool remove_from_cache(const std::string& key, cache_config& config, bool add_ty
 template <typename T>
 typename T::size_type size_in_bytes(const T& t)
 {
-	if ((&t) == nullptr) return 0;
 	nullstream ns;
 	return serialize(t, ns);
 }

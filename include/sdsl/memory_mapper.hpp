@@ -9,7 +9,7 @@
 
 namespace sdsl {
 
-class memory_mapper {
+struct memory_mapper {
 	static int open_file_for_mmap(std::string& filename, std::ios_base::openmode mode)
 	{
 		if (is_ram_file(filename)) {

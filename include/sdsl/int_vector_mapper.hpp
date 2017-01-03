@@ -59,11 +59,8 @@ public:
 					if (out) {
 						out.seekp(0, std::ios::beg);
 						int_vector<t_width>::write_header(m_wrapper.m_size, m_wrapper.m_width, out);
-
-						//    out.seekp(0, std::ios::end);
 					} else {
-						throw std::runtime_error("int_vector_mapper: \
-                                    could not open file for header update");
+						std::cerr << "int_vector_mapper: could not open file for header update";
 					}
 				}
 			}

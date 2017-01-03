@@ -301,7 +301,7 @@ output_event_json(std::ostream& out, const memory_monitor::mm_event& ev, const m
 
 
 template <>
-void write_mem_log<JSON_FORMAT>(std::ostream& out, const memory_monitor& m)
+inline void write_mem_log<JSON_FORMAT>(std::ostream& out, const memory_monitor& m)
 {
 	auto events = m.completed_events;
 	std::sort(events.begin(), events.end());
@@ -489,7 +489,7 @@ inline std::string create_mem_js_body(const std::string& jsonObject)
 
 
 template <>
-void write_mem_log<HTML_FORMAT>(std::ostream& out, const memory_monitor& m)
+inline void write_mem_log<HTML_FORMAT>(std::ostream& out, const memory_monitor& m)
 {
 	std::stringstream json_data;
 	write_mem_log<JSON_FORMAT>(json_data, m);
