@@ -6,6 +6,7 @@
 
 #include "int_vector.hpp"
 #include "memory_management.hpp"
+#include "memory_mapper.hpp"
 
 #include <cstdio>
 #include <ios>
@@ -45,7 +46,7 @@ public:
 	~int_vector_mapper()
 	{
 		if (m_mapped_data) {
-			auto ret = memory_manager::mem_unmap(m_fd, m_mapped_data, m_file_size_bytes);
+			auto ret = memory_mapper::mem_unmap(m_fd, m_mapped_data, m_file_size_bytes);
 			if (ret != 0) {
 				std::cerr << "int_vector_mapper: error unmapping file mapping'" << m_file_name
 						  << "': " << ret << std::endl;
@@ -74,7 +75,7 @@ public:
 				size_type data_size_in_bytes = ((current_bit_size + 63) >> 6) << 3;
 				if (m_file_size_bytes != data_size_in_bytes + m_data_offset) {
 					int tret =
-					memory_manager::truncate_file_mmap(m_fd, data_size_in_bytes + m_data_offset);
+					memory_mapper::truncate_file_mmap(m_fd, data_size_in_bytes + m_data_offset);
 					if (tret == -1) {
 						std::string truncate_error =
 						std::string("int_vector_mapper: truncate error. ") +
@@ -85,7 +86,7 @@ public:
 			}
 		}
 		if (m_fd != -1) {
-			auto ret = memory_manager::close_file_for_mmap(m_fd);
+			auto ret = memory_mapper::close_file_for_mmap(m_fd);
 			if (ret != 0) {
 				std::cerr << "int_vector_mapper: error closing file mapping'" << m_file_name
 						  << "': " << ret << std::endl;
@@ -173,7 +174,7 @@ public:
 		}
 
 		// open backend file depending on mode
-		m_fd = memory_manager::open_file_for_mmap(m_file_name, t_mode);
+		m_fd = memory_mapper::open_file_for_mmap(m_file_name, t_mode);
 		if (m_fd == -1) {
 			std::string open_error = std::string("int_vector_mapper: open file error.") +
 									 std::string(util::str_from_errno());
@@ -184,7 +185,7 @@ public:
 		// prepare for mmap
 		m_wrapper.width(int_width);
 		// mmap data
-		m_mapped_data = (uint8_t*)memory_manager::mmap_file(m_fd, m_file_size_bytes, t_mode);
+		m_mapped_data = (uint8_t*)memory_mapper::mmap_file(m_fd, m_file_size_bytes, t_mode);
 		if (m_mapped_data == nullptr) {
 			std::string mmap_error =
 			std::string("int_vector_mapper: mmap error. ") + std::string(util::str_from_errno());
@@ -211,13 +212,13 @@ public:
 		size_type new_size_in_bytes = ((bit_size + 63) >> 6) << 3;
 		if (m_file_size_bytes != new_size_in_bytes + m_data_offset) {
 			if (m_mapped_data) {
-				auto ret = memory_manager::mem_unmap(m_fd, m_mapped_data, m_file_size_bytes);
+				auto ret = memory_mapper::mem_unmap(m_fd, m_mapped_data, m_file_size_bytes);
 				if (ret != 0) {
 					std::cerr << "int_vector_mapper: error unmapping file mapping'" << m_file_name
 							  << "': " << ret << std::endl;
 				}
 			}
-			int tret = memory_manager::truncate_file_mmap(m_fd, new_size_in_bytes + m_data_offset);
+			int tret = memory_mapper::truncate_file_mmap(m_fd, new_size_in_bytes + m_data_offset);
 			if (tret == -1) {
 				std::string truncate_error = std::string("int_vector_mapper: truncate error. ") +
 											 std::string(util::str_from_errno());
@@ -226,7 +227,7 @@ public:
 			m_file_size_bytes = new_size_in_bytes + m_data_offset;
 
 			// perform the actual mapping
-			m_mapped_data = (uint8_t*)memory_manager::mmap_file(m_fd, m_file_size_bytes, t_mode);
+			m_mapped_data = (uint8_t*)memory_mapper::mmap_file(m_fd, m_file_size_bytes, t_mode);
 			if (m_mapped_data == nullptr) {
 				std::string mmap_error = std::string("int_vector_mapper: mmap error. ") +
 										 std::string(util::str_from_errno());

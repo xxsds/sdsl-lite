@@ -43,9 +43,12 @@ private:
 public:
 	//! Default construct
 	ram_fs() { m_fd_map[-1] = ""; }
+
+	//! store file to ram file system
 	static void store(const std::string& name, content_type data)
 	{
-		auto&								  r = ram_fs::the_ramfs();
+		auto& r = ram_fs::the_ramfs();
+
 		std::lock_guard<std::recursive_mutex> lock(r.m_rlock);
 		if (!exists(name)) {
 			std::string cname = name;
@@ -58,14 +61,17 @@ public:
 	//! Check if the file exists
 	static bool exists(const std::string& name)
 	{
-		auto&								  r = ram_fs::the_ramfs();
+		auto& r = ram_fs::the_ramfs();
+
 		std::lock_guard<std::recursive_mutex> lock(r.m_rlock);
 		return r.m_map.find(name) != r.m_map.end();
 	}
+
 	//! Get the file size
 	static size_t file_size(const std::string& name)
 	{
-		auto&								  r = ram_fs::the_ramfs();
+		auto& r = ram_fs::the_ramfs();
+
 		std::lock_guard<std::recursive_mutex> lock(r.m_rlock);
 		if (exists(name)) {
 			return r.m_map[name].size();
@@ -73,17 +79,22 @@ public:
 			return 0;
 		}
 	}
+
 	//! Get the content
 	static content_type& content(const std::string& name)
 	{
-		auto&								  r = ram_fs::the_ramfs();
+		auto& r = ram_fs::the_ramfs();
+
 		std::lock_guard<std::recursive_mutex> lock(r.m_rlock);
 		return r.m_map[name];
 	}
+
+
 	//! Remove the file with key `name`
 	static int remove(const std::string& name)
 	{
-		auto&								  r = ram_fs::the_ramfs();
+		auto& r = ram_fs::the_ramfs();
+
 		std::lock_guard<std::recursive_mutex> lock(r.m_rlock);
 		r.m_map.erase(name);
 		return 0;
@@ -92,7 +103,8 @@ public:
 	//! Rename the file. Change key `old_filename` into `new_filename`.
 	static int rename(const std::string old_filename, const std::string new_filename)
 	{
-		auto&								  r = ram_fs::the_ramfs();
+		auto& r = ram_fs::the_ramfs();
+
 		std::lock_guard<std::recursive_mutex> lock(r.m_rlock);
 		r.m_map[new_filename] = std::move(r.m_map[old_filename]);
 		remove(old_filename);
@@ -102,7 +114,8 @@ public:
 	//! Get fd for file
 	static int open(const std::string& name)
 	{
-		auto&								  r = ram_fs::the_ramfs();
+		auto& r = ram_fs::the_ramfs();
+
 		std::lock_guard<std::recursive_mutex> lock(r.m_rlock);
 		if (!exists(name)) {
 			store(name, content_type{});
@@ -123,7 +136,8 @@ public:
 	//! Get fd for file
 	static int close(const int fd)
 	{
-		auto&								  r = ram_fs::the_ramfs();
+		auto& r = ram_fs::the_ramfs();
+
 		std::lock_guard<std::recursive_mutex> lock(r.m_rlock);
 		if (fd >= -1) return -1;
 		if (r.m_fd_map.count(fd) == 0) {
@@ -134,10 +148,12 @@ public:
 		}
 		return 0;
 	}
+
 	//! Get the content with fd
 	static content_type& content(const int fd)
 	{
-		auto&								  r = ram_fs::the_ramfs();
+		auto& r = ram_fs::the_ramfs();
+
 		std::lock_guard<std::recursive_mutex> lock(r.m_rlock);
 		auto								  name = r.m_fd_map[fd];
 		return r.m_map[name];
@@ -145,7 +161,8 @@ public:
 	//! Get the content with fd
 	static int truncate(const int fd, size_t new_size)
 	{
-		auto&								  r = ram_fs::the_ramfs();
+		auto& r = ram_fs::the_ramfs();
+
 		std::lock_guard<std::recursive_mutex> lock(r.m_rlock);
 		if (r.m_fd_map.count(fd) == 0) return -1;
 		auto name = r.m_fd_map[fd];
@@ -153,10 +170,13 @@ public:
 		r.m_map[name].resize(new_size, 0);
 		return 0;
 	}
+
+
 	//! Get the file size with fd_
 	static size_t file_size(const int fd)
 	{
-		auto&								  r = ram_fs::the_ramfs();
+		auto& r = ram_fs::the_ramfs();
+
 		std::lock_guard<std::recursive_mutex> lock(r.m_rlock);
 		if (r.m_fd_map.count(fd) == 0) return 0;
 		auto name = r.m_fd_map[fd];
@@ -174,6 +194,7 @@ inline bool is_ram_file(const std::string& file)
 	}
 	return false;
 }
+
 //! Determines if the given file is a RAM-file.
 inline bool is_ram_file(const int fd) { return fd < -1; }
 
@@ -196,6 +217,7 @@ inline std::string disk_file_name(const std::string& file)
 		return file.substr(1);
 	}
 }
+
 //! Remove a file.
 inline int remove(const std::string& file)
 {
@@ -205,6 +227,7 @@ inline int remove(const std::string& file)
 		return std::remove(file.c_str());
 	}
 }
+
 //! Rename a file
 inline int rename(const std::string& old_filename, const std::string& new_filename)
 {
@@ -217,5 +240,7 @@ inline int rename(const std::string& old_filename, const std::string& new_filena
 		return std::rename(old_filename.c_str(), new_filename.c_str());
 	}
 }
+
+
 } // end namespace sdsl
 #endif
