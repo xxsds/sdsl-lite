@@ -33,6 +33,8 @@
 namespace sdsl
 {
 
+int remove(const std::string&);
+
 template<typename T>
 void load_vector(std::vector<T>&, std::istream&);
 

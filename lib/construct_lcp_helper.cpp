@@ -24,7 +24,7 @@ void insert_lcp_values(int_vector<>& partial_lcp, bit_vector& index_done, std::s
     uint64_t n = lcp_buffer.size();
 
     // open tmp_lcp_file
-    uint8_t int_width = bits::hi(max_lcp_value-1)+1;
+    uint8_t int_width = bits::hi(max_lcp_value)+1;
     int_vector_buffer<> out_buf(tmp_lcp_file, std::ios::out, buffer_size, int_width);		// Output buffer
     // Write values into buffer
     for (size_type i=0, calc_idx=0; i < n; ++i) {
@@ -39,8 +39,9 @@ void insert_lcp_values(int_vector<>& partial_lcp, bit_vector& index_done, std::s
             ++calc_idx;
         }
     }
-    // Close file and replace old file with new one
+    lcp_buffer.close();
     out_buf.close();
+    // Close file and replace old file with new one
     sdsl::rename(tmp_lcp_file, lcp_file);
 }
 

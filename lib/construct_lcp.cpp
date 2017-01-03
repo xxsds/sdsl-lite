@@ -824,6 +824,7 @@ void construct_lcp_bwt_based(cache_config& config)
 #ifdef STUDY_INFORMATIONS
             std::cout << "# l=" << remaining_lcp_values << " b=" << (int)int_width_new << " lcp_value_max=" << lcp_value_max << std::endl;
 #endif
+//            partial_lcp = int_vector<>(remaining_lcp_values, 0, int_width_new);
             partial_lcp.width(int_width_new);
             partial_lcp.resize(remaining_lcp_values);
             util::set_to_value(partial_lcp, 0);
@@ -841,6 +842,7 @@ void construct_lcp_bwt_based(cache_config& config)
         store_to_file(partial_lcp, lcp_file);
     }
     register_cache_file(conf::KEY_LCP, config);
+  
     memory_monitor::event("lcp-bwt-merge-to-file-end");
 }
 

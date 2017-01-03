@@ -7,7 +7,7 @@ using namespace std::chrono;
 namespace sdsl
 {
 
-void output_event_json(std::ostream& out,const memory_monitor::mm_event& ev,const memory_monitor& m)
+void output_event_json(std::ostream& out,const mm_event& ev,const tracker_storage& m)
 {
     out << "\t\t" << "\"name\" : " << "\"" << ev.name << "\",\n";
     out << "\t\t" << "\"usage\" : [" << "\n";
@@ -24,7 +24,7 @@ void output_event_json(std::ostream& out,const memory_monitor::mm_event& ev,cons
 }
 
 template<>
-void write_mem_log<JSON_FORMAT>(std::ostream& out,const memory_monitor& m)
+void write_mem_log<JSON_FORMAT>(std::ostream& out,const tracker_storage& m)
 {
     auto events = m.completed_events;
     std::sort(events.begin(),events.end());
@@ -162,7 +162,7 @@ std::string create_mem_js_body(const std::string& jsonObject)
 
 
 template<>
-void write_mem_log<HTML_FORMAT>(std::ostream& out,const memory_monitor& m)
+void write_mem_log<HTML_FORMAT>(std::ostream& out,const tracker_storage& m)
 {
     std::stringstream json_data;
     write_mem_log<JSON_FORMAT>(json_data,m);

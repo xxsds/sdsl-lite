@@ -1,3 +1,4 @@
+#include "common.hpp"
 #include <sdsl/suffix_arrays.hpp>
 #include <sdsl/construct_sa.hpp>
 #include <sdsl/construct_sa_se.hpp>
@@ -11,11 +12,13 @@ using namespace std;
 
 namespace
 {
-cache_config config;
 uint64_t n;
+cache_config config;
 
 class sa_construct_test : public ::testing::Test
 {
+    public:
+
     protected:
         sa_construct_test() { }
 
@@ -28,6 +31,7 @@ class sa_construct_test : public ::testing::Test
         virtual void TearDown() {}
 };
 
+
 TEST_F(sa_construct_test, divsufsort)
 {
     // Construct SA with divsufsort
@@ -35,11 +39,17 @@ TEST_F(sa_construct_test, divsufsort)
     construct_config::byte_algo_sa = LIBDIVSUFSORT;
     construct_sa<8>(config);
     memory_monitor::stop();
+    {
+        int_vector_buffer<> sa_buf(cache_file_name(conf::KEY_SA, config));
+        ASSERT_EQ(n, (uint64_t)sa_buf.size());
+    }
     // Rename sa-file
     sdsl::rename(cache_file_name(conf::KEY_SA, config), cache_file_name("check_sa", config));
     config.file_map.erase(conf::KEY_SA);
     register_cache_file("check_sa", config);
-    cout << "# constructs_space = " << (1.0*memory_monitor::peak())/n << " byte per byte, =>" << memory_monitor::peak() << " bytes in total" << endl;
+    cout << "# constructs_space = " << (1.0*memory_monitor::peak())/n 
+         << " byte per byte, =>" << memory_monitor::peak() 
+         << " bytes in total" << endl;
 }
 
 TEST_F(sa_construct_test, sesais)
@@ -49,21 +59,28 @@ TEST_F(sa_construct_test, sesais)
     construct_config::byte_algo_sa = SE_SAIS;
     construct_sa<8>(config);
     memory_monitor::stop();
-    cout << "# constructs_space = " << (1.0*memory_monitor::peak())/n << " byte per byte, =>" << memory_monitor::peak() << " bytes in total" << endl;
+    {
+        int_vector_buffer<> sa_buf(cache_file_name(conf::KEY_SA, config));
+        ASSERT_EQ(n, (uint64_t)sa_buf.size());
+    }
+    cout << "# constructs_space = " << (1.0*memory_monitor::peak())/n 
+         << " byte per byte, =>" << memory_monitor::peak() 
+         << " bytes in total" << endl;
 }
 
 TEST_F(sa_construct_test, compare)
 {
     // Load both SAs
-    int_vector_buffer<> sa_check(cache_file_name("check_sa", config));
-    int_vector_buffer<> sa(cache_file_name(conf::KEY_SA, config));
+    {
+        int_vector_buffer<> sa_check(cache_file_name("check_sa", config));
+        int_vector_buffer<> sa(cache_file_name(conf::KEY_SA, config));
 
-    // Verify
-    ASSERT_EQ(sa_check.size(), sa.size()) << " suffix array size differ";
-    for (uint64_t i=0; i<sa_check.size(); ++i) {
-        ASSERT_EQ(sa_check[i], sa[i]) << " sa differs at position " << i;
+        // Verify
+        ASSERT_EQ(sa_check.size(), sa.size()) << " suffix array size differ";
+        for (uint64_t i=0; i<sa_check.size(); ++i) {
+            ASSERT_EQ(sa_check[i], sa[i]) << " sa differs at position " << i;
+        }
     }
-
     // Remove all files
     util::delete_all_files(config.file_map);
 }
@@ -72,20 +89,13 @@ TEST_F(sa_construct_test, compare)
 
 int main(int argc, char** argv)
 {
+    string test_file;
+    string temp_dir;
+    string temp_file;
     ::testing::InitGoogleTest(&argc, argv);
-    if (argc < 4) {
-        // LCOV_EXCL_START
-        cout << "Usage: " << argv[0] << " test_file output_file tmp_dir" << endl;
-        cout << " (1) Generates the SA and stores it in tmp_dir." << endl;
-        cout << "     All generated files contains ID as substring." << endl;
-        cout << " (2) Checks the suffix array." << endl;
-        cout << " (3) Deletes all generated files." << endl;
+     if ( init_2_arg_test(argc, argv, "SA_CONSTRUCT", test_file, temp_dir, temp_file) != 0 ) {
         return 1;
-        // LCOV_EXCL_STOP
     }
-    string test_file   = argv[1];
-    string output_file = argv[2];
-    string temp_dir    = argv[3];
     string test_id     = to_string(util::pid());
     config = cache_config(false, temp_dir, test_id);
     if (!cache_file_exists(conf::KEY_TEXT, config)) {

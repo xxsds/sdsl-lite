@@ -79,22 +79,22 @@ struct sampling_tag<t_sampling, typename enable_if_type<typename t_sampling::sam
 
 template<class t_enc_vec, class t_enable = void>
 struct is_enc_vec {
-    static const bool value = false;
+    static constexpr bool value = false;
 };
 
 template<class t_enc_vec>
 struct is_enc_vec<t_enc_vec, typename enable_if_type<typename t_enc_vec::enc_vec_type>::type> {
-    static const bool value = true;
+    static constexpr bool value = true;
 };
 
 template<class t_alphabet, class t_enable = void>
 struct is_alphabet {
-    static const bool value = false;
+    static constexpr bool value = false;
 };
 
 template<class t_alphabet>
 struct is_alphabet<t_alphabet, typename enable_if_type<typename t_alphabet::alphabet_category>::type> {
-    static const bool value = true;
+    static constexpr bool value = true;
 };
 
 } // end namespace sdsl

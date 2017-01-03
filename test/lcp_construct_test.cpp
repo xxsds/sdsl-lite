@@ -1,3 +1,4 @@
+#include "common.hpp"
 #include <sdsl/suffix_arrays.hpp>
 #include <sdsl/construct_lcp.hpp>
 #include <sdsl/construct_bwt.hpp>
@@ -12,10 +13,9 @@ using namespace std;
 namespace
 {
 
-string test_file, temp_dir, test_id,output_file;
+string test_file, temp_dir, temp_file;
 typedef map<string, void (*)(cache_config&)> tMSFP;// map <name, lcp method>
 
-// The fixture for testing class int_vector.
 class lcp_construct_test : public ::testing::Test
 {
     protected:
@@ -27,7 +27,7 @@ class lcp_construct_test : public ::testing::Test
         // and cleaning up each test, you can define the following methods:
         virtual void SetUp()
         {
-            test_config = cache_config(false, temp_dir, test_id);
+            test_config = cache_config(false, temp_dir, to_string(util::pid()));
             lcp_function["bwt_based"] = &construct_lcp_bwt_based;
             lcp_function["bwt_based2"] = &construct_lcp_bwt_based2;
             lcp_function["PHI"] = &construct_lcp_PHI<8>;
@@ -55,9 +55,11 @@ class lcp_construct_test : public ::testing::Test
             {
                 // Construct LCP
                 construct_lcp_kasai<8>(test_config);
-                std::rename(cache_file_name(conf::KEY_LCP, test_config).c_str(),
-                            cache_file_name(CHECK_KEY, test_config).c_str());
+                sdsl::rename(cache_file_name(conf::KEY_LCP, test_config),
+                            cache_file_name(CHECK_KEY, test_config));
                 test_config.file_map.erase(conf::KEY_LCP);
+                int_vector<> lcp;
+                load_from_file(lcp, cache_file_name(CHECK_KEY, test_config));
             }
         }
 
@@ -82,7 +84,7 @@ TEST_F(lcp_construct_test, construct_lcp)
         string lcp_check_file = cache_file_name(CHECK_KEY, this->test_config);
         string lcp_file = cache_file_name(conf::KEY_LCP, this->test_config);
         ASSERT_TRUE(load_from_file(lcp_check, lcp_check_file))
-                << info << " could not load reference lcp array";
+                << info << " could not load reference lcp array " << lcp_check_file;
         ASSERT_TRUE(load_from_file(lcp, lcp_file))
                 << info << " could not load created lcp array";
         ASSERT_EQ(lcp_check.size(), lcp.size())
@@ -102,18 +104,8 @@ TEST_F(lcp_construct_test, construct_lcp)
 int main(int argc, char** argv)
 {
     ::testing::InitGoogleTest(&argc, argv);
-    if (argc < 4) {
-        // LCOV_EXCL_START
-        cout << "Usage: " << argv[0] << " test_file output_file tmp_dir" << endl;
-        cout << " (1) Generates the SA, BWT and LCP; arrays are stored in tmp_dir." << endl;
-        cout << " (2) Generates LCP with other algorithm and checks the result." << endl;
-        cout << " (3) Deletes all generated files." << endl;
+    if ( init_2_arg_test(argc, argv, "LCP_CONSTRUCT", test_file, temp_dir, temp_file) != 0 ) {
         return 1;
-        // LCOV_EXCL_STOP
     }
-    test_file   = argv[1];
-    output_file = argv[2];
-    temp_dir    = argv[3];
-    test_id     = to_string(util::pid());
     return RUN_ALL_TESTS();
 }

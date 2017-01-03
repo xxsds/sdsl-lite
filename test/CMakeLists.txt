@@ -217,6 +217,7 @@ foreach(test_source ${test_sources})
 endforeach(test_source)
 
 add_custom_target(test-sdsl DEPENDS ${sdsl_tests})
+add_custom_target(test-full-sdsl DEPENDS ${sdsl_full_tests})
 
 list(REMOVE_DUPLICATES generated_files)
 #message("generated files = ${generated_files}")

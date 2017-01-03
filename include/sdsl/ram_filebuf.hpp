@@ -11,6 +11,7 @@ namespace sdsl
 class ram_filebuf : public std::streambuf
 {
     private:
+        // TODO:  also store filename/descriptor to implement is_open ???
         ram_fs::content_type* m_ram_file = nullptr;  // file handle
         void pbump64(std::ptrdiff_t);
 
