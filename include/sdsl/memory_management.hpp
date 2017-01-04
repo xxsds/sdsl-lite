@@ -158,12 +158,13 @@ public:
 #endif
 	}
 	template <class t_vec>
-	static void resize(t_vec& v, const typename t_vec::size_type size)
+	static uint64_t resize(t_vec& v, const typename t_vec::size_type size)
 	{
 		uint64_t old_size_in_bytes = ((v.m_size + 63) >> 6) << 3;
 		uint64_t new_size_in_bytes = ((size + 63) >> 6) << 3;
 		bool	 do_realloc		   = old_size_in_bytes != new_size_in_bytes;
 		v.m_size				   = size;
+		v.m_capacity			   = new_size_in_bytes * 8;
 		if (do_realloc || v.m_data == nullptr) {
 			// Note that we allocate 8 additional bytes if m_size % 64 == 0.
 			// We need this padding since rank data structures do a memory
@@ -189,6 +190,7 @@ public:
 				memory_monitor::record((int64_t)new_size_in_bytes - (int64_t)old_size_in_bytes);
 			}
 		}
+		return new_size_in_bytes * 8;
 	}
 	template <class t_vec>
 	static void clear(t_vec& v)

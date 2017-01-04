@@ -320,7 +320,7 @@ void util::set_random_bits(t_int_vec& v, int seed)
 	uint64_t* data = v.data();
 	if (v.empty()) return;
 	*data = rng();
-	for (typename t_int_vec::size_type i = 1; i < (v.capacity() >> 6); ++i) {
+	for (typename t_int_vec::size_type i = 1; i < (v.bit_capacity() >> 6); ++i) {
 		*(++data) = rng();
 	}
 }
@@ -384,7 +384,7 @@ void util::_set_zero_bits(t_int_vec& v)
 	if (v.empty()) return;
 	// TODO: replace by memset() but take care of size_t in the argument!
 	*data = 0ULL;
-	for (typename t_int_vec::size_type i = 1; i < (v.capacity() >> 6); ++i) {
+	for (typename t_int_vec::size_type i = 1; i < (v.bit_capacity() >> 6); ++i) {
 		*(++data) = 0ULL;
 	}
 }
@@ -395,7 +395,7 @@ void util::_set_one_bits(t_int_vec& v)
 	uint64_t* data = v.data();
 	if (v.empty()) return;
 	*data = 0xFFFFFFFFFFFFFFFFULL;
-	for (typename t_int_vec::size_type i = 1; i < (v.capacity() >> 6); ++i) {
+	for (typename t_int_vec::size_type i = 1; i < (v.bit_capacity() >> 6); ++i) {
 		*(++data) = 0xFFFFFFFFFFFFFFFFULL;
 	}
 }
@@ -433,7 +433,7 @@ void util::set_to_value(t_int_vec& v, uint64_t k)
 		}
 	} while (offset != 0);
 
-	typename t_int_vec::size_type n64 = v.capacity() / 64;
+	typename t_int_vec::size_type n64 = v.bit_capacity() / 64;
 	for (typename t_int_vec::size_type i = 0; i < n64;) {
 		for (uint64_t ii = 0; ii < n and i < n64; ++ii, ++i) {
 			*(data++) = vec[ii];
@@ -454,7 +454,7 @@ typename t_int_vec::size_type util::cnt_one_bits(const t_int_vec& v)
 	const uint64_t* data = v.data();
 	if (v.empty()) return 0;
 	typename t_int_vec::size_type result = bits::cnt(*data);
-	for (typename t_int_vec::size_type i = 1; i < (v.capacity() >> 6); ++i) {
+	for (typename t_int_vec::size_type i = 1; i < (v.bit_capacity() >> 6); ++i) {
 		result += bits::cnt(*(++data));
 	}
 	if (v.bit_size() & 0x3F) {
@@ -471,7 +471,7 @@ typename t_int_vec::size_type util::cnt_onezero_bits(const t_int_vec& v)
 	if (v.empty()) return 0;
 	uint64_t					  carry = 0, oldcarry = 0;
 	typename t_int_vec::size_type result = bits::cnt10(*data, carry);
-	for (typename t_int_vec::size_type i = 1; i < (v.capacity() >> 6); ++i) {
+	for (typename t_int_vec::size_type i = 1; i < (v.bit_capacity() >> 6); ++i) {
 		oldcarry = carry;
 		result += bits::cnt10(*(++data), carry);
 	}
@@ -489,7 +489,7 @@ typename t_int_vec::size_type util::cnt_zeroone_bits(const t_int_vec& v)
 	if (v.empty()) return 0;
 	uint64_t					  carry = 1, oldcarry = 1;
 	typename t_int_vec::size_type result = bits::cnt01(*data, carry);
-	for (typename t_int_vec::size_type i = 1; i < (v.capacity() >> 6); ++i) {
+	for (typename t_int_vec::size_type i = 1; i < (v.bit_capacity() >> 6); ++i) {
 		oldcarry = carry;
 		result += bits::cnt01(*(++data), carry);
 	}
