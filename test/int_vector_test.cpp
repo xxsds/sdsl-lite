@@ -110,7 +110,7 @@ void test_Constructors(uint8_t   template_width,
 
 		auto itr = list.begin();
 		for (size_t i = 0; i < constructor_size; i++) {
-			uint64_t val		  = *itr;
+			uint64_t val = *itr;
 			uint64_t expected_val = val & sdsl::bits::lo_set[iv.width()];
 			ASSERT_EQ(expected_val, (size_type)iv[i]);
 			++itr;
@@ -132,7 +132,7 @@ void test_Constructors(uint8_t   template_width,
 		}
 		auto itr = vec.begin();
 		for (size_t i = 0; i < constructor_size; i++) {
-			uint64_t val		  = *itr;
+			uint64_t val = *itr;
 			uint64_t expected_val = val & sdsl::bits::lo_set[iv.width()];
 			ASSERT_EQ(expected_val, (size_type)iv[i]);
 			++itr;
@@ -154,7 +154,7 @@ void test_Constructors(uint8_t   template_width,
 		}
 		auto itr = vec.begin();
 		for (size_t i = 0; i < constructor_size; i++) {
-			uint64_t val		  = *itr;
+			uint64_t val = *itr;
 			uint64_t expected_val = val & sdsl::bits::lo_set[iv.width()];
 			ASSERT_EQ(expected_val, (size_type)iv[i]);
 			++itr;
@@ -257,7 +257,7 @@ void test_AssignAndModifyElement(uint64_t size, uint8_t width)
 		ASSERT_EQ(exp_v & sdsl::bits::lo_set[width], iv[i]);
 
 		// Compare Test
-		iv[i]	 = exp_v;
+		iv[i] = exp_v;
 		iv[i - 1] = tmp;
 		exp_v &= sdsl::bits::lo_set[width];
 		tmp &= sdsl::bits::lo_set[width];
@@ -282,7 +282,7 @@ void test_AssignAndModifyElement<sdsl::bit_vector>(uint64_t size, uint8_t width)
 	sdsl::bit_vector bv(size, 0, width);
 	for (size_type i = 0; i < bv.size(); ++i) {
 		value_type exp_v = distribution(rng);
-		bv[i]			 = exp_v;
+		bv[i] = exp_v;
 		ASSERT_EQ((bool)exp_v, bv[i]);
 	}
 	bv.flip();
@@ -356,13 +356,59 @@ TEST_F(IntVectorTest, push_back)
 }
 
 
+TEST_F(IntVectorTest, reserve)
+{
+	std::mt19937_64 rng;
+	for (size_type i = 0; i < vec_sizes.size(); ++i) {
+		std::vector<uint64_t> stl_vec;
+		sdsl::int_vector<>	sdsl_vec;
+		sdsl::int_vector<>	sdsl_vec4;
+		sdsl_vec4.reserve(vec_sizes[i]);
+		for (size_t j = 0; j < vec_sizes[i]; j++) {
+			auto val = rng();
+			stl_vec.push_back(val);
+			sdsl_vec.push_back(val);
+			sdsl_vec4.resize(j + 1);
+			sdsl_vec4[j] = val;
+		}
+		ASSERT_EQ(stl_vec.size(), sdsl_vec.size());
+		ASSERT_EQ(sdsl_vec, stl_vec);
+		ASSERT_EQ(sdsl_vec4, stl_vec);
+		ASSERT_EQ(sdsl_vec, sdsl_vec4);
+
+		sdsl_vec.shrink_to_fit();
+
+		ASSERT_EQ(stl_vec.size(), sdsl_vec.size());
+		ASSERT_EQ(sdsl_vec, stl_vec);
+
+		sdsl::int_vector<> sdsl_vec2(sdsl_vec);
+		sdsl::int_vector<> sdsl_vec3(stl_vec.begin(), stl_vec.end());
+
+		ASSERT_EQ(stl_vec.size(), sdsl_vec2.size());
+		ASSERT_EQ(sdsl_vec2, stl_vec);
+		ASSERT_EQ(stl_vec.size(), sdsl_vec3.size());
+		ASSERT_EQ(sdsl_vec3, sdsl_vec2);
+
+		sdsl::int_vector<> reg_constructor(vec_sizes[i]);
+		for (size_t j = 0; j < vec_sizes[i]; j++) {
+			reg_constructor[j] = stl_vec[j];
+		}
+
+		ASSERT_EQ(sdsl::size_in_bytes(reg_constructor), sdsl::size_in_bytes(sdsl_vec));
+		ASSERT_EQ(sdsl::size_in_bytes(reg_constructor), sdsl::size_in_bytes(sdsl_vec2));
+		ASSERT_EQ(sdsl::size_in_bytes(reg_constructor), sdsl::size_in_bytes(sdsl_vec3));
+		ASSERT_EQ(sdsl::size_in_bytes(reg_constructor), sdsl::size_in_bytes(sdsl_vec4));
+	}
+}
+
+
 template <class t_iv>
 void test_SerializeAndLoad(uint8_t width = 1)
 {
 	std::mt19937_64 rng;
 	t_iv			iv(sdsl::conf::SDSL_BLOCK_SIZE + 1000000, 0, width);
-	for (size_type i	  = 0; i < iv.size(); ++i)
-		iv[i]			  = rng();
+	for (size_type i = 0; i < iv.size(); ++i)
+		iv[i] = rng();
 	std::string file_name = temp_dir + "/int_vector";
 	sdsl::store_to_file(iv, file_name);
 	t_iv iv2;

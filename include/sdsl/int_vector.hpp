@@ -350,7 +350,7 @@ public:
 		resize(n);
 		size_type idx = 0;
 		while (beg != end) {
-			value_type x   = *beg;
+			value_type x = *beg;
 			(*this)[idx++] = value_type(x & bits::lo_set[width()]);
 			++beg;
 		}
@@ -432,6 +432,11 @@ public:
 	/*!  \sa size, max_size, bit_size, capacity
          */
 	size_type bit_size() const { return m_size; }
+
+	//! The number of bits in the int_vector which correspond to the actual data (rounded up to u64 boundary).
+	/*!  \sa size, max_size, bit_size, capacity
+         */
+	size_type bit_data_size() const { return ((m_size + 63) >> 6) << 6; }
 
 	//! Returns the size of the underlying uint64_t* vector in bits of the int_vector.
 	/*! The capacity of a int_vector is greater or equal to the
@@ -630,7 +635,7 @@ public:
 	{
 		uint64_t width_and_size = 0;
 		read_member(width_and_size, in);
-		size				   = width_and_size & bits::lo_set[56];
+		size = width_and_size & bits::lo_set[56];
 		uint8_t read_int_width = (uint8_t)(width_and_size >> 56);
 		if (t_width == 0) {
 			int_width = read_int_width;
@@ -784,8 +789,8 @@ inline void swap(int_vector_reference<t_int_vector> x, int_vector_reference<t_in
 {
 	// TODO: more efficient solution?
 	typename int_vector_reference<t_int_vector>::value_type tmp = x;
-	x															= y;
-	y															= tmp;
+	x = y;
+	y = tmp;
 }
 
 // For C++11
@@ -795,8 +800,8 @@ inline void swap(typename int_vector_reference<t_int_vector>::value_type& x,
 {
 	// TODO: more efficient solution?
 	typename int_vector_reference<t_int_vector>::value_type tmp = x;
-	x															= y;
-	y															= tmp;
+	x = y;
+	y = tmp;
 }
 
 // For C++11
@@ -806,8 +811,8 @@ inline void swap(int_vector_reference<t_int_vector>						  x,
 {
 	// TODO: more efficient solution?
 	typename int_vector_reference<t_int_vector>::value_type tmp = x;
-	x															= y;
-	y															= tmp;
+	x = y;
+	y = tmp;
 }
 
 // specialization for int_vector_reference for int_vector == bit_vector
@@ -856,8 +861,8 @@ inline void swap(int_vector_reference<bit_vector> x, int_vector_reference<bit_ve
 {
 	// TODO: more efficient solution?
 	bool tmp = x;
-	x		 = y;
-	y		 = tmp;
+	x = y;
+	y = tmp;
 }
 
 // For C++11
@@ -866,8 +871,8 @@ inline void swap(bool& x, int_vector_reference<bit_vector> y)
 {
 	// TODO: more efficient solution?
 	bool tmp = x;
-	x		 = y;
-	y		 = tmp;
+	x = y;
+	y = tmp;
 }
 
 // For C++11
@@ -876,8 +881,8 @@ inline void swap(int_vector_reference<bit_vector> x, bool& y)
 {
 	// TODO: more efficient solution?
 	bool tmp = x;
-	x		 = y;
-	y		 = tmp;
+	x = y;
+	y = tmp;
 }
 
 
@@ -931,7 +936,7 @@ public:
 		: int_vector_iterator_base<t_int_vector>(it), m_word(it.m_word)
 	{
 		m_offset = it.m_offset;
-		m_len	= it.m_len;
+		m_len = it.m_len;
 	}
 
 	reference operator*() const { return reference(m_word, m_offset, m_len); }
@@ -1001,9 +1006,9 @@ public:
 	iterator& operator=(const int_vector_iterator<t_int_vector>& it)
 	{
 		if (this != &it) {
-			m_word   = it.m_word;
+			m_word = it.m_word;
 			m_offset = it.m_offset;
-			m_len	= it.m_len;
+			m_len = it.m_len;
 		}
 		return *this;
 	}
@@ -1095,13 +1100,13 @@ public:
 		: int_vector_iterator_base<t_int_vector>(it), m_word(it.m_word)
 	{
 		m_offset = it.m_offset;
-		m_len	= it.m_len;
+		m_len = it.m_len;
 	}
 
 	int_vector_const_iterator(const int_vector_iterator<t_int_vector>& it) : m_word(it.m_word)
 	{
 		m_offset = it.m_offset;
-		m_len	= it.m_len;
+		m_len = it.m_len;
 	}
 
 	const_reference operator*() const
@@ -1244,7 +1249,7 @@ operator<<(std::ostream& os, const t_bv& bv)
 
 template <uint8_t t_width>
 inline int_vector<t_width>::int_vector(size_type size, value_type default_value, uint8_t intWidth)
-	: m_size(0), m_data(nullptr), m_width(t_width)
+	: m_size(0), m_capacity(0), m_data(nullptr), m_width(t_width)
 {
 	width(intWidth);
 	resize(size);
@@ -1253,16 +1258,16 @@ inline int_vector<t_width>::int_vector(size_type size, value_type default_value,
 
 template <uint8_t t_width>
 inline int_vector<t_width>::int_vector(int_vector&& v)
-	: m_size(v.m_size), m_data(v.m_data), m_width(v.m_width)
+	: m_size(v.m_size), m_capacity(v.m_capacity), m_data(v.m_data), m_width(v.m_width)
 {
-	v.m_data	 = nullptr; // ownership of v.m_data now transfered
-	v.m_size	 = 0;
+	v.m_data = nullptr; // ownership of v.m_data now transfered
+	v.m_size = 0;
 	v.m_capacity = 0;
 }
 
 template <uint8_t t_width>
 inline int_vector<t_width>::int_vector(const int_vector& v)
-	: m_size(0), m_data(nullptr), m_width(v.m_width)
+	: m_size(0), m_capacity(0), m_data(nullptr), m_width(v.m_width)
 {
 	bit_resize(v.bit_size());
 	if (v.bit_capacity() > 0) {
@@ -1287,12 +1292,12 @@ template <uint8_t	t_width>
 int_vector<t_width>& int_vector<t_width>::operator=(int_vector&& v)
 {
 	if (this != &v) { // if v is not the same object
-		m_size	 = v.m_size;
+		m_size = v.m_size;
 		m_capacity = v.m_capacity;
-		m_data	 = v.m_data;
-		m_width	= v.m_width;
-		v.m_data   = nullptr;
-		v.m_size   = 0;
+		m_data = v.m_data;
+		m_width = v.m_width;
+		v.m_data = nullptr;
+		v.m_size = 0;
 	}
 	return *this;
 }
@@ -1307,15 +1312,26 @@ int_vector<t_width>::~int_vector()
 template <uint8_t t_width>
 void int_vector<t_width>::bit_resize(const size_type size)
 {
-	m_capacity = memory_manager::resize(*this, size);
+	// (1) if we are making the vector smaller we always resize
+	if (size < m_size) {
+		m_capacity = memory_manager::resize(*this, size);
+	} else {
+		// (2) if the capacity is already bigger than request we don't do anything
+		// but update the size!
+		if (m_capacity < size) {
+			m_capacity = memory_manager::resize(*this, size);
+		} else {
+			m_size = size;
+		}
+	}
 }
 
 template <uint8_t t_width>
 void int_vector<t_width>::bit_reserve(const size_type size)
 {
 	auto old_size = m_size;
-	m_capacity	= memory_manager::resize(*this, size);
-	m_size		  = old_size;
+	m_capacity = memory_manager::resize(*this, size);
+	m_size = old_size;
 }
 
 template <uint8_t t_width>
@@ -1331,7 +1347,7 @@ void int_vector<t_width>::push_back(value_type x)
 	if (capacity() <= cur_size) {
 		// resize using golden ratio
 		const double golden_ratio = 1.61803398875;
-		auto		 new_size	 = size_type(double(cur_size) * golden_ratio) + 1;
+		auto		 new_size = size_type(double(cur_size) * golden_ratio) + 1;
 		// make it a least 1024 elements bigger
 		if (cur_size + 1024 > new_size) {
 			new_size = cur_size + 1024;
@@ -1480,7 +1496,7 @@ bool int_vector<t_width>::operator==(const int_vector& v) const
 template <uint8_t t_width>
 bool int_vector<t_width>::operator<(const int_vector& v) const
 {
-	size_type min_size				  = size();
+	size_type min_size = size();
 	if (min_size > v.size()) min_size = v.size();
 	for (auto it = begin(), end = begin() + min_size, it_v = v.begin(); it != end; ++it, ++it_v) {
 		if (*it == *it_v)
@@ -1494,7 +1510,7 @@ bool int_vector<t_width>::operator<(const int_vector& v) const
 template <uint8_t t_width>
 bool int_vector<t_width>::operator>(const int_vector& v) const
 {
-	size_type min_size				  = size();
+	size_type min_size = size();
 	if (min_size > v.size()) min_size = v.size();
 	for (auto it = begin(), end = begin() + min_size, it_v = v.begin(); it != end; ++it, ++it_v) {
 		if (*it == *it_v)
@@ -1527,8 +1543,8 @@ template <uint8_t	t_width>
 int_vector<t_width>& int_vector<t_width>::operator&=(const int_vector& v)
 {
 	assert(bit_size() == v.bit_size());
-	assert(v.bit_capacity() <= bit_capacity());
-	for (uint64_t i = 0; i < (v.bit_capacity() >> 6); ++i)
+	assert(v.bit_data_size() <= bit_data_size());
+	for (uint64_t i = 0; i < (v.bit_data_size() >> 6); ++i)
 		m_data[i] &= v.m_data[i];
 	return *this;
 }
@@ -1537,8 +1553,8 @@ template <uint8_t	t_width>
 int_vector<t_width>& int_vector<t_width>::operator|=(const int_vector& v)
 {
 	assert(bit_size() == v.bit_size());
-	assert(v.bit_capacity() <= bit_capacity());
-	for (uint64_t i = 0; i < (v.bit_capacity() >> 6); ++i)
+	assert(v.bit_data_size() <= bit_data_size());
+	for (uint64_t i = 0; i < (v.bit_data_size() >> 6); ++i)
 		m_data[i] |= v.m_data[i];
 	return *this;
 }
@@ -1547,8 +1563,8 @@ template <uint8_t	t_width>
 int_vector<t_width>& int_vector<t_width>::operator^=(const int_vector& v)
 {
 	assert(bit_size() == v.bit_size());
-	assert(v.bit_capacity() <= bit_capacity());
-	for (uint64_t i = 0; i < (v.bit_capacity() >> 6); ++i)
+	assert(v.bit_data_size() <= bit_data_size());
+	for (uint64_t i = 0; i < (v.bit_data_size() >> 6); ++i)
 		m_data[i] ^= v.m_data[i];
 	return *this;
 }
@@ -1557,16 +1573,16 @@ template <uint8_t						t_width>
 typename int_vector<t_width>::size_type int_vector<t_width>::write_data(std::ostream& out) const
 {
 	size_type written_bytes = 0;
-	uint64_t* p				= m_data;
-	size_type idx			= 0;
-	while (idx + conf::SDSL_BLOCK_SIZE < (bit_capacity() >> 6)) {
+	uint64_t* p = m_data;
+	size_type idx = 0;
+	while (idx + conf::SDSL_BLOCK_SIZE < (bit_data_size() >> 6)) {
 		out.write((char*)p, conf::SDSL_BLOCK_SIZE * sizeof(uint64_t));
 		written_bytes += conf::SDSL_BLOCK_SIZE * sizeof(uint64_t);
 		p += conf::SDSL_BLOCK_SIZE;
 		idx += conf::SDSL_BLOCK_SIZE;
 	}
-	out.write((char*)p, ((bit_capacity() >> 6) - idx) * sizeof(uint64_t));
-	written_bytes += ((bit_capacity() >> 6) - idx) * sizeof(uint64_t);
+	out.write((char*)p, ((bit_data_size() >> 6) - idx) * sizeof(uint64_t));
+	written_bytes += ((bit_data_size() >> 6) - idx) * sizeof(uint64_t);
 	return written_bytes;
 }
 
@@ -1588,7 +1604,7 @@ void int_vector<t_width>::load(std::istream& in)
 	int_vector<t_width>::read_header(size, m_width, in);
 
 	bit_resize(size);
-	uint64_t* p   = m_data;
+	uint64_t* p = m_data;
 	size_type idx = 0;
 	while (idx + conf::SDSL_BLOCK_SIZE < (bit_capacity() >> 6)) {
 		in.read((char*)p, conf::SDSL_BLOCK_SIZE * sizeof(uint64_t));
