@@ -203,7 +203,7 @@ TYPED_TEST(csa_int_test, swap_test)
     }
 }
 
-TYPED_TEST(csa_int_test, DeleteTest)
+TYPED_TEST(csa_int_test, delete_)
 {
     sdsl::remove(temp_file);
     util::delete_all_files(test_case_file_map);

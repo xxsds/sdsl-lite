@@ -15,13 +15,13 @@ typedef sdsl::int_vector<>::value_type value_type;
 std::string temp_dir;
 
 // The fixture for testing class int_vector.
-class IntVectorTest : public ::testing::Test
+class int_vector_test : public ::testing::Test
 {
     protected:
 
-        IntVectorTest() {}
+        int_vector_test() {}
 
-        virtual ~IntVectorTest() {}
+        virtual ~int_vector_test() {}
 
         virtual void SetUp()
         {
@@ -98,7 +98,7 @@ void test_Constructors(uint8_t template_width, size_type constructor_size, uint8
 
 
 //! Test Constructors
-TEST_F(IntVectorTest, Constructors)
+TEST_F(int_vector_test, constructors)
 {
     for (auto size : vec_sizes) {
         if (size<1000) {                                // Test only for short sizes,
@@ -118,7 +118,7 @@ TEST_F(IntVectorTest, Constructors)
     }
 }
 
-TEST_F(IntVectorTest, Width)
+TEST_F(int_vector_test, width)
 {
     size_type len = 1000;
     sdsl::int_vector<> v(len, 0xF0, 8);
@@ -133,7 +133,7 @@ TEST_F(IntVectorTest, Width)
     }
 }
 
-TEST_F(IntVectorTest, Swap)
+TEST_F(int_vector_test, swap)
 {
     std::mt19937_64 rng;
     for (size_type i=0; i < vec_sizes.size(); ++i) {
@@ -228,7 +228,7 @@ void test_AssignAndModifyElement<sdsl::bit_vector>(uint64_t size, uint8_t width)
     }
 }
 
-TEST_F(IntVectorTest, AssignAndModifyElement)
+TEST_F(int_vector_test, AssignAndModifyElement)
 {
     // unspecialized vector for each possible width
     for (uint8_t width=1; width <= 64; ++width) {
@@ -242,7 +242,7 @@ TEST_F(IntVectorTest, AssignAndModifyElement)
     test_AssignAndModifyElement<sdsl::int_vector<64> >(100000, 64);
 }
 
-TEST_F(IntVectorTest, STL)
+TEST_F(int_vector_test, stl)
 {
     for (size_type i=0; i < vec_sizes.size(); ++i) {
         sdsl::int_vector<> iv(vec_sizes[i]);
@@ -278,7 +278,7 @@ void test_SerializeAndLoad(uint8_t width=1)
     sdsl::remove(file_name);
 }
 
-TEST_F(IntVectorTest, SerializeAndLoad)
+TEST_F(int_vector_test, serialize_and_load)
 {
     // unspecialized vector for each possible width
     for (uint8_t width=1; width <= 64; ++width) {
@@ -292,7 +292,7 @@ TEST_F(IntVectorTest, SerializeAndLoad)
     test_SerializeAndLoad<sdsl::int_vector<64> >();
 }
 
-TEST_F(IntVectorTest, IteratorTest)
+TEST_F(int_vector_test, iterator_test)
 {
     for (auto i : vec_sizes) {
         sdsl::int_vector<> iv(i+3);

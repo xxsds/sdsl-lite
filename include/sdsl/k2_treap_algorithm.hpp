@@ -379,12 +379,12 @@ template<uint8_t  t_k,
          typename t_rank,
          typename t_max_vec>
 void
-construct(k2_treap<t_k, t_bv, t_rank, t_max_vec>& idx, std::string file)
+construct(k2_treap<t_k, t_bv, t_rank, t_max_vec>& idx, std::string file, cache_config& config)
 {
     int_vector_buffer<> buf_x(file+".x", std::ios::in);
     int_vector_buffer<> buf_y(file+".y", std::ios::in);
     int_vector_buffer<> buf_w(file+".w", std::ios::in);
-    idx = k2_treap<t_k, t_bv, t_rank, t_max_vec>(buf_x, buf_y, buf_w);
+    idx = k2_treap<t_k, t_bv, t_rank, t_max_vec>(buf_x, buf_y, buf_w, config.dir);
 }
 
 //! Specialized version of method ,,construct_im'' for k2_treaps.
@@ -396,15 +396,13 @@ template<uint8_t  t_k,
 void
 construct_im(k2_treap<t_k, t_bv, t_rank, t_max_vec>& idx, std::vector<std::array<uint64_t, 3>> data)
 {
-    std::string tmp_prefix = ram_file_name("k2_treap_");
+    std::string tmp_dir = ram_file_name("/tmp");
     std::vector<std::tuple<uint64_t,uint64_t,uint64_t>> d;
     for (auto x : data) {
         d.push_back(std::make_tuple(x[0],x[1],x[2]));
     }
-    idx = k2_treap<t_k, t_bv, t_rank, t_max_vec>(d, tmp_prefix);
+    idx = k2_treap<t_k, t_bv, t_rank, t_max_vec>(d, tmp_dir);
 }
-
-
 
 }
 #endif

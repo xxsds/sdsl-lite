@@ -155,7 +155,8 @@ class k2_treap
 
         k2_treap(int_vector_buffer<>& buf_x,
                  int_vector_buffer<>& buf_y,
-                 int_vector_buffer<>& buf_w)
+                 int_vector_buffer<>& buf_w,
+                 std::string temp_dir)
         {
             using namespace k2_treap_ns;
             typedef int_vector_buffer<>* t_buf_p;
@@ -187,10 +188,10 @@ class k2_treap
 
             if (precomp<t_k>::exp(res) <= std::numeric_limits<uint32_t>::max()) {
                 auto v = read<uint32_t,uint32_t,uint32_t>(bufs);
-                construct(v, buf_x.filename());
+                construct(v, temp_dir);
             } else {
                 auto v = read<uint64_t,uint64_t,uint64_t>(bufs);
-                construct(v, buf_x.filename());
+                construct(v, temp_dir);
             }
         }
 
@@ -212,17 +213,16 @@ class k2_treap
             return v;
         }
 
-
         template<typename t_x, typename t_y, typename t_w>
-        k2_treap(std::vector<std::tuple<t_x, t_y, t_w>>& v, std::string temp_file_prefix="")
+        k2_treap(std::vector<std::tuple<t_x, t_y, t_w>>& v, std::string temp_dir=".")
         {
             if (v.size() > 0) {
-                construct(v, temp_file_prefix);
+                construct(v, temp_dir);
             }
         }
 
         template<typename t_x, typename t_y, typename t_w>
-        void construct(std::vector<std::tuple<t_x, t_y, t_w>>& v, std::string temp_file_prefix="")
+        void construct(std::vector<std::tuple<t_x, t_y, t_w>>& v, std::string temp_dir=".")
         {
             using namespace k2_treap_ns;
             using t_e = std::tuple<t_x, t_y, t_w>;
@@ -236,9 +236,9 @@ class k2_treap
             m_coord.resize(t);
             m_level_idx = int_vector<64>(1+t, 0);
 
-            std::string val_file =  temp_file_prefix + "_k2_treap_"
+            std::string val_file =  temp_dir + "/k2_treap_"
                                     + id_part + ".sdsl";
-            std::string bp_file  = temp_file_prefix + "_bp_" + id_part
+            std::string bp_file  = temp_dir + "/bp_" + id_part
                                    + ".sdsl";
 
             {

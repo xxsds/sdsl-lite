@@ -1,3 +1,4 @@
+#include "common.hpp"
 #include "sdsl/rmq_support.hpp"
 #include "gtest/gtest.h"
 #include <vector>
@@ -13,6 +14,7 @@ namespace
 typedef vector<uint64_t> tVUI;
 
 string  test_file;
+string  temp_dir;
 string  temp_file;
 
 template<class T>
@@ -128,7 +130,6 @@ TYPED_TEST(rmq_test, rmq_load_and_move_and_query)
 }
 
 
-
 TYPED_TEST(rmq_test, delete_)
 {
     sdsl::remove(temp_file);
@@ -139,18 +140,6 @@ TYPED_TEST(rmq_test, delete_)
 int main(int argc, char** argv)
 {
     ::testing::InitGoogleTest(&argc, argv);
-    if (argc < 3) {
-        // LCOV_EXCL_START
-        cout << "Usage: " << argv[0] << " test_file temp_file" << endl;
-        cout << " (1) Generates a RMQ out of the serialized int_vector in test_file." << endl;
-        cout << "     in test_file. Stores RMQ in temp_file." << endl;
-        cout << " (2) Performs tests." << endl;
-        cout << " (3) Deletes temp_file." << endl;
-        return 1;
-        // LCOV_EXCL_STOP
-    }
-    test_file = argv[1];
-    temp_file = argv[2];
-
+    init_2_arg_test(argc, argv, "RMQ", test_file, temp_dir, temp_file);
     return RUN_ALL_TESTS();
 }

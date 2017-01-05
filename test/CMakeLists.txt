@@ -99,7 +99,7 @@ foreach(test_source ${test_sources})
 
     add_executable(${test_name_we} EXCLUDE_FROM_ALL ${test_name_we}.cpp)
 
-    string(REGEX REPLACE ".[0-9]." "_" config_name ${test_name_we})
+    string(REGEX REPLACE "_[0-9]_" "_" config_name ${test_name_we})
     set(config_file ${CMAKE_CURRENT_SOURCE_DIR}/${config_name}.config)
 
     foreach(d RANGE 0 1)
@@ -194,7 +194,7 @@ foreach(test_source ${test_sources})
                         endif()
                         set(test_target ${test_name}_${test_case_name})
                         add_custom_target(${test_target}
-                                    COMMAND $<TARGET_FILE:${test_name_we}> ${abs_test_case_name} ${tmp_dir}/${test_name_we}_${test_case_name}
+                                    COMMAND $<TARGET_FILE:${test_name_we}> ${abs_test_case_name} ${tmp_dir}
                                     DEPENDS ${test_case_name} ${test_name_we}
                                     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
                                     COMMENT "Execute ${test_name} on ${test_case_name}."
@@ -206,7 +206,7 @@ foreach(test_source ${test_sources})
 
             add_custom_target(${test_name} DEPENDS ${test_targets}) 
             list(APPEND sdsl_full_tests ${test_name})
-            if(NOT "${test_name}" MATCHES ".*-[0-9]+-.*" ) 
+            if(NOT "${test_name}" MATCHES ".*-[0-9]+-.*" )  
                 list(APPEND sdsl_tests ${test_name})
                 message("Add test: ${test_name}")
             else()

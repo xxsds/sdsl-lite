@@ -1,5 +1,6 @@
 #include "sdsl/k2_treap.hpp"
 #include "sdsl/bit_vectors.hpp"
+#include "common.hpp"
 #include "gtest/gtest.h"
 #include <vector>
 #include <tuple>
@@ -17,7 +18,7 @@ typedef int_vector<>::size_type size_type;
 
 string test_file;
 string temp_file;
-bool in_memory;
+string temp_dir;
 
 template<class T>
 class k2_treap_test : public ::testing::Test { };
@@ -36,11 +37,15 @@ k2_treap<2, bit_vector>,
 
 TYPED_TEST_CASE(k2_treap_test, Implementations);
 
-TYPED_TEST(k2_treap_test, CreateAndStoreTest)
+TYPED_TEST(k2_treap_test, create_and_store_test)
 {
     TypeParam k2treap;
-    construct(k2treap, test_file);
+    cache_config config(true, temp_dir, util::basename(test_file));
+    std::cout<<"construct begin"<<std::endl;
+    construct(k2treap, test_file, config);
+    std::cout<<"construct end"<<std::endl;
     ASSERT_TRUE(store_to_file(k2treap, temp_file));
+    std::cout<<"store end"<<std::endl;
 }
 
 template<class t_k2treap>
@@ -238,37 +243,18 @@ TYPED_TEST(k2_treap_test, count)
 }
 
 
+TYPED_TEST(k2_treap_test, delete_)
+{
+    sdsl::remove(temp_file);
+}
+
 }  // namespace
 
 int main(int argc, char** argv)
 {
     ::testing::InitGoogleTest(&argc, argv);
-    if (argc < 3) {
-        // LCOV_EXCL_START
-        cout << "Usage: " << argv[0] << " file temp_file [in-memory]" << endl;
-        cout << " (1) Generates a k2-treap out of file.x, file.y, and file.w." << endl;
-        cout << "     Result is stored in temp_file." << endl;
-        cout << "     If `in-memory` is specified, the in-memory construction is tested." << endl;
-        cout << " (2) Performs tests." << endl;
-        cout << " (3) Deletes temp_file." << endl;
+    if ( init_2_arg_test(argc, argv, "K2_TREAP_TEST", test_file, temp_dir, temp_file) != 0 ) {
         return 1;
-        // LCOV_EXCL_STOP
-    }
-    test_file    = argv[1];
-    temp_file    = argv[2];
-    in_memory    = argc > 3;
-    if (in_memory) {
-        auto load_and_store_in_mem = [&](string suf) {
-            int_vector<> data;
-            string file = temp_file + suf;
-            load_vector_from_file(data,file);
-            string ram_file = ram_file_name(file);
-            store_to_file(data, ram_file);
-        };
-        load_and_store_in_mem("x");
-        load_and_store_in_mem("y");
-        load_and_store_in_mem("w");
-        temp_file = ram_file_name(temp_file);
     }
     return RUN_ALL_TESTS();
 }

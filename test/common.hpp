@@ -16,6 +16,7 @@ int init_2_arg_test(int argc,
         (1) Generates an index out of test_file; stores it in a temporary file.\n\
         (2) Performs tests.\n\
         (3) Deletes the temporary file." << std::endl;
+        std::cout<<"Only "<<argc<<" parameters provided" << std::endl;
         return 1;
         // LCOV_EXCL_STOP
     }
