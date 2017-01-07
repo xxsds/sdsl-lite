@@ -210,7 +210,7 @@ foreach(test_source ${test_sources})
                 list(APPEND sdsl_tests ${test_name})
                 message("Add test: ${test_name}")
             else()
-
+                message("Additional test: ${test_name}")
             endif()
         endif()
     endforeach(d)

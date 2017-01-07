@@ -1,0 +1,8 @@
+wt_blcd<bit_vector, rank_support_v<>, select_support_mcl<1>, select_support_mcl<0>, int_tree<>>
+wt_huff<bit_vector, rank_support_v<>, select_support_mcl<1>, select_support_mcl<0>, int_tree<>>
+wt_hutu<bit_vector, rank_support_v<>, select_support_mcl<1>, select_support_mcl<0>, int_tree<>>
+wt_gmr<>
+wt_ap<>
+wm_int<>
+wt_int<>
+wt_rlmn<bit_vector, rank_support_v5<>, select_support_mcl<1>, wt_int<>>

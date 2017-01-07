@@ -1,0 +1,4 @@
+wt_int<rrr_vector<15>>
+wt_int<rrr_vector<63>>
+wt_rlmn<bit_vector, rank_support_v5<>, select_support_mcl<1>, wt_int<>>
+wt_huff<rrr_vector<63>, rrr_vector<63>::rank_1_type, rrr_vector<63>::select_1_type, rrr_vector<63>::select_0_type, int_tree<>>

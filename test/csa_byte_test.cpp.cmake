@@ -17,7 +17,6 @@ tMSS   test_case_file_map;
 string test_file;
 string temp_file;
 string temp_dir;
-bool in_memory;
 
 template<class T>
 class csa_byte_test : public ::testing::Test { };
