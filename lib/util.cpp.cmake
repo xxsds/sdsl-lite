@@ -88,7 +88,7 @@ uint64_t id() { return _id_helper::getId(); }
 
 std::string demangle(const std::string& name)
 {
-#if @HAVE_CXA_DEMANGLE @
+#if @HAVE_CXA_DEMANGLE@
 	char   buf[4096];
 	size_t size   = 4096;
 	int	status = 0;
