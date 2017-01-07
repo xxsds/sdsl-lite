@@ -1,9 +1,17 @@
+// Copyright (c) 2016, the SDSL Project Authors.  All rights reserved.
+// Please see the AUTHORS file for details.  Use of this source code is governed
+// by a BSD license that can be found in the LICENSE file.
 #include "sdsl/construct_sa_se.hpp"
 
-namespace sdsl
-{
+namespace sdsl {
 
-void _construct_sa_IS(int_vector<> &text, int_vector<> &sa, std::string& filename_sa, size_t n, size_t text_offset, size_t sigma, uint64_t recursion)
+void _construct_sa_IS(int_vector<>& text,
+					  int_vector<>& sa,
+					  std::string&  filename_sa,
+					  size_t		n,
+					  size_t		text_offset,
+					  size_t		sigma,
+					  uint64_t		recursion)
 {
     uint64_t buffersize = 1024*1024/8;
 

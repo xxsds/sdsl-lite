@@ -1,3 +1,6 @@
+// Copyright (c) 2016, the SDSL Project Authors.  All rights reserved.
+// Please see the AUTHORS file for details.  Use of this source code is governed
+// by a BSD license that can be found in the LICENSE file.
 /*!\file memory_tracking.hpp
 \brief memory_tracking.hpp contains two function for allocating and deallocating memory
 \author Simon Gog
@@ -28,19 +31,16 @@
 
 #ifdef MSVC_COMPILER
 // windows.h has min/max macro which causes problems when using std::min/max
-#define NOMINMAX 
+#define NOMINMAX
 #include <windows.h>
 #include <io.h>
 #else
 #include <sys/mman.h>
-#include <unistd.h>    // for getpid, file_size, clock_gettime
+#include <unistd.h> // for getpid, file_size, clock_gettime
 #endif
 
 
-
-namespace sdsl
-{
-
+namespace sdsl {
 
 //forward declare    
 void memory_monitor_record(int64_t);

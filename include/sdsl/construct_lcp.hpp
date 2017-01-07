@@ -1,20 +1,6 @@
-/* sdsl - succinct data structures library
-    Copyright (C) 2010-2013 Simon Gog
-    Copyright (C) 2013 Timo Beller
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see http://www.gnu.org/licenses/ .
-*/
+// Copyright (c) 2016, the SDSL Project Authors.  All rights reserved.
+// Please see the AUTHORS file for details.  Use of this source code is governed
+// by a BSD license that can be found in the LICENSE file.
 /*! \file construct_lcp.hpp
     \brief construct_lcp.hpp contains a space and time efficient construction method for lcp arrays
 	\author Simon Gog, Timo Beller
@@ -40,8 +26,7 @@
 
 //#define STUDY_INFORMATIONS
 
-namespace sdsl
-{
+namespace sdsl {
 
 //! Construct the LCP array for text over byte- or integer-alphabet.
 /*!	The algorithm computes the lcp array and stores it to disk.
@@ -61,47 +46,54 @@ namespace sdsl
  *         Linear-Time Longest-Common-Prefix Computation in Suffix Arrays and Its Applications.
  *         CPM 2001: 181-192
  */
-template<uint8_t t_width>
+template <uint8_t t_width>
 void construct_lcp_kasai(cache_config& config)
 {
-    static_assert(t_width == 0 or t_width == 8 , "construct_lcp_kasai: width must be `0` for integer alphabet and `8` for byte alphabet");
-    int_vector<> lcp;
-    typedef int_vector<>::size_type size_type;
-    construct_isa(config);
-    {
-        int_vector<t_width> text;
-        if (!load_from_cache(text, key_text_trait<t_width>::KEY_TEXT, config)) {
-            return;
-        }
-        int_vector_buffer<> isa_buf(cache_file_name(conf::KEY_ISA, config), std::ios::in, 1000000); // init isa file_buffer
-        int_vector<> sa;
-        if (!load_from_cache(sa, conf::KEY_SA, config)) {
-            return;
-        }
-        // use Kasai algorithm to compute the lcp values
-        for (size_type i=0,j=0,sa_1=0,l=0, n=isa_buf.size(); i < n; ++i) {
-            sa_1 =  isa_buf[i]; // = isa[i]
-            if (sa_1) {
-                j = sa[sa_1-1];
-                if (l) --l;
-                assert(i!=j);
-                while (text[i+l]==text[j+l]) { // i+l < n and j+l < n are not necessary, since text[n]=0 and text[i]!=0 (i<n) and i!=j
-                    ++l;
-                }
-                sa[ sa_1-1 ] = l; //overwrite sa array with lcp values
-            } else {
-                l = 0;
-                sa[ n-1 ] = 0;
-            }
-        }
+	static_assert(
+	t_width == 0 or t_width == 8,
+	"construct_lcp_kasai: width must be `0` for integer alphabet and `8` for byte alphabet");
+	int_vector<>					lcp;
+	typedef int_vector<>::size_type size_type;
+	construct_isa(config);
+	{
+		int_vector<t_width> text;
+		if (!load_from_cache(text, key_text_trait<t_width>::KEY_TEXT, config)) {
+			return;
+		}
+		int_vector_buffer<> isa_buf(
+		cache_file_name(conf::KEY_ISA, config), std::ios::in, 1000000); // init isa file_buffer
+		int_vector<> sa;
+		if (!load_from_cache(sa, conf::KEY_SA, config)) {
+			return;
+		}
+		// use Kasai algorithm to compute the lcp values
+		for (size_type i = 0, j = 0, sa_1 = 0, l = 0, n = isa_buf.size(); i < n; ++i) {
+			sa_1 = isa_buf[i]; // = isa[i]
+			if (sa_1) {
+				j = sa[sa_1 - 1];
+				if (l) --l;
+				assert(i != j);
+				while (
+				text[i + l] ==
+				text
+				[j +
+				 l]) { // i+l < n and j+l < n are not necessary, since text[n]=0 and text[i]!=0 (i<n) and i!=j
+					++l;
+				}
+				sa[sa_1 - 1] = l; //overwrite sa array with lcp values
+			} else {
+				l		  = 0;
+				sa[n - 1] = 0;
+			}
+		}
 
-        for (size_type i=sa.size(); i>1; --i) {
-            sa[i-1] = sa[i-2];
-        }
-        sa[0] = 0;
-        lcp = std::move(sa);
-    }
-    store_to_cache(lcp, conf::KEY_LCP, config);
+		for (size_type i = sa.size(); i > 1; --i) {
+			sa[i - 1] = sa[i - 2];
+		}
+		sa[0] = 0;
+		lcp   = std::move(sa);
+	}
+	store_to_cache(lcp, conf::KEY_LCP, config);
 }
 
 
@@ -121,63 +113,66 @@ void construct_lcp_kasai(cache_config& config)
  *         Permuted Longest-Common-Prefix Array.
  *         CPM 2009: 181-192
  */
-template<uint8_t t_width>
+template <uint8_t t_width>
 void construct_lcp_PHI(cache_config& config)
 {
-    static_assert(t_width == 0 or t_width == 8 , "construct_lcp_PHI: width must be `0` for integer alphabet and `8` for byte alphabet");
-    typedef int_vector<>::size_type size_type;
-    typedef int_vector<t_width> text_type;
-    const char* KEY_TEXT = key_text_trait<t_width>::KEY_TEXT;
-    int_vector_buffer<> sa_buf(cache_file_name(conf::KEY_SA, config));
-    size_type n = sa_buf.size();
+	static_assert(
+	t_width == 0 or t_width == 8,
+	"construct_lcp_PHI: width must be `0` for integer alphabet and `8` for byte alphabet");
+	typedef int_vector<>::size_type size_type;
+	typedef int_vector<t_width>		text_type;
+	const char*						KEY_TEXT = key_text_trait<t_width>::KEY_TEXT;
+	int_vector_buffer<>				sa_buf(cache_file_name(conf::KEY_SA, config));
+	size_type						n = sa_buf.size();
 
-    assert(n > 0);
-    if (1 == n) {  // Handle special case: Input only the sentinel character.
-        int_vector<> lcp(1, 0);
-        store_to_cache(lcp, conf::KEY_LCP, config);
-        return;
-    }
+	assert(n > 0);
+	if (1 == n) { // Handle special case: Input only the sentinel character.
+		int_vector<> lcp(1, 0);
+		store_to_cache(lcp, conf::KEY_LCP, config);
+		return;
+	}
 
-//	(1) Calculate PHI (stored in array plcp)
-    int_vector<> plcp(n, 0, sa_buf.width());
-    for (size_type i=0, sai_1 = 0; i < n; ++i) {
-        size_type sai = sa_buf[i];
-        plcp[ sai ] = sai_1;
-        sai_1 = sai;
-    }
+	//	(1) Calculate PHI (stored in array plcp)
+	int_vector<> plcp(n, 0, sa_buf.width());
+	for (size_type i = 0, sai_1 = 0; i < n; ++i) {
+		size_type sai = sa_buf[i];
+		plcp[sai]	 = sai_1;
+		sai_1		  = sai;
+	}
 
-//  (2) Load text from disk
-    text_type text;
-    load_from_cache(text, KEY_TEXT, config);
+	//  (2) Load text from disk
+	text_type text;
+	load_from_cache(text, KEY_TEXT, config);
 
-//  (3) Calculate permuted LCP array (text order), called PLCP
-    size_type max_l = 0;
-    for (size_type i=0, l=0; i < n-1; ++i) {
-        size_type phii = plcp[i];
-        while (text[i+l] == text[phii+l]) {
-            ++l;
-        }
-        plcp[i] = l;
-        if (l) {
-            max_l = std::max(max_l, l);
-            --l;
-        }
-    }
-    util::clear(text);
-    uint8_t lcp_width = bits::hi(max_l)+1;
+	//  (3) Calculate permuted LCP array (text order), called PLCP
+	size_type max_l = 0;
+	for (size_type i = 0, l = 0; i < n - 1; ++i) {
+		size_type phii = plcp[i];
+		while (text[i + l] == text[phii + l]) {
+			++l;
+		}
+		plcp[i] = l;
+		if (l) {
+			max_l = std::max(max_l, l);
+			--l;
+		}
+	}
+	util::clear(text);
+	uint8_t lcp_width = bits::hi(max_l) + 1;
 
-//	(4) Transform PLCP into LCP
-    std::string lcp_file = cache_file_name(conf::KEY_LCP, config);
-    size_type buffer_size = 1000000; // buffer_size is a multiple of 8!
-    int_vector_buffer<> lcp_buf(lcp_file, std::ios::out, buffer_size, lcp_width);   // open buffer for lcp
-    lcp_buf[0] = 0;
-    sa_buf.buffersize(buffer_size);
-    for (size_type i=1; i < n; ++i) {
-        size_type sai = sa_buf[i];
-        lcp_buf[i] = plcp[sai];
-    }
-    lcp_buf.close();
-    register_cache_file(conf::KEY_LCP, config);
+	//	(4) Transform PLCP into LCP
+	std::string			lcp_file	= cache_file_name(conf::KEY_LCP, config);
+	size_type			buffer_size = 1000000; // buffer_size is a multiple of 8!
+	int_vector_buffer<> lcp_buf(
+	lcp_file, std::ios::out, buffer_size, lcp_width); // open buffer for lcp
+	lcp_buf[0] = 0;
+	sa_buf.buffersize(buffer_size);
+	for (size_type i = 1; i < n; ++i) {
+		size_type sai = sa_buf[i];
+		lcp_buf[i]	= plcp[sai];
+	}
+	lcp_buf.close();
+	register_cache_file(conf::KEY_LCP, config);
 }
 
 
@@ -282,6 +277,6 @@ void construct_lcp_bwt_based(cache_config& config);
  */
 void construct_lcp_bwt_based2(cache_config& config);
 
-}// end namespace
+} // end namespace
 
 #endif
