@@ -10,7 +10,7 @@ function(generate_target_for_special_inputs tc_name abs_tc_name)
     set(bit_vec_regex "bit-vec\\.*")
     set(int_vec_sa_regex "int-vec-sa\\.[0-9]+\\.[0-9]+\\..+")
 
-    if("${tc_name}" MATCHES "${int_vec_regex}" OR ${tc_name} MATCHES "$bit_vec_regex")
+    if("${tc_name}" MATCHES "${int_vec_regex}" OR ${tc_name} MATCHES "${bit_vec_regex}")
         if ("${tc_name}" MATCHES "${int_vec_regex}")
             string(REPLACE "int-vec." "" tc_suf ${tc_name})
             string(REPLACE "." ";" tc_param ${tc_suf})  #  insert semicolons to get a list :)
