@@ -543,7 +543,7 @@ public:
 	template <class t_vec>
 	bool operator==(const t_vec& v) const
 	{
-		return std::equal(begin(), end(), v.begin());
+		return std::equal(begin(), end(), v.begin(), v.end());
 	}
 
 	//! Inequality operator for two int_vectors.
@@ -563,7 +563,7 @@ public:
 	template <class t_vec>
 	bool operator!=(const t_vec& v) const
 	{
-		return !std::equal(begin(), end(), v.begin());
+		return !std::equal(begin(), end(), v.begin(), v.end());
 	}
 
 	//! Less operator for two int_vectors

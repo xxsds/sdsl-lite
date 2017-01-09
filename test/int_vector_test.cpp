@@ -402,6 +402,36 @@ TEST_F(IntVectorTest, reserve)
 }
 
 
+TEST_F(IntVectorTest, compare_operator)
+{
+	std::mt19937_64 rng;
+	for (size_type i = 0; i < vec_sizes.size(); ++i) {
+		std::vector<uint64_t> stl_vec;
+		std::vector<uint64_t> stl_vec2;
+		sdsl::int_vector<>	sdsl_vec;
+		sdsl::int_vector<>	sdsl_vec2;
+		for (size_t j = 0; j < vec_sizes[i]; j++) {
+			auto val = rng();
+			stl_vec.push_back(val);
+			sdsl_vec.push_back(val);
+			if (j & 1) {
+				stl_vec2.push_back(val);
+				sdsl_vec2.push_back(val);
+			}
+		}
+		ASSERT_EQ(stl_vec.size(), sdsl_vec.size());
+		ASSERT_EQ(stl_vec2.size(), sdsl_vec2.size());
+
+		ASSERT_EQ(sdsl_vec, stl_vec);
+		ASSERT_EQ(sdsl_vec2, stl_vec2);
+		if (vec_sizes[i]) {
+			ASSERT_NE(sdsl_vec, sdsl_vec2);
+			ASSERT_NE(sdsl_vec2, stl_vec);
+		}
+	}
+}
+
+
 template <class t_iv>
 void test_SerializeAndLoad(uint8_t width = 1)
 {
