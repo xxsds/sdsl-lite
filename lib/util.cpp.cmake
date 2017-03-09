@@ -51,6 +51,15 @@ std::string dirname(std::string file)
 #else
 	char*		c   = strdup((const char*)file.c_str());
 	std::string res = std::string(::dirname(c));
+    auto it = res.begin();
+    auto next_it = res.begin()+1;
+    while ( it != res.end() and next_it != res.end() ) {
+        if ( *next_it != '/' or *it != '/' ) {
+            *(++it) = *next_it;
+        }
+        ++next_it;
+    }
+    res.resize(it - res.begin() + 1);
 #endif
 	free(c);
 	if (ram_file) {
