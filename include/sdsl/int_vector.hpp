@@ -339,7 +339,7 @@ public:
 	//! The number of elements in the int_vector.
 	/*! \sa max_size, bit_size, capacity
          */
-	size_type size() const { return m_size / m_width; }
+	inline size_type size() const;
 
 	//! Maximum size of the int_vector.
 	/*! \sa size, bit_size, capacity
@@ -1226,6 +1226,43 @@ inline void int_vector<t_width>::set_int(size_type idx, value_type x, const uint
 #endif
 	bits::write_int(m_data + (idx >> 6), x, idx & 0x3F, len);
 }
+
+template <uint8_t t_width>
+inline typename int_vector<t_width>::size_type int_vector<t_width>::size() const {
+    return m_size / m_width;
+}
+
+// specialized size method for 64-bit integer vector
+template <>
+inline typename int_vector<64>::size_type int_vector<64>::size() const {
+    return m_size>>6;
+}
+
+// specialized size method for 32-bit integer vector
+template <>
+inline typename int_vector<32>::size_type int_vector<32>::size() const {
+    return m_size>>5;
+}
+
+// specialized size method for 64-bit integer vector
+template <>
+inline typename int_vector<16>::size_type int_vector<16>::size() const {
+    return m_size>>4;
+}
+
+// specialized size method for 64-bit integer vector
+template <>
+inline typename int_vector<8>::size_type int_vector<8>::size() const {
+    return m_size>>3;
+}
+
+// specialized size method for bit_vector
+template <>
+inline typename int_vector<1>::size_type int_vector<1>::size() const {
+    return m_size;
+}
+
+
 
 template <uint8_t t_width>
 inline auto int_vector<t_width>::operator[](const size_type& idx) -> reference
