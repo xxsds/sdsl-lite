@@ -61,8 +61,11 @@ public:
 
 						//    out.seekp(0, std::ios::end);
 					} else {
+                        std::cerr << "int_vector_mapper: could not open file for header update" << std::endl;
+/*                        
 						throw std::runtime_error("int_vector_mapper: \
                                     could not open file for header update");
+*/                                    
 					}
 				}
 			}
