@@ -181,7 +181,7 @@ std::string demangle2(const std::string& name);
 
 //! Convert type to string
 template <typename T>
-std::string to_string(const T& t, int w = 1);
+std::string to_string(const T& t, int w);
 
 
 //! Transforms the demangled class name of an object to a hash value.
@@ -210,9 +210,6 @@ std::string class_name(const T& t)
 	return result;
 }
 
-//! Get the process id of the current process
-uint64_t pid();
-
 // convert an errno number to a readable msg
 char* str_from_errno();
 
@@ -224,6 +221,8 @@ public:
 	static uint64_t getId() { return id++; }
 };
 
+//! Get the process id of the current process
+uint64_t pid();
 
 //! Get a unique id inside the process
 uint64_t id();
