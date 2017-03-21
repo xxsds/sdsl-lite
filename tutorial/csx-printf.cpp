@@ -1,5 +1,7 @@
 #include <sdsl/suffix_trees.hpp>
 #include <iostream>
+#include <sstream>
+#include <regex>
 
 using namespace sdsl;
 using namespace std;
@@ -64,7 +66,10 @@ int main(int argc, char* argv[])
         if ('1' == argv[1][0]) {
             cst_byte_t cst;
             construct_im(cst, (const char*)line, 1);
-            csXprintf(cout, format, cst, ((argc > 4) ? argv[4][0] : '$'));
+            stringstream ss;
+            csXprintf(ss, format, cst, ((argc > 4) ? argv[4][0] : '$'));
+            std::string line(ss.str());
+            cout << std::regex_replace(line, std::regex(R"(\$)"),"\\$")<<endl; 
         } else if ('d' == argv[1][0]) {
             cst_int_t cst;
             construct_im(cst, (const char*)line, 'd');

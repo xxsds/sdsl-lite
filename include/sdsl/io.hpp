@@ -478,6 +478,7 @@ void csXprintf(std::ostream&	  out,
 	typename t_idx::index_category  cat;
 	const typename t_idx::csa_type& csa = _idx_csa(idx, cat);
 	std::vector<std::string>		res(csa.size());
+    bool truncate = false;
 	for (std::string::const_iterator c = format.begin(), s = c; c != format.end(); s = c) {
 		while (c != format.end() and *c != '%')
 			++c;	 // string before the next `%`
@@ -523,12 +524,33 @@ void csXprintf(std::ostream&	  out,
 						res[i] += util::to_string(csa.bwt[i], w);
 					}
 					break;
+                case 'U':
+                    truncate = true;
 				case 'T':
 					for (uint64_t k = 0; (w > 0 and k < w) or (0 == w and k < csa.size()); ++k) {
 						if (0 == csa.text[(csa[i] + k) % csa.size()]) {
 							res[i] += util::to_string(sentinel, W);
+                            if ( truncate ) {
+                                truncate = false;
+                                break;
+                            }
 						} else {
 							res[i] += util::to_string(csa.text[(csa[i] + k) % csa.size()], W);
+						}
+					}
+					break;
+                case 'u':
+                    truncate = true;
+				case 't':
+					for (uint64_t k = 0; (w > 0 and k < w) or (0 == w and k < csa.size()); ++k) {
+						if (0 == csa.text[(i + k) % csa.size()]) {
+							res[i] += util::to_string(sentinel, W);
+                            if ( truncate ) {
+                                truncate = false;
+                                break;
+                            }
+						} else {
+							res[i] += util::to_string(csa.text[(i + k) % csa.size()], W);
 						}
 					}
 					break;
@@ -677,7 +699,6 @@ bool remove_from_cache(const std::string& key, cache_config& config, bool add_ty
 template <typename T>
 typename T::size_type size_in_bytes(const T& t)
 {
-	if ((&t) == nullptr) return 0;
 	nullstream ns;
 	return serialize(t, ns);
 }
