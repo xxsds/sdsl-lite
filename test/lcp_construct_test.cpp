@@ -1,7 +1,6 @@
 #include "common.hpp"
 #include <sdsl/suffix_arrays.hpp>
-#include <sdsl/construct_lcp.hpp>
-#include <sdsl/construct_bwt.hpp>
+#include <sdsl/construct.hpp>
 #include "gtest/gtest.h"
 #include <vector>
 #include <string>
@@ -28,12 +27,12 @@ class lcp_construct_test : public ::testing::Test
         virtual void SetUp()
         {
             test_config = cache_config(false, temp_dir, to_string(util::pid()));
-            lcp_function["bwt_based"] = &construct_lcp_bwt_based;
-            lcp_function["bwt_based2"] = &construct_lcp_bwt_based2;
             lcp_function["PHI"] = &construct_lcp_PHI<8>;
             lcp_function["semi_extern_PHI"] = &construct_lcp_semi_extern_PHI;
             lcp_function["go"] = &construct_lcp_go;
             lcp_function["goPHI"] = &construct_lcp_goPHI;
+            lcp_function["bwt_based"] = &construct_lcp_bwt_based<>;
+            lcp_function["bwt_based2"] = &construct_lcp_bwt_based2<>;
 
             uint8_t num_bytes = 1;
             {

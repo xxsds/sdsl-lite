@@ -359,13 +359,13 @@ csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_str
 cache_config& config)
 {
 	create_buffer();
-	if (!cache_file_exists(key_trait<alphabet_type::int_width>::KEY_BWT, config)) {
+	if (!cache_file_exists(key_bwt<alphabet_type::int_width>(), config)) {
 		return;
 	}
 	size_type n = 0;
 	{
 		int_vector_buffer<alphabet_type::int_width> bwt_buf(
-		cache_file_name(key_trait<alphabet_type::int_width>::KEY_BWT, config));
+		cache_file_name(key_bwt<alphabet_type::int_width>(), config));
 		n		   = bwt_buf.size();
 		auto event = memory_monitor::event("construct csa-alpbabet");
 		m_alphabet = alphabet_type(bwt_buf, n);
@@ -391,7 +391,7 @@ cache_config& config)
 	{
 		auto										event = memory_monitor::event("construct PSI");
 		int_vector_buffer<alphabet_type::int_width> bwt_buf(
-		cache_file_name(key_trait<alphabet_type::int_width>::KEY_BWT, config));
+		cache_file_name(key_bwt<alphabet_type::int_width>(), config));
 		std::string psi_file = cache_file_name(conf::KEY_PSI, config);
 		auto		psi		 = write_out_mapper<>::create(psi_file, n, bits::hi(n) + 1);
 		for (size_type i = 0; i < n; ++i) {

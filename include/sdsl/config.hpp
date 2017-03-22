@@ -29,17 +29,17 @@ namespace conf // namespace for library constant
 // size of the buffer for reading and writing data in elements (not in bytes)
 const uint64_t SDSL_BLOCK_SIZE = (uint64_t)1 << 22;
 
-const char KEY_BWT[]		 = "bwt";
-const char KEY_BWT_INT[]	 = "bwt_int";
-const char KEY_SA[]			 = "sa";
-const char KEY_CSA[]		 = "csa";
-const char KEY_CST[]		 = "cst";
-const char KEY_ISA[]		 = "isa";
-const char KEY_TEXT[]		 = "text";
-const char KEY_TEXT_INT[]	= "text_int";
-const char KEY_PSI[]		 = "psi";
-const char KEY_LCP[]		 = "lcp";
-const char KEY_SAMPLE_CHAR[] = "sample_char";
+constexpr char KEY_BWT[]		 = "bwt";
+constexpr char KEY_BWT_INT[]	 = "bwt_int";
+constexpr char KEY_SA[]			 = "sa";
+constexpr char KEY_CSA[]		 = "csa";
+constexpr char KEY_CST[]		 = "cst";
+constexpr char KEY_ISA[]		 = "isa";
+constexpr char KEY_TEXT[]		 = "text";
+constexpr char KEY_TEXT_INT[]	= "text_int";
+constexpr char KEY_PSI[]		 = "psi";
+constexpr char KEY_LCP[]		 = "lcp";
+constexpr char KEY_SAMPLE_CHAR[] = "sample_char";
 }
 
 typedef uint64_t int_vector_size_type;

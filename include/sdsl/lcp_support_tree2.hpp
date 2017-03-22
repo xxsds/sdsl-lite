@@ -83,7 +83,7 @@ public:
 
 		int_vector_buffer<> lcp_buf(cache_file_name(conf::KEY_LCP, config));
 		std::string			bwt_file =
-		cache_file_name(key_trait<t_cst::csa_type::alphabet_type::int_width>::KEY_BWT, config);
+		cache_file_name(key_bwt<t_cst::csa_type::alphabet_type::int_width>(), config);
 		int_vector_buffer<t_cst::csa_type::alphabet_type::int_width> bwt_buf(bwt_file);
 
 		std::string sml_lcp_file = tmp_file(config, "_fc_lf_lcp_sml");

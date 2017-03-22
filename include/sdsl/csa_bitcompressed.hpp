@@ -112,7 +112,7 @@ public:
 	csa_bitcompressed(cache_config& config)
 	{
 		std::string text_file =
-		cache_file_name(key_trait<alphabet_type::int_width>::KEY_TEXT, config);
+		cache_file_name(key_text<alphabet_type::int_width>(), config);
 		int_vector_buffer<alphabet_type::int_width> text_buf(text_file);
 		int_vector_buffer<>							sa_buf(cache_file_name(conf::KEY_SA, config));
 		size_type									n = text_buf.size();
