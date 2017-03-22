@@ -39,7 +39,7 @@
  */
 
 #include "int_vector.hpp"
-#include "csa_alphabet_strategy.hp"
+#include "csa_alphabet_strategy.hpp"
 #include "inv_perm_support.hpp"
 #include "wavelet_trees.hpp"
 #include <set>
