@@ -11,7 +11,7 @@
 #include "sdsl_concepts.hpp"
 
 #include "int_vector.hpp"
-#include "csa_alphabet_strategy.hpp" // for key_trait
+#include "csa_alphabet_strategy.hpp" 
 #include "select_support_mcl.hpp"
 #include "construct_isa.hpp"
 #include <istream>

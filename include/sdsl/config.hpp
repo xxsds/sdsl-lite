@@ -15,23 +15,33 @@
 #endif
 
 namespace sdsl {
+
+// forward declarations
+namespace util {
+    template <typename T>
+    std::string to_string(const T& t, int w = 1);
+    uint64_t pid();
+    uint64_t id();
+}
+
 namespace conf // namespace for library constant
 {
 // size of the buffer for reading and writing data in elements (not in bytes)
 const uint64_t SDSL_BLOCK_SIZE = (uint64_t)1 << 22;
 
-const char KEY_BWT[]		 = "bwt";
-const char KEY_BWT_INT[]	 = "bwt_int";
-const char KEY_SA[]			 = "sa";
-const char KEY_CSA[]		 = "csa";
-const char KEY_CST[]		 = "cst";
-const char KEY_ISA[]		 = "isa";
-const char KEY_TEXT[]		 = "text";
-const char KEY_TEXT_INT[]	= "text_int";
-const char KEY_PSI[]		 = "psi";
-const char KEY_LCP[]		 = "lcp";
-const char KEY_SAMPLE_CHAR[] = "sample_char";
+constexpr char KEY_BWT[]		 = "bwt";
+constexpr char KEY_BWT_INT[]	 = "bwt_int";
+constexpr char KEY_SA[]			 = "sa";
+constexpr char KEY_CSA[]		 = "csa";
+constexpr char KEY_CST[]		 = "cst";
+constexpr char KEY_ISA[]		 = "isa";
+constexpr char KEY_TEXT[]		 = "text";
+constexpr char KEY_TEXT_INT[]	= "text_int";
+constexpr char KEY_PSI[]		 = "psi";
+constexpr char KEY_LCP[]		 = "lcp";
+constexpr char KEY_SAMPLE_CHAR[] = "sample_char";
 }
+
 typedef uint64_t int_vector_size_type;
 
 typedef std::map<std::string, std::string> tMSS;
@@ -54,20 +64,66 @@ struct cache_config {
 	cache_config(bool		 f_delete_files = true,
 				 std::string f_dir			= "./",
 				 std::string f_id			= "",
-				 tMSS		 f_file_map		= tMSS());
+				 tMSS		 f_file_map		= tMSS())
+	    : delete_files(f_delete_files), delete_data(false), dir(f_dir), id(f_id), file_map(f_file_map)
+    {
+	    if ("" == id) {
+		    id = sdsl::util::to_string(sdsl::util::pid()) + "_" + sdsl::util::to_string(sdsl::util::id());
+	}
+}
+        
 };
 
 //! Helper classes to transform width=0 and width=8 to corresponding text key
-template <uint8_t width>
-struct key_text_trait {
+template <uint8_t width, typename T=void>
+struct key_text_trait_impl {
+	static const char* KEY_TEXT;
+};
+
+template <typename T>
+struct key_text_trait_impl<0,T> {
+	static const char* KEY_TEXT;
+};
+
+template <typename T>
+struct key_text_trait_impl<8,T> {
 	static const char* KEY_TEXT;
 };
 
 //! Helper classes to transform width=0 and width=8 to corresponding bwt key
-template <uint8_t width>
-struct key_bwt_trait {
+template <uint8_t width,typename T=void>
+struct key_bwt_trait_impl {
 	static const char* KEY_BWT;
 };
+
+template <typename T>
+struct key_bwt_trait_impl<0,T> {
+	static const char* KEY_BWT;
+};
+
+template <typename T>
+struct key_bwt_trait_impl<8,T> {
+	static const char* KEY_BWT;
+};
+
+template<typename T>
+const char* key_text_trait_impl<0,T>::KEY_TEXT = conf::KEY_TEXT_INT;
+
+template<typename T>
+const char* key_text_trait_impl<8,T>::KEY_TEXT = conf::KEY_TEXT;
+
+template<typename T>
+const char* key_bwt_trait_impl<0,T>::KEY_BWT = conf::KEY_BWT_INT;
+
+template<typename T>
+const char* key_bwt_trait_impl<8,T>::KEY_BWT = conf::KEY_BWT;
+
+template<uint8_t width>
+using key_text_trait = key_text_trait_impl<width,void>;
+
+template<uint8_t width>
+using key_bwt_trait = key_bwt_trait_impl<width,void>;
+
 }
 
 #endif

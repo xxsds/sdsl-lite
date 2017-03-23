@@ -83,7 +83,7 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR}/../include
                     ${gtest_SOURCE_DIR}/include
 )
 
-link_libraries(sdsl gtest divsufsort divsufsort64)
+link_libraries(gtest divsufsort divsufsort64)
 
 add_executable(int_vector_generator EXCLUDE_FROM_ALL int_vector_generator.cpp)
 add_executable(bit_vector_generator EXCLUDE_FROM_ALL bit_vector_generator.cpp)

@@ -49,9 +49,9 @@ namespace sdsl {
 class byte_alphabet;
 
 template <class bit_vector_type   = bit_vector,
-		  class rank_support_type = rank_support_scan<>, //typename bit_vector_type::rank_1_type,
+		  class rank_support_type = rank_support_scan<>,
 		  class select_support_type =
-		  select_support_scan<>, //typename bit_vector_type::select_1_type,
+		  select_support_scan<>, 
 		  class C_array_type = int_vector<>>
 class succinct_byte_alphabet;
 
@@ -61,23 +61,30 @@ template <class bit_vector_type		= sd_vector<>,
 		  class C_array_type		= int_vector<>>
 class int_alphabet;
 
-template <uint8_t int_width>
-struct key_trait {
-	static const char* KEY_BWT;
-	static const char* KEY_TEXT;
-};
+template<uint8_t int_width>
+constexpr const char* key_text()
+{
+    return conf::KEY_TEXT_INT;
+}
 
-template <>
-struct key_trait<8> {
-	static const char* KEY_BWT;
-	static const char* KEY_TEXT;
-};
+template<uint8_t int_width>
+constexpr const char* key_bwt()
+{
+    return conf::KEY_BWT_INT;
+}
 
-template <uint8_t int_width>
-const char*		  key_trait<int_width>::KEY_BWT = conf::KEY_BWT_INT;
 
-template <uint8_t int_width>
-const char*		  key_trait<int_width>::KEY_TEXT = conf::KEY_TEXT_INT;
+template<>
+inline constexpr const char* key_text<8>()
+{
+    return conf::KEY_TEXT;
+}
+
+template<>
+inline constexpr const char* key_bwt<8>()
+{
+    return conf::KEY_BWT;
+}
 
 template <class t_alphabet_strategy>
 struct alphabet_trait {
@@ -137,23 +144,112 @@ private:
 	sigma_type	 m_sigma;		// Effective size of the alphabet.
 public:
 	//! Default constructor
-	byte_alphabet();
+    byte_alphabet()
+        : char2comp(m_char2comp), comp2char(m_comp2char), C(m_C), sigma(m_sigma), m_sigma(0)
+    {
+    }
 
 	//! Construct from a byte-stream
 	/*!
-         *  \param text_buf Byte stream.
-         *  \param len      Length of the byte stream.
-         */
-	byte_alphabet(int_vector_buffer<8>& text_buf, int_vector_size_type len);
+     *  \param text_buf Byte stream.
+     *  \param len      Length of the byte stream.
+     */
+    byte_alphabet(int_vector_buffer<8>& text_buf, int_vector_size_type len)
+        : char2comp(m_char2comp), comp2char(m_comp2char), C(m_C), sigma(m_sigma)
+    {
+        m_sigma = 0;
+        if (0 == len or 0 == text_buf.size()) return;
+        assert(len <= text_buf.size());
+        // initialize vectors
+        m_C			= int_vector<64>(257, 0);
+        m_char2comp = int_vector<8>(256, 0);
+        m_comp2char = int_vector<8>(256, 0);
+        // count occurrences of each symbol
+        for (size_type i = 0; i < len; ++i) {
+            ++m_C[text_buf[i]];
+        }
+        assert(1 == m_C[0]); // null-byte should occur exactly once
+        m_sigma = 0;
+        for (int i = 0; i < 256; ++i)
+            if (m_C[i]) {
+                m_char2comp[i]	 = m_sigma;
+                m_comp2char[sigma] = i;
+                m_C[m_sigma]	   = m_C[i];
+                ++m_sigma;
+            }
+        m_comp2char.resize(m_sigma);
+        m_C.resize(m_sigma + 1);
+        for (int i = (int)m_sigma; i > 0; --i)
+            m_C[i] = m_C[i - 1];
+        m_C[0]	 = 0;
+        for (int i = 1; i <= (int)m_sigma; ++i)
+            m_C[i] += m_C[i - 1];
+        assert(C[sigma] == len);
+    }
 
-	byte_alphabet(const byte_alphabet&);
-	byte_alphabet(byte_alphabet&&);
-	byte_alphabet& operator=(const byte_alphabet&);
-	byte_alphabet& operator=(byte_alphabet&&);
+    byte_alphabet(const byte_alphabet& bas)
+        : char2comp(m_char2comp)
+        , comp2char(m_comp2char)
+        , C(m_C)
+        , sigma(m_sigma)
+        , m_char2comp(bas.m_char2comp)
+        , m_comp2char(bas.m_comp2char)
+        , m_C(bas.m_C)
+        , m_sigma(bas.m_sigma)
+    {
+    }
+        
+    byte_alphabet(byte_alphabet&& bas)
+        : char2comp(m_char2comp)
+        , comp2char(m_comp2char)
+        , C(m_C)
+        , sigma(m_sigma)
+        , m_char2comp(std::move(bas.m_char2comp))
+        , m_comp2char(std::move(bas.m_comp2char))
+        , m_C(std::move(bas.m_C))
+        , m_sigma(bas.m_sigma)
+    { }
 
-	size_type
-	serialize(std::ostream& out, structure_tree_node* v = nullptr, std::string name = "") const;
-	void load(std::istream& in);
+    byte_alphabet& operator=(const byte_alphabet& bas)
+    {
+        if (this != &bas) {
+            byte_alphabet tmp(bas);
+            *this = std::move(tmp);
+        }
+        return *this;
+    }
+
+    byte_alphabet& operator=(byte_alphabet&& bas)
+    {
+        if (this != &bas) {
+            m_char2comp = std::move(bas.m_char2comp);
+            m_comp2char = std::move(bas.m_comp2char);
+            m_C			= std::move(bas.m_C);
+            m_sigma		= std::move(bas.m_sigma);
+        }
+        return *this;
+    }
+
+    size_type
+    serialize(std::ostream& out, structure_tree_node* v, std::string name = "") const
+    {
+        structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
+        size_type			 written_bytes = 0;
+        written_bytes += m_char2comp.serialize(out, child, "m_char2comp");
+        written_bytes += m_comp2char.serialize(out, child, "m_comp2char");
+        written_bytes += m_C.serialize(out, child, "m_C");
+        written_bytes += write_member(m_sigma, out, child, "m_sigma");
+        structure_tree::add_size(child, written_bytes);
+        return written_bytes;
+    }
+
+    void load(std::istream& in)
+    {
+        m_char2comp.load(in);
+        m_comp2char.load(in);
+        m_C.load(in);
+        read_member(m_sigma, in);
+    }
 };
 
 

@@ -84,7 +84,7 @@ int main(int argc, char** argv)
         }
         cout << "No index "<<rmq_file<< " located. Building index now." << endl;
         construct(tmp_csa, argv[1], 1);
-        util::assign(rmq, rmq_succinct_sct<>(&tmp_csa));
+        rmq = rmq_succinct_sct<>(&tmp_csa);
         store_to_file(rmq, rmq_file);
     }
     double index_size = size_in_mega_bytes(fm_index) + size_in_mega_bytes(rmq);

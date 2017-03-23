@@ -32,7 +32,9 @@ add_subdirectory(external)
 add_subdirectory(include/sdsl)
 add_subdirectory(lib)
 
-target_include_directories(sdsl PUBLIC include)
+
+file (GLOB HEADERS "${CMAKE_CURRENT_SOURCE_DIR}/include/sdsl/*.hpp")
+add_custom_target (sdsl SOURCES ${HEADERS})
 
 # (9) test targets 
 add_subdirectory(test)

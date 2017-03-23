@@ -27,7 +27,8 @@ namespace sdsl {
  *  * m_nr_to_bin: 64 kB = (2^15 entries x 2 bytes)
  *  * m_bin_to_nr: 64 kB = (2^15 entries x 2 bytes)
  */
-class binomial15 {
+template<typename T=void>
+class binomial15_impl {
 public:
 	typedef uint32_t number_type;
 
@@ -87,6 +88,11 @@ public:
 	static inline uint8_t space_for_bt_pair(uint8_t x) { return iii.m_space_for_bt_pair[x]; }
 };
 
+// initialize the inner class
+template<typename T>
+typename binomial15_impl<T>::impl binomial15_impl<T>::iii;
+
+using binomial15 = binomial15_impl<>;
 
 //! A specialization of the rrr_vector class for a block_size of 15.
 /*!

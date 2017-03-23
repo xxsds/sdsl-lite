@@ -29,8 +29,7 @@ int main()
     rrr_vector<127>::select_1_type select_rrrb(&rrrb);
     cout<<"position of first one in b: "<<select_rrrb(1)<<endl;
 
-    bit_vector x;
-    util::assign(x, bit_vector(10000000,1));
+    bit_vector x = bit_vector(10000000,1);
 
     int_vector<> v(100, 5, 7);
 

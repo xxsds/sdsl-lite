@@ -279,13 +279,13 @@ template <class t_wt,
 csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::csa_wt(
 cache_config& config)
 {
-	if (!cache_file_exists(key_trait<alphabet_type::int_width>::KEY_BWT, config)) {
+	if (!cache_file_exists(key_bwt<alphabet_type::int_width>(), config)) {
 		return;
 	}
 	{
 		auto event = memory_monitor::event("construct csa-alpbabet");
 		int_vector_buffer<alphabet_type::int_width> bwt_buf(
-		cache_file_name(key_trait<alphabet_type::int_width>::KEY_BWT, config));
+		cache_file_name(key_bwt<alphabet_type::int_width>(), config));
 		size_type n = bwt_buf.size();
 		m_alphabet  = alphabet_type(bwt_buf, n);
 	}
@@ -305,7 +305,7 @@ cache_config& config)
 	{
 		auto event = memory_monitor::event("construct wavelet tree");
 		int_vector_buffer<alphabet_type::int_width> bwt_buf(
-		cache_file_name(key_trait<alphabet_type::int_width>::KEY_BWT, config));
+		cache_file_name(key_bwt<alphabet_type::int_width>(), config));
 		m_wavelet_tree = wavelet_tree_type(bwt_buf.begin(), bwt_buf.end(), config.dir);
 	}
 }

@@ -39,7 +39,7 @@
  */
 
 #include "int_vector.hpp"
-#include "csa_alphabet_strategy.hpp" // for key_trait
+#include "csa_alphabet_strategy.hpp"
 #include "inv_perm_support.hpp"
 #include "wavelet_trees.hpp"
 #include <set>
@@ -473,7 +473,7 @@ public:
 	{
 		int_vector_buffer<> sa_buf(cache_file_name(conf::KEY_SA, cconfig));
 		int_vector_buffer<t_csa::alphabet_type::int_width> bwt_buf(
-		cache_file_name(key_trait<t_csa::alphabet_type::int_width>::KEY_BWT, cconfig));
+		cache_file_name(key_bwt<t_csa::alphabet_type::int_width>(), cconfig));
 		size_type  n = sa_buf.size();
 		bit_vector marked(n, 0); // temporary bitvector for the marked text positions
 		this->width(bits::hi(n) + 1);
