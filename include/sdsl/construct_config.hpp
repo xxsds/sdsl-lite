@@ -8,12 +8,15 @@
 
 namespace sdsl {
 
-class construct_config {
-public:
-	static byte_sa_algo_type byte_algo_sa;
-
-	construct_config() = delete;
+struct construct_config_data {
+	byte_sa_algo_type byte_algo_sa = LIBDIVSUFSORT;
 };
+
+extern inline construct_config_data& construct_config() {
+    static construct_config_data data;
+    return data;
+}
+
 }
 
 #endif

@@ -36,7 +36,7 @@ TEST_F(sa_construct_test, divsufsort)
 {
     // Construct SA with divsufsort
     memory_monitor::start();
-    construct_config::byte_algo_sa = LIBDIVSUFSORT;
+    construct_config().byte_algo_sa = LIBDIVSUFSORT;
     construct_sa<8>(config);
     memory_monitor::stop();
     {
@@ -56,7 +56,7 @@ TEST_F(sa_construct_test, sesais)
 {
     // Construct SA with seSAIS
     memory_monitor::start();
-    construct_config::byte_algo_sa = SE_SAIS;
+    construct_config().byte_algo_sa = SE_SAIS;
     construct_sa<8>(config);
     memory_monitor::stop();
     {

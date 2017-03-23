@@ -27,7 +27,7 @@ int main(int argc, char** argv)
     util::clear(text);
 
     cout << "Calculate suffix array ... " << flush;
-    construct_config::byte_algo_sa = SE_SAIS; // or LIBDIVSUFSORT for less space-efficient but faster construction
+    construct_config().byte_algo_sa = SE_SAIS; // or LIBDIVSUFSORT for less space-efficient but faster construction
     memory_monitor::start();
     auto start = timer::now();
     construct_sa<8>(config);

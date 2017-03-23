@@ -156,13 +156,13 @@ void construct_sa(cache_config& config)
 				  "construct_sa: width must be `0` for integer alphabet and `8` for byte alphabet");
 	const char* KEY_TEXT = key_text_trait<t_width>::KEY_TEXT;
 	if (t_width == 8) {
-		if (construct_config::byte_algo_sa == LIBDIVSUFSORT) {
+		if (construct_config().byte_algo_sa == LIBDIVSUFSORT) {
 			read_only_mapper<t_width> text(KEY_TEXT, config);
 			auto					  sa = write_out_mapper<0>::create(
 			cache_file_name(conf::KEY_SA, config), 0, bits::hi(text.size()) + 1);
 			// call divsufsort
 			algorithm::calculate_sa((const unsigned char*)text.data(), text.size(), sa);
-		} else if (construct_config::byte_algo_sa == SE_SAIS) {
+		} else if (construct_config().byte_algo_sa == SE_SAIS) {
 			construct_sa_se(config);
 		}
 	} else if (t_width == 0) {
