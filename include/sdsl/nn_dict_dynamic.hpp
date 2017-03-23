@@ -14,14 +14,15 @@
 
 namespace sdsl {
 
-class nn_dict_dynamic; // forward declaration
+// possible TODO: resize(size_type size)
+
+class nn_dict_dynamic;
 
 namespace util {
-inline void set_zero_bits(nn_dict_dynamic& nn)  { util::set_to_value(nn.m_tree, 0); }
+
+inline void set_zero_bits(nn_dict_dynamic& nn);
+
 }
-
-
-// possible TODO: resize(size_type size)
 
 //! A class for a dynamic bit vector which also supports the prev and next operations
 class nn_dict_dynamic {
@@ -327,6 +328,13 @@ public:
 		bool operator<(const reference& x) const { return !bool(*this) and bool(x); }
 	};
 };
+
+namespace util {
+inline void set_zero_bits(nn_dict_dynamic& nn)  { util::set_to_value(nn.m_tree, 0); }
+}
+
+
+
 
 
 } // end of namespace
