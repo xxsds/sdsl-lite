@@ -235,7 +235,7 @@ std::string dirname(std::string file)
 	}
 	return res;
 }
-    
+
 
 //! Demangle the class name of typeid(...).name()
 /*!
