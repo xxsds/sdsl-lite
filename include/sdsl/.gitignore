@@ -4,7 +4,3 @@
 !.gitignore
 !*.hpp
 !*.cmake
-bits.hpp
-uint128_t.hpp
-structure_tree.hpp
-util.hpp
