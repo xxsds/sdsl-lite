@@ -1,5 +1,3 @@
-configure_file("${CMAKE_CURRENT_SOURCE_DIR}/structure_tree.cpp.cmake"
-               "${CMAKE_CURRENT_SOURCE_DIR}/structure_tree.cpp" @ONLY)
 
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/util.cpp.cmake"
                "${CMAKE_CURRENT_SOURCE_DIR}/util.cpp" @ONLY)
