@@ -11,6 +11,9 @@ configure_file("${CMAKE_CURRENT_SOURCE_DIR}/uint128_t.hpp.cmake"
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/structure_tree.hpp.cmake"
                "${CMAKE_CURRENT_SOURCE_DIR}/structure_tree.hpp" @ONLY)
 
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/util.hpp.cmake"
+               "${CMAKE_CURRENT_SOURCE_DIR}/util.hpp" @ONLY)
+
 ## Check for header files ##
 check_include_file_CXX(cstdio HAVE_STDIO)
 
