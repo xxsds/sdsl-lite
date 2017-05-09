@@ -17,7 +17,7 @@
 #include <xmmintrin.h>
 #endif
 #if @HAVE_BMI2@
-#include <bmi2intrin.h>
+#include <x86intrin.h>
 #endif
 // clang-format on
 

@@ -15,7 +15,7 @@
 #include <xmmintrin.h>
 #endif
 #ifdef __BMI2__
-#include <bmi2intrin.h>
+#include <x86intrin.h>
 #endif
 
 #ifdef WIN32
