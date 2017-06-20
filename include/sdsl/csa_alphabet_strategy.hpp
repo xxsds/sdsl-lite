@@ -454,6 +454,27 @@ public:
 	}
 };
 
+template<typename bit_vector_type, typename size_type>
+void init_char_bitvector(bit_vector_type& char_bv, const std::map<size_type, size_type> &D) {
+    // note: the alphabet has at least size 1, so the following is safe:
+    auto  largest_symbol = (--D.end())->first;
+    bit_vector tmp_char(largest_symbol + 1, 0);
+    for (const auto& x : D ) {
+        tmp_char[x.first] = 1;
+    }
+    char_bv = tmp_char;
+}
+
+template<typename t_hi_bit_vector, typename t_select_1, typename t_select_0, typename size_type>
+void init_char_bitvector(sd_vector<t_hi_bit_vector, t_select_1, t_select_0> &char_bv, const std::map<size_type, size_type> &D) {
+    auto  largest_symbol = (--D.end())->first;
+    sd_vector_builder builder(largest_symbol + 1, D.size());
+    for (const auto& x : D ) {
+        builder.set(x.first);
+    }
+    char_bv = std::move(sd_vector<t_hi_bit_vector, t_select_1, t_select_0>(builder));
+}
+
 //! A space-efficient representation for byte alphabets.
 /*!
  *  The mapping `char2comp` and its inverse `comp2char` is realized internally
@@ -572,17 +593,7 @@ public:
 		if (is_continuous_alphabet(D)) {
 			// do not initialize m_char, m_char_rank and m_char_select since we can map directly
 		} else {
-			// note: the alphabet has at least size 1, so the following is safe:
-			size_type  largest_symbol = (--D.end())->first;
-			bit_vector tmp_char(largest_symbol + 1, 0);
-			for (std::map<size_type, size_type>::const_iterator it = D.begin(), end = D.end();
-				 it != end;
-				 ++it) {
-				tmp_char[it->first] = 1;
-			}
-			m_char = tmp_char;
-			util::init_support(m_char_rank, &m_char);
-			util::init_support(m_char_select, &m_char);
+            init_char_bitvector(m_char, D);
 		}
 		assert(D.find(0) != D.end() and 1 == D[0]); // null-byte should occur exactly once
 
