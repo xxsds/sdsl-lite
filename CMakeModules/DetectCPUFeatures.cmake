@@ -10,12 +10,12 @@ else()
 endif()
 
 set(CMAKE_REQUIRED_FLAGS "-msse4.2")
-file(READ "CMakeModules/SSE42.cpp" test_source_sse42)
+file(READ "${CMAKE_MODULE_PATH}/SSE42.cpp" test_source_sse42)
 CHECK_CXX_SOURCE_RUNS("${test_source_sse42}" HAVE_SSE42)
 set(CMAKE_REQUIRED_FLAGS "")
 
 set(CMAKE_REQUIRED_FLAGS "-mbmi2")
-file(READ "CMakeModules/BMI2.cpp" test_source_bmi2)
+file(READ "${CMAKE_MODULE_PATH}/BMI2.cpp" test_source_bmi2)
 CHECK_CXX_SOURCE_RUNS("${test_source_bmi2}" HAVE_BMI2)
 set(CMAKE_REQUIRED_FLAGS "")
 
@@ -40,7 +40,7 @@ else()
   message(STATUS "${Red}Compiler does NOT supports BMI2${ColourReset}")
 endif()
 
-file(READ "CMakeModules/MODETI.cpp" test_source_modeti)
+file(READ "${CMAKE_MODULE_PATH}/MODETI.cpp" test_source_modeti)
 CHECK_CXX_SOURCE_RUNS("${test_source_modeti}" HAVE_MODETI)
 
 if(HAVE_MODETI)
