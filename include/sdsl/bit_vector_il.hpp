@@ -215,6 +215,14 @@ public:
 	iterator begin() const { return iterator(this, 0); }
 
 	iterator end() const { return iterator(this, size()); }
+
+
+	bool operator==(const bit_vector_il& v) const
+	{
+		return m_size == v.m_size && m_data == v.m_data;
+	}
+
+	bool operator!=(const bit_vector_il& v) const { return !(*this == v); }
 };
 
 template <uint8_t t_b, uint32_t t_bs>
