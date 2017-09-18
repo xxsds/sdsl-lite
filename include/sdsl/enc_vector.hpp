@@ -112,6 +112,14 @@ public:
 	//! Iterator that points to the position after the last element of the enc_vector.
 	const const_iterator end() const { return const_iterator(this, this->m_size); }
 
+	bool operator==(const enc_vector& v) const
+	{
+		return m_size && v.m_size && m_z == v.m_z &&
+			   m_sample_vals_and_pointer == v.m_sample_vals_and_pointer;
+	}
+
+	bool operator!=(const enc_vector& v) const { return !(*this == v); }
+
 	//! operator[]
 	/*! \param i Index. \f$ i \in [0..size()-1]\f$.
          */

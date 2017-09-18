@@ -399,6 +399,13 @@ public:
 	iterator begin() const { return iterator(this, 0); }
 
 	iterator end() const { return iterator(this, size()); }
+
+	bool operator==(const sd_vector& v) const
+	{
+		return m_size == v.m_size && m_wl == v.m_wl && m_low == v.m_low && m_high == v.m_high;
+	}
+
+	bool operator!=(const sd_vector& v) const { return !(*this == v); }
 };
 
 //! Specialized constructor that is a bit more space-efficient than the default.
