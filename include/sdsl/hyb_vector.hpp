@@ -571,6 +571,14 @@ public:
 	iterator begin() const { return iterator(this, 0); }
 
 	iterator end() const { return iterator(this, size()); }
+
+	bool operator==(const hyb_vector& v) const
+	{
+		return m_size == v.m_size && m_trunk == v.m_trunk && m_sblock_header == v.m_sblock_header &&
+			   m_hblock_header == v.m_hblock_header;
+	}
+
+	bool operator!=(const hyb_vector& v) const { return !(*this == v); }
 };
 
 template <uint32_t k_sblock_rate>
