@@ -1,6 +1,6 @@
 include ../Make.helper
 CXX_FLAGS = $(MY_CXX_FLAGS) # in compile_options.config
-LIBS = -lsdsl 
+LIBS =
 SRC_DIR = src
 TMP_DIR = ../tmp
 # Sampling rate for rrr_vector

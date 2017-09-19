@@ -1,7 +1,7 @@
 include ../../Make.helper
 SRC_DIR = src
 BIN_DIR = bin
-LIBS = -lsdsl
+LIBS =
 RES_FILE = results/result.csv	#result file of benchmark
 VAT_FILE = results/vat.csv	#vector assignment table (vector name -> sdsl type)
 TC_FILE = results/tc.csv	#test case table (contains only test case names)
