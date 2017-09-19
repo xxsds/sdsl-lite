@@ -1,6 +1,6 @@
 include ../Make.helper
 CFLAGS = $(MY_CXX_FLAGS) $(MY_CXX_OPT_FLAGS) 
-LIBS = -lsdsl -ldivsufsort -ldivsufsort64
+LIBS = -ldivsufsort -ldivsufsort64
 SRC_DIR = src
 TMP_DIR = ../tmp
 PAT_DIR = pattern

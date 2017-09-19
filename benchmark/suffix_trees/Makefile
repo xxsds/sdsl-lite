@@ -1,5 +1,5 @@
 include ../Make.helper
-LIBS=-lsdsl -ldivsufsort -ldivsufsort64
+LIBS=-ldivsufsort -ldivsufsort64
 SRC_DIR=src
 TMP_DIR=../tmp
 
