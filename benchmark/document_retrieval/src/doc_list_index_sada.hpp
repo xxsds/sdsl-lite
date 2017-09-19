@@ -136,7 +136,7 @@ doc_list_index_sada(doc_list_index_sada&& idx) {
 
 
 doc_list_index_sada& operator=(const doc_list_index_sada& idx) {
-    if(*this != &idx) {
+    if(this != &idx) {
         doc_list_index_sada tmp(idx);
         *this = std::move(tmp);
     }
@@ -144,7 +144,7 @@ doc_list_index_sada& operator=(const doc_list_index_sada& idx) {
 }
 
 doc_list_index_sada& operator=(doc_list_index_sada&& dr) {
-    if(*this != &dr) {
+    if(this != &dr) {
         m_doc_cnt = dr.m_doc_cnt;
         m_csa_full = std::move(dr.m_csa_full);
         m_doc_isa = std::move(dr.m_doc_isa);
