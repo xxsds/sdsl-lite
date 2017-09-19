@@ -98,6 +98,14 @@ public:
 	//! Iterator that points to the position after the last element of the vlc_vector.
 	const const_iterator end() const { return const_iterator(this, this->m_size); }
 
+	bool operator==(const vlc_vector& v) const
+	{
+		return m_size && v.m_size && m_z == v.m_z && m_sample_pointer == v.m_sample_pointer;
+	}
+
+	bool operator!=(const vlc_vector& v) const { return !(*this == v); }
+
+
 	//! []-operator
 	value_type operator[](size_type i) const;
 
