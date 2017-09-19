@@ -116,7 +116,7 @@ public:
 doc_list_index_sada() { }
 
 doc_list_index_sada(const doc_list_index_sada& idx) :
-    m_doc_cnt(idx.m_doc_cnt)
+    m_doc_cnt(idx.m_doc_cnt),
     m_csa_full(idx.m_csa_full),
     m_doc_isa(idx.m_doc_isa),
     m_rminq(idx.m_rminq),
