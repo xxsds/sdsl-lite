@@ -202,7 +202,7 @@ inline std::string basename(std::string file)
 /*! \param file  Path to a file.
  *  \returns     Directory name part of the specified path.
  */
-std::string dirname(std::string file)
+inline std::string dirname(std::string file)
 {
 	bool ram_file = is_ram_file(file);
 	file		  = disk_file_name(file); // remove RAM-prefix
