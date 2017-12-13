@@ -238,22 +238,32 @@ public:
 private:
 	// Calculates how many symbols c are in the prefix [0..i-1] of the BWT of the original text.
 	/*
-         *  \param i The exclusive index of the prefix range [0..i-1], so \f$i\in [0..size()]\f$.
-         *  \param c The symbol to count the occurrences in the prefix.
-         *    \returns The number of occurrences of symbol c in the prefix [0..i-1] of the BWT.
-         *  \par Time complexity
-         *        \f$ \Order{\log |\Sigma|} \f$
-         */
-	size_type rank_bwt(size_type i, const char_type c) const { return m_wavelet_tree.rank(i, c); }
+     *  \param i The exclusive index of the prefix range [0..i-1], so \f$i\in [0..size()]\f$.
+     *  \param c The symbol to count the occurrences in the prefix.
+     *    \returns The number of occurrences of symbol c in the prefix [0..i-1] of the BWT.
+     *  \par Time complexity
+     *        \f$ \Order{\log |\Sigma|} \f$
+     */
+    size_type
+    rank_bwt(size_type i, const char_type c)const
+    {
+        return m_wavelet_tree.rank(i, c);
+    }
 
-	// Calculates the position of the i-th c in the BWT of the original text.
-	/*
-         *  \param i The i-th occurrence. \f$i\in [1..rank(size(),c)]\f$.
-         *  \param c Symbol c.
-         *    \returns The position of the i-th c in the BWT or size() if c does occur less then i times.
-         *  \par Time complexity
-         *        \f$ \Order{t_{\Psi}} \f$
-         */
+    std::array<size_type,2>
+    rank_bwt(std::array<size_type,2> ij, const char_type c)const
+    {
+        return {rank_bwt(ij[0], c), rank_bwt(ij[1],c)};
+    }
+
+    // Calculates the position of the i-th c in the BWT of the original text.
+    /*
+     *  \param i The i-th occurrence. \f$i\in [1..rank(size(),c)]\f$.
+     *  \param c Symbol c.
+     *    \returns The position of the i-th c in the BWT or size() if c does occur less then i times.
+     *  \par Time complexity
+     *        \f$ \Order{t_{\Psi}} \f$
+     */
 	size_type select_bwt(size_type i, const char_type c) const
 	{
 		assert(i > 0);

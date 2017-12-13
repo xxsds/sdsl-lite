@@ -1,4 +1,5 @@
 bit_vector
+hyb_sd_vector<>
 bit_vector_il<>
 rrr_vector<>
 sd_vector<>

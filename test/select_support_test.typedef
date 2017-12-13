@@ -1,4 +1,5 @@
 select_support_mcl<>
+select_support_hyb_sd<1>
 select_support_rrr<>
 select_support_sd<1>
 select_support_sd<0>

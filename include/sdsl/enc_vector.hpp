@@ -258,56 +258,56 @@ template <class t_coder, uint32_t t_dens, uint8_t t_width>
 template <uint8_t int_width>
 enc_vector<t_coder, t_dens, t_width>::enc_vector(int_vector_buffer<int_width>& v_buf)
 {
-	// clear bit_vectors
-	clear();
-	size_type n = v_buf.size();
-	if (n == 0) // if c is empty there is nothing to do...
-		return;
-	value_type		v1 = 0, v2 = 0, max_sample_value = 0;
-	size_type		samples = 0, z_size = 0;
-	const size_type sd = get_sample_dens();
-	//  (1) Calculate maximal value of samples and of deltas
-	for (size_type i = 0, no_sample = 0; i < n; ++i, --no_sample) {
-		v2 = v_buf[i];
-		if (!no_sample) { // is sample
-			no_sample									= sd;
-			if (max_sample_value < v2) max_sample_value = v2;
-			++samples;
-		} else {
-			z_size += t_coder::encoding_length(v2 - v1);
-		}
-		v1 = v2;
-	}
+    // clear bit_vectors
+    clear();
+    size_type n = v_buf.size();
+    if (n == 0)  // if c is empty there is nothing to do...
+        return;
+    value_type     v1=0, v2=0, max_sample_value=0;
+    size_type samples=0, z_size=0;
+    const size_type sd = get_sample_dens();
+//  (1) Calculate maximal value of samples and of deltas
+    for (size_type i=0, no_sample = 0; i < n; ++i, --no_sample) {
+        v2 = v_buf[i];
+        if (!no_sample) { // is sample
+            no_sample = sd;
+            if (max_sample_value < v2) max_sample_value = v2;
+            ++samples;
+        } else {
+            z_size += t_coder::encoding_length(v2-v1);
+        }
+        v1 = v2;
+    }
 
-	//    (2) Write sample values and deltas
-	//    (a) Initialize array for sample values and pointers
-	if (max_sample_value > z_size + 1)
-		m_sample_vals_and_pointer.width(bits::hi(max_sample_value) + 1);
-	else
-		m_sample_vals_and_pointer.width(bits::hi(z_size + 1) + 1);
-	m_sample_vals_and_pointer.resize(2 * samples + 2); // add 2 for last entry
-	util::set_to_value(m_sample_vals_and_pointer, 0);
+//    (2) Write sample values and deltas
+//    (a) Initialize array for sample values and pointers
+    if (max_sample_value > z_size+1)
+        m_sample_vals_and_pointer.width(bits::hi(max_sample_value) + 1);
+    else
+        m_sample_vals_and_pointer.width(bits::hi(z_size+1) + 1);
+    m_sample_vals_and_pointer.resize(2*samples+2); // add 2 for last entry
+    util::set_to_value(m_sample_vals_and_pointer, 0);
 
-	//    (b) Initilize bit_vector for encoded data
-	m_z				 = int_vector<>(z_size, 0, 1);
-	uint64_t* z_data = t_coder::raw_data(m_z);
-	uint8_t   offset = 0;
+//    (b) Initilize bit_vector for encoded data
+    m_z = int_vector<>(z_size, 0, 1);
+    uint64_t* z_data = t_coder::raw_data(m_z);
+    uint8_t offset = 0;
 
-	//    (c) Write sample values and deltas
-	z_size = 0;
-	for (size_type i = 0, j = 0, no_sample = 0; i < n; ++i, --no_sample) {
-		v2 = v_buf[i];
-		if (!no_sample) { // is sample
-			no_sample					   = sd;
-			m_sample_vals_and_pointer[j++] = v2;	 // write samples
-			m_sample_vals_and_pointer[j++] = z_size; // write pointers
-		} else {
-			z_size += t_coder::encoding_length(v2 - v1);
-			t_coder::encode(v2 - v1, z_data, offset); // write encoded values
-		}
-		v1 = v2;
-	}
-	m_size = n;
+//    (c) Write sample values and deltas
+    z_size = 0;
+    for (size_type i=0, j=0, no_sample = 0; i < n; ++i, --no_sample) {
+        v2 = v_buf[i];
+        if (!no_sample) { // is sample
+            no_sample = sd;
+            m_sample_vals_and_pointer[j++] = v2;    // write samples
+            m_sample_vals_and_pointer[j++] = z_size;// write pointers
+        } else {
+            z_size += t_coder::encoding_length(v2-v1);
+            t_coder::encode(v2-v1, z_data, offset);   // write encoded values
+        }
+        v1 = v2;
+    }
+    m_size = n;
 }
 
 template <class t_coder, uint32_t t_dens, uint8_t t_width>

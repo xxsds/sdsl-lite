@@ -1,4 +1,5 @@
 rank_support_il<1, 512>
+hyb_sd_vector<>::rank_1_type
 rank_support_rrr<>
 rank_support_v<>
 rank_support_v5<>

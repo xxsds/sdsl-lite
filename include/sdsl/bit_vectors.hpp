@@ -13,5 +13,6 @@
 #include "rrr_vector.hpp"
 #include "sd_vector.hpp"
 #include "hyb_vector.hpp"
+#include "hyb_sd_vector.hpp"
 
 #endif
