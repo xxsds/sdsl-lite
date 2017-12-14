@@ -483,17 +483,16 @@ csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_str
 cache_config& config)
 {
     create_buffer();
-    if (!cache_file_exists(key_trait<alphabet_type::int_width>::KEY_BWT, config)) {
+    if (!cache_file_exists(key_bwt<alphabet_type::int_width>(), config)) {
         return;
     }
-    int_vector_buffer<alphabet_type::int_width> bwt_buf(cache_file_name(key_trait<alphabet_type::int_width>::KEY_BWT,config));
+    int_vector_buffer<alphabet_type::int_width> bwt_buf(cache_file_name(key_bwt<alphabet_type::int_width>(),config));
     size_type n = bwt_buf.size();
     {
         auto event = memory_monitor::event("construct csa-alpbabet");
 //        alphabet_type tmp_alphabet(bwt_buf, n); // TODO: maybe it is possible to use _buf_buf again for multibyte!!
-        int_vector_buffer<alphabet_type::int_width> text_buf(cache_file_name(key_trait<alphabet_type::int_width>::KEY_TEXT,config));
-        alphabet_type tmp_alphabet(text_buf, n);
-        m_alphabet.swap(tmp_alphabet);
+        int_vector_buffer<alphabet_type::int_width> text_buf(cache_file_name(key_text<alphabet_type::int_width>(),config));
+        m_alphabet = alphabet_type(text_buf, n);
     }
 
     int_vector<> cnt_chr(sigma, 0, bits::hi(n)+1);
@@ -516,8 +515,7 @@ cache_config& config)
     {
         auto event = memory_monitor::event("encode PSI");
         int_vector_buffer<> psi_buf(cache_file_name(conf::KEY_PSI, config));
-        t_enc_vec tmp_psi(psi_buf);
-        m_psi.swap(tmp_psi);
+        m_psi = t_enc_vec(psi_buf);
         /*
                 enc_vector<coder::elias_delta, enc_vector_type::sample_dens> m_psi_check(psi_buf);
                 if ( m_psi_check.size() != m_psi.size() ){
@@ -552,8 +550,7 @@ cache_config& config)
     }
     {
         auto event = memory_monitor::event("sample SA");
-        sa_sample_type tmp_sa_sample(config);
-        m_sa_sample.swap(tmp_sa_sample);
+        m_sa_sample = sa_sample_type(config);
     }
     {
         auto event = memory_monitor::event("sample ISA");

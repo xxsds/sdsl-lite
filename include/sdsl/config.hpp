@@ -124,6 +124,31 @@ using key_text_trait = key_text_trait_impl<width,void>;
 template<uint8_t width>
 using key_bwt_trait = key_bwt_trait_impl<width,void>;
 
+template<uint8_t int_width>
+constexpr const char* key_text()
+{
+    return conf::KEY_TEXT_INT;
+}
+
+template<uint8_t int_width>
+constexpr const char* key_bwt()
+{
+    return conf::KEY_BWT_INT;
+}
+
+
+template<>
+inline constexpr const char* key_text<8>()
+{
+    return conf::KEY_TEXT;
+}
+
+template<>
+inline constexpr const char* key_bwt<8>()
+{
+    return conf::KEY_BWT;
+}
+
 }
 
 #endif

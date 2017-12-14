@@ -133,9 +133,6 @@ class enc_vector2
             return 0==m_size;
         }
 
-        //! Swap method for enc_vector2
-        void swap(enc_vector2& v);
-
         //! Iterator that points to the first element of the enc_vector2.
         const const_iterator begin()const
         {
@@ -220,18 +217,6 @@ inline typename enc_vector2<t_coder, t_dens,t_width>::value_type enc_vector2<t_c
     assert(i*get_sample_dens()+1 != 0);
     assert(i*get_sample_dens() < m_size);
     return m_samples[i];
-}
-
-template<class t_coder, uint32_t t_dens, uint8_t t_width>
-void enc_vector2<t_coder, t_dens,t_width>::swap(enc_vector2<t_coder, t_dens,t_width>& v)
-{
-    if (this != &v) { // if v and _this_ are not the same object
-        m_z.swap(v.m_z);
-        m_samples.swap(v.m_samples);
-        m_pointers.swap(v.m_pointers);
-        util::swap_support(m_pointers_sel, v.m_pointers_sel, &m_pointers, &v.m_pointers);
-        std::swap(m_size, v.m_size);
-    }
 }
 
 template<class t_coder, uint32_t t_dens, uint8_t t_width>

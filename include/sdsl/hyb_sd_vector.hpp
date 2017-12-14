@@ -32,9 +32,6 @@
 namespace sdsl
 {
 
-//std::vector<uint64_t> g_range_stats;
-extern size_t g_saved_bits;
-
 template <class t_itr>
 std::string print_vec(t_itr beg, t_itr end)
 {
@@ -261,10 +258,6 @@ class hyb_sd_block_rl
             if (end-begin > 1) {
 //                rl_bits += do_encode(1);
 //                rl_bits += do_encode(end-1-begin);
-                if (bv != nullptr) {
-                    g_saved_bits += t_coder::encoding_length(1);
-                    g_saved_bits += t_coder::encoding_length(end-1-begin);
-                }
             }
             /*
                         if ( bv!=nullptr ) {
@@ -841,6 +834,47 @@ class hyb_sd_vector
 
         hyb_sd_vector() {}
 
+        hyb_sd_vector(const hyb_sd_vector& vec) {
+            *this = vec;
+        }
+
+        hyb_sd_vector(hyb_sd_vector&& vec) {
+            *this = std::move(vec);
+        }
+
+        hyb_sd_vector& operator=(const hyb_sd_vector& vec){
+            if (this != &vec) {
+                m_top = vec.m_top;
+                m_top_sel = vec.m_top_sel;
+                m_top_sel.set_vector(&m_top);
+                m_top_rank = vec.m_top_rank;
+                m_top_rank.set_vector(&m_top);
+                m_bottom = vec.m_bottom;
+                m_block_start = vec.m_block_start;
+                m_block_type = vec.m_block_type;
+                m_size = vec.m_size;
+                m_num_ones = vec.m_num_ones;
+            }
+            return *this;
+        }
+
+
+        hyb_sd_vector& operator=(hyb_sd_vector&& vec){
+            if (this != &vec) {
+                m_top = std::move(vec.m_top);
+                m_top_sel = std::move(vec.m_top_sel);
+                m_top_sel.set_vector(&m_top);
+                m_top_rank = std::move(vec.m_top_rank);
+                m_top_rank.set_vector(&m_top);
+                m_bottom = std::move(vec.m_bottom);
+                m_block_start = std::move(vec.m_block_start);
+                m_block_type = std::move(vec.m_block_type);
+                m_size = vec.m_size;
+                m_num_ones = vec.m_num_ones;
+            }
+            return *this;
+        }
+
 ///*
         explicit hyb_sd_vector(const bit_vector& bv) //: hyb_sd_vector(bv.ones_begin(),bv.ones_end(),bv.size())
         {
@@ -1268,18 +1302,6 @@ class hyb_sd_vector
             m_block_type.load(in);
         }
 
-        void swap(hyb_sd_vector& v)
-        {
-            std::swap(m_size, v.m_size);
-            std::swap(m_num_ones, v.m_num_ones);
-            m_top.swap(v.m_top);
-            util::swap_support(m_top_sel, v.m_top_sel, &m_top, &(v.m_top));
-            util::swap_support(m_top_rank, v.m_top_rank, &m_top, &(v.m_top));
-            m_bottom.swap(v.m_bottom);
-            m_block_start.swap(v.m_block_start);
-            m_block_type.swap(v.m_block_type);
-        }
-
         iterator begin() const
         {
             return iterator(this, 0);
@@ -1339,8 +1361,6 @@ class select_support_hyb_sd
             }
             return *this;
         }
-
-        void swap(select_support_hyb_sd&) {}
 
         void load(std::istream&, const hyb_bv_type* v = nullptr)
         {
@@ -1403,8 +1423,6 @@ class rank_support_hyb_sd
             }
             return *this;
         }
-
-        void swap(rank_support_hyb_sd&) {}
 
         void load(std::istream&, const hyb_bv_type* v = nullptr)
         {

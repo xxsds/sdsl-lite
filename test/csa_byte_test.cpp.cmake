@@ -234,7 +234,6 @@ TYPED_TEST(csa_byte_test, psi_lf_access)
     }
 }
 
-
 //! Test access after swap
 TYPED_TEST(csa_byte_test, swap)
 {

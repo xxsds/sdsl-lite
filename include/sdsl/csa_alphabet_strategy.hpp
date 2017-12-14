@@ -69,31 +69,6 @@ template<class bit_vector_type     = sd_vector<>,
          >
 class int_alphabet;
 
-template<uint8_t int_width>
-constexpr const char* key_text()
-{
-    return conf::KEY_TEXT_INT;
-}
-
-template<uint8_t int_width>
-constexpr const char* key_bwt()
-{
-    return conf::KEY_BWT_INT;
-}
-
-
-template<>
-inline constexpr const char* key_text<8>()
-{
-    return conf::KEY_TEXT;
-}
-
-template<>
-inline constexpr const char* key_bwt<8>()
-{
-    return conf::KEY_BWT;
-}
-
 template <class t_alphabet_strategy>
 struct alphabet_trait {
 	typedef byte_alphabet type;
@@ -465,16 +440,6 @@ class succinct_byte_alphabet
             return *this;
         }
 
-        //! Swap operator
-        void swap(succinct_byte_alphabet& strat)
-        {
-            m_char.swap(strat.m_char);
-            util::swap_support(m_char_rank, strat.m_char_rank, &m_char, &(strat.m_char));
-            util::swap_support(m_char_select, strat.m_char_select, &m_char, &(strat.m_char));
-            m_C.swap(strat.m_C);
-            std::swap(m_sigma,strat.m_sigma);
-        }
-
         //! Serialize method
         size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const
         {
@@ -617,12 +582,6 @@ class succinct_multibyte_alphabet
                 operator[](multi_comp_char_type c) const
             {
                 return multi_C[static_cast<uint64_t>(c)];
-            }
-
-            void swap(multibyte_C& t)
-            {
-                C.swap(t.C);
-                multi_C.swap(t.multi_C);
             }
 
             //! Serialize method
@@ -796,18 +755,6 @@ class succinct_multibyte_alphabet
             return *this;
         }
 
-        //! Swap operator
-        void swap(succinct_multibyte_alphabet& strat)
-        {
-            m_char.swap(strat.m_char);
-            util::swap_support(m_char_rank, strat.m_char_rank, &m_char, &(strat.m_char));
-            util::swap_support(m_char_select, strat.m_char_select, &m_char, &(strat.m_char));
-            m_C.swap(strat.m_C);
-            std::swap(m_sigma,strat.m_sigma);
-            std::swap(m_sigma_q,strat.m_sigma_q);
-            std::swap(m_sigma_q_1,strat.m_sigma_q_1);
-        }
-
         //! Serialize method
         size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const
         {
@@ -972,7 +919,15 @@ class int_alphabet
 		if (is_continuous_alphabet(D)) {
 			// do not initialize m_char, m_char_rank and m_char_select since we can map directly
 		} else {
-            init_char_bitvector(m_char, D);
+            // note: the alphabet has at least size 1, so the following is safe:
+            size_type largest_symbol = (--D.end())->first;
+            bit_vector tmp_char(largest_symbol+1, 0);
+            for (std::map<size_type, size_type>::const_iterator it = D.begin(), end=D.end(); it != end; ++it) {
+                tmp_char[it->first] = 1;
+            }
+            m_char = tmp_char;
+            util::init_support(m_char_rank, &m_char);
+            util::init_support(m_char_select, &m_char);
 		}
 		assert(D.find(0) != D.end() and 1 == D[0]); // null-byte should occur exactly once
 

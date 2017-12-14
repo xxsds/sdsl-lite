@@ -69,14 +69,14 @@ class uef_psi_support
         std::vector<t_hyb_vec>                         m_inc_seq;
         std::vector<typename t_hyb_vec::rank_1_type>   m_inc_seq_rank;
         std::vector<typename t_hyb_vec::select_1_type> m_inc_seq_sel;
-        bit_vector                                     m_sml;        // indicates if a context is small or large
-        rank_support_v5<>                              m_sml_rank;   // rank for m_sml
-        sml_wt_type                                    m_sml_wt;     // wt to get rank to index into
-        std::vector<int_vector<>>                      m_sml_inc_seq;// small sequences
+        bit_vector                                     m_sml;         // indicates if a context is small or large
+        rank_support_v5<>                              m_sml_rank;    // rank for m_sml
+        sml_wt_type                                    m_sml_wt;      // wt to get rank to index into
+        std::vector<int_vector<>>                      m_sml_inc_seq; // small sequences
 
         const t_csa*                                   m_csa;
 
-        void set_vector()
+        void set_inc_seq_rank_select()
         {
             for (size_t i=0; i<m_inc_seq_rank.size(); ++i) {
                 m_inc_seq_rank[i].set_vector(&(m_inc_seq[i]));
@@ -92,8 +92,6 @@ class uef_psi_support
 
         uef_psi_support(int_vector_buffer<>& psi_buf, const t_csa* csa)
         {
-//            std::cout<<"Hello!!!!"<<std::endl;
-            g_saved_bits=0;
             set_vector(csa);
             const auto& C = m_csa->C;
 
@@ -125,7 +123,7 @@ class uef_psi_support
                 m_sml_inc_seq[cs] = int_vector<>(size, 0, bits::hi(m_csa->size())+1);
             }
 
-// (5)      Initialize m_inc_seq (to store the larger contexts
+// (5)      Initialize m_inc_seq (to store the larger contexts)
             m_inc_seq.resize(sigma_large);
             m_inc_seq_rank.resize(sigma_large);
             m_inc_seq_sel.resize(sigma_large);
@@ -141,11 +139,10 @@ class uef_psi_support
                         m_sml_inc_seq[v.size()][j+start_pos] = v[j];
                     }
                 } else {
-                    t_hyb_vec tmp(v.begin(), v.end());
-                    m_inc_seq[i0++].swap(tmp);
+                    m_inc_seq[i0++] = t_hyb_vec(v.begin(), v.end());
                 }
             }
-            set_vector();
+            set_inc_seq_rank_select();
         }
 
         uef_psi_support& operator=(const uef_psi_support& psi)
@@ -159,7 +156,7 @@ class uef_psi_support
                 m_sml_rank.set_vector(&m_sml);
                 m_sml_wt       = psi.m_sml_wt;
                 m_sml_inc_seq  = psi.m_sml_inc_seq;
-                set_vector();
+                set_inc_seq_rank_select();
                 set_vector(psi.m_csa);
             }
             return *this;
@@ -168,6 +165,7 @@ class uef_psi_support
         uef_psi_support& operator=(uef_psi_support&& psi)
         {
             if (this != &psi) {
+                set_vector(psi.m_csa);
                 m_inc_seq      = std::move(psi.m_inc_seq);
                 m_inc_seq_rank = std::move(psi.m_inc_seq_rank);
                 m_inc_seq_sel  = std::move(psi.m_inc_seq_sel);
@@ -176,8 +174,7 @@ class uef_psi_support
                 m_sml_rank.set_vector(&m_sml);
                 m_sml_wt       = std::move(psi.m_sml_wt);
                 m_sml_inc_seq  = std::move(psi.m_sml_inc_seq);
-                set_vector();
-                set_vector(psi.m_csa);
+                set_inc_seq_rank_select();
             }
             return *this;
         }
@@ -254,15 +251,27 @@ class uef_psi_support
 
         value_type operator[](const size_type i) const
         {
+//            std::cout<<"call::psi["<<i<<"]"<<std::endl;
             size_t cc = std::upper_bound(m_csa->C.begin(), m_csa->C.end(),i) - m_csa->C.begin() - 1;
+//            std::cout<<"cc="<<cc<<std::endl;
             size_t cum_sum = m_csa->C[cc];
+//            std::cout<<"cum_sum="<<cum_sum<<std::endl;
             if (m_sml[cc]) {
                 auto cc_sml  = m_sml_rank(cc);
+//            std::cout<<"cc_sml="<<cc_sml<<std::endl;
                 size_type cs = m_csa->C[cc+1] - cum_sum; // context size
+//            std::cout<<"cs="<<cs<<std::endl;
                 auto rank = m_sml_wt.rank(cc_sml, cs);
+//            std::cout<<"rank="<<rank<<std::endl;
                 return m_sml_inc_seq[cs][rank*cs+(i-cum_sum)];
             } else {
                 size_type cc_large  = cc - m_sml_rank(cc);
+//            std::cout<<"cc_large="<<cc_large<<std::endl;
+//            std::cout<<"i-cum_sum+1="<<i-cum_sum+1<<std::endl;
+//            std::cout<<"m_inc_seq[cc_large].size()="<<m_inc_seq[cc_large].size()<<std::endl;
+//            std::cout<<"m_inc_seq[cc_large][i-cum_sum]="<<m_inc_seq[cc_large][i-cum_sum]<<std::endl;
+//            std::cout<<"m_inc_seq[cc_large].size()="<<m_inc_seq[cc_large].size()<<std::endl;
+//            std::cout<<"m_inc_seq_rank[cc_large](m_inc_seq[cc_large].size())="<<m_inc_seq_rank[cc_large](m_inc_seq[cc_large].size())<<std::endl;
                 return m_inc_seq_sel[cc_large](i-cum_sum+1);
             }
         }
@@ -299,21 +308,8 @@ class uef_psi_support
             m_sml_rank.set_vector(&m_sml);
             sdsl::load(m_sml_wt, in);
             sdsl::load(m_sml_inc_seq, in);
-            set_vector();
+            set_inc_seq_rank_select();
             set_vector(csa);
-        }
-
-
-        void swap(uef_psi_support& v)
-        {
-            m_inc_seq.swap(v.m_inc_seq);
-            m_inc_seq_rank.swap(v.m_inc_seq_rank);
-            m_inc_seq_sel.swap(v.m_inc_seq_sel);
-            m_sml.swap(v.m_sml);
-            util::swap_support(m_sml_rank, v.m_sml_rank, &m_sml, &(v.m_sml));
-            m_sml_wt.swap(v.m_sml_wt);
-            m_sml_inc_seq.swap(v.m_sml_inc_seq);
-            set_vector();
         }
 
         const const_iterator begin()const
@@ -398,20 +394,10 @@ class csa_sada2
         friend class traverse_csa_psi<csa_sada2,false>;
 
     private:
-        psi_type m_psi_support;        // psi function
-        sa_sample_type  m_sa_sample;  // suffix array samples
-        isa_sample_type m_isa_sample; // inverse suffix array samples
-        alphabet_type   m_alphabet;   // alphabet component
-
-        void copy(const csa_sada2& csa)
-        {
-            m_psi_support = csa.m_psi_support;
-            m_psi_support.set_vector(this);
-            m_sa_sample  = csa.m_sa_sample;
-            m_isa_sample = csa.m_isa_sample;
-            m_isa_sample.set_vector(&m_sa_sample);
-            m_alphabet   = csa.m_alphabet;
-        };
+        alphabet_type   m_alphabet;    // alphabet component
+        psi_type        m_psi_support; // psi function
+        sa_sample_type  m_sa_sample;   // suffix array samples
+        isa_sample_type m_isa_sample;  // inverse suffix array samples
 
     public:
         const typename alphabet_type::char2comp_type& char2comp  = m_alphabet.char2comp;
@@ -431,14 +417,14 @@ class csa_sada2
 
 
         //! Default Constructor
-        csa_sada2() { }
+        csa_sada2() { m_psi_support.set_vector(this); }
         //! Default Destructor
         ~csa_sada2() { }
 
         //! Copy constructor
         csa_sada2(const csa_sada2& csa)
         {
-            copy(csa);
+            *this = csa;
         }
 
         //! Move constructor
@@ -457,7 +443,7 @@ class csa_sada2
          */
         size_type size()const
         {
-            return C[C.size()-1];
+            return C.size() > 0 ? C[C.size()-1] : 0;
         }
 
         //! Returns the largest size that csa_sada2 can ever have.
@@ -477,26 +463,6 @@ class csa_sada2
         {
             return 0==size();
         }
-
-        //! Swap method for csa_sada2
-        /*! The swap method can be defined in terms of assignment.
-            This requires three assignments, each of which, for a container type, is linear
-            in the container's size. In a sense, then, a.swap(b) is redundant.
-            This implementation guaranties a run-time complexity that is constant rather than linear.
-            \param csa csa_sada2 to swap.
-
-            Required for the Assignable Conecpt of the STL.
-          */
-        void swap(csa_sada2& csa)
-        {
-            if (this != &csa) {
-                util::swap_support(m_psi_support, csa.m_psi_support, this, &csa);
-                m_sa_sample.swap(csa.m_sa_sample);
-                util::swap_support(m_isa_sample, csa.m_isa_sample, &m_sa_sample, &(csa.m_sa_sample));
-                m_alphabet.swap(csa.m_alphabet);
-            }
-        }
-
 
         //! Returns a const_iterator to the first element.
         /*! Required for the STL Container Concept.
@@ -525,12 +491,17 @@ class csa_sada2
          */
         value_type operator[](size_type i)const
         {
+//            std::cout<<"SA["<<i<<"]"<<std::endl;
             size_type off = 0;
             while (!m_sa_sample.is_sampled(i)) {  // while i mod t_dens != 0 (SA[i] is not sampled)
+//                std::cout<<"psi["<<i<<"]=";
                 i = psi[i];                       // go to the position where SA[i]+1 is located
+//                std::cout<<i<<std::endl;
                 ++off;                            // add 1 to the offset
+//                std::cout<<"=SA["<<i<<"]-"<<off<<std::endl;
             }
             value_type result = m_sa_sample[i];
+//            std::cout<<"result="<<result<<std::endl;
             if (result < off) {
                 return psi.size()-(off-result);
             } else
@@ -545,7 +516,12 @@ class csa_sada2
         csa_sada2& operator=(const csa_sada2& csa)
         {
             if (this != &csa) {
-                copy(csa);
+                m_alphabet   = csa.m_alphabet;
+                m_psi_support = csa.m_psi_support;
+                m_psi_support.set_vector(this);
+                m_sa_sample  = csa.m_sa_sample;
+                m_isa_sample = csa.m_isa_sample;
+                m_isa_sample.set_vector(&m_sa_sample);
             }
             return *this;
         }
@@ -557,11 +533,12 @@ class csa_sada2
         csa_sada2& operator=(csa_sada2&& csa)
         {
             if (this != &csa) {
+                m_alphabet    = std::move(csa.m_alphabet);
                 m_psi_support = std::move(csa.m_psi_support);
                 m_psi_support.set_vector(this);
                 m_sa_sample   = std::move(csa.m_sa_sample);
                 m_isa_sample  = std::move(csa.m_isa_sample);
-                m_alphabet    = std::move(csa.m_alphabet);
+                m_isa_sample.set_vector(&m_sa_sample);
             }
             return *this;
         }
@@ -574,10 +551,10 @@ class csa_sada2
         {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
+            written_bytes += m_alphabet.serialize(out, child, "alphabet");
             written_bytes += m_psi_support.serialize(out, child, "psi");
             written_bytes += m_sa_sample.serialize(out, child, "sa_samples");
             written_bytes += m_isa_sample.serialize(out, child, "isa_samples");
-            written_bytes += m_alphabet.serialize(out, child, "alphabet");
             structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
@@ -587,11 +564,12 @@ class csa_sada2
          */
         void load(std::istream& in)
         {
+            m_alphabet.load(in);
             m_psi_support.load(in);
             m_psi_support.set_vector(this);
             m_sa_sample.load(in);
-            m_isa_sample.load(in, &m_sa_sample);
-            m_alphabet.load(in);
+            m_isa_sample.load(in);
+            m_isa_sample.set_vector(&m_sa_sample);
         }
 
     private:
@@ -641,17 +619,16 @@ class csa_sada2
 template<class t_enc_vec, uint32_t t_dens, uint32_t t_inv_dens, class t_sa_sample_strat, class t_isa, class t_alphabet_strat>
 csa_sada2<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::csa_sada2(cache_config& config)
 {
-    if (!cache_file_exists(key_trait<alphabet_type::int_width>::KEY_BWT, config)) {
+    if (!cache_file_exists(key_bwt<alphabet_type::int_width>(), config)) {
         return;
     }
-    int_vector_buffer<alphabet_type::int_width> bwt_buf(cache_file_name(key_trait<alphabet_type::int_width>::KEY_BWT,config));
+    int_vector_buffer<alphabet_type::int_width> bwt_buf(cache_file_name(key_bwt<alphabet_type::int_width>(),config));
     size_type n = bwt_buf.size();
     {
         auto event = memory_monitor::event("construct csa-alpbabet");
 //        alphabet_type tmp_alphabet(bwt_buf, n); // TODO: maybe it is possible to use _buf_buf again for multibyte!!
-        int_vector_buffer<alphabet_type::int_width> text_buf(cache_file_name(key_trait<alphabet_type::int_width>::KEY_TEXT,config));
-        alphabet_type tmp_alphabet(text_buf, n);
-        m_alphabet.swap(tmp_alphabet);
+        int_vector_buffer<alphabet_type::int_width> text_buf(cache_file_name(key_text<alphabet_type::int_width>(),config));
+        m_alphabet = alphabet_type(text_buf, n);
     }
 
     int_vector<> cnt_chr(sigma, 0, bits::hi(n)+1);
@@ -677,8 +654,7 @@ csa_sada2<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_st
     }
     {
         auto event = memory_monitor::event("sample SA");
-        sa_sample_type tmp_sa_sample(config);
-        m_sa_sample.swap(tmp_sa_sample);
+        m_sa_sample = sa_sample_type(config);
     }
     {
         auto event = memory_monitor::event("sample ISA");

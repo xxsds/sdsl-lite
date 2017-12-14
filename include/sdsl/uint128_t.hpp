@@ -13,7 +13,7 @@
 
 namespace sdsl {
 
-#if defined(__GNUC__)
+#if 1
 
 typedef unsigned int uint128_t __attribute__((mode(TI)));
 
