@@ -319,8 +319,6 @@ class succinct_byte_alphabet
     public:
         static constexpr uint8_t q = 1;
 
-        class char2comp_wrapper<succinct_byte_alphabet>;
-        class comp2char_wrapper<succinct_byte_alphabet>;
         friend class char2comp_wrapper<succinct_byte_alphabet>;
         friend class comp2char_wrapper<succinct_byte_alphabet>;
         typedef char2comp_wrapper<succinct_byte_alphabet> char2comp_type;
@@ -546,9 +544,7 @@ template<uint8_t t_q,
 class succinct_multibyte_alphabet
 {
     public:
-        class char2comp_wrapper<succinct_multibyte_alphabet>;
-        class comp2char_wrapper<succinct_multibyte_alphabet>;
-        class multibyte_C;
+        struct multibyte_C;
         friend class char2comp_wrapper<succinct_multibyte_alphabet>;
         friend class comp2char_wrapper<succinct_multibyte_alphabet>;
         typedef char2comp_wrapper<succinct_multibyte_alphabet> char2comp_type;

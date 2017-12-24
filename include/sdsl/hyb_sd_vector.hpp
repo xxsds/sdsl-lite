@@ -190,7 +190,7 @@ class hyb_sd_block_bv
             auto offset = block_start[block_id];
             auto next_offset = block_start[block_id+1];
             if (ij[0] > next_offset-offset) {
-                return {t_block_size,t_block_size};
+                return {{t_block_size,t_block_size}};
             }
             auto resi =  cnt<t_block_size>(bv.data(), offset, ij[0]);
             if (ij[1] > next_offset-offset) {
@@ -376,7 +376,7 @@ class hyb_sd_block_rl
             uint8_t offset_end = abs_offset_end%64;
 
             uint64_t data_res = 0;
-            std::array<size_type,2> res = {0,0}; // data[0]=0, now decode for pos > 0
+            std::array<size_type,2> res = {{0,0}}; // data[0]=0, now decode for pos > 0
             size_t k=0;
             for (; k<2; ++k) {
                 while (res[k] < t_block_size and ij[k] > data_res) {
@@ -650,7 +650,7 @@ class hyb_sd_block_ef
             size_type hi_part_offset = start_offset + t_block_size * width_low;
             size_type hi_size = next_offset - hi_part_offset;
 
-            std::array<size_type,2> high_val = {(ij[0] >> width_low),(ij[1] >> width_low)};
+            std::array<size_type,2> high_val = {{(ij[0] >> width_low),(ij[1] >> width_low)}};
 
             size_type zeros_in_high = hi_size - t_block_size;
 //std::cout<<"zeros_in_high="<<zeros_in_high<<std::endl;
@@ -667,10 +667,10 @@ class hyb_sd_block_ef
                 local_sel[1] = local_sel[0];
             } else { // now high_val[0] < high_val[1]
                 if (zeros_in_high < high_val[1]+1) {
-                    res  = {0, t_block_size}; // initialized second result
+                    res  = {{0, t_block_size}}; // initialized second result
                 } else {
                     if (zeros_in_high < high_val[1]+1) {    // check if there is a zero to select
-                        res = {0, t_block_size};
+                        res = {{0, t_block_size}};
                     } else { // there is something to select ;)
                         size_type skip = local_sel[0]+1;
 //std::cout<<"skip="<<skip<<std::endl;
@@ -686,7 +686,7 @@ class hyb_sd_block_ef
                 size_type rank_low = sel_high - high_val[k];
 //                std::cout<<"k="<<k<<" sel_high="<<sel_high<<" rank_low="<<rank_low<<std::endl;
                 if (0 == rank_low) {
-                    return {0,res[1]};
+                    return {{0,res[1]}};
                 }
 
                 size_type low_part_offset = start_offset + rank_low * width_low;
@@ -697,7 +697,7 @@ class hyb_sd_block_ef
 
                 do {
                     if (!sel_high) {
-                        return {0, res[1]};
+                        return {{0, res[1]}};
                     }
                     --rank_low;
                     --sel_high;
@@ -1103,7 +1103,7 @@ class hyb_sd_vector
             auto u = m_top_sel(block_id + 2) - top_value;
 //            auto bt = determine_block_type(u);
 //            auto block_type = bt.first;
-            size_type block_offset = m_block_start[block_id];
+//            size_type block_offset = m_block_start[block_id];
 
             switch (block_type) {
                 case hyb_sd_blocktype::BV:
@@ -1148,7 +1148,7 @@ class hyb_sd_vector
             if (block_id == 0) {
                 size_type first_element = m_top_sel(1);
                 if (ij[1] <= first_element) {
-                    return {0,0};
+                    return {{0,0}};
                 }
                 return {0, rank_1(ij[1])}; // TODO: can still be optimized
             }
@@ -1177,8 +1177,8 @@ class hyb_sd_vector
             auto u = m_top_sel(block_id + 2) - top_value;
 //            auto bt = determine_block_type(u);
 //            auto block_type = bt.first;
-            size_type block_offset = m_block_start[block_id];
-            std::array<size_type, 2> res {r,r};
+//            size_type block_offset = m_block_start[block_id];
+            std::array<size_type, 2> res {{r,r}};
 
             switch (block_type) {
                 case hyb_sd_blocktype::BV:
@@ -1256,7 +1256,7 @@ class hyb_sd_vector
             auto bottom_bytes = m_bottom.serialize(out, nullptr, "bottom");
             {
                 structure_tree_node* bottom_child = structure_tree::add_child(child, "bottom", util::class_name(m_bottom));
-                std::array<size_type,4> written_bits = {0,0,0,0};
+                std::array<size_type,4> written_bits = {{0,0,0,0}};
                 for (size_t i=1; i<m_block_start.size(); ++i) {
                     written_bits[m_block_type[i-1]] += m_block_start[i]-m_block_start[i-1];
                 }

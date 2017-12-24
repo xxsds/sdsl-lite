@@ -198,7 +198,7 @@ class uef_psi_support
                 size_type cs = m_csa->C[cc+1] - m_csa->C[cc]; // context size
                 auto rnk = m_sml_wt.rank(cc_sml, cs);
                 size_type begin = rnk*cs;
-                std::array<uint64_t,2> res = {0,0};
+                std::array<uint64_t,2> res = {{0,0}};
                 size_t j=0;
                 for (size_t k=0; k<2; ++k) {
                     while (j < cs and  m_sml_inc_seq[cs][begin+j] < ij[k]) {
