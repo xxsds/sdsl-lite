@@ -888,7 +888,7 @@ public:
 			r		 = {left_sp, left_sp + left_size - 1};
 			res[i++] = {right_sp, right_sp + right_size - 1};
 		}
-		return {ranges, std::move(res)};
+		return {{ranges, std::move(res)}};
 	}
 
 	//! Returns for a range its left and right child ranges

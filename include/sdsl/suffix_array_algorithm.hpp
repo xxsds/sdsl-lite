@@ -9,6 +9,7 @@
 #define INCLUDED_SDSL_SUFFIX_ARRAY_ALGORITHM
 
 #include <iterator>
+#include <array>
 #include "suffix_array_helper.hpp"
 
 namespace sdsl {
@@ -157,24 +158,28 @@ typename t_csa::size_type& r_res,
 SDSL_UNUSED typename std::enable_if<std::is_same<csa_tag, typename t_csa::index_category>::value,
 									csa_tag>::type x = csa_tag())
 {
-	assert(l <= r);
-	assert(r < csa.size());
-	typename t_csa::size_type cc = csa.char2comp[c];
-	if (cc == 0 and c > 0) {
-		l_res = 1;
-		r_res = 0;
-	} else {
-		typename t_csa::size_type c_begin = csa.C[cc];
-		if (l == 0 and r + 1 == csa.size()) {
-			l_res = c_begin;
-			r_res = csa.C[cc + 1] - 1;
-		} else {
-			l_res = c_begin + csa.bwt.rank(l, c);		  // count c in bwt[0..l-1]
-			r_res = c_begin + csa.bwt.rank(r + 1, c) - 1; // count c in bwt[0..r]
-		}
-	}
-	assert(r_res + 1 - l_res >= 0);
-	return r_res + 1 - l_res;
+    assert(l <= r);
+    assert(r < csa.size());
+    auto cc = csa.char2comp[c];
+    if (cc == 0 and c > 0) {
+        l_res = 1;
+        r_res = 0;
+    } else {
+        auto c_begin = csa.C[cc];
+        if (l == 0 and r+1 == csa.size()) {
+            l_res = c_begin;
+            r_res = csa.C[cc+1] - 1;
+        } else {
+//            TODO: use double rank once impelemented in all CSAs            
+//            auto lr = csa.bwt.rank(std::array<typename t_csa::size_type,2> {l,r+1},c);
+//            l_res = c_begin + lr[0];       // count c in bwt[0..l-1]
+//            r_res = c_begin + lr[1] - 1;   // count c in bwt[0..r]
+            l_res = c_begin + csa.bwt.rank(l, c); // count c in bwt[0..l-1]
+            r_res = c_begin + csa.bwt.rank(r+1, c) - 1; // count c in bwt[0..r]
+        }
+    }
+    assert(r_res+1-l_res >= 0);
+    return r_res+1-l_res;
 }
 
 
@@ -223,6 +228,92 @@ SDSL_UNUSED typename std::enable_if<std::is_same<csa_tag, typename t_csa::index_
 	r_res = r;
 	return r + 1 - l;
 }
+
+
+
+template<typename t_ev,
+         uint32_t t_dens,
+         uint32_t t_inv_dens,
+         typename t_sa_sample_strat,
+         typename t_isa_sample_strat,
+         uint8_t t_q,
+         typename t_bv,
+         typename t_rs,
+         typename t_ss,
+         typename t_pat_iter
+         >
+uint64_t backward_search(
+    const csa_sada<t_ev, t_dens, t_inv_dens, t_sa_sample_strat, t_isa_sample_strat,
+    succinct_multibyte_alphabet<t_q, t_bv, t_rs, t_ss>>& csa,
+    uint64_t l,
+    uint64_t r,
+    t_pat_iter begin,
+    t_pat_iter end,
+    uint64_t& l_res,
+    uint64_t& r_res
+)
+{
+    assert(l <= r); assert(r < csa.size());
+    typedef typename std::remove_reference<decltype(csa)>::type t_csa;
+    using multi_comp_char_type = typename t_csa::alphabet_type::multi_comp_char_type;
+    constexpr auto q = t_csa::alphabet_type::q;
+
+    auto m = std::distance(begin, end);
+    if (static_cast<uint64_t>(m) < q) {
+        t_pat_iter it = end;
+        while (begin < it and r+1-l > 0) {
+            --it;
+            backward_search(csa, l, r, (typename t_csa::char_type)*it, l, r);
+        }
+        l_res = l;
+        r_res = r;
+        return r+1-l;
+    }
+
+    multi_comp_char_type x {0};
+    t_pat_iter it = end;
+    size_t processed = 0;
+//    std::cout<<"simga="<<csa.sigma<<std::endl;
+//    std::cout<<"sigma_pow_q_1="<<sigma_pow_q_1<<std::endl;
+
+    while (begin < it and processed < q-1) {
+        --it;
+        ++processed;
+        if (!cyclic_insert_hi(x, *it, csa.alphabet)) {
+            l_res = 1;
+            r_res = 0;
+            return 0;
+        }
+    }
+
+    while (begin < it and r+1-l > 0) {
+        --it;
+        if (!cyclic_insert_hi(x, *it, csa.alphabet)) {
+            l_res = 1;
+            r_res = 0;
+            return 0;
+        }
+//        std::cout<<"\nx="<<static_cast<uint64_t>(x)<<std::endl;
+        auto c_begin = csa.C[x];
+        if (l == 0 and r+1 == csa.size()) {
+            l = c_begin;
+            r = csa.C[x+1] - 1;
+//            std::cout<<"initial step ["<<l<<","<< r<<"] "<<csa.C[x+1]<<" "<<static_cast<uint64_t>(x+1)<<std::endl;
+        } else {
+            auto lr = csa.double_rank_comp_bwt(l, r+1, x);
+            l = c_begin + std::get<0>(lr);
+            r = c_begin + std::get<1>(lr)-1;
+//            l = c_begin + csa.rank_comp_bwt(l, x); // count c in bwt[0..l-1]
+//            r = c_begin + csa.rank_comp_bwt(r+1, x) - 1; // count c in bwt[0..r]
+        }
+//        std::cout<<"bw_search debug ["<<l<<","<<r<<"] x="<<static_cast<uint64_t>(x)<<std::endl;
+    }
+    l_res = l;
+    r_res = r;
+    assert(r+1-l >= 0);
+    return r+1-l;
+}
+
 
 //! Bidirectional search for a character c on an interval \f$[l_fwd..r_fwd]\f$ of the suffix array.
 /*!
@@ -471,9 +562,11 @@ typename t_csx::size_type count(const t_csx& csx, t_pat_iter begin, t_pat_iter e
  * \par Time complexity
  *        \f$ \Order{ t_{backward\_search} } \f$
  */
-
-template <class t_csx>
-typename t_csx::size_type count(const t_csx& csx, const typename t_csx::string_type& pat)
+template<class t_csx>
+typename t_csx::size_type count(
+    const t_csx& csx,
+    const typename t_csx::string_type& pat
+)
 {
 	typename t_csx::index_category tag;
 	return count(csx, pat.begin(), pat.end(), tag);
@@ -524,7 +617,7 @@ t_rac locate(const t_csa& csa,
 			 typename std::enable_if<std::is_same<csa_tag, typename t_csa::index_category>::value,
 									 csa_tag>::type x = csa_tag())
 {
-	typename t_csa::size_type occ_begin, occ_end, occs;
+    typename t_csa::size_type occ_begin = 0, occ_end = 0, occs = 0;
 	occs = backward_search(csa, 0, csa.size() - 1, begin, end, occ_begin, occ_end);
 	t_rac occ(occs);
 	for (typename t_csa::size_type i = 0; i < occs; ++i) {

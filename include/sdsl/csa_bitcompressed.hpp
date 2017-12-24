@@ -215,12 +215,12 @@ public:
 private:
 	// Calculates how many symbols c are in the prefix [0..i-1] of the BWT of the original text.
 	/*
-         *  \param i The exclusive index of the prefix range [0..i-1], so \f$i\in [0..size()]\f$.
-         *  \param c The symbol to count the occurrences in the prefix.
-         *    \returns The number of occurrences of symbol c in the prefix [0..i-1] of the BWT.
-         *  \par Time complexity
-         *        \f$ \Order{\log n} \f$
-         */
+     *  \param i The exclusive index of the prefix range [0..i-1], so \f$i\in [0..size()]\f$.
+     *  \param c The symbol to count the occurrences in the prefix.
+     *    \returns The number of occurrences of symbol c in the prefix [0..i-1] of the BWT.
+     *  \par Time complexity
+     *        \f$ \Order{\log n} \f$
+     */
 	size_type rank_bwt(size_type i, const char_type c) const
 	{
 		// TODO: special case if c == BWT[i-1] we can use LF to get a constant time answer
@@ -244,15 +244,29 @@ private:
 		}
 	}
 
-	// Calculates the i-th occurrence of symbol c in the BWT of the original text.
-	/*
-         *  \param i The i-th occurrence. \f$i\in [1..rank(size(),c)]\f$.
-         *  \param c Character c.
-         *    \returns The i-th occurrence of c in the BWT or size() if c does
-         *           not occur t times in BWT>
-         *  \par Time complexity
-         *        \f$ \Order{t_{\Psi}} \f$
-         */
+    // Calculates how many symbols c are in the prefix [0..ij[0]-1] and [0..ij[1]-1] of the BWT of the original text.
+    /* \param ij The exlusive indices of the prefix ranges [0..ij[0]] and [0..ij[1]]
+     * \param c The symbol to count
+     *  \returns An array of size two which contains the occurrences of symbols c in the prefix [0..ij[0]-1] and [0..ij[1]-1]
+     * \par Time compelxity
+     *    \f$ \Order{\log n} \f$
+     */
+    std::array<size_type,2>
+    rank_bwt(std::array<size_type,2> ij, const char_type c)const
+    {
+        return {rank_bwt(ij[0], c), rank_bwt(ij[1],c)};
+    }
+
+
+    // Calculates the i-th occurrence of symbol c in the BWT of the original text.
+    /*
+     *  \param i The i-th occurrence. \f$i\in [1..rank(size(),c)]\f$.
+     *  \param c Character c.
+     *    \returns The i-th occurrence of c in the BWT or size() if c does
+     *           not occur t times in BWT>
+     *  \par Time complexity
+     *        \f$ \Order{t_{\Psi}} \f$
+     */
 	size_type select_bwt(size_type i, const char_type c) const
 	{
 		comp_char_type cc = char2comp[c];

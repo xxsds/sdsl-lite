@@ -1,3 +1,4 @@
 csa_wt<wt_int<>, 32, 32, sa_order_sa_sampling<>, isa_sampling<>, int_alphabet<>>
 csa_sada<enc_vector<>, 32, 32, sa_order_sa_sampling<>, isa_sampling<>, int_alphabet<>>
+csa_sada2<hyb_sd_vector<>, 32, 64, sa_order_sa_sampling<>, isa_sampling<>, int_alphabet<>>
 csa_bitcompressed<int_alphabet<>>

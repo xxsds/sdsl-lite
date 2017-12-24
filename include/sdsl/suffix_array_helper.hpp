@@ -11,6 +11,7 @@
 #include <stdint.h>
 #include <cstdlib>
 #include <cassert>
+#include <array>
 #include "iterators.hpp"
 
 namespace sdsl {
@@ -225,22 +226,32 @@ public:
 
 	//! Calculates how many symbols c are in the prefix [0..i-1]
 	/*!
-         *  \param i The exclusive index of the prefix range [0..i-1], so \f$i\in [0..size()]\f$.
-         *  \param c The symbol to count the occurrences in the prefix.
-         *    \returns The number of occurrences of symbol c in the prefix [0..i-1].
-         *  \par Time complexity
-         *        \f$ \Order{\log n t_{\Psi}} \f$
-         */
-	size_type rank(size_type i, const char_type c) const { return m_csa.rank_bwt(i, c); }
+     *  \param i The exclusive index of the prefix range [0..i-1], so \f$i\in [0..size()]\f$.
+     *  \param c The symbol to count the occurrences in the prefix.
+     *    \returns The number of occurrences of symbol c in the prefix [0..i-1].
+     *  \par Time complexity
+     *        \f$ \Order{\log n t_{\Psi}} \f$
+     */
+    template<typename t_char>
+    size_type rank(size_type i, const t_char c)const
+    {
+        return m_csa.rank_bwt(i, c);
+    }
+
+    template<typename t_char>
+    std::array<size_type,2> rank(std::array<size_type,2> ij, const t_char c)const
+    {
+        return m_csa.rank_bwt(ij, c);
+    }
 
 	//! Calculates the position of the i-th c.
 	/*!
-         *  \param i The i-th occurrence. \f$i\in [1..rank(size(),c)]\f$.
-         *  \param c Symbol c.
-         *    \returns The position of the i-th c or size() if c does occur less then i times.
-         *  \par Time complexity
-         *        \f$ \Order{t_{\Psi}} \f$
-         */
+     *  \param i The i-th occurrence. \f$i\in [1..rank(size(),c)]\f$.
+     *  \param c Symbol c.
+     *    \returns The position of the i-th c or size() if c does occur less then i times.
+     *  \par Time complexity
+     *        \f$ \Order{t_{\Psi}} \f$
+     */
 	size_type select(size_type i, const char_type c) const { return m_csa.select_bwt(i, c); }
 
 	//! Returns the size of the \f$\Psi\f$ function.
@@ -365,22 +376,28 @@ public:
 
 	//! Calculates how many symbols c are in the prefix [0..i-1].
 	/*!
-         *  \param i The exclusive index of the prefix range [0..i-1], so \f$i\in [0..size()]\f$.
-         *  \param c The symbol to count the occurrences in the prefix.
-         *    \returns The number of occurrences of symbol c in the prefix [0..i-1].
-         *  \par Time complexity
-         *        \f$ \Order{\log |\Sigma|} \f$
-         */
+     *  \param i The exclusive index of the prefix range [0..i-1], so \f$i\in [0..size()]\f$.
+     *  \param c The symbol to count the occurrences in the prefix.
+     *    \returns The number of occurrences of symbol c in the prefix [0..i-1].
+     *  \par Time complexity
+     *        \f$ \Order{\log |\Sigma|} \f$
+     */
 	size_type rank(size_type i, const char_type c) const { return m_csa.rank_bwt(i, c); }
 
-	//! Calculates the position of the i-th c.
-	/*!
-         *  \param i The i-th occurrence. \f$i\in [1..rank(size(),c)]\f$.
-         *  \param c Symbol c.
-         *    \returns The position of the i-th c or size() if c does occur less then i times.
-         *  \par Time complexity
-         *        \f$ \Order{t_{\Psi}} \f$
-         */
+    template<typename t_char>
+    std::array<size_type,2> rank(std::array<size_type,2> ij, const t_char c)const
+    {
+        return m_csa.rank_bwt(ij, c);
+    }
+
+    //! Calculates the position of the i-th c.
+    /*!
+     *  \param i The i-th occurrence. \f$i\in [1..rank(size(),c)]\f$.
+     *  \param c Symbol c.
+     *    \returns The position of the i-th c or size() if c does occur less then i times.
+     *  \par Time complexity
+     *        \f$ \Order{t_{\Psi}} \f$
+     */
 	size_type select(size_type i, const char_type c) const { return m_csa.select(i, c); }
 
 
