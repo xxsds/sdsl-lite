@@ -15,7 +15,7 @@ int main()
     k2_rrr k2treap;
 
     // Initialize treap with a vector of (x,y,weight) elements
-    construct_im(k2treap, {{1,2,3},{2,2,6},{4,4,1},{3,3,2},{3,1,8}});
+    construct_im(k2treap, {{{1,2,3}},{{2,2,6}},{{4,4,1}},{{3,3,2}},{{3,1,8}}});
 
     cout << "Points in the k2treap: " << k2treap.size() << endl;
 
@@ -42,7 +42,7 @@ int main()
     cout<<"---"<<endl;
     {
         k2_rrr k2t;
-        construct_im(k2t, {{1,2,3},{2,3,3},{3,1,3}});
+        construct_im(k2t, {{{1,2,3}},{{2,3,3}},{{3,1,3}}});
         auto topk_it = top_k(k2t, {0,0}, {10,10});
         while (topk_it) {
             auto point_weight = *topk_it;

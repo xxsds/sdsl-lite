@@ -558,7 +558,7 @@ std::vector<typename t_wt::value_type> restricted_unique_range_values(const t_wt
 	};
 
 	std::stack<std::tuple<typename t_wt::node_type, sdsl::range_type, uint64_t, uint64_t>> stack;
-	sdsl::range_type initial_range = {x_i, x_j};
+	sdsl::range_type initial_range = {{x_i, x_j}};
 	stack.emplace(wt.root(), initial_range, 0, 0);
 	while (!stack.empty()) {
 		auto node_data = stack.top();
