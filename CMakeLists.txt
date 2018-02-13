@@ -42,3 +42,5 @@ add_subdirectory(test)
 # (10) perform extra tasks such as doxygen / packaging and uninstall target 
 add_subdirectory(extras)
 
+add_subdirectory(tutorial)
+add_subdirectory(examples)
