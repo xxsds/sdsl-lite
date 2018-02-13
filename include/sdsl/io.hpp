@@ -9,6 +9,7 @@
 #define INCLUDED_SDSL_IO
 
 #include "util.hpp"
+#include "platform.hpp"
 #include "sdsl_concepts.hpp"
 #include "structure_tree.hpp"
 #include <algorithm>
@@ -568,6 +569,7 @@ void csXprintf(std::ostream&	  out,
 					break;
                 case 'U':
                     truncate = true;
+                    SDSL_FALLTHROUGH
 				case 'T':
 					for (uint64_t k = 0; (w > 0 and k < w) or (0 == w and k < csa.size()); ++k) {
 						if (0 == csa.text[(csa[i] + k) % csa.size()]) {
@@ -583,6 +585,7 @@ void csXprintf(std::ostream&	  out,
 					break;
                 case 'u':
                     truncate = true;
+                    SDSL_FALLTHROUGH
 				case 't':
 					for (uint64_t k = 0; (w > 0 and k < w) or (0 == w and k < csa.size()); ++k) {
 						if (0 == csa.text[(i + k) % csa.size()]) {
