@@ -99,4 +99,3 @@ before_script:
 script:
   - cd ${TRAVIS_BUILD_DIR}
   - ./install.sh ..
-  - cd tutorial && make all
