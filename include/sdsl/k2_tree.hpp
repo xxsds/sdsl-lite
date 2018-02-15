@@ -394,7 +394,6 @@ public:
 		j			   = j % n;
 		idx_type level = k_k * row + col;
 		n			   = n / k_k;
-		idx_type y;
 
 		while (level < k_t.size()) {
 			if (k_t[level] == 0) return false;

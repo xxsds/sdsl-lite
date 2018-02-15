@@ -625,14 +625,14 @@ public:
 		size_type		j	 = m_pointer[(i - 1) / (64 * bs)] * 64; // index into m_high
 		size_type		rank1 = m_rank1[(i - 1) / (64 * bs)];		 // rank_1(j*bs*64) in B
 		size_type		pos   = 0;
-		size_type		rank0 = 0;
+		// size_type		rank0 = 0;
 
 		if (rank1 > 0 and (m_v->high[j - 1]) & 1) {
 			pos   = (j - rank1) * bs + m_v->low[rank1 - 1]; // starting position of current block
-			rank0 = pos + 1 - rank1;
+			// rank0 = pos + 1 - rank1;
 		} else {
 			pos   = (j - rank1) * bs; // starting position of current block
-			rank0 = pos - rank1;
+			// rank0 = pos - rank1;
 		}
 		uint64_t w = m_v->high.get_int(j, 64);
 		do {
