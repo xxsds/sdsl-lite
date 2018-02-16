@@ -358,12 +358,12 @@ TYPED_TEST(cst_byte_test, edge)
         auto v = cst.select_leaf(cst.csa.isa[0]+1);
         size_type max_depth = std::min(cst.depth(v), (size_type)20);
         for (size_type i=0; i<max_depth; ++i) {
-            ASSERT_EQ(data[i], cst.edge(v, i+1))<<" i="<<i<<" v="<<v;
+            ASSERT_EQ(data[i], cst.edge(v, i+1)); //<<" i="<<i<<" v="<<v;
         }
         v = cst.parent(v);
         max_depth = std::min(max_depth, cst.depth(v));
         for (size_type i=0; i<max_depth; ++i) {
-            ASSERT_EQ(data[i], cst.edge(v, i+1))<<" i="<<i<<" v="<<v;
+            ASSERT_EQ(data[i], cst.edge(v, i+1)); //<<" i="<<i<<" v="<<v;
         }
     }
 }
@@ -440,8 +440,7 @@ TYPED_TEST(cst_byte_test, lca_method)
         // calculate lca
         auto z = naive_lca(cst, v, w);
         auto u = cst.lca(v, w);
-        ASSERT_EQ(z, u) << " naive_lca is "
-                        << naive_lca(cst, v, w, true) << endl;
+        ASSERT_EQ(z, u); // << " naive_lca is " << naive_lca(cst, v, w, true) << endl;
     }
 }
 
