@@ -5,6 +5,7 @@
 #include <string>
 #include <random>
 #include <algorithm>
+#include <chrono>
 
 namespace
 {
@@ -50,6 +51,7 @@ class int_vector_test : public ::testing::Test
 template<class t_iv>
 void test_Constructors(uint8_t template_width, size_type constructor_size, uint8_t constructor_width)
 {
+    typedef typename t_iv::value_type value_type;
     static_assert(sdsl::util::is_regular<t_iv>::value, "Type is not regular");
     std::mt19937_64 rng;
     {
@@ -69,18 +71,18 @@ void test_Constructors(uint8_t template_width, size_type constructor_size, uint8
     }
     {
         // Constructor with two arguments
-        size_type expected_val = rng();
+        value_type expected_val = rng();
         t_iv iv(constructor_size, expected_val);
         ASSERT_EQ(constructor_size, iv.size());
         ASSERT_EQ(template_width, iv.width());
         expected_val &= sdsl::bits::lo_set[iv.width()];
         for (size_type j=0; j < iv.size(); ++j) { // should be initialized with expected_val
-            ASSERT_EQ(expected_val, (size_type)iv[j]);
+            ASSERT_EQ(expected_val, iv[j]);
         }
     }
     {
         // Constructor with three arguments
-        size_type expected_val = rng();
+        value_type expected_val = rng();
         t_iv iv(constructor_size, expected_val, constructor_width);
         ASSERT_EQ(constructor_size, iv.size());
         if (iv.fixed_int_width == 0) {
@@ -90,8 +92,25 @@ void test_Constructors(uint8_t template_width, size_type constructor_size, uint8
         }
         expected_val &= sdsl::bits::lo_set[iv.width()];
         for (size_type j=0; j < iv.size(); ++j) { // should be initialized with expected_val
-            ASSERT_EQ(expected_val, (size_type)iv[j]);
+            ASSERT_EQ(expected_val, iv[j]);
         }
+    }
+    {
+        // Constructor with initalizer list (ignores constructor_size)
+        t_iv iv({1, 0, 1});
+        ASSERT_EQ(iv.size(), (size_type)3);
+        ASSERT_EQ(iv[0], (value_type)1);
+        ASSERT_EQ(iv[1], (value_type)0);
+        ASSERT_EQ(iv[2], (value_type)1);
+    }
+    {
+        // Constructor with iterator pair
+        t_iv iv(constructor_size);
+        sdsl::util::set_to_id(iv);
+        t_iv iv2(iv.begin() + constructor_size/4, iv.end() - constructor_size/4); // copy some infix
+        ASSERT_EQ(iv2.size(), constructor_size - 2*(constructor_size/4));
+        for (auto it = iv2.begin(); it != iv2.end(); ++it)
+            ASSERT_EQ(*it, iv[it - iv2.begin() + constructor_size/4]);
     }
 }
 
@@ -149,6 +168,22 @@ TEST_F(int_vector_test, swap)
                 ASSERT_EQ(val, tmp[j]);
             }
         }
+    }
+}
+
+TEST_F(int_vector_test, access)
+{
+    std::mt19937_64 rng;
+    sdsl::int_vector<3> iv(10, 0);
+    std::generate(iv.begin(), iv.end(), [&rng] () { return rng(); });
+
+    // front()
+    ASSERT_EQ(iv.front(), iv[0]);
+    // back()
+    ASSERT_EQ(iv.back(), iv[iv.size() - 1]);
+    // at()
+    for (size_type j=0; j < iv.size(); ++j) {
+        ASSERT_EQ(iv.at(j), iv[j]);
     }
 }
 
@@ -240,6 +275,209 @@ TEST_F(int_vector_test, AssignAndModifyElement)
     test_AssignAndModifyElement<sdsl::int_vector<16> >(100000, 16);
     test_AssignAndModifyElement<sdsl::int_vector<32> >(100000, 32);
     test_AssignAndModifyElement<sdsl::int_vector<64> >(100000, 64);
+}
+
+template<class t_iv>
+void test_AssignAndResize(uint64_t size, uint8_t width)
+{
+    typedef typename t_iv::value_type value_type;
+    auto now = std::chrono::system_clock::now();
+    auto duration = now.time_since_epoch();
+    auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(duration).count();
+
+    std::mt19937_64 rng(ns);
+    {
+        // assign(size, value)
+        t_iv iv(size, rng(), width);
+        value_type expected_val = rng() & sdsl::bits::lo_set[iv.width()];
+        uint64_t new_size = std::max((size_type)0, size + (rng() % 100) - 50); // increase or decrease randomly
+        iv.assign(new_size, expected_val);
+        ASSERT_EQ(iv.size(), new_size);
+        for (size_type j=0; j < iv.size(); ++j)
+            ASSERT_EQ(expected_val, iv[j]);
+    }
+    {
+        // assign(initializer_list)
+        t_iv iv(size, rng(), width);
+        iv.assign({1, 0, 1});
+        ASSERT_EQ(iv.size(), (size_type)3);
+        ASSERT_EQ(iv[0], (value_type)1);
+        ASSERT_EQ(iv[1], (value_type)0);
+        ASSERT_EQ(iv[2], (value_type)1);
+    }
+    {
+        // assign(first, last)
+        t_iv iv(size, 0, width), iv2(size, 0, width);
+        sdsl::util::set_to_id(iv);
+        iv2.assign(iv.begin() + size/4, iv.end() - size/4); // copy some infix
+        ASSERT_EQ(iv2.size(), size - 2*(size/4));
+        for (auto it = iv2.begin(); it != iv2.end(); ++it)
+            ASSERT_EQ(*it, iv[it - iv2.begin() + size/4]);
+    }
+    {
+        // resize(size)
+        value_type val = rng() & sdsl::bits::lo_set[width];
+        t_iv iv(size, val, width);
+        uint64_t new_size = std::max((size_type)0, size + (rng() % 100) - 50); // increase or decrease randomly
+        iv.resize(new_size);
+        ASSERT_EQ(iv.size(), new_size);
+        for (size_type j=0; j < std::min(size, new_size); ++j)
+            ASSERT_EQ(val, iv[j]); // old values
+        for (size_type j=size; j < new_size; ++j)
+            ASSERT_EQ((value_type)0, iv[j]); // new values
+    }
+    {
+        // resize(size, v)
+        size = 50;
+        value_type val1 = rng() & sdsl::bits::lo_set[width];
+        value_type val2 = rng() & sdsl::bits::lo_set[width];
+        t_iv iv(size, val1, width);
+        uint64_t new_size = std::max((size_type)0, size + (rng() % 100) - 50); // increase or decrease randomly
+        iv.resize(new_size, val2);
+        ASSERT_EQ(iv.size(), new_size);
+        for (size_type j=0; j < std::min(size, new_size); ++j)
+            ASSERT_EQ(val1, iv[j]); // old values
+        for (size_type j=size; j < new_size; ++j)
+            ASSERT_EQ(val2, iv[j]); // new values
+    }
+    {
+        // clear()
+        t_iv iv(size, rng(), width);
+        iv.clear();
+        ASSERT_EQ(iv.size(), (size_type)0);
+        ASSERT_EQ(iv.capacity(), (size_type)0);
+    }
+}
+
+TEST_F(int_vector_test, AssignAndResize)
+{
+    // unspecialized vector for each possible width
+    for (uint8_t width=1; width <= 64; ++width) {
+        test_AssignAndResize<sdsl::int_vector<> >(100000, width);
+    }
+    // specialized vectors
+    test_AssignAndResize<sdsl::bit_vector     >(100000,  1);
+    test_AssignAndResize<sdsl::int_vector< 8> >(100000,  8);
+    test_AssignAndResize<sdsl::int_vector<16> >(100000, 16);
+    test_AssignAndResize<sdsl::int_vector<32> >(100000, 32);
+    test_AssignAndResize<sdsl::int_vector<64> >(100000, 64);
+}
+
+template<class t_iv>
+void test_InsertAndDelete(uint64_t size, uint8_t width)
+{
+    typedef typename t_iv::value_type value_type;
+    std::mt19937_64 rng;
+    value_type val1 = rng() & sdsl::bits::lo_set[width];
+    value_type val2 = rng() & sdsl::bits::lo_set[width];
+    {
+        // insert(it, value)
+        t_iv iv(size, val1, width);
+        iv.insert(iv.begin(), val2); // insert at beginning
+        iv.insert(iv.end(), val2); // insert at end
+        iv.insert(iv.begin() + 2, val2); // insert in the middle
+        ASSERT_EQ(iv.size(), size + 3);
+        for (size_type j=0; j < iv.size(); ++j)
+        {
+            if (j == 0 || j == 2 || j == iv.size() - 1)
+                ASSERT_EQ(val2, iv[j]);
+            else
+                ASSERT_EQ(val1, iv[j]);
+        }
+        // erase(it)
+        iv.erase(iv.begin() + 2);
+        iv.erase(iv.begin());
+        iv.erase(iv.end() - 1);
+        ASSERT_EQ(iv.size(), size);
+        for (size_type j=0; j < iv.size(); ++j)
+            ASSERT_EQ(val1, iv[j]);
+    }
+    {
+        // insert(it, n, value)
+        t_iv iv(size, val1, width);
+        iv.insert(iv.begin(), 3, val2); // insert 3 bits at beginning
+        iv.insert(iv.end(), 0, val2); // insert 0 bits at end
+        iv.insert(iv.begin() + 4, 2, val2); // insert 2 bits in the middle
+        ASSERT_EQ(iv.size(), size + 5);
+        for (size_type j=0; j < iv.size(); ++j)
+        {
+            if (j <= 2 || j == 4 || j == 5)
+                ASSERT_EQ(val2, iv[j]);
+            else
+                ASSERT_EQ(val1, iv[j]);
+        }
+    }
+    {
+        // insert(it, first, last)
+        t_iv iv(size, val1, width);
+        t_iv iv2(2, 1, width); // 1 1
+        iv.insert(iv.begin(), iv2.begin(), iv2.end()); // insert "1 1" at beginning
+        iv.insert(iv.end(), iv2.begin(), iv2.end()); // insert "1 1" at end
+        iv.insert(iv.begin() + 3, iv2.begin(), iv2.end() - 1); // insert "1" in the middle
+        ASSERT_EQ(iv.size(), size + 5);
+        for (size_type j=0; j < iv.size(); ++j)
+        {
+            if (j < 2 || j == 3 || j > iv.size() - 3)
+                ASSERT_EQ((value_type)1, iv[j]);
+            else
+                ASSERT_EQ(val1, iv[j]);
+        }
+        // erase(first, last)
+        iv.erase(iv.begin() + 3, iv.begin() + 4); // remove from middle
+        iv.erase(iv.begin(), iv.begin() + 2); // remove from beginning
+        iv.erase(iv.end() - 2, iv.end()); // remove from end
+        ASSERT_EQ(iv.size(), size);
+        for (size_type j=0; j < iv.size(); ++j)
+            ASSERT_EQ(val1, iv[j]);
+    }
+    {
+        // insert(it, initializer_list)
+        t_iv iv(size, val1, width);
+        iv.insert(iv.begin(), {});
+        iv.insert(iv.begin(), {val2, val2});
+        ASSERT_EQ(iv.size(), size + 2);
+        for (size_type j=0; j < iv.size(); ++j)
+        {
+            if (j < 2)
+                ASSERT_EQ(val2, iv[j]);
+            else
+                ASSERT_EQ(val1, iv[j]);
+        }
+    }
+    {
+        // push_back(value)
+        t_iv iv(size, val1, width);
+        iv.push_back(val2);
+        ASSERT_EQ(iv.size(), size + 1);
+        for (size_type j=0; j < iv.size(); ++j)
+        {
+            if (j == iv.size() - 1)
+                ASSERT_EQ(val2, iv[j]);
+            else
+                ASSERT_EQ(val1, iv[j]);
+        }
+        // pop_back()
+        iv.pop_back();
+        ASSERT_EQ(iv.size(), size);
+        for (size_type j=0; j < iv.size(); ++j)
+        {
+            ASSERT_EQ(val1, iv[j]);
+        }
+    }
+}
+
+TEST_F(int_vector_test, InsertAndDelete)
+{
+    // unspecialized vector for each possible width
+    for (uint8_t width=1; width <= 64; ++width) {
+        test_InsertAndDelete<sdsl::int_vector<> >(100000, width);
+    }
+    // specialized vectors
+    test_InsertAndDelete<sdsl::bit_vector     >(100000,  1);
+    test_InsertAndDelete<sdsl::int_vector< 8> >(100000,  8);
+    test_InsertAndDelete<sdsl::int_vector<16> >(100000, 16);
+    test_InsertAndDelete<sdsl::int_vector<32> >(100000, 32);
+    test_InsertAndDelete<sdsl::int_vector<64> >(100000, 64);
 }
 
 TEST_F(int_vector_test, stl)
