@@ -343,9 +343,23 @@ void test_AssignAndResize(uint64_t size, uint8_t width)
     {
         // clear()
         t_iv iv(size, rng(), width);
+        size_type old_bit_capacity = iv.bit_capacity();
         iv.clear();
         ASSERT_EQ(iv.size(), (size_type)0);
-        ASSERT_EQ(iv.capacity(), (size_type)0);
+        ASSERT_EQ(iv.bit_capacity(), old_bit_capacity);
+    }
+    {
+        // reserve / resize / shrink behavior
+        t_iv iv(size, 0, width);
+        size_type initial_capacity = iv.capacity();
+        ASSERT_EQ(iv.bit_capacity(), (iv.bit_capacity() >> 6) << 6); // bit_capacity must always be multiple of 64
+
+        iv.reserve(initial_capacity + 100);
+        ASSERT_TRUE(iv.capacity() >= initial_capacity + 100);
+        ASSERT_EQ(iv.bit_capacity(), (iv.bit_capacity() >> 6) << 6); // bit_capacity must always be multiple of 64
+
+        iv.shrink_to_fit();
+        ASSERT_TRUE((((size * width + 63) >> 6) << 6) <= iv.bit_capacity());
     }
 }
 

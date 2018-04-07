@@ -63,7 +63,7 @@ public:
 			m_basic_block = int_vector<64>(2, 0); // resize structure for basic_blocks
 			return;
 		}
-		size_type basic_block_size = ((v->capacity() >> 9) + 1) << 1;
+		size_type basic_block_size = (((v->bit_size() + 63) >> 9) + 1) << 1;
 		m_basic_block.resize(basic_block_size); // resize structure for basic_blocks
 		if (m_basic_block.empty()) return;
 		const uint64_t* data = m_v->data();
@@ -73,7 +73,7 @@ public:
 		uint64_t carry			  = trait_type::init_carry();
 		uint64_t sum			  = trait_type::args_in_the_word(*data, carry);
 		uint64_t second_level_cnt = 0;
-		for (i = 1; i < (m_v->capacity() >> 6); ++i) {
+		for (i = 1; i < ((m_v->bit_size() + 63) >> 6); ++i) {
 			if (!(i & 0x7)) { // if i%8==0
 				j += 2;
 				m_basic_block[j - 1] = second_level_cnt;
