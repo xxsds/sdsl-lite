@@ -312,6 +312,9 @@ private:
 		m_size = size * m_width;
 	}
 
+	// The number of 64-bit words used by the int_vector.
+	size_type bit_data_size() const { return (m_size + 63) >> 6; }
+
 public:
 	//! Constructor for int_vector.
 	/*! \param size          Number of elements. Default value is 0.
@@ -743,7 +746,7 @@ public:
 	{
 		static_assert(1 == t_width, "int_vector: flip() is available only for bit_vector.");
 		if (!empty()) {
-			for (uint64_t i = 0; i < ((m_size + 63) >> 6); ++i) {
+			for (uint64_t i = 0; i < bit_data_size(); ++i) {
 				m_data[i] = ~m_data[i];
 			}
 		}
@@ -1391,7 +1394,7 @@ inline int_vector<t_width>::int_vector(const int_vector& v)
 	width(v.m_width);
 	amortized_resize(v.size());
 	if (v.m_size > 0) {
-		if (memcpy(m_data, v.data(), ((v.m_size + 63) >> 6) << 3) == nullptr) {
+		if (memcpy(m_data, v.data(), bit_data_size() << 3) == nullptr) {
 			throw std::bad_alloc(); // LCOV_EXCL_LINE
 		}
 	}
@@ -1652,7 +1655,7 @@ bool int_vector<t_width>::operator==(const int_vector& v) const
 	if (empty()) return true;
 	const uint64_t* data1 = v.data();
 	const uint64_t* data2 = data();
-	for (size_type i = 0; i < ((v.m_size + 63) >> 6) - 1; ++i) {
+	for (size_type i = 0; i < bit_data_size() - 1; ++i) {
 		if (*(data1++) != *(data2++)) return false;
 	}
 	uint8_t l = 64 - ((((m_size + 63) >> 6) << 6) - m_size);
@@ -1709,7 +1712,7 @@ template <uint8_t	t_width>
 int_vector<t_width>& int_vector<t_width>::operator&=(const int_vector& v)
 {
 	assert(v.bit_size() == bit_size());
-	for (uint64_t i = 0; i < (v.m_size + 63) >> 6; ++i)
+	for (uint64_t i = 0; i < bit_data_size(); ++i)
 		m_data[i] &= v.m_data[i];
 	return *this;
 }
@@ -1718,7 +1721,7 @@ template <uint8_t	t_width>
 int_vector<t_width>& int_vector<t_width>::operator|=(const int_vector& v)
 {
 	assert(bit_size() == v.bit_size());
-	for (uint64_t i = 0; i < (v.m_size + 63) >> 6; ++i)
+	for (uint64_t i = 0; i < bit_data_size(); ++i)
 		m_data[i] |= v.m_data[i];
 	return *this;
 }
@@ -1727,7 +1730,7 @@ template <uint8_t	t_width>
 int_vector<t_width>& int_vector<t_width>::operator^=(const int_vector& v)
 {
 	assert(bit_size() == v.bit_size());
-	for (uint64_t i = 0; i < (v.m_size + 63) >> 6; ++i)
+	for (uint64_t i = 0; i < bit_data_size(); ++i)
 		m_data[i] ^= v.m_data[i];
 	return *this;
 }
@@ -1738,14 +1741,14 @@ typename int_vector<t_width>::size_type int_vector<t_width>::write_data(std::ost
 	size_type written_bytes = 0;
 	uint64_t* p				= m_data;
 	size_type idx			= 0;
-	while (idx + conf::SDSL_BLOCK_SIZE < ((m_size + 63) >> 6)) {
+	while (idx + conf::SDSL_BLOCK_SIZE < bit_data_size()) {
 		out.write((char*)p, conf::SDSL_BLOCK_SIZE * sizeof(uint64_t));
 		written_bytes += conf::SDSL_BLOCK_SIZE * sizeof(uint64_t);
 		p += conf::SDSL_BLOCK_SIZE;
 		idx += conf::SDSL_BLOCK_SIZE;
 	}
-	out.write((char*)p, (((m_size + 63) >> 6) - idx) * sizeof(uint64_t));
-	written_bytes += (((m_size + 63) >> 6) - idx) * sizeof(uint64_t);
+	out.write((char*)p, (bit_data_size() - idx) * sizeof(uint64_t));
+	written_bytes += (bit_data_size() - idx) * sizeof(uint64_t);
 	return written_bytes;
 }
 
@@ -1769,12 +1772,12 @@ void int_vector<t_width>::load(std::istream& in)
 	bit_resize(size);
 	uint64_t* p   = m_data;
 	size_type idx = 0;
-	while (idx + conf::SDSL_BLOCK_SIZE < ((m_size + 63) >> 6)) {
+	while (idx + conf::SDSL_BLOCK_SIZE < bit_data_size()) {
 		in.read((char*)p, conf::SDSL_BLOCK_SIZE * sizeof(uint64_t));
 		p += conf::SDSL_BLOCK_SIZE;
 		idx += conf::SDSL_BLOCK_SIZE;
 	}
-	in.read((char*)p, (((m_size + 63) >> 6) - idx) * sizeof(uint64_t));
+	in.read((char*)p, (bit_data_size() - idx) * sizeof(uint64_t));
 }
 
 } // end namespace sdsl

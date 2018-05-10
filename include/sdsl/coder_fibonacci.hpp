@@ -313,10 +313,10 @@ bool fibonacci::decode(const int_vector1& z, int_vector2& v)
 		v.resize(0);
 		return true;
 	}
-	for (typename int_vector1::size_type i = 0; i < ((z.bit_size() + 63) >> 6) - 1; ++i, ++data) {
+	for (typename int_vector1::size_type i = 0; i < z.bit_data_size() - 1; ++i, ++data) {
 		n += bits::cnt11(*data, carry);
 	}
-	if (((z.bit_size() + 63) >> 6) << 6 != z.bit_size()) {
+	if (z.bit_data_size() << 6 != z.bit_size()) {
 		n += bits::cnt11((*data) & bits::lo_set[z.bit_size() & 0x3F], carry);
 	} else {
 		n += bits::cnt11(*data, carry);
