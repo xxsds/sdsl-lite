@@ -139,16 +139,34 @@ TEST_F(int_vector_test, constructors)
 
 TEST_F(int_vector_test, width)
 {
-    size_type len = 1000;
-    sdsl::int_vector<> v(len, 0xF0, 8);
-    ASSERT_EQ(len, v.size());
-    ASSERT_EQ((uint8_t)8, v.width());
-    v.width(4);
-    ASSERT_EQ((uint8_t)4, v.width());
-    ASSERT_EQ(2*len, v.size());
-    for (size_type i=0; i<v.size()/2; i+=2) {
-        ASSERT_EQ(0x0U, v[i*2]);
-        ASSERT_EQ(0xFU, v[i*2+1]);
+    {
+        size_type len = 1000;
+        sdsl::int_vector<> v(len, 0xF0, 8);
+        ASSERT_EQ(len, v.size());
+        ASSERT_EQ((uint8_t)8, v.width());
+        v.width(4);
+        ASSERT_EQ((uint8_t)4, v.width());
+        ASSERT_EQ(2*len, v.size());
+        for (size_type i=0; i<v.size()/2; i+=2) {
+            ASSERT_EQ(0x0U, v[i*2]);
+            ASSERT_EQ(0xFU, v[i*2+1]);
+        }
+    }
+    {
+        sdsl::int_vector<16> v1(1000);
+        sdsl::int_vector<32> v2(1000);
+        sdsl::util::set_to_id(v1);
+        sdsl::util::set_to_id(v2);
+        ASSERT_TRUE(v1 == v2);
+        ASSERT_FALSE(v1 != v2);
+    }
+    {
+        sdsl::int_vector< 8> v1(1000);
+        sdsl::int_vector<16> v2(1000);
+        sdsl::util::set_to_id(v1);
+        sdsl::util::set_to_id(v2);
+        ASSERT_FALSE(v1 == v2);
+        ASSERT_TRUE(v1 != v2);
     }
 }
 

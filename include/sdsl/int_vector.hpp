@@ -675,19 +675,49 @@ public:
 
 	//! Equality operator for two int_vectors.
 	/*! Two int_vectors are equal if
-         *    - capacities and sizes are equal and
-         *    - width are equal and
-         *    - the bits in the range [0..bit_size()-1] are equal.
+         *    - sizes are equal and
+         *    - its elements are equal.
          */
-	bool operator==(const int_vector& v) const;
+ 	bool operator==(const int_vector<t_width> & v) const
+	{
+		if (bit_size() != v.bit_size()) return false;
+		if (empty()) return true;
+		const uint64_t* data1 = v.data();
+		const uint64_t* data2 = data();
+		for (size_type i = 0; i < bit_data_size() - 1; ++i) {
+			if (*(data1++) != *(data2++)) return false;
+		}
+		uint8_t l = 64 - ((bit_data_size() << 6) - m_size);
+		return ((*data1) & bits::lo_set[l]) == ((*data2) & bits::lo_set[l]);
+	}
+
+	//! Equality operator for two int_vectors of different widths.
+	/*! Note that comparing two int_vectors of different widths is slow
+	    since it compares element by element and not the bit representations of the int_vectors.
+	    Two int_vectors are equal if
+         *    - sizes are equal and
+         *    - its elements are equal.
+         */
+ 	template <uint8_t t_width2>
+	bool operator==(const int_vector<t_width2> & v) const
+	{
+		if (size() != v.size()) return false;
+		if (empty()) return true;
+		for (size_type i = 0; i < size(); ++i) {
+			if (v[i] != (*this)[i]) return false;
+		}
+		return true;
+	}
 
 	//! Inequality operator for two int_vectors.
 	/*! Two int_vectors are not equal if
-         *    - capacities and sizes are not equal or
-         *    - int widths are not equal or
-         *    - the bits in the range [0..bit_size()-1] are not equal.
+         *    - sizes are not equal or
+         *    - its elements are not equal.
+		Note that comparing two int_vectors of different widths is slow
+ 		since it compares element by element and not the bit representations of the int_vectors.
          */
-	bool operator!=(const int_vector& v) const;
+ 	template <uint8_t t_width2>
+	bool operator!=(const int_vector<t_width2> & v) const { return !(*this == v); }
 
 	//! Less operator for two int_vectors
 	/*! int_vector w is less than v if
@@ -1648,19 +1678,6 @@ inline auto int_vector<1>::operator[](const size_type& idx) const -> const_refer
 	assert(idx < this->size());
 	return ((*(m_data + (idx >> 6))) >> (idx & 0x3F)) & 1;
 }
-template <uint8_t t_width>
-bool int_vector<t_width>::operator==(const int_vector& v) const
-{
-	if (bit_size() != v.bit_size()) return false;
-	if (empty()) return true;
-	const uint64_t* data1 = v.data();
-	const uint64_t* data2 = data();
-	for (size_type i = 0; i < bit_data_size() - 1; ++i) {
-		if (*(data1++) != *(data2++)) return false;
-	}
-	uint8_t l = 64 - ((((m_size + 63) >> 6) << 6) - m_size);
-	return ((*data1) & bits::lo_set[l]) == ((*data2) & bits::lo_set[l]);
-}
 
 template <uint8_t t_width>
 bool int_vector<t_width>::operator<(const int_vector& v) const
@@ -1700,12 +1717,6 @@ template <uint8_t t_width>
 bool int_vector<t_width>::operator>=(const int_vector& v) const
 {
 	return *this == v or *this > v;
-}
-
-template <uint8_t t_width>
-bool int_vector<t_width>::operator!=(const int_vector& v) const
-{
-	return !(*this == v);
 }
 
 template <uint8_t	t_width>
