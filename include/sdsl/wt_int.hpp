@@ -167,64 +167,66 @@ public:
 			if (value > max_elem) max_elem = value;
 		}
 		m_max_level = bits::hi(max_elem) + 1;
-		int_vector<> rac(m_size, 0, m_max_level);
-		std::copy(begin, end, rac.begin());
-
-		// buffer for elements in the right node
-		int_vector_buffer<> buf1(
-		tmp_file(tmp_dir, "_wt_constr_buf"), std::ios::out, 10 * (1 << 20), m_max_level);
 		std::string tree_out_buf_file_name = tmp_file(tmp_dir, "_m_tree");
-		osfstream   tree_out_buf(tree_out_buf_file_name,
-							   std::ios::binary | std::ios::trunc | std::ios::out);
+		{
+			int_vector<> rac(m_size, 0, m_max_level);
+			std::copy(begin, end, rac.begin());
 
-		size_type bit_size = m_size * m_max_level;
-		int_vector<1>::write_header(bit_size, 1, tree_out_buf); // write bv header
+			// buffer for elements in the right node
+			int_vector_buffer<> buf1(
+			tmp_file(tmp_dir, "_wt_constr_buf"), std::ios::out, 10 * (1 << 20), m_max_level);
+			osfstream   tree_out_buf(tree_out_buf_file_name,
+								   std::ios::binary | std::ios::trunc | std::ios::out);
 
-		size_type tree_pos  = 0;
-		uint64_t  tree_word = 0;
+			size_type bit_size = m_size * m_max_level;
+			int_vector<1>::write_header(bit_size, 1, tree_out_buf); // write bv header
 
-		uint64_t mask_old = 1ULL << (m_max_level);
-		for (uint32_t k = 0; k < m_max_level; ++k) {
-			size_type	  start	= 0;
-			const uint64_t mask_new = 1ULL << (m_max_level - k - 1);
-			do {
-				size_type i			  = start;
-				size_type cnt0		  = 0;
-				size_type cnt1		  = 0;
-				uint64_t  start_value = (rac[i] & mask_old);
-				uint64_t  x;
-				while (i < m_size and ((x = rac[i]) & mask_old) == start_value) {
-					if (x & mask_new) {
-						tree_word |= (1ULL << (tree_pos & 0x3FULL));
-						buf1[cnt1++] = x;
-					} else {
-						rac[start + cnt0++] = x;
+			size_type tree_pos  = 0;
+			uint64_t  tree_word = 0;
+
+			uint64_t mask_old = 1ULL << (m_max_level);
+			for (uint32_t k = 0; k < m_max_level; ++k) {
+				size_type	  start	= 0;
+				const uint64_t mask_new = 1ULL << (m_max_level - k - 1);
+				do {
+					size_type i			  = start;
+					size_type cnt0		  = 0;
+					size_type cnt1		  = 0;
+					uint64_t  start_value = (rac[i] & mask_old);
+					uint64_t  x;
+					while (i < m_size and ((x = rac[i]) & mask_old) == start_value) {
+						if (x & mask_new) {
+							tree_word |= (1ULL << (tree_pos & 0x3FULL));
+							buf1[cnt1++] = x;
+						} else {
+							rac[start + cnt0++] = x;
+						}
+						++tree_pos;
+						if ((tree_pos & 0x3FULL) == 0) { // if tree_pos % 64 == 0 write old word
+							tree_out_buf.write((char*)&tree_word, sizeof(tree_word));
+							tree_word = 0;
+						}
+						++i;
 					}
-					++tree_pos;
-					if ((tree_pos & 0x3FULL) == 0) { // if tree_pos % 64 == 0 write old word
-						tree_out_buf.write((char*)&tree_word, sizeof(tree_word));
-						tree_word = 0;
+					if (k + 1 < m_max_level) { // inner node
+						for (size_type j = 0; j < cnt1; ++j) {
+							rac[start + cnt0 + j] = buf1[j];
+						}
+					} else {								// leaf node
+						m_sigma += (cnt0 > 0) + (cnt1 > 0); // increase sigma for each leaf
 					}
-					++i;
-				}
-				if (k + 1 < m_max_level) { // inner node
-					for (size_type j = 0; j < cnt1; ++j) {
-						rac[start + cnt0 + j] = buf1[j];
-					}
-				} else {								// leaf node
-					m_sigma += (cnt0 > 0) + (cnt1 > 0); // increase sigma for each leaf
-				}
-				start += cnt0 + cnt1;
-			} while (start < m_size);
-			mask_old += mask_new;
-		}
-		if ((tree_pos & 0x3FULL) !=
-			0) { // if tree_pos % 64 > 0 => there are remaining entries we have to write
-			tree_out_buf.write((char*)&tree_word, sizeof(tree_word));
-		}
-		buf1.close(true); // remove temporary file
-		tree_out_buf.close();
-		rac.resize(0);
+					start += cnt0 + cnt1;
+				} while (start < m_size);
+				mask_old += mask_new;
+			}
+			if ((tree_pos & 0x3FULL) !=
+				0) { // if tree_pos % 64 > 0 => there are remaining entries we have to write
+				tree_out_buf.write((char*)&tree_word, sizeof(tree_word));
+			}
+			buf1.close(true); // remove temporary file
+			tree_out_buf.close();
+		} // destruct rac
+
 		bit_vector tree;
 		load_from_file(tree, tree_out_buf_file_name);
 		sdsl::remove(tree_out_buf_file_name);
