@@ -292,12 +292,13 @@ private:
 	uint64_t*	  m_data;  //!< Pointer to the memory for the bits.
 	int_width_type m_width; //!< Width of the integers.
 
+	constexpr static float growth_factor = 1.5; //!< Growth factor for amortized constant time operations
+	// see the explanation in the documentation of FBVector on different growth factors
+	// https://github.com/facebook/folly/blob/master/folly/docs/FBVector.md#memory-handling
+
 	// Hidden, since number of bits (size) does not go well together with int value.
 	void bit_resize(const size_type size, const value_type value);
 
-	// this uses a growth factor of 1.5
-	// see explanation in documentation of FBVector
-	// https://github.com/facebook/folly/blob/master/folly/docs/FBVector.md#memory-handling
 	void amortized_resize(const size_type size)
 	{
 		size_type bit_size = size * m_width;
@@ -305,7 +306,7 @@ private:
 			// start with 64 bit if vector has no capacity
 			size_type tmp_capacity = m_capacity == 0 ? 64 : m_capacity;
 			// find smallest x s.t. m_capacity * 1.5 ** x >= size
-			auto resize_factor = pow(1.5, std::ceil(std::log((bit_size + tmp_capacity - 1) / tmp_capacity) / std::log(1.5)));
+			auto resize_factor = pow(growth_factor, std::ceil(std::log((bit_size + tmp_capacity - 1) / tmp_capacity) / std::log(growth_factor)));
 			size_type new_capacity = std::ceil(tmp_capacity * resize_factor);
 			memory_manager::resize(*this, new_capacity);
 		}
@@ -364,7 +365,7 @@ public:
 	{
 		iterator it_nonconst = begin() + (it - cbegin());
 		std::copy(it_nonconst + 1, end(), it_nonconst);
-		amortized_resize(size() - 1);
+		resize(size() - 1);
 		return it_nonconst;
 	}
 
@@ -377,7 +378,7 @@ public:
 		iterator first_nonconst = begin() + (first - cbegin());
 		iterator last_nonconst = begin() + (last - cbegin());
 		std::copy(last_nonconst, end(), first_nonconst);
-		amortized_resize(size() - (last - first));
+		resize(size() - (last - first));
 		return first_nonconst;
 	}
 
@@ -474,7 +475,7 @@ public:
 	}
 
 	//! Remove element at the end.
-	void pop_back() { amortized_resize(size() - 1); }
+	void pop_back() { resize(size() - 1); }
 
 	//! Move constructor.
 	int_vector(int_vector&& v);
@@ -491,7 +492,7 @@ public:
 	 */
 	void assign(size_type size, value_type default_value)
 	{
-		amortized_resize(size);
+		resize(size);
 		util::set_to_value(*this, default_value); // new initialization
 	}
 
@@ -500,7 +501,7 @@ public:
 	 */
 	void assign(std::initializer_list<value_type> il)
 	{
-		amortized_resize(il.size());
+		resize(il.size());
 		size_type idx = 0;
 		for (auto x : il) {
 			(*this)[idx++] = x;
@@ -515,7 +516,7 @@ public:
 	void assign(input_iterator_t first, input_iterator_t last)
 	{
 		assert(first < last);
-		amortized_resize(last - first);
+		resize(last - first);
 		size_type idx = 0;
 		while (first < last) {
 			(*this)[idx++] = *(first++);
@@ -1422,7 +1423,7 @@ inline int_vector<t_width>::int_vector(const int_vector& v)
 	: m_size(0), m_capacity(0), m_data(nullptr), m_width(v.m_width)
 {
 	width(v.m_width);
-	amortized_resize(v.size());
+	resize(v.size());
 	if (v.m_size > 0) {
 		if (memcpy(m_data, v.data(), bit_data_size() << 3) == nullptr) {
 			throw std::bad_alloc(); // LCOV_EXCL_LINE
