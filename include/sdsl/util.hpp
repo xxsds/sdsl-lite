@@ -497,6 +497,7 @@ void util::bit_compress(t_int_vec& v)
 		}
 		v.bit_resize(v.size() * min_width);
 		v.width(min_width);
+		// v.shrink_to_fit(); TODO(cpockrandt): comment in once int_vector_mapper has the same interface
 	}
 }
 

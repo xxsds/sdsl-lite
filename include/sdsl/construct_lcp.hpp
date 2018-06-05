@@ -1170,6 +1170,7 @@ inline void construct_lcp_bwt_based(cache_config& config)
 //            partial_lcp = int_vector<>(remaining_lcp_values, 0, int_width_new);
             partial_lcp.width(int_width_new);
             partial_lcp.resize(remaining_lcp_values);
+            partial_lcp.shrink_to_fit();
             util::set_to_value(partial_lcp, 0);
             ++phase;
             memory_monitor::event("lcp-bwt-resize-variables-end");

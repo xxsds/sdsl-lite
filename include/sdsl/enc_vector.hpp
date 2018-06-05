@@ -70,8 +70,10 @@ private:
 	void clear()
 	{
 		m_z.resize(0);
+		m_z.shrink_to_fit();
 		m_size = 0;
 		m_sample_vals_and_pointer.resize(0);
+		m_sample_vals_and_pointer.shrink_to_fit();
 	}
 
 public:

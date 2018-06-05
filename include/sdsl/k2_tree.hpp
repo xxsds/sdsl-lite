@@ -189,6 +189,7 @@ protected:
 					last_level = t;
 					k_l_	   = bit_vector(k_t_.size() - last_level, 0);
 					k_t_.resize(last_level);
+					k_t_.shrink_to_fit();
 					last_level = 1; // if t was 0
 					t		   = 0; // Restart counter as we're storing at k_l_ now.
 				}
@@ -232,6 +233,7 @@ protected:
 			}
 		}
 		k_l_.resize(t);
+		k_l_.shrink_to_fit();
 		k2_tree_ns::build_template_vector<t_bv>(k_t_, k_l_, k_t, k_l);
 
 		k_t_rank = t_rank(&k_t);

@@ -45,6 +45,7 @@ construct_first_child_lcp(int_vector_buffer<>& lcp_buf, int_vector<>& fc_lcp)
 	}
 	if (fc_cnt < fc_lcp.size()) {
 		fc_lcp.resize(fc_cnt);
+		fc_lcp.shrink_to_fit();
 	}
 }
 

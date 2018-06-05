@@ -220,6 +220,7 @@ bool comma<t_width>::encode(const int_vector& v, int_vector& z)
 	//trim vector z to correct size
 	z.width(v.width());
 	z.bit_resize(z_bit_size); //for future may check if resizing works
+	z.shrink_to_fit();
 
 	//iterate again and save values in z
 	uint64_t* z_data = z.m_data;
@@ -304,6 +305,7 @@ bool comma<t_width>::decode(const int_vector& z, int_vector& v)
 	//resize vector v
 	v.width(z.width());
 	v.resize(n);
+	v.shrink_to_fit();
 
 	//and finally decode and save result in v
 	decode<false, true>(z.data(), 0, n, v.begin());

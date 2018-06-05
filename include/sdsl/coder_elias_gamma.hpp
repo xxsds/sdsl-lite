@@ -160,6 +160,7 @@ bool elias_gamma::encode(const int_vector& v, int_vector& z)
 		z_bit_size += encoding_length(w);
 	}
 	z.bit_resize(z_bit_size);				 // Initial size of z
+	z.shrink_to_fit();
 	if (z_bit_size & 0x3F) {				 // if z_bit_size % 64 != 0
 		*(z.m_data + (z_bit_size >> 6)) = 0; // initialize last word
 	}
@@ -220,6 +221,7 @@ bool elias_gamma::decode(const int_vector& z, int_vector& v)
 	}
 	v.width(z.width());
 	v.resize(n);
+	v.shrink_to_fit();
 	return decode<false, true>(z.data(), 0, n, v.begin());
 }
 
