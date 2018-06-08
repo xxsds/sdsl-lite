@@ -492,7 +492,7 @@ public:
 	 */
 	void assign(size_type size, value_type default_value)
 	{
-		resize(size);
+		bit_resize(size * m_width);
 		util::set_to_value(*this, default_value); // new initialization
 	}
 
@@ -501,7 +501,7 @@ public:
 	 */
 	void assign(std::initializer_list<value_type> il)
 	{
-		resize(il.size());
+		bit_resize(il.size() * m_width);
 		size_type idx = 0;
 		for (auto x : il) {
 			(*this)[idx++] = x;
@@ -516,7 +516,7 @@ public:
 	void assign(input_iterator_t first, input_iterator_t last)
 	{
 		assert(first < last);
-		resize(last - first);
+		bit_resize((last - first) * m_width);
 		size_type idx = 0;
 		while (first < last) {
 			(*this)[idx++] = *(first++);
