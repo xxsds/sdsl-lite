@@ -537,7 +537,7 @@ public:
 	 */
 	void reserve(size_type capacity)
 	{
-		if (capacity * m_width > m_capacity) {
+		if (capacity * m_width > m_capacity || m_data == nullptr) {
 			memory_manager::resize(*this, capacity * m_width);
 		}
 	}
@@ -1467,7 +1467,7 @@ void int_vector<t_width>::bit_resize(const size_type size)
 {
 	assert(size % m_width == 0);
 
-	if (size > m_capacity) {
+	if (size > m_capacity || m_data == nullptr) {
 		memory_manager::resize(*this, size);
 	}
 	m_size = size;
