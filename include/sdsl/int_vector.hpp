@@ -692,22 +692,17 @@ public:
 		return ((*data1) & bits::lo_set[l]) == ((*data2) & bits::lo_set[l]);
 	}
 
-	//! Equality operator for two int_vectors of different widths.
-	/*! Note that comparing two int_vectors of different widths is slow
-	    since it compares element by element and not the bit representations of the int_vectors.
-	    Two int_vectors are equal if
+	//! Equality operator for an arbitrary container.
+	/*! Note that this function is slow since it compares element by element
+	    and cannot compare the bit representations of the containers.
+	    Two containers are equal if
          *    - sizes are equal and
          *    - its elements are equal.
          */
- 	template <uint8_t t_width2>
-	bool operator==(const int_vector<t_width2> & v) const
+	template <class container>
+	bool operator==(const container& v) const
 	{
-		if (size() != v.size()) return false;
-		if (empty()) return true;
-		for (size_type i = 0; i < size(); ++i) {
-			if (v[i] != (*this)[i]) return false;
-		}
-		return true;
+		return std::equal(begin(), end(), v.begin());
 	}
 
 	//! Inequality operator for two int_vectors.
