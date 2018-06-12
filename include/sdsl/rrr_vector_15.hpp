@@ -368,6 +368,14 @@ public:
 	iterator begin() const { return iterator(this, 0); }
 
 	iterator end() const { return iterator(this, size()); }
+
+	bool operator==(const rrr_vector& v) const
+	{
+		return m_size == v.m_size && m_bt == v.m_bt && m_btnr == v.m_btnr && m_btnrp == v.m_btnrp &&
+			   m_rank == v.m_rank;
+	}
+
+	bool operator!=(const rrr_vector& v) const { return !(*this == v); }
 };
 
 

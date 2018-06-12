@@ -413,7 +413,7 @@ public:
 			std::vector<size_type> is(m_max_level + 1);
 			std::vector<size_type> rank_off(m_max_level + 1);
 			_range_search_2d(
-			root(), {lb, rb}, vlb, vrb, 0, is, rank_off, point_vec, report, cnt_answers);
+			root(), {{lb, rb}}, vlb, vrb, 0, is, rank_off, point_vec, report, cnt_answers);
 		}
 		return make_pair(cnt_answers, point_vec);
 	}
@@ -635,7 +635,7 @@ public:
 		v.level  = v.level + 1;
 		v.sym	= (v.sym << 1) | 1;
 
-		return {std::move(v_left), v};
+		return {{std::move(v_left), v}};
 	}
 
 	//! Returns for each range its left and right child ranges
@@ -677,8 +677,8 @@ public:
 			auto right_sp = sp_rank - v_sp_rank;
 			auto left_sp  = r[0] - right_sp;
 
-			r		 = {left_sp, left_sp + left_size - 1};
-			res[i++] = {right_sp, right_sp + right_size - 1};
+			r		 = {{left_sp, left_sp + left_size - 1}};
+			res[i++] = {{right_sp, right_sp + right_size - 1}};
 		}
 		return {{ranges, std::move(res)}};
 	}
@@ -703,7 +703,7 @@ public:
 		auto right_sp = sp_rank - v_sp_rank;
 		auto left_sp  = r[0] - right_sp;
 
-		return {{{left_sp, left_sp + left_size - 1}, {right_sp, right_sp + right_size - 1}}};
+		return {{{{left_sp, left_sp + left_size - 1}}, {{right_sp, right_sp + right_size - 1}}}};
 	}
 
 	//! return the path to the leaf for a given symbol

@@ -650,7 +650,7 @@ public:
 			node_type vv = v;
 			while (!is_leaf(vv)) {
 				auto vs  = expand(vv);
-				auto rs  = expand(vv, {0, i});
+				auto rs  = expand(vv, range_type{{0, i}});
 				bool bit = *(begin(vv) + i);
 				i		 = std::get<1>(rs[bit]);
 				vv		 = vs[bit];
@@ -677,7 +677,7 @@ public:
 				return size();
 			else {
 				auto parent = m_tree.parent(v);
-				auto rs		= expand(parent, {0, size(parent) - 1});
+				auto rs		= expand(parent, range_type{{0, size(parent) - 1}});
 				if (m_tree.child(parent, 0) == v)
 					return std::get<1>(std::get<0>(rs)) - std::get<0>((std::get<0>(rs))) + 1;
 				else
@@ -740,8 +740,8 @@ public:
 			auto right_sp = sp_rank - v_sp_rank;
 			auto left_sp  = r[0] - right_sp;
 
-			r		 = {left_sp, left_sp + left_size - 1};
-			res[i++] = {right_sp, right_sp + right_size - 1};
+			r		 = {{left_sp, left_sp + left_size - 1}};
+			res[i++] = {{right_sp, right_sp + right_size - 1}};
 		}
 		return {{ranges, std::move(res)}};
 	}

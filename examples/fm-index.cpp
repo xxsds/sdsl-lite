@@ -47,7 +47,7 @@ int main(int argc, char** argv)
     }
     cout << "Index construction complete, index requires " << size_in_mega_bytes(fm_index) << " MiB." << endl;
     cout << "Input search terms and press Ctrl-D to exit." << endl;
-    string prompt = "\e[0;32m>\e[0m ";
+    string prompt = "\033[0;32m>\033[0m ";
     cout << prompt;
     string query;
     while (getline(cin, query)) {
@@ -73,9 +73,9 @@ int main(int argc, char** argv)
                     pre = pre.substr(pre.find_last_of('\n')+1);
                 }
                 cout << pre;
-                cout << "\e[1;31m";
+                cout << "\033[1;31m";
                 cout << s.substr(0, m);
-                cout << "\e[0m";
+                cout << "\033[0m";
                 string context = s.substr(m);
                 cout << context.substr(0, context.find_first_of('\n')) << endl;
             }
@@ -84,4 +84,3 @@ int main(int argc, char** argv)
     }
     cout << endl;
 }
-
