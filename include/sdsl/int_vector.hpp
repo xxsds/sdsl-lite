@@ -243,6 +243,8 @@ struct int_vector_trait<8> {
  *
  *    This generic vector class could be used to generate a vector
  *    that contains integers of fixed width \f$w\in [1..64]\f$.
+ *    It has a growth factor of 1.5 to achieve amortized running time.
+ *    Note that resize() does not reserve more space than necessary.
  *
  *  \tparam t_width Width of the integer. If set to `0` it is variable
  *          during runtime, otherwise fixed at compile time.
@@ -286,8 +288,33 @@ public:
 
 private:
 	size_type	  m_size;  //!< Number of bits needed to store int_vector.
+	size_type	  m_capacity; //!< Number of bits reserved by int_vector.
 	uint64_t*	  m_data;  //!< Pointer to the memory for the bits.
 	int_width_type m_width; //!< Width of the integers.
+
+	constexpr static float growth_factor = 1.5; //!< Growth factor for amortized constant time operations
+	// see the explanation in the documentation of FBVector on different growth factors
+	// https://github.com/facebook/folly/blob/master/folly/docs/FBVector.md#memory-handling
+
+	// Hidden, since number of bits (size) does not go well together with int value.
+	void bit_resize(const size_type size, const value_type value);
+
+	void amortized_resize(const size_type size)
+	{
+		size_type bit_size = size * m_width;
+		if (bit_size > m_capacity || m_data == nullptr) {
+			// start with 64 bit if vector has no capacity
+			size_type tmp_capacity = m_capacity == 0 ? 64 : m_capacity;
+			// find smallest x s.t. m_capacity * 1.5 ** x >= size
+			auto resize_factor = pow(growth_factor, std::ceil(std::log((bit_size + tmp_capacity - 1) / tmp_capacity) / std::log(growth_factor)));
+			size_type new_capacity = std::ceil(tmp_capacity * resize_factor);
+			memory_manager::resize(*this, new_capacity);
+		}
+		m_size = size * m_width;
+	}
+
+	// The number of 64-bit words used by the int_vector.
+	size_type bit_data_size() const { return (m_size + 63) >> 6; }
 
 public:
 	//! Constructor for int_vector.
@@ -304,15 +331,151 @@ public:
 	{
 	}
 	//! Constructor for initializer_list.
-	template <class t_T>
-	int_vector(std::initializer_list<t_T> il) : int_vector(0, 0)
+	int_vector(std::initializer_list<value_type> il) : int_vector(0, 0)
 	{
-		resize(il.size());
-		size_type idx = 0;
-		for (auto x : il) {
-			(*this)[idx++] = x;
-		}
+		assign(il);
 	}
+
+	//! Constructor for iterator range
+	/*! \param first Iterator pointing to first element to be copied.
+	    \param last  Iterator pointing to the element behind the last one to be copied.
+	 */
+	template <typename input_iterator_t>
+	int_vector(
+		typename std::enable_if<
+			std::is_base_of<
+				std::input_iterator_tag, typename std::iterator_traits<input_iterator_t>::iterator_category
+			>::value,
+			input_iterator_t
+		>::type first,
+		input_iterator_t last) : int_vector(0, 0)
+	{
+		assign(first, last);
+	}
+
+	//! Clearing the int_vector. Allocated memory will not be released.
+	/*! \sa resize
+	 */
+	void clear() { m_size = 0; }
+
+	//! Remove element that iterator is pointing to.
+	/*! \param it Iterator pointing to an element in int_vector
+	 */
+	iterator erase(const_iterator it)
+	{
+		iterator it_nonconst = begin() + (it - cbegin());
+		std::copy(it_nonconst + 1, end(), it_nonconst);
+		resize(size() - 1);
+		return it_nonconst;
+	}
+
+	//! Remove elements in given iterator range.
+	/*! \param first Iterator pointing to first element to be deleted.
+           \param last  Iterator pointing to the elemnt after the one to be deleted.
+	 */
+	iterator erase(const_iterator first, const_iterator last)
+	{
+		iterator first_nonconst = begin() + (first - cbegin());
+		iterator last_nonconst = begin() + (last - cbegin());
+		std::copy(last_nonconst, end(), first_nonconst);
+		resize(size() - (last - first));
+		return first_nonconst;
+	}
+
+	//! Insert an element constructed with std::forward<Args>(args) before the element that the iterator is pointing to.
+	/*! \param it   Iterator pointing to an element in int_vector.
+           \param args Function parameter pack.
+	 */
+	template <class... Args>
+	iterator emplace(const_iterator it, Args&&... args)
+	{
+		return insert(it, 1, value_type(std::forward<Args>(args) ...));
+	}
+
+	//! Insert an element before the element that the iterator is pointing to.
+	/*! \param it    Iterator pointing to an element in int_vector.
+           \param value Element to be inserted.
+	 */
+	iterator insert(const_iterator it, value_type value) { return insert(it, 1, value); }
+
+	//! Insert n copies of an element before the element that the iterator is pointing to.
+	/*! \param it    Iterator pointing to an element in int_vector.
+           \param n     Number of copies.
+           \param value Element to be inserted.
+	 */
+	iterator insert(const_iterator it, size_type n, value_type value)
+	{
+		size_type pos = it - cbegin();
+		amortized_resize(size() + n);
+		iterator it_new = begin() + pos;
+		std::copy_backward(it_new, end() - n, end());
+		std::fill_n(it_new, n, value);
+		return it_new;
+	}
+
+	//! Insert elements from intializer_list before the element that the iterator is pointing to.
+	/*! \param it Iterator pointing to an element in int_vector.
+           \param il Elements to be inserted.
+	 */
+	iterator insert(const_iterator it, std::initializer_list<value_type> il)
+	{
+		return insert(it, il.begin(), il.end());
+	}
+
+	//! Insert elements from an iterator pair before the element that the iterator `it` is pointing to.
+	/*! \param it    Iterator pointing to an element in int_vector.
+           \param first Iterator pointing to first element to be inserted.
+           \param last  Iterator pointing to the elemnt after the one to be inserted.
+	 */
+	template <typename input_iterator_t>
+	typename std::enable_if<
+		std::is_base_of<
+			std::input_iterator_tag, typename std::iterator_traits<input_iterator_t>::iterator_category
+		>::value,
+		iterator
+	>::type insert(const_iterator it,
+		input_iterator_t first, input_iterator_t last)
+	{
+		size_type pos = it - cbegin();
+		amortized_resize(size() + last - first);
+		iterator it_new = begin() + pos;
+		std::copy_backward(it_new, end() - (last - first), end());
+		std::copy(first, last, it_new);
+		return it_new;
+	}
+
+	//! Returns first element.
+	reference front() { return *begin(); }
+
+	//! Returns first element.
+	const_reference front() const { return *cbegin(); }
+
+	//! Returns last element.
+	reference back() { return *(end()-1); }
+
+	//! Returns last element.
+	const_reference back() const { return *(cend() - 1); }
+
+	//! Insert an element constructed with std::forward<Args>(args) at the end.
+	/*! \param args Function parameter pack.
+	 */
+	template <class... Args>
+	void emplace_back(Args&&... args)
+	{
+		push_back(value_type(std::forward<Args>(args) ...));
+	}
+
+	//! Insert element at the end.
+	/*! \param value Element to be inserted.
+	 */
+	void push_back(value_type value)
+	{
+		amortized_resize(size() + 1);
+		*(end() - 1) = value;
+	}
+
+	//! Remove element at the end.
+	void pop_back() { resize(size() - 1); }
 
 	//! Move constructor.
 	int_vector(int_vector&& v);
@@ -323,26 +486,86 @@ public:
 	//! Destructor.
 	~int_vector();
 
+	//! Assign. Resize int_vector to `size` and fill elements with `default_value`.
+	/*! \param size Number of elements.
+           \param default_value Elements to be inserted.
+	 */
+	void assign(size_type size, value_type default_value)
+	{
+		bit_resize(size * m_width);
+		util::set_to_value(*this, default_value); // new initialization
+	}
+
+	//! Assign. Resize int_vector and initialize with initializer_list.
+	/*! \param il Initializer_list.
+	 */
+	void assign(std::initializer_list<value_type> il)
+	{
+		bit_resize(il.size() * m_width);
+		size_type idx = 0;
+		for (auto x : il) {
+			(*this)[idx++] = x;
+		}
+	}
+
+	//! Assign. Resize int_vector and initialize by copying from an iterator range.
+	/*! \param first Iterator pointing to first element to be inserted.
+           \param last  Iterator pointing to the elemnt after the one to be inserted.
+	 */
+	template <typename input_iterator_t>
+	void assign(input_iterator_t first, input_iterator_t last)
+	{
+		assert(first < last);
+		bit_resize((last - first) * m_width);
+		size_type idx = 0;
+		while (first < last) {
+			(*this)[idx++] = *(first++);
+		}
+    }
+
 	//! Equivalent to size() == 0.
 	bool empty() const { return 0 == m_size; }
 
-	//! Resize the int_vector in terms of elements.
-	/*! \param size The size to resize the int_vector in terms of elements.
-         */
-	void resize(const size_type size) { bit_resize(size * width()); }
+	//! Swap method for int_vector.
+	void swap(int_vector& v) { std::swap(v, *this); }
 
-	//! Resize the int_vector in terms of bits.
+	//! Free unused allocated memory.
+	void shrink_to_fit() { memory_manager::resize(*this, m_size); }
+
+	//! Reserve storage. If the new capacity is smaller than the current, this method does nothing.
+	/*! \param capacity New capacity in bits
+	 */
+	void reserve(size_type capacity)
+	{
+		if (capacity * m_width > m_capacity || m_data == nullptr) {
+			memory_manager::resize(*this, capacity * m_width);
+		}
+	}
+
+	//! Resize the int_vector in terms of elements. If the current size is smaller than `size`, the additional elements are initialized with 0.
+	/*! Only as much space as necessary is being allocated.
+	    \param size Number of elements.
+	 */
+	void resize(const size_type size) { resize(size, 0); }
+
+	//! Resize the int_vector in terms of elements. Only as much space as necessary is allocated.
+	/*! \param size The size to resize the int_vector in terms of elements.
+        \param value If the current size is smaller than `size`, the additional elements are initialized with value.
+	 */
+	void resize(const size_type size, const value_type value) { bit_resize(size * m_width, value); }
+
+	//! Resize the int_vector in terms of bits. Only as much space as necessary is allocated.
 	/*! \param size The size to resize the int_vector in terms of bits.
          */
 	void bit_resize(const size_type size);
 
 	//! The number of elements in the int_vector.
-	/*! \sa max_size, bit_size, capacity
+	/*! \sa max_size, bit_size, capacity, bit_capacity
          */
 	inline size_type size() const;
 
 	//! Maximum size of the int_vector.
-	/*! \sa size, bit_size, capacity
+	/*! \sa size, bit_size, capacity, bit_capacity
         */
 	static size_type max_size() { return ((size_type)1) << (sizeof(size_type) * 8 - 6); }
 
@@ -353,10 +576,17 @@ public:
 
 	//! Returns the size of the occupied bits of the int_vector.
 	/*! The capacity of a int_vector is greater or equal to the
-            bit_size of the vector: capacity() >= bit_size().
-            \sa size, bit_size, max_size, capacity
+            size of the vector: capacity() >= size().
+            \sa size, bit_size, max_size, capacity, bit_capacity
          */
-	size_type capacity() const { return ((m_size + 63) >> 6) << 6; }
+	inline size_type capacity() const;
+
+	//! Returns the size of the occupied bits of the int_vector.
+	/*! The bit_capacity of a int_vector is greater or equal to the
+            bit_size of the vector: bit_capacity() >= bit_size().
+            \sa size, bit_size, max_size, capacity, bit_capacity
+         */
+	size_type bit_capacity() const { return m_capacity; }
 
 	//! Pointer to the raw data of the int_vector
 	/*! \returns Const pointer to the raw data of the int_vector
@@ -393,7 +623,7 @@ public:
 	uint8_t width() const { return m_width; }
 
 	//! Sets the width of the integers which are accessed via the [] operator, if t_width equals 0.
-	/*! \param intWidth New width of the integers accessed via the [] operator.
+	/*! \param new_width New width of the integers accessed via the [] operator.
             \note This method has no effect if t_width is in the range [1..64].
               \sa width
         */
@@ -424,6 +654,18 @@ public:
          */
 	inline const_reference operator[](const size_type& i) const;
 
+ 	//! non const version of at() function
+ 	/*! \param i Index the i-th integer of length width().
+ 	 *  \return A reference to the i-th integer of length width().
+ 	 */
+ 	reference at(const size_type& i) { return (*this)[i]; }
+
+ 	//! const version of at() function
+ 	/*! \param i Index the i-th integer of length width().
+ 	 *  \return The value of the i-th integer of length width().
+ 	 */
+ 	const_reference at(const size_type& i) const { return (*this)[i]; }
+
 	//! Assignment operator.
 	/*! \param v The vector v which should be assigned
          */
@@ -434,19 +676,44 @@ public:
 
 	//! Equality operator for two int_vectors.
 	/*! Two int_vectors are equal if
-         *    - capacities and sizes are equal and
-         *    - width are equal and
-         *    - the bits in the range [0..bit_size()-1] are equal.
+         *    - sizes are equal and
+         *    - its elements are equal.
          */
-	bool operator==(const int_vector& v) const;
+ 	bool operator==(const int_vector<t_width> & v) const
+	{
+		if (bit_size() != v.bit_size()) return false;
+		if (empty()) return true;
+		const uint64_t* data1 = v.data();
+		const uint64_t* data2 = data();
+		for (size_type i = 0; i < bit_data_size() - 1; ++i) {
+			if (*(data1++) != *(data2++)) return false;
+		}
+		uint8_t l = 64 - ((bit_data_size() << 6) - m_size);
+		return ((*data1) & bits::lo_set[l]) == ((*data2) & bits::lo_set[l]);
+	}
+
+	//! Equality operator for an arbitrary container.
+	/*! Note that this function is slow since it compares element by element
+	    and cannot compare the bit representations of the containers.
+	    Two containers are equal if
+         *    - sizes are equal and
+         *    - its elements are equal.
+         */
+	template <class container>
+	bool operator==(const container& v) const
+	{
+		return std::equal(begin(), end(), v.begin());
+	}
 
 	//! Inequality operator for two int_vectors.
 	/*! Two int_vectors are not equal if
-         *    - capacities and sizes are not equal or
-         *    - int widths are not equal or
-         *    - the bits in the range [0..bit_size()-1] are not equal.
+         *    - sizes are not equal or
+         *    - its elements are not equal.
+		Note that comparing two int_vectors of different widths is slow
+ 		since it compares element by element and not the bit representations of the int_vectors.
          */
-	bool operator!=(const int_vector& v) const;
+ 	template <uint8_t t_width2>
+	bool operator!=(const int_vector<t_width2> & v) const { return !(*this == v); }
 
 	//! Less operator for two int_vectors
 	/*! int_vector w is less than v if
@@ -481,31 +748,31 @@ public:
 	//! Iterator that points to the first element of the int_vector.
 	/*!  Time complexity guaranty is O(1).
          */
-	const iterator begin() { return int_vector_trait<t_width>::begin(this, m_data); }
+	iterator begin() { return int_vector_trait<t_width>::begin(this, m_data); }
 
 	//! Iterator that points to the element after the last element of int_vector.
 	/*! Time complexity guaranty is O(1).
          */
-	const iterator end()
-	{
-		return int_vector_trait<t_width>::end(this, m_data, (m_size / m_width));
-	}
+	iterator end() { return int_vector_trait<t_width>::end(this, m_data, (m_size / m_width)); }
 
 	//! Const iterator that points to the first element of the int_vector.
-	const const_iterator begin() const { return int_vector_trait<t_width>::begin(this, m_data); }
+	const_iterator begin() const { return int_vector_trait<t_width>::begin(this, m_data); }
 
 	//! Const iterator that points to the element after the last element of int_vector.
-	const const_iterator end() const
-	{
-		return int_vector_trait<t_width>::end(this, m_data, (m_size / m_width));
-	}
+	const_iterator end() const { return int_vector_trait<t_width>::end(this, m_data, (m_size / m_width)); }
+
+	//! Const iterator that points to the first element of the int_vector.
+	const_iterator cbegin() const { return int_vector_trait<t_width>::begin(this, m_data); }
+
+	//! Const iterator that points to the element after the last element of int_vector.
+	const_iterator cend() const { return int_vector_trait<t_width>::end(this, m_data, (m_size / m_width)); }
 
 	//! Flip all bits of bit_vector
 	void flip()
 	{
 		static_assert(1 == t_width, "int_vector: flip() is available only for bit_vector.");
 		if (!empty()) {
-			for (uint64_t i = 0; i < (capacity() >> 6); ++i) {
+			for (uint64_t i = 0; i < bit_data_size(); ++i) {
 				m_data[i] = ~m_data[i];
 			}
 		}
@@ -1130,33 +1397,33 @@ operator<<(std::ostream& os, const t_bv& bv)
 // ==== int_vector implementation  ====
 
 template <uint8_t t_width>
-inline int_vector<t_width>::int_vector(size_type size, value_type default_value, uint8_t intWidth)
-	: m_size(0), m_data(nullptr), m_width(t_width)
+inline int_vector<t_width>::int_vector(size_type size, value_type default_value, uint8_t int_width)
+	: m_size(0), m_capacity(0), m_data(nullptr), m_width(t_width)
 {
-	width(intWidth);
-	resize(size);
-	util::set_to_value(*this, default_value); // new initialization
+	width(int_width);
+	assign(size, default_value);
 }
 
 template <uint8_t t_width>
 inline int_vector<t_width>::int_vector(int_vector&& v)
-	: m_size(v.m_size), m_data(v.m_data), m_width(v.m_width)
+	: m_size(v.m_size), m_capacity(v.m_capacity), m_data(v.m_data), m_width(v.m_width)
 {
 	v.m_data = nullptr; // ownership of v.m_data now transfered
 	v.m_size = 0;
+	v.m_capacity = 0;
 }
 
 template <uint8_t t_width>
 inline int_vector<t_width>::int_vector(const int_vector& v)
-	: m_size(0), m_data(nullptr), m_width(v.m_width)
+	: m_size(0), m_capacity(0), m_data(nullptr), m_width(v.m_width)
 {
-	bit_resize(v.bit_size());
-	if (v.capacity() > 0) {
-		if (memcpy(m_data, v.data(), v.capacity() / 8) == nullptr) {
+	width(v.m_width);
+	resize(v.size());
+	if (v.m_size > 0) {
+		if (memcpy(m_data, v.data(), bit_data_size() << 3) == nullptr) {
 			throw std::bad_alloc(); // LCOV_EXCL_LINE
 		}
 	}
-	width(v.m_width);
 }
 
 template <uint8_t	t_width>
@@ -1173,11 +1440,13 @@ template <uint8_t	t_width>
 int_vector<t_width>& int_vector<t_width>::operator=(int_vector&& v)
 {
 	if (this != &v) { // if v is not the same object
-		m_size   = v.m_size;
-		m_data   = v.m_data;
-		m_width  = v.m_width;
-		v.m_data = nullptr;
-		v.m_size = 0;
+		m_size     = v.m_size;
+		m_data     = v.m_data;
+		m_width    = v.m_width;
+		m_capacity = v.m_capacity;
+		v.m_data     = nullptr;
+		v.m_size     = 0;
+		v.m_capacity = 0;
 	}
 	return *this;
 }
@@ -1189,10 +1458,28 @@ int_vector<t_width>::~int_vector()
 	memory_manager::clear(*this);
 }
 
+// sdsl::swap (to fulfill the container concept)
+template <uint8_t t_width>
+void swap(int_vector<t_width>& v1, int_vector<t_width>& v2) { std::swap(v1, v2); }
+
 template <uint8_t t_width>
 void int_vector<t_width>::bit_resize(const size_type size)
 {
-	memory_manager::resize(*this, size);
+	assert(size % m_width == 0);
+
+	if (size > m_capacity || m_data == nullptr) {
+		memory_manager::resize(*this, size);
+	}
+	m_size = size;
+}
+
+template <uint8_t t_width>
+void int_vector<t_width>::bit_resize(const size_type size, const value_type value)
+{
+	size_type old_size = m_size;
+	bit_resize(size);
+	auto it = begin() + old_size / m_width;
+	util::set_to_value(*this, value, it);
 }
 
 template <uint8_t t_width>
@@ -1263,6 +1550,41 @@ inline typename int_vector<1>::size_type int_vector<1>::size() const {
 }
 
 
+
+template <uint8_t t_width>
+inline typename int_vector<t_width>::size_type int_vector<t_width>::capacity() const {
+    return m_capacity / m_width;
+}
+
+// specialized capacity method for 64-bit integer vector
+template <>
+inline typename int_vector<64>::size_type int_vector<64>::capacity() const {
+    return m_capacity>>6;
+}
+
+// specialized capacity method for 32-bit integer vector
+template <>
+inline typename int_vector<32>::size_type int_vector<32>::capacity() const {
+    return m_capacity>>5;
+}
+
+// specialized capacity method for 64-bit integer vector
+template <>
+inline typename int_vector<16>::size_type int_vector<16>::capacity() const {
+    return m_capacity>>4;
+}
+
+// specialized capacity method for 64-bit integer vector
+template <>
+inline typename int_vector<8>::size_type int_vector<8>::capacity() const {
+    return m_capacity>>3;
+}
+
+// specialized capacity method for bit_vector
+template <>
+inline typename int_vector<1>::size_type int_vector<1>::capacity() const {
+    return m_capacity;
+}
 
 template <uint8_t t_width>
 inline auto int_vector<t_width>::operator[](const size_type& idx) -> reference
@@ -1352,20 +1674,6 @@ inline auto int_vector<1>::operator[](const size_type& idx) const -> const_refer
 	assert(idx < this->size());
 	return ((*(m_data + (idx >> 6))) >> (idx & 0x3F)) & 1;
 }
-template <uint8_t t_width>
-bool int_vector<t_width>::operator==(const int_vector& v) const
-{
-	if (capacity() != v.capacity()) return false;
-	if (bit_size() != v.bit_size()) return false;
-	if (empty()) return true;
-	const uint64_t* data1 = v.data();
-	const uint64_t* data2 = data();
-	for (size_type i = 0; i < (capacity() >> 6) - 1; ++i) {
-		if (*(data1++) != *(data2++)) return false;
-	}
-	int8_t l = 64 - (capacity() - bit_size());
-	return ((*data1) & bits::lo_set[l]) == ((*data2) & bits::lo_set[l]);
-}
 
 template <uint8_t t_width>
 bool int_vector<t_width>::operator<(const int_vector& v) const
@@ -1407,18 +1715,11 @@ bool int_vector<t_width>::operator>=(const int_vector& v) const
 	return *this == v or *this > v;
 }
 
-template <uint8_t t_width>
-bool int_vector<t_width>::operator!=(const int_vector& v) const
-{
-	return !(*this == v);
-}
-
 template <uint8_t	t_width>
 int_vector<t_width>& int_vector<t_width>::operator&=(const int_vector& v)
 {
-	assert(bit_size() == v.bit_size());
-	assert(v.capacity() <= capacity());
-	for (uint64_t i = 0; i < (v.capacity() >> 6); ++i)
+	assert(v.bit_size() == bit_size());
+	for (uint64_t i = 0; i < bit_data_size(); ++i)
 		m_data[i] &= v.m_data[i];
 	return *this;
 }
@@ -1427,8 +1728,7 @@ template <uint8_t	t_width>
 int_vector<t_width>& int_vector<t_width>::operator|=(const int_vector& v)
 {
 	assert(bit_size() == v.bit_size());
-	assert(v.capacity() <= capacity());
-	for (uint64_t i = 0; i < (v.capacity() >> 6); ++i)
+	for (uint64_t i = 0; i < bit_data_size(); ++i)
 		m_data[i] |= v.m_data[i];
 	return *this;
 }
@@ -1437,8 +1737,7 @@ template <uint8_t	t_width>
 int_vector<t_width>& int_vector<t_width>::operator^=(const int_vector& v)
 {
 	assert(bit_size() == v.bit_size());
-	assert(v.capacity() <= capacity());
-	for (uint64_t i = 0; i < (v.capacity() >> 6); ++i)
+	for (uint64_t i = 0; i < bit_data_size(); ++i)
 		m_data[i] ^= v.m_data[i];
 	return *this;
 }
@@ -1449,14 +1748,14 @@ typename int_vector<t_width>::size_type int_vector<t_width>::write_data(std::ost
 	size_type written_bytes = 0;
 	uint64_t* p				= m_data;
 	size_type idx			= 0;
-	while (idx + conf::SDSL_BLOCK_SIZE < (capacity() >> 6)) {
+	while (idx + conf::SDSL_BLOCK_SIZE < bit_data_size()) {
 		out.write((char*)p, conf::SDSL_BLOCK_SIZE * sizeof(uint64_t));
 		written_bytes += conf::SDSL_BLOCK_SIZE * sizeof(uint64_t);
 		p += conf::SDSL_BLOCK_SIZE;
 		idx += conf::SDSL_BLOCK_SIZE;
 	}
-	out.write((char*)p, ((capacity() >> 6) - idx) * sizeof(uint64_t));
-	written_bytes += ((capacity() >> 6) - idx) * sizeof(uint64_t);
+	out.write((char*)p, (bit_data_size() - idx) * sizeof(uint64_t));
+	written_bytes += (bit_data_size() - idx) * sizeof(uint64_t);
 	return written_bytes;
 }
 
@@ -1480,12 +1779,12 @@ void int_vector<t_width>::load(std::istream& in)
 	bit_resize(size);
 	uint64_t* p   = m_data;
 	size_type idx = 0;
-	while (idx + conf::SDSL_BLOCK_SIZE < (capacity() >> 6)) {
+	while (idx + conf::SDSL_BLOCK_SIZE < bit_data_size()) {
 		in.read((char*)p, conf::SDSL_BLOCK_SIZE * sizeof(uint64_t));
 		p += conf::SDSL_BLOCK_SIZE;
 		idx += conf::SDSL_BLOCK_SIZE;
 	}
-	in.read((char*)p, ((capacity() >> 6) - idx) * sizeof(uint64_t));
+	in.read((char*)p, (bit_data_size() - idx) * sizeof(uint64_t));
 }
 
 } // end namespace sdsl

@@ -88,6 +88,7 @@ public:
 			pos += it.size() + 1 - size;
 		}
 		tmp_bv.resize(pos);
+		tmp_bv.shrink_to_fit();
 		m_bv = bit_vector_type(std::move(tmp_bv));
 		util::init_support(m_bv_select1, &m_bv);
 		util::init_support(m_bv_select0, &m_bv);

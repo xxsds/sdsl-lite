@@ -261,7 +261,7 @@ void select_support_mcl<t_b, t_pat_len>::init_fast(const bit_vector* v)
 	const uint64_t*		  data		= v->data();
 	uint64_t			  carry_new = 0;
 	size_type			  last_k64 = 1, sb_cnt = 0;
-	for (size_type i = 0, cnt_old = 0, cnt_new = 0, last_k64_sum = 1; i < v->capacity();
+	for (size_type i = 0, cnt_old = 0, cnt_new = 0, last_k64_sum = 1; i < (((v->bit_size() + 63) >> 6) << 6);
 		 i += 64, ++data) {
 		cnt_new += select_support_trait<t_b, t_pat_len>::args_in_the_word(*data, carry_new);
 		if (cnt_new >= last_k64_sum) {
@@ -375,7 +375,7 @@ inline auto select_support_mcl<t_b, t_pat_len>::select(size_type i) const -> siz
 			args = select_support_trait<t_b, t_pat_len>::args_in_the_word(*(++data), carry);
 			while (sum_args + args < i) {
 				sum_args += args;
-				assert(data + 1 < m_v->data() + (m_v->capacity() >> 6));
+				assert(data + 1 < m_v->data() + ((m_v->bit_size() + 63) >> 6));
 				old_carry = carry;
 				args = select_support_trait<t_b, t_pat_len>::args_in_the_word(*(++data), carry);
 				word_pos += 1;
@@ -399,7 +399,7 @@ void select_support_mcl<t_b, t_pat_len>::initData()
 	if (nullptr == m_v) {
 		m_logn = m_logn2 = m_logn4 = 0;
 	} else {
-		m_logn = bits::hi(m_v->capacity()) + 1; // TODO maybe it's better here to take a max(...,12)
+		m_logn = bits::hi(((m_v->bit_size() + 63) >> 6) << 6) + 1; // TODO maybe it's better here to take a max(...,12)
 		m_logn2 = m_logn * m_logn;
 		m_logn4 = m_logn2 * m_logn2;
 	}

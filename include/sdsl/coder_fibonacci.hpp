@@ -176,6 +176,7 @@ inline bool fibonacci::encode(const int_vector1& v, int_vector2& z)
 		z_bit_size += encoding_length(w);
 	}
 	z.bit_resize(z_bit_size);
+	z.shrink_to_fit();
 	if (z_bit_size & 0x3F) {				 // if z_bit_size % 64 != 0
 		*(z.m_data + (z_bit_size >> 6)) = 0; // initialize last word
 	}
@@ -311,18 +312,20 @@ bool fibonacci::decode(const int_vector1& z, int_vector2& v)
 	if (z.empty()) { // if z is empty we are ready with decoding
 		v.width(z.width());
 		v.resize(0);
+		v.shrink_to_fit();
 		return true;
 	}
-	for (typename int_vector1::size_type i = 0; i < (z.capacity() >> 6) - 1; ++i, ++data) {
+	for (typename int_vector1::size_type i = 0; i < z.bit_data_size() - 1; ++i, ++data) {
 		n += bits::cnt11(*data, carry);
 	}
-	if (z.capacity() != z.bit_size()) {
+	if (z.bit_data_size() << 6 != z.bit_size()) {
 		n += bits::cnt11((*data) & bits::lo_set[z.bit_size() & 0x3F], carry);
 	} else {
 		n += bits::cnt11(*data, carry);
 	}
 	v.width(z.width());
 	v.resize(n);
+	v.shrink_to_fit();
 	return decode<false, true>(z.data(), 0, n, v.begin());
 }
 

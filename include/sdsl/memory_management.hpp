@@ -755,35 +755,27 @@ public:
 #endif
 	}
 	template <class t_vec>
-	static void resize(t_vec& v, const typename t_vec::size_type size)
+	static void resize(t_vec& v, const typename t_vec::size_type capacity)
 	{
-		uint64_t old_size_in_bytes = ((v.m_size + 63) >> 6) << 3;
-		uint64_t new_size_in_bytes = ((size + 63) >> 6) << 3;
-		bool	 do_realloc		   = old_size_in_bytes != new_size_in_bytes;
-		v.m_size				   = size;
+		uint64_t old_capacity_in_bytes = ((v.m_capacity + 63) >> 6) << 3;
+		uint64_t new_capacity_in_bytes = ((capacity + 63) >> 6) << 3;
+		bool	 do_realloc		   = old_capacity_in_bytes != new_capacity_in_bytes;
+		v.m_capacity      		   = ((capacity + 63) >> 6) << 6; // set new_capacity to a multiple of 64
+
 		if (do_realloc || v.m_data == nullptr) {
-			// Note that we allocate 8 additional bytes if m_size % 64 == 0.
+			// Note that we allocate 8 additional bytes if m_capacity % 64 == 0.
 			// We need this padding since rank data structures do a memory
-			// access to this padding to answer rank(size()) if size()%64 ==0.
+			// access to this padding to answer rank(size()) if capacity()%64 ==0.
 			// Note that this padding is not counted in the serialize method!
-			size_t allocated_bytes = (size_t)(((size + 64) >> 6) << 3);
+			size_t allocated_bytes = (size_t)(((v.m_capacity + 64) >> 6) << 3);
 			v.m_data			   = memory_manager::realloc_mem(v.m_data, allocated_bytes);
 			if (allocated_bytes != 0 && v.m_data == nullptr) {
 				throw std::bad_alloc();
 			}
-			// update and fill with 0s
-			if (v.bit_size() < v.capacity()) {
-				uint8_t len			   = (uint8_t)(v.capacity() - v.bit_size());
-				uint8_t in_word_offset = (uint8_t)(v.bit_size() & 0x3F);
-				bits::write_int(v.m_data + (v.bit_size() >> 6), 0, in_word_offset, len);
-			}
-			if (((v.m_size) % 64) == 0) { // initialize unreachable bits with 0
-				v.m_data[v.m_size / 64] = 0;
-			}
 
 			// update stats
 			if (do_realloc) {
-				memory_monitor::record((int64_t)new_size_in_bytes - (int64_t)old_size_in_bytes);
+				memory_monitor::record((int64_t)new_capacity_in_bytes - (int64_t)old_capacity_in_bytes);
 			}
 		}
 	}

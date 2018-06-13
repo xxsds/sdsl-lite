@@ -130,6 +130,7 @@ public:
 			old_l			 = l;
 		}
 		data.resize(data_cnt);
+		data.shrink_to_fit();
 		m_data = bit_vector_type(data);
 		util::init_support(m_select_support, &m_data);
 	}

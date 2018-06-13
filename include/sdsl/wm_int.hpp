@@ -111,58 +111,59 @@ public:
 			if (value > max_elem) max_elem = value;
 		}
 		m_max_level = bits::hi(max_elem) + 1;
-		int_vector<> rac(m_size, 0, m_max_level);
-		std::copy(begin, end, rac.begin());
-
-		// buffer for elements in the right node
-		std::string zero_buf_file_name	 = tmp_file(tmp_dir, "_zero_buf");
 		std::string tree_out_buf_file_name = tmp_file(tmp_dir, "_m_tree");
-		osfstream   tree_out_buf(tree_out_buf_file_name,
-							   std::ios::binary | std::ios::trunc |
-							   std::ios::out); // open buffer for tree
-		size_type bit_size = m_size * m_max_level;
-		int_vector<1>::write_header(bit_size, 1, tree_out_buf); // write bv header
+		{
+			int_vector<> rac(m_size, 0, m_max_level);
+			std::copy(begin, end, rac.begin());
+
+			// buffer for elements in the right node
+			std::string zero_buf_file_name	 = tmp_file(tmp_dir, "_zero_buf");
+			osfstream   tree_out_buf(tree_out_buf_file_name,
+								   std::ios::binary | std::ios::trunc |
+								   std::ios::out); // open buffer for tree
+			size_type bit_size = m_size * m_max_level;
+			int_vector<1>::write_header(bit_size, 1, tree_out_buf); // write bv header
 
 
-		size_type tree_pos  = 0;
-		uint64_t  tree_word = 0;
+			size_type tree_pos  = 0;
+			uint64_t  tree_word = 0;
 
-		m_zero_cnt = int_vector<64>(m_max_level, 0); // zeros at level i
+			m_zero_cnt = int_vector<64>(m_max_level, 0); // zeros at level i
 
-		for (uint32_t k = 0; k < m_max_level; ++k) {
-			uint8_t				width = m_max_level - k - 1;
-			const uint64_t		mask  = 1ULL << width;
-			uint64_t			x	 = 0;
-			size_type			zeros = 0;
-			int_vector_buffer<> zero_buf(
-			zero_buf_file_name, std::ios::out, 1024 * 1024, m_max_level);
-			for (size_t i = 0; i < m_size; ++i) {
-				x = rac[i];
-				if (x & mask) {
-					tree_word |= (1ULL << (tree_pos & 0x3FULL));
-					zero_buf.push_back(x);
-				} else {
-					rac[zeros++] = x;
+			for (uint32_t k = 0; k < m_max_level; ++k) {
+				uint8_t				width = m_max_level - k - 1;
+				const uint64_t		mask  = 1ULL << width;
+				uint64_t			x	 = 0;
+				size_type			zeros = 0;
+				int_vector_buffer<> zero_buf(
+				zero_buf_file_name, std::ios::out, 1024 * 1024, m_max_level);
+				for (size_t i = 0; i < m_size; ++i) {
+					x = rac[i];
+					if (x & mask) {
+						tree_word |= (1ULL << (tree_pos & 0x3FULL));
+						zero_buf.push_back(x);
+					} else {
+						rac[zeros++] = x;
+					}
+					++tree_pos;
+					if ((tree_pos & 0x3FULL) == 0) { // if tree_pos % 64 == 0 write old word
+						tree_out_buf.write((char*)&tree_word, sizeof(tree_word));
+						tree_word = 0;
+					}
 				}
-				++tree_pos;
-				if ((tree_pos & 0x3FULL) == 0) { // if tree_pos % 64 == 0 write old word
-					tree_out_buf.write((char*)&tree_word, sizeof(tree_word));
-					tree_word = 0;
+				m_zero_cnt[k] = zeros;
+				for (size_t i = zeros; i < m_size; ++i) {
+					rac[i] = zero_buf[i - zeros];
 				}
 			}
-			m_zero_cnt[k] = zeros;
-			for (size_t i = zeros; i < m_size; ++i) {
-				rac[i] = zero_buf[i - zeros];
+			if ((tree_pos & 0x3FULL) !=
+				0) { // if tree_pos % 64 > 0 => there are remaining entries we have to write
+				tree_out_buf.write((char*)&tree_word, sizeof(tree_word));
 			}
+			sdsl::remove(zero_buf_file_name);
+			tree_out_buf.close();
+			m_sigma = std::unique(rac.begin(), rac.end()) - rac.begin();
 		}
-		if ((tree_pos & 0x3FULL) !=
-			0) { // if tree_pos % 64 > 0 => there are remaining entries we have to write
-			tree_out_buf.write((char*)&tree_word, sizeof(tree_word));
-		}
-		sdsl::remove(zero_buf_file_name);
-		tree_out_buf.close();
-		m_sigma = std::unique(rac.begin(), rac.end()) - rac.begin();
-		rac.resize(0);
 		bit_vector tree;
 		load_from_file(tree, tree_out_buf_file_name);
 		sdsl::remove(tree_out_buf_file_name);
