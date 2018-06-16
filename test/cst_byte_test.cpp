@@ -27,9 +27,35 @@ class cst_byte_test : public ::testing::Test { };
 
 using testing::Types;
 
-typedef Types<@typedef_line@> Implementations;
+#ifdef FULL_TEST_SUITE
 
+typedef Types<
+    cst_sada<>,
+    cst_sct3<>,
+    cst_fully<>,
+    cst_sct3<cst_sct3<>::csa_type,lcp_bitcompressed<>>,
+    cst_sct3<cst_sct3<>::csa_type,lcp_support_tree2<>>,
+    cst_sada<cst_sada<>::csa_type,lcp_dac<>>,
+    cst_sada<cst_sada<>::csa_type,lcp_vlc<>>,
+    cst_sada<cst_sada<>::csa_type,lcp_byte<>>,
+    cst_sada<cst_sada<>::csa_type,lcp_support_tree2<>, bp_support_gg<>>,
+    cst_sct3<cst_sct3<>::csa_type,lcp_support_tree<>, bp_support_gg<>>,
+    cst_sada<cst_sada<>::csa_type,lcp_support_tree<>>,
+    cst_sct3<cst_sct3<>::csa_type,lcp_support_sada<>>,
+    cst_sct3<cst_sct3<>::csa_type,lcp_wt<>>,
+    cst_sct3<cst_sct3<>::csa_type,lcp_support_tree<>, bp_support_g<>>,
+    cst_sct3<csa_bitcompressed<>, lcp_bitcompressed<>>
+> Implementations;
 
+#else
+
+typedef Types<
+    cst_sada<>,
+    cst_sct3<>,
+    cst_fully<>
+> Implementations;
+
+#endif
 
 // template<class T>
 // class cst_byte_test_sada : public ::testing::Test { };
@@ -469,4 +495,3 @@ int main(int argc, char** argv)
     }
     return RUN_ALL_TESTS();
 }
-

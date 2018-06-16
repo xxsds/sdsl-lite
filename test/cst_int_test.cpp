@@ -42,7 +42,38 @@ typedef csa_wt<wt_int<>,32,32,text_order_sa_sampling<>,isa_sampling<>,int_alphab
 typedef csa_sada<enc_vector<>,32,32,text_order_sa_sampling<>,isa_sampling<>,int_alphabet<>> tCSA2;
 typedef csa_bitcompressed<int_alphabet<>> tCSA3;
 
-typedef Types<@typedef_line@> Implementations;
+#ifdef FULL_TEST_SUITE
+
+typedef Types<
+    cst_sct3<csa_wt<wt_int<>, 32, 32, text_order_sa_sampling<>, isa_sampling<>, int_alphabet<>>>,
+    cst_sada<csa_wt<wt_int<>, 32, 32, text_order_sa_sampling<>, isa_sampling<>, int_alphabet<>>>,
+    cst_fully<csa_wt<wt_int<>, 32, 32, text_order_sa_sampling<>, isa_sampling<>, int_alphabet<>>>,
+    cst_sct3<tCSA1,lcp_bitcompressed<>>,
+    cst_sada<tCSA1,lcp_dac<>>,
+    cst_fully<tCSA1>,
+    cst_sct3<tCSA2,lcp_bitcompressed<>>,
+    cst_sct3<tCSA3,lcp_bitcompressed<>>,
+    cst_sada<tCSA1,lcp_vlc<>>,
+    cst_sada<tCSA1,lcp_byte<>>,
+    cst_sada<tCSA1,lcp_support_tree2<>,bp_support_gg<>>,
+    cst_sct3<tCSA3,lcp_support_tree2<>>,
+    cst_sada<tCSA1,lcp_support_tree<>>,
+    cst_sct3<tCSA1,lcp_support_tree<>,bp_support_gg<>>,
+    cst_sct3<tCSA1,lcp_support_tree<>,bp_support_g<>>,
+    cst_sada<tCSA3,lcp_dac<>>,
+    cst_sct3<tCSA1,lcp_support_sada<>>,
+    cst_sct3<tCSA1,lcp_wt<>>
+> Implementations;
+
+#else
+
+typedef Types<
+    cst_sct3<csa_wt<wt_int<>, 32, 32, text_order_sa_sampling<>, isa_sampling<>, int_alphabet<>>>,
+    cst_sada<csa_wt<wt_int<>, 32, 32, text_order_sa_sampling<>, isa_sampling<>, int_alphabet<>>>,
+    cst_fully<csa_wt<wt_int<>, 32, 32, text_order_sa_sampling<>, isa_sampling<>, int_alphabet<>>>
+> Implementations;
+
+#endif
 
 TYPED_TEST_CASE(cst_int_test, Implementations);
 

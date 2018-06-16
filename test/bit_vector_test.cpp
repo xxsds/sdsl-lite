@@ -22,9 +22,42 @@ class bit_vector_test_bv_only : public ::testing::Test {
 
 using testing::Types;
 
-// clang-format off
-typedef Types<@typedef_line@> Implementations;
-// clang-format on
+#ifdef FULL_TEST_SUITE
+
+typedef Types<
+	bit_vector,
+	bit_vector_il<>,
+	bit_vector_il<64>,
+	bit_vector_il<128>,
+	bit_vector_il<256>,
+	bit_vector_il<1024>,
+	rrr_vector<64>,
+	rrr_vector<256>,
+	rrr_vector<129>,
+	rrr_vector<192>,
+	rrr_vector<255>,
+	rrr_vector<15>,
+	rrr_vector<31>,
+	rrr_vector<63>,
+	rrr_vector<83>,
+	rrr_vector<127>,
+	rrr_vector<128>,
+	sd_vector<>,
+	sd_vector<rrr_vector<63>>,
+	hyb_vector<>
+> Implementations;
+
+#else
+
+typedef Types<
+	bit_vector,
+	bit_vector_il<>,
+	rrr_vector<>,
+	sd_vector<>,
+	hyb_vector<>
+> Implementations;
+
+#endif
 
 typedef Types<bit_vector> Implementations_BV_Only;
 

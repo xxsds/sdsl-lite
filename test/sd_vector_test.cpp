@@ -16,9 +16,9 @@ class sd_vector_test : public ::testing::Test { };
 using testing::Types;
 
 typedef Types<
-sd_vector<>,
-          sd_vector<rrr_vector<63>>
-          > Implementations;
+    sd_vector<>,
+    sd_vector<rrr_vector<63>>
+> Implementations;
 
 TYPED_TEST_CASE(sd_vector_test, Implementations);
 

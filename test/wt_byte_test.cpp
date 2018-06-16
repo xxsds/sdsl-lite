@@ -23,7 +23,36 @@ class wt_byte_test : public ::testing::Test { };
 
 using testing::Types;
 
-typedef Types<@typedef_line@> Implementations;
+#ifdef FULL_TEST_SUITE
+
+typedef Types<
+    wt_rlmn<>,
+    wt_blcd<rrr_vector<63>>,
+    wt_blcd<bit_vector_il<>>,
+    wt_blcd<bit_vector>,
+    wt_huff<bit_vector_il<>>,
+    wt_huff<bit_vector, rank_support_v<>>,
+    wt_huff<bit_vector, rank_support_v5<>>,
+    wt_huff<rrr_vector<63>>,
+    wt_rlmn<bit_vector>,
+    wt_gmr_rs<>,
+    wt_hutu<bit_vector_il<>>,
+    wt_hutu<bit_vector, rank_support_v<>>,
+    wt_hutu<bit_vector, rank_support_v5<>>,
+    wt_hutu<rrr_vector<63>>
+> Implementations;
+
+#else
+
+typedef Types<
+    wt_blcd<>,
+    wt_huff<>,
+    wt_hutu<>,
+    wt_rlmn<>,
+    wt_gmr_rs<>
+> Implementations;
+
+#endif
 
 TYPED_TEST_CASE(wt_byte_test, Implementations);
 
