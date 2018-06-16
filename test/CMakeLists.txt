@@ -52,27 +52,6 @@ string(REGEX REPLACE "${CMAKE_CURRENT_BINARY_DIR}/\\.\\./include/" "" SDSL_INCLU
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/compile_test.cpp.cmake"
                "${CMAKE_CURRENT_SOURCE_DIR}/compile_test.cpp" @ONLY)
 
-file(GLOB tests_to_configure ${CMAKE_CURRENT_SOURCE_DIR}/*_test.cpp.cmake)
-#message("tests_to_configure = ${tests_to_configure}\n")
-foreach(test_to_configure ${tests_to_configure})
-#message("test_to_configure=${test_to_configure}")
-    get_filename_component(tmp ${test_to_configure} NAME_WE)
-    get_filename_component(test_base ${tmp} NAME_WE)
-#message("test_base=${CMAKE_CURRENT_SOURCE_DIR}/${test_base}.*.typedef")
-    file(GLOB typedef_files "${CMAKE_CURRENT_SOURCE_DIR}/${test_base}*.typedef")
-    foreach(typedef_file ${typedef_files})
-        file(STRINGS ${typedef_file} typedef_list)
-        string(REPLACE ";" "," typedef_line "${typedef_list}") 
-        string(REGEX REPLACE "${CMAKE_CURRENT_SOURCE_DIR}/${test_base}(.*).typedef" "\\1" typedef_id "${typedef_file}")
-        string(REPLACE "." "_" typedef_id "${typedef_id}") 
-#message("${typedef_file}=${typedef_line}\ntypedef_id=\"${typedef_id}\"\n")
-        string(REGEX REPLACE "_test" "${typedef_id}_test" test_part "${test_base}")
-        configure_file("${test_to_configure}"
-                       "${CMAKE_CURRENT_SOURCE_DIR}/${test_part}.cpp" @ONLY)
-    endforeach()
-endforeach()
-
-
 ## Test sources are all files which ends with the suffix `_test.cpp`
 ## The following command will store all matching files in the variable `test_sources`
 file(GLOB test_sources ${CMAKE_CURRENT_SOURCE_DIR}/*_test.cpp)
