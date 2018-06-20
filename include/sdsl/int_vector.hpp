@@ -515,7 +515,7 @@ public:
 	template <typename input_iterator_t>
 	void assign(input_iterator_t first, input_iterator_t last)
 	{
-		assert(first < last);
+		assert(first <= last);
 		bit_resize((last - first) * m_width);
 		size_type idx = 0;
 		while (first < last) {
