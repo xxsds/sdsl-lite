@@ -137,7 +137,7 @@ TYPED_TEST(bit_vector_test_bv_only, and_with)
 	lfsr = LFSR_START;
 	for (size_t i = 0; i < bv1.size(); ++i) {
 		lfsr = LFSR_NEXT(lfsr);
-		ASSERT_EQ(bv2[i], bv1[i] & (lfsr & 1)) << "i=" << i << endl;
+		ASSERT_EQ((bit_vector::value_type) bv2[i], bv1[i] & (lfsr & 1)) << "i=" << i << endl;
 	}
 }
 
@@ -159,7 +159,7 @@ TYPED_TEST(bit_vector_test_bv_only, or_with)
 	lfsr = LFSR_START;
 	for (size_t i = 0; i < bv1.size(); ++i) {
 		lfsr = LFSR_NEXT(lfsr);
-		ASSERT_EQ(bv2[i], bv1[i] | (lfsr & 1)) << "i=" << i << endl;
+		ASSERT_EQ((bit_vector::value_type) bv2[i], bv1[i] | (lfsr & 1)) << "i=" << i << endl;
 	}
 }
 
@@ -181,7 +181,7 @@ TYPED_TEST(bit_vector_test_bv_only, xor_with)
 	lfsr = LFSR_START;
 	for (size_t i = 0; i < bv1.size(); ++i) {
 		lfsr = LFSR_NEXT(lfsr);
-		ASSERT_EQ(bv2[i], bv1[i] ^ (lfsr & 1)) << "i=" << i << endl;
+		ASSERT_EQ((bit_vector::value_type) bv2[i], bv1[i] ^ (lfsr & 1)) << "i=" << i << endl;
 	}
 }
 
