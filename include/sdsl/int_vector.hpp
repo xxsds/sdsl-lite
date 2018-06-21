@@ -1465,8 +1465,6 @@ void swap(int_vector<t_width>& v1, int_vector<t_width>& v2) { std::swap(v1, v2);
 template <uint8_t t_width>
 void int_vector<t_width>::bit_resize(const size_type size)
 {
-	assert(size % m_width == 0);
-
 	if (size > m_capacity || m_data == nullptr) {
 		memory_manager::resize(*this, size);
 	}
