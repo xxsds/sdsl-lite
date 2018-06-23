@@ -27,6 +27,8 @@ include(CompilerFlags)
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/Make.helper.cmake"
 		       "${CMAKE_CURRENT_SOURCE_DIR}/Make.helper" @ONLY)
 
+enable_testing()
+
 # (8) main library target
 add_subdirectory(external)
 add_subdirectory(include/sdsl)
