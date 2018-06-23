@@ -53,7 +53,8 @@ TYPED_TEST(csa_int_test, create_and_store)
 {
     static_assert(sdsl::util::is_regular<TypeParam>::value, "Type is not regular");
     TypeParam csa;
-    cache_config config(false, temp_dir, util::basename(test_file));
+    std::string temp_file2 = sdsl::tmp_file(temp_dir+"/"+util::basename(test_file),util::basename(test_file));
+    cache_config config(false, temp_dir, util::basename(temp_file2));
     construct(csa, test_file, config, num_bytes);
     test_case_file_map = config.file_map;
     ASSERT_TRUE(store_to_file(csa, temp_file));
