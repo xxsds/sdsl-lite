@@ -868,10 +868,11 @@ public:
          */
 	size_type depth(const node_type& v) const
 	{
-		if (v.i == v.j) {
-			return size() - m_csa[v.i];
-		} else if (v == root()) {
+		if (v == root()) {
 			return 0;
+		}
+		else if (v.i == v.j) {
+			return size() - m_csa[v.i];
 		} else {
 			size_type kpos, ckpos;
 			size_type l = select_l_index(v, 1, kpos, ckpos);
