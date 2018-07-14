@@ -1,6 +1,3 @@
 [submodule "external/googletest"]
 	path = external/googletest
 	url = https://chromium.googlesource.com/external/googletest
-[submodule "external/libdivsufsort"]
-	path = external/libdivsufsort
-	url = https://github.com/simongog/libdivsufsort.git
