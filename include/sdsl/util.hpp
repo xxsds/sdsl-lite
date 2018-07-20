@@ -106,7 +106,7 @@ void expand_width(t_int_vec& v, uint8_t new_width);
 template <class t_int_vec>
 void mod(t_int_vec& v, typename t_int_vec::size_type m);
 
-void cyclic_shifts(uint64_t* vec, uint8_t & n, uint64_t k, uint8_t int_width);
+inline void cyclic_shifts(uint64_t* vec, uint8_t & n, uint64_t k, uint8_t int_width);
 
 //! Set all entries of int_vector to value k
 /*! \param  v The int_vector which should be set
@@ -543,7 +543,7 @@ void util::_set_one_bits(t_int_vec& v)
 	}
 }
 
-void util::cyclic_shifts(uint64_t* vec, uint8_t & n, uint64_t k, uint8_t int_width)
+inline void util::cyclic_shifts(uint64_t* vec, uint8_t & n, uint64_t k, uint8_t int_width)
 {
 	n = 0;
 	vec[0] = 0;
