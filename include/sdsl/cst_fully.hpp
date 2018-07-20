@@ -420,7 +420,9 @@ public:
          */
 	size_type depth(node_type v) const
 	{
-		if (is_leaf(v)) {
+		if (v == root()) // if v is the root
+			return 0;
+		else if (is_leaf(v)) {
 			return m_csa.size() - m_csa[v.first];
 		}
 

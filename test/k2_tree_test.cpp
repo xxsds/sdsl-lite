@@ -47,7 +47,7 @@ void check_serialize_load(t_tree& tree)
     unserialized_tree.load(ss);
     ASSERT_EQ(tree, unserialized_tree);
 }
-};
+}
 
 typedef Types<
 k2_tree<2, bit_vector, rank_support_v<>>,

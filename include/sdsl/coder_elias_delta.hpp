@@ -271,7 +271,7 @@ start_decoding:
 			if (i >= n) {				// decoded too much
 				return value - (i - n); // return corrected value
 			}
-			assert(buffered >= rbp);
+			assert((int64_t) buffered >= rbp);
 			buffered -= rbp;
 			w >>= rbp;
 			if (buffered < 16)
