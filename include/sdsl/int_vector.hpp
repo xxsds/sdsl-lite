@@ -104,21 +104,21 @@ struct int_vector_trait {
 	typedef int_vector_iterator<int_vector_type>	   iterator;
 	typedef int_vector_const_iterator<int_vector_type> const_iterator;
 
-	static iterator begin(int_vector_type* v, uint64_t*) { return iterator(v, 0); }
-	static iterator end(int_vector_type* v, uint64_t*, int_vector_size_type)
+	static iterator begin(int_vector_type* v, uint64_t*) noexcept { return iterator(v, 0); }
+	static iterator end(int_vector_type* v, uint64_t*, int_vector_size_type) noexcept
 	{
 		return iterator(v, v->size() * v->width());
 	}
-	static const_iterator begin(const int_vector_type* v, const uint64_t*)
+	static const_iterator begin(const int_vector_type* v, const uint64_t*) noexcept
 	{
 		return const_iterator(v, 0);
 	}
-	static const_iterator end(const int_vector_type* v, const uint64_t*, int_vector_size_type)
+	static const_iterator end(const int_vector_type* v, const uint64_t*, int_vector_size_type) noexcept
 	{
 		return const_iterator(v, v->size() * v->width());
 	}
 
-	static void set_width(uint8_t new_width, int_width_type& width)
+	static void set_width(uint8_t new_width, int_width_type& width) noexcept
 	{
 		if (t_width == 0) {
 			if (0 < new_width and new_width <= 64)
@@ -139,19 +139,19 @@ struct int_vector_trait<64> {
 	typedef uint64_t*		iterator;
 	typedef const uint64_t* const_iterator;
 
-	static iterator begin(int_vector_type*, uint64_t* begin) { return begin; }
-	static iterator end(int_vector_type*, uint64_t* begin, int_vector_size_type size)
+	static iterator begin(int_vector_type*, uint64_t* begin) noexcept { return begin; }
+	static iterator end(int_vector_type*, uint64_t* begin, int_vector_size_type size) noexcept
 	{
 		return begin + size;
 	}
-	static const_iterator begin(const int_vector_type*, const uint64_t* begin) { return begin; }
+	static const_iterator begin(const int_vector_type*, const uint64_t* begin) noexcept { return begin; }
 	static const_iterator
-	end(const int_vector_type*, const uint64_t* begin, int_vector_size_type size)
+	end(const int_vector_type*, const uint64_t* begin, int_vector_size_type size) noexcept
 	{
 		return begin + size;
 	}
 
-	static void set_width(uint8_t, int_width_type) {}
+	static void set_width(uint8_t, int_width_type) noexcept {}
 };
 
 template <>
@@ -164,22 +164,22 @@ struct int_vector_trait<32> {
 	typedef uint32_t*		iterator;
 	typedef const uint32_t* const_iterator;
 
-	static iterator begin(int_vector_type*, uint64_t* begin) { return (uint32_t*)begin; }
-	static iterator end(int_vector_type*, uint64_t* begin, int_vector_size_type size)
+	static iterator begin(int_vector_type*, uint64_t* begin) noexcept { return (uint32_t*)begin; }
+	static iterator end(int_vector_type*, uint64_t* begin, int_vector_size_type size) noexcept
 	{
 		return ((uint32_t*)begin) + size;
 	}
-	static const_iterator begin(const int_vector_type*, const uint64_t* begin)
+	static const_iterator begin(const int_vector_type*, const uint64_t* begin) noexcept
 	{
 		return (uint32_t*)begin;
 	}
 	static const_iterator
-	end(const int_vector_type*, const uint64_t* begin, int_vector_size_type size)
+	end(const int_vector_type*, const uint64_t* begin, int_vector_size_type size) noexcept
 	{
 		return ((uint32_t*)begin) + size;
 	}
 
-	static void set_width(uint8_t, int_width_type) {}
+	static void set_width(uint8_t, int_width_type) noexcept {}
 };
 
 template <>
@@ -192,22 +192,22 @@ struct int_vector_trait<16> {
 	typedef uint16_t*		iterator;
 	typedef const uint16_t* const_iterator;
 
-	static iterator begin(int_vector_type*, uint64_t* begin) { return (uint16_t*)begin; }
-	static iterator end(int_vector_type*, uint64_t* begin, int_vector_size_type size)
+	static iterator begin(int_vector_type*, uint64_t* begin) noexcept { return (uint16_t*)begin; }
+	static iterator end(int_vector_type*, uint64_t* begin, int_vector_size_type size) noexcept
 	{
 		return ((uint16_t*)begin) + size;
 	}
-	static const_iterator begin(const int_vector_type*, const uint64_t* begin)
+	static const_iterator begin(const int_vector_type*, const uint64_t* begin) noexcept
 	{
 		return (uint16_t*)begin;
 	}
 	static const_iterator
-	end(const int_vector_type*, const uint64_t* begin, int_vector_size_type size)
+	end(const int_vector_type*, const uint64_t* begin, int_vector_size_type size) noexcept
 	{
 		return ((uint16_t*)begin) + size;
 	}
 
-	static void set_width(uint8_t, int_width_type) {}
+	static void set_width(uint8_t, int_width_type) noexcept {}
 };
 
 template <>
@@ -220,22 +220,22 @@ struct int_vector_trait<8> {
 	typedef uint8_t*	   iterator;
 	typedef const uint8_t* const_iterator;
 
-	static iterator begin(int_vector_type*, uint64_t* begin) { return (uint8_t*)begin; }
-	static iterator end(int_vector_type*, uint64_t* begin, int_vector_size_type size)
+	static iterator begin(int_vector_type*, uint64_t* begin) noexcept { return (uint8_t*)begin; }
+	static iterator end(int_vector_type*, uint64_t* begin, int_vector_size_type size) noexcept
 	{
 		return ((uint8_t*)begin) + size;
 	}
-	static const_iterator begin(const int_vector_type*, const uint64_t* begin)
+	static const_iterator begin(const int_vector_type*, const uint64_t* begin) noexcept
 	{
 		return (uint8_t*)begin;
 	}
 	static const_iterator
-	end(const int_vector_type*, const uint64_t* begin, int_vector_size_type size)
+	end(const int_vector_type*, const uint64_t* begin, int_vector_size_type size) noexcept
 	{
 		return ((uint8_t*)begin) + size;
 	}
 
-	static void set_width(uint8_t, int_width_type) {}
+	static void set_width(uint8_t, int_width_type) noexcept {}
 };
 
 //! A generic vector class for integers of width \f$w\in [1..64]\f$.
@@ -356,7 +356,7 @@ public:
 	//! Clearing the int_vector. Allocated memory will not be released.
 	/*! \sa resize
 	 */
-	void clear() { m_size = 0; }
+	void clear() noexcept { m_size = 0; }
 
 	//! Remove element that iterator is pointing to.
 	/*! \param it Iterator pointing to an element in int_vector
@@ -445,16 +445,16 @@ public:
 	}
 
 	//! Returns first element.
-	reference front() { return *begin(); }
+	reference front() noexcept { return *begin(); }
 
 	//! Returns first element.
-	const_reference front() const { return *cbegin(); }
+	const_reference front() const noexcept { return *cbegin(); }
 
 	//! Returns last element.
-	reference back() { return *(end()-1); }
+	reference back() noexcept { return *(end()-1); }
 
 	//! Returns last element.
-	const_reference back() const { return *(cend() - 1); }
+	const_reference back() const noexcept { return *(cend() - 1); }
 
 	//! Insert an element constructed with std::forward<Args>(args) at the end.
 	/*! \param args Function parameter pack.
@@ -524,10 +524,10 @@ public:
     }
 
 	//! Equivalent to size() == 0.
-	bool empty() const { return 0 == m_size; }
+	bool empty() const noexcept { return 0 == m_size; }
 
 	//! Swap method for int_vector.
-	void swap(int_vector& v) { std::swap(v, *this); }
+	void swap(int_vector& v) noexcept { std::swap(v, *this); }
 
 	//! Free unused allocated memory.
 	void shrink_to_fit() { memory_manager::resize(*this, m_size); }
@@ -562,41 +562,41 @@ public:
 	//! The number of elements in the int_vector.
 	/*! \sa max_size, bit_size, capacity, bit_capacity
          */
-	inline size_type size() const;
+	inline size_type size() const noexcept;
 
 	//! Maximum size of the int_vector.
 	/*! \sa size, bit_size, capacity, bit_capacity
         */
-	static size_type max_size() { return ((size_type)1) << (sizeof(size_type) * 8 - 6); }
+	static size_type max_size() noexcept { return ((size_type)1) << (sizeof(size_type) * 8 - 6); }
 
 	//! The number of bits in the int_vector.
 	/*!  \sa size, max_size, bit_size, capacity
          */
-	size_type bit_size() const { return m_size; }
+	size_type bit_size() const noexcept { return m_size; }
 
 	//! Returns the size of the occupied bits of the int_vector.
 	/*! The capacity of a int_vector is greater or equal to the
             size of the vector: capacity() >= size().
             \sa size, bit_size, max_size, capacity, bit_capacity
          */
-	inline size_type capacity() const;
+	inline size_type capacity() const noexcept;
 
 	//! Returns the size of the occupied bits of the int_vector.
 	/*! The bit_capacity of a int_vector is greater or equal to the
             bit_size of the vector: bit_capacity() >= bit_size().
             \sa size, bit_size, max_size, capacity, bit_capacity
          */
-	size_type bit_capacity() const { return m_capacity; }
+	size_type bit_capacity() const noexcept { return m_capacity; }
 
 	//! Pointer to the raw data of the int_vector
 	/*! \returns Const pointer to the raw data of the int_vector
          */
-	const uint64_t* data() const { return m_data; }
+	const uint64_t* data() const noexcept { return m_data; }
 
 	//! Pointer to the raw data of the int_vector
 	/*! \returns pointer to the raw data of the int_vector
          */
-	uint64_t* data() { return m_data; }
+	uint64_t* data() noexcept { return m_data; }
 
 	//! Get the integer value of the binary string of length len starting at position idx in the int_vector.
 	/*! \param idx Starting index of the binary representation of the integer.
@@ -620,14 +620,14 @@ public:
 	/*! \returns The width of the integers which are accessed via the [] operator.
             \sa width
         */
-	uint8_t width() const { return m_width; }
+	uint8_t width() const noexcept { return m_width; }
 
 	//! Sets the width of the integers which are accessed via the [] operator, if t_width equals 0.
 	/*! \param new_width New width of the integers accessed via the [] operator.
             \note This method has no effect if t_width is in the range [1..64].
               \sa width
         */
-	void width(uint8_t new_width) { int_vector_trait<t_width>::set_width(new_width, m_width); }
+	void width(uint8_t new_width) noexcept { int_vector_trait<t_width>::set_width(new_width, m_width); }
 
 	// Write data (without header) to a stream.
 	size_type write_data(std::ostream& out) const;
@@ -646,13 +646,13 @@ public:
 	/*! \param i Index the i-th integer of length width().
          *  \return A reference to the i-th integer of length width().
          */
-	inline reference operator[](const size_type& i);
+	inline reference operator[](const size_type& i) noexcept;
 
 	//! const version of [] operator
 	/*! \param i Index the i-th integer of length width().
          *  \return The value of the i-th integer of length width().
          */
-	inline const_reference operator[](const size_type& i) const;
+	inline const_reference operator[](const size_type& i) const noexcept;
 
  	//! non const version of at() function
  	/*! \param i Index the i-th integer of length width().
@@ -679,7 +679,7 @@ public:
          *    - sizes are equal and
          *    - its elements are equal.
          */
- 	bool operator==(const int_vector<t_width> & v) const
+ 	bool operator==(const int_vector<t_width> & v) const noexcept
 	{
 		if (bit_size() != v.bit_size()) return false;
 		if (empty()) return true;
@@ -700,7 +700,7 @@ public:
          *    - its elements are equal.
          */
 	template <class container>
-	bool operator==(const container& v) const
+	bool operator==(const container& v) const noexcept
 	{
 		return std::equal(begin(), end(), v.begin());
 	}
@@ -713,7 +713,7 @@ public:
  		since it compares element by element and not the bit representations of the int_vectors.
          */
  	template <uint8_t t_width2>
-	bool operator!=(const int_vector<t_width2> & v) const { return !(*this == v); }
+	bool operator!=(const int_vector<t_width2> & v) const noexcept { return !(*this == v); }
 
 	//! Less operator for two int_vectors
 	/*! int_vector w is less than v if
@@ -721,20 +721,20 @@ public:
          *    - or w[i]==v[i] for all i < min(w.size(), v.size()) and w.size()<v.size().
          *  \sa operator>
         */
-	bool operator<(const int_vector& v) const;
+	bool operator<(const int_vector& v) const noexcept;
 
 	//! Greater operator for two int_vectors
 	/*! int_vector w is greater than v if
          *    - w[i]==v[i] for i<j and w[j]>v[j] with j in [0, min(w.size(), v.size()) )
          *    - or w[i]==v[i] for all i < min(w.size(), v.size()) and w.size()>v.size().
         */
-	bool operator>(const int_vector& v) const;
+	bool operator>(const int_vector& v) const noexcept;
 
 	//! Less or equal operator
-	bool operator<=(const int_vector& v) const;
+	bool operator<=(const int_vector& v) const noexcept;
 
 	//! Greater of equal operator
-	bool operator>=(const int_vector& v) const;
+	bool operator>=(const int_vector& v) const noexcept;
 
 	//! bitwise-and-update operator
 	int_vector& operator&=(const int_vector& v);
@@ -748,24 +748,24 @@ public:
 	//! Iterator that points to the first element of the int_vector.
 	/*!  Time complexity guaranty is O(1).
          */
-	iterator begin() { return int_vector_trait<t_width>::begin(this, m_data); }
+	iterator begin() noexcept { return int_vector_trait<t_width>::begin(this, m_data); }
 
 	//! Iterator that points to the element after the last element of int_vector.
 	/*! Time complexity guaranty is O(1).
          */
-	iterator end() { return int_vector_trait<t_width>::end(this, m_data, (m_size / m_width)); }
+	iterator end() noexcept { return int_vector_trait<t_width>::end(this, m_data, (m_size / m_width)); }
 
 	//! Const iterator that points to the first element of the int_vector.
-	const_iterator begin() const { return int_vector_trait<t_width>::begin(this, m_data); }
+	const_iterator begin() const noexcept { return int_vector_trait<t_width>::begin(this, m_data); }
 
 	//! Const iterator that points to the element after the last element of int_vector.
-	const_iterator end() const { return int_vector_trait<t_width>::end(this, m_data, (m_size / m_width)); }
+	const_iterator end() const noexcept { return int_vector_trait<t_width>::end(this, m_data, (m_size / m_width)); }
 
 	//! Const iterator that points to the first element of the int_vector.
-	const_iterator cbegin() const { return int_vector_trait<t_width>::begin(this, m_data); }
+	const_iterator cbegin() const noexcept { return int_vector_trait<t_width>::begin(this, m_data); }
 
 	//! Const iterator that points to the element after the last element of int_vector.
-	const_iterator cend() const { return int_vector_trait<t_width>::end(this, m_data, (m_size / m_width)); }
+	const_iterator cend() const noexcept { return int_vector_trait<t_width>::end(this, m_data, (m_size / m_width)); }
 
 	//! Flip all bits of bit_vector
 	void flip()
@@ -934,7 +934,7 @@ public:
 
 // For C++11
 template <class t_int_vector>
-inline void swap(int_vector_reference<t_int_vector> x, int_vector_reference<t_int_vector> y)
+inline void swap(int_vector_reference<t_int_vector> x, int_vector_reference<t_int_vector> y) noexcept
 {
 	// TODO: more efficient solution?
 	typename int_vector_reference<t_int_vector>::value_type tmp = x;
@@ -945,7 +945,7 @@ inline void swap(int_vector_reference<t_int_vector> x, int_vector_reference<t_in
 // For C++11
 template <class t_int_vector>
 inline void swap(typename int_vector_reference<t_int_vector>::value_type& x,
-				 int_vector_reference<t_int_vector>						  y)
+				 int_vector_reference<t_int_vector>						  y) noexcept
 {
 	// TODO: more efficient solution?
 	typename int_vector_reference<t_int_vector>::value_type tmp = x;
@@ -956,7 +956,7 @@ inline void swap(typename int_vector_reference<t_int_vector>::value_type& x,
 // For C++11
 template <class t_int_vector>
 inline void swap(int_vector_reference<t_int_vector>						  x,
-				 typename int_vector_reference<t_int_vector>::value_type& y)
+				 typename int_vector_reference<t_int_vector>::value_type& y) noexcept
 {
 	// TODO: more efficient solution?
 	typename int_vector_reference<t_int_vector>::value_type tmp = x;
@@ -999,14 +999,14 @@ public:
 	//! Cast the reference to a bool
 	operator bool() const { return !!(*m_word & m_mask); }
 
-	bool operator==(const int_vector_reference& x) const { return bool(*this) == bool(x); }
+	bool operator==(const int_vector_reference& x) const noexcept { return bool(*this) == bool(x); }
 
-	bool operator<(const int_vector_reference& x) const { return !bool(*this) && bool(x); }
+	bool operator<(const int_vector_reference& x) const noexcept { return !bool(*this) && bool(x); }
 };
 
 // For C++11
 template <>
-inline void swap(int_vector_reference<bit_vector> x, int_vector_reference<bit_vector> y)
+inline void swap(int_vector_reference<bit_vector> x, int_vector_reference<bit_vector> y) noexcept
 {
 	// TODO: more efficient solution?
 	bool tmp = x;
@@ -1016,7 +1016,7 @@ inline void swap(int_vector_reference<bit_vector> x, int_vector_reference<bit_ve
 
 // For C++11
 template <>
-inline void swap(bool& x, int_vector_reference<bit_vector> y)
+inline void swap(bool& x, int_vector_reference<bit_vector> y) noexcept
 {
 	// TODO: more efficient solution?
 	bool tmp = x;
@@ -1026,7 +1026,7 @@ inline void swap(bool& x, int_vector_reference<bit_vector> y)
 
 // For C++11
 template <>
-inline void swap(int_vector_reference<bit_vector> x, bool& y)
+inline void swap(int_vector_reference<bit_vector> x, bool& y) noexcept
 {
 	// TODO: more efficient solution?
 	bool tmp = x;
@@ -1176,28 +1176,28 @@ public:
 
 	reference operator[](difference_type i) const { return *(*this + i); }
 
-	bool operator==(const int_vector_iterator& it) const
+	bool operator==(const int_vector_iterator& it) const noexcept
 	{
 		return it.m_word == m_word && it.m_offset == m_offset;
 	}
 
-	bool operator!=(const int_vector_iterator& it) const { return !(*this == it); }
+	bool operator!=(const int_vector_iterator& it) const  noexcept{ return !(*this == it); }
 
-	bool operator<(const int_vector_iterator& it) const
+	bool operator<(const int_vector_iterator& it) const noexcept
 	{
 		if (m_word == it.m_word) return m_offset < it.m_offset;
 		return m_word < it.m_word;
 	}
 
-	bool operator>(const int_vector_iterator& it) const
+	bool operator>(const int_vector_iterator& it) const noexcept
 	{
 		if (m_word == it.m_word) return m_offset > it.m_offset;
 		return m_word > it.m_word;
 	}
 
-	bool operator>=(const int_vector_iterator& it) const { return !(*this < it); }
+	bool operator>=(const int_vector_iterator& it) const noexcept { return !(*this < it); }
 
-	bool operator<=(const int_vector_iterator& it) const { return !(*this > it); }
+	bool operator<=(const int_vector_iterator& it) const noexcept { return !(*this > it); }
 	inline difference_type operator-(const int_vector_iterator& it)
 	{
 		return (((m_word - it.m_word) << 6) + m_offset - it.m_offset) / m_len;
@@ -1343,28 +1343,28 @@ public:
 
 	const_reference operator[](difference_type i) const { return *(*this + i); }
 
-	bool operator==(const int_vector_const_iterator& it) const
+	bool operator==(const int_vector_const_iterator& it) const noexcept
 	{
 		return it.m_word == m_word && it.m_offset == m_offset;
 	}
 
-	bool operator!=(const int_vector_const_iterator& it) const { return !(*this == it); }
+	bool operator!=(const int_vector_const_iterator& it) const noexcept { return !(*this == it); }
 
-	bool operator<(const int_vector_const_iterator& it) const
+	bool operator<(const int_vector_const_iterator& it) const noexcept
 	{
 		if (m_word == it.m_word) return m_offset < it.m_offset;
 		return m_word < it.m_word;
 	}
 
-	bool operator>(const int_vector_const_iterator& it) const
+	bool operator>(const int_vector_const_iterator& it) const noexcept
 	{
 		if (m_word == it.m_word) return m_offset > it.m_offset;
 		return m_word > it.m_word;
 	}
 
-	bool operator>=(const int_vector_const_iterator& it) const { return !(*this < it); }
+	bool operator>=(const int_vector_const_iterator& it) const noexcept { return !(*this < it); }
 
-	bool operator<=(const int_vector_const_iterator& it) const { return !(*this > it); }
+	bool operator<=(const int_vector_const_iterator& it) const noexcept { return !(*this > it); }
 };
 
 template <class t_int_vector>
@@ -1460,7 +1460,7 @@ int_vector<t_width>::~int_vector()
 
 // sdsl::swap (to fulfill the container concept)
 template <uint8_t t_width>
-void swap(int_vector<t_width>& v1, int_vector<t_width>& v2) { std::swap(v1, v2); }
+void swap(int_vector<t_width>& v1, int_vector<t_width>& v2) noexcept { std::swap(v1, v2); }
 
 template <uint8_t t_width>
 void int_vector<t_width>::bit_resize(const size_type size)
@@ -1513,79 +1513,79 @@ inline void int_vector<t_width>::set_int(size_type idx, value_type x, const uint
 }
 
 template <uint8_t t_width>
-inline typename int_vector<t_width>::size_type int_vector<t_width>::size() const {
+inline typename int_vector<t_width>::size_type int_vector<t_width>::size() const noexcept {
     return m_size / m_width;
 }
 
 // specialized size method for 64-bit integer vector
 template <>
-inline typename int_vector<64>::size_type int_vector<64>::size() const {
+inline typename int_vector<64>::size_type int_vector<64>::size() const noexcept {
     return m_size>>6;
 }
 
 // specialized size method for 32-bit integer vector
 template <>
-inline typename int_vector<32>::size_type int_vector<32>::size() const {
+inline typename int_vector<32>::size_type int_vector<32>::size() const noexcept {
     return m_size>>5;
 }
 
 // specialized size method for 64-bit integer vector
 template <>
-inline typename int_vector<16>::size_type int_vector<16>::size() const {
+inline typename int_vector<16>::size_type int_vector<16>::size() const noexcept {
     return m_size>>4;
 }
 
 // specialized size method for 64-bit integer vector
 template <>
-inline typename int_vector<8>::size_type int_vector<8>::size() const {
+inline typename int_vector<8>::size_type int_vector<8>::size() const noexcept {
     return m_size>>3;
 }
 
 // specialized size method for bit_vector
 template <>
-inline typename int_vector<1>::size_type int_vector<1>::size() const {
+inline typename int_vector<1>::size_type int_vector<1>::size() const noexcept {
     return m_size;
 }
 
 
 
 template <uint8_t t_width>
-inline typename int_vector<t_width>::size_type int_vector<t_width>::capacity() const {
+inline typename int_vector<t_width>::size_type int_vector<t_width>::capacity() const noexcept {
     return m_capacity / m_width;
 }
 
 // specialized capacity method for 64-bit integer vector
 template <>
-inline typename int_vector<64>::size_type int_vector<64>::capacity() const {
+inline typename int_vector<64>::size_type int_vector<64>::capacity() const noexcept {
     return m_capacity>>6;
 }
 
 // specialized capacity method for 32-bit integer vector
 template <>
-inline typename int_vector<32>::size_type int_vector<32>::capacity() const {
+inline typename int_vector<32>::size_type int_vector<32>::capacity() const noexcept {
     return m_capacity>>5;
 }
 
 // specialized capacity method for 64-bit integer vector
 template <>
-inline typename int_vector<16>::size_type int_vector<16>::capacity() const {
+inline typename int_vector<16>::size_type int_vector<16>::capacity() const noexcept {
     return m_capacity>>4;
 }
 
 // specialized capacity method for 64-bit integer vector
 template <>
-inline typename int_vector<8>::size_type int_vector<8>::capacity() const {
+inline typename int_vector<8>::size_type int_vector<8>::capacity() const noexcept {
     return m_capacity>>3;
 }
 
 // specialized capacity method for bit_vector
 template <>
-inline typename int_vector<1>::size_type int_vector<1>::capacity() const {
+inline typename int_vector<1>::size_type int_vector<1>::capacity() const noexcept {
     return m_capacity;
 }
 
 template <uint8_t t_width>
-inline auto int_vector<t_width>::operator[](const size_type& idx) -> reference
+inline auto int_vector<t_width>::operator[](const size_type& idx) noexcept -> reference
 {
 	assert(idx < this->size());
 	size_type i = idx * m_width;
@@ -1594,7 +1594,7 @@ inline auto int_vector<t_width>::operator[](const size_type& idx) -> reference
 
 // specialized [] operator for 64 bit access.
 template <>
-inline auto int_vector<64>::operator[](const size_type& idx) -> reference
+inline auto int_vector<64>::operator[](const size_type& idx) noexcept -> reference
 {
 	assert(idx < this->size());
 	return *(this->m_data + idx);
@@ -1602,7 +1602,7 @@ inline auto int_vector<64>::operator[](const size_type& idx) -> reference
 
 // specialized [] operator for 32 bit access.
 template <>
-inline auto int_vector<32>::operator[](const size_type& idx) -> reference
+inline auto int_vector<32>::operator[](const size_type& idx) noexcept -> reference
 {
 	assert(idx < this->size());
 	return *(((uint32_t*)(this->m_data)) + idx);
@@ -1610,7 +1610,7 @@ inline auto int_vector<32>::operator[](const size_type& idx) -> reference
 
 // specialized [] operator for 16 bit access.
 template <>
-inline auto int_vector<16>::operator[](const size_type& idx) -> reference
+inline auto int_vector<16>::operator[](const size_type& idx) noexcept -> reference
 {
 	assert(idx < this->size());
 	return *(((uint16_t*)(this->m_data)) + idx);
@@ -1618,63 +1618,63 @@ inline auto int_vector<16>::operator[](const size_type& idx) -> reference
 
 // specialized [] operator for 8 bit access.
 template <>
-inline auto int_vector<8>::operator[](const size_type& idx) -> reference
+inline auto int_vector<8>::operator[](const size_type& idx) noexcept -> reference
 {
 	assert(idx < this->size());
 	return *(((uint8_t*)(this->m_data)) + idx);
 }
 
 template <uint8_t t_width>
-inline auto int_vector<t_width>::operator[](const size_type& idx) const -> const_reference
+inline auto int_vector<t_width>::operator[](const size_type& idx) const noexcept -> const_reference
 {
 	assert(idx < this->size());
 	return get_int(idx * t_width, t_width);
 }
 
 template <>
-inline auto int_vector<0>::operator[](const size_type& idx) const -> const_reference
+inline auto int_vector<0>::operator[](const size_type& idx) const noexcept -> const_reference
 {
 	assert(idx < this->size());
 	return get_int(idx * m_width, m_width);
 }
 
 template <>
-inline auto int_vector<64>::operator[](const size_type& idx) const -> const_reference
+inline auto int_vector<64>::operator[](const size_type& idx) const noexcept -> const_reference
 {
 	assert(idx < this->size());
 	return *(this->m_data + idx);
 }
 
 template <>
-inline auto int_vector<32>::operator[](const size_type& idx) const -> const_reference
+inline auto int_vector<32>::operator[](const size_type& idx) const noexcept -> const_reference
 {
 	assert(idx < this->size());
 	return *(((uint32_t*)this->m_data) + idx);
 }
 
 template <>
-inline auto int_vector<16>::operator[](const size_type& idx) const -> const_reference
+inline auto int_vector<16>::operator[](const size_type& idx) const noexcept -> const_reference
 {
 	assert(idx < this->size());
 	return *(((uint16_t*)this->m_data) + idx);
 }
 
 template <>
-inline auto int_vector<8>::operator[](const size_type& idx) const -> const_reference
+inline auto int_vector<8>::operator[](const size_type& idx) const noexcept -> const_reference
 {
 	assert(idx < this->size());
 	return *(((uint8_t*)this->m_data) + idx);
 }
 
 template <>
-inline auto int_vector<1>::operator[](const size_type& idx) const -> const_reference
+inline auto int_vector<1>::operator[](const size_type& idx) const noexcept -> const_reference
 {
 	assert(idx < this->size());
 	return ((*(m_data + (idx >> 6))) >> (idx & 0x3F)) & 1;
 }
 
 template <uint8_t t_width>
-bool int_vector<t_width>::operator<(const int_vector& v) const
+bool int_vector<t_width>::operator<(const int_vector& v) const noexcept
 {
 	size_type min_size				  = size();
 	if (min_size > v.size()) min_size = v.size();
@@ -1688,7 +1688,7 @@ bool int_vector<t_width>::operator<(const int_vector& v) const
 }
 
 template <uint8_t t_width>
-bool int_vector<t_width>::operator>(const int_vector& v) const
+bool int_vector<t_width>::operator>(const int_vector& v) const noexcept
 {
 	size_type min_size				  = size();
 	if (min_size > v.size()) min_size = v.size();
@@ -1702,13 +1702,13 @@ bool int_vector<t_width>::operator>(const int_vector& v) const
 }
 
 template <uint8_t t_width>
-bool int_vector<t_width>::operator<=(const int_vector& v) const
+bool int_vector<t_width>::operator<=(const int_vector& v) const noexcept
 {
 	return *this == v or *this < v;
 }
 
 template <uint8_t t_width>
-bool int_vector<t_width>::operator>=(const int_vector& v) const
+bool int_vector<t_width>::operator>=(const int_vector& v) const noexcept
 {
 	return *this == v or *this > v;
 }
