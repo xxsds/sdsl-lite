@@ -185,9 +185,9 @@ public:
 	{
 		structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
 		size_type			 written_bytes = 0;
-		m_bv.serialize(out, child, "bitvector");
-		m_bv_select1(out, child, "select1");
-		m_bv_select0(out, child, "select0");
+		written_bytes += m_bv.serialize(out, child, "bitvector");
+		written_bytes += m_bv_select1.serialize(out, child, "select1");
+		written_bytes += m_bv_select0.serialize(out, child, "select0");
 		structure_tree::add_size(child, written_bytes);
 		return written_bytes;
 	}
@@ -198,6 +198,26 @@ public:
 		m_bv_select1.load(in);
 		m_bv_select1.set_vector(&m_bv);
 		m_bv_select0.load(in);
+		m_bv_select0.set_vector(&m_bv);
+	}
+
+	//!\brief Serialise (save) via cereal
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+	{
+		ar(CEREAL_NVP(m_bv));
+		ar(CEREAL_NVP(m_bv_select1));
+		ar(CEREAL_NVP(m_bv_select0));
+	}
+
+	//!\brief Load via cereal
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+	{
+		ar(CEREAL_NVP(m_bv));
+		ar(CEREAL_NVP(m_bv_select1));
+		m_bv_select1.set_vector(&m_bv);
+		ar(CEREAL_NVP(m_bv_select0));
 		m_bv_select0.set_vector(&m_bv);
 	}
 };

@@ -241,7 +241,11 @@ bit_vector construct_supercartesian_tree_bp_succinct(int_vector_buffer<t_width>&
  */
 template <uint8_t	 t_width>
 bit_vector::size_type construct_supercartesian_tree_bp_succinct_and_first_child(
+#if SDSL_HAS_CEREAL
+int_vector<t_width>& lcp_buf, bit_vector& bp, bit_vector& bp_fc, const bool minimum = true)
+#else
 int_vector_buffer<t_width>& lcp_buf, bit_vector& bp, bit_vector& bp_fc, const bool minimum = true)
+#endif
 {
 	typedef bit_vector::size_type size_type;
 	size_type					  n = lcp_buf.size();

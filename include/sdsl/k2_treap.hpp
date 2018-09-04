@@ -139,16 +139,31 @@ class k2_treap
             return m_maxval.size();
         }
 
+#if SDSL_HAS_CEREAL
+        k2_treap(int_vector<>& buf_x,
+                 int_vector<>& buf_y,
+                 int_vector<>& buf_w,
+                 std::string temp_dir)
+#else
         k2_treap(int_vector_buffer<>& buf_x,
                  int_vector_buffer<>& buf_y,
                  int_vector_buffer<>& buf_w,
                  std::string temp_dir)
+#endif
         {
             using namespace k2_treap_ns;
+#if SDSL_HAS_CEREAL
+            typedef int_vector<>* t_buf_p;
+#else
             typedef int_vector_buffer<>* t_buf_p;
+#endif
             std::vector<t_buf_p> bufs = {&buf_x, &buf_y, &buf_w};
 
+#if SDSL_HAS_CEREAL
+            auto max_element = [](int_vector<>& buf) {
+#else
             auto max_element = [](int_vector_buffer<>& buf) {
+#endif
                 uint64_t max_val = 0;
                 for (auto val : buf) {
                     max_val = std::max((uint64_t)val, max_val);
@@ -183,7 +198,11 @@ class k2_treap
 
         template<typename t_x=uint64_t, typename t_y=uint64_t, typename t_w=uint64_t>
         std::vector<std::tuple<t_x, t_y, t_w>>
+#if SDSL_HAS_CEREAL
+                                            read(std::vector<int_vector<>*>& bufs)
+#else
                                             read(std::vector<int_vector_buffer<>*>& bufs)
+#endif
         {
             typedef std::vector<std::tuple<t_x, t_y, t_w>> t_tuple_vec;
             t_tuple_vec v = t_tuple_vec(bufs[0]->size());
@@ -228,8 +247,13 @@ class k2_treap
                                    + ".sdsl";
 
             {
+#if SDSL_HAS_CEREAL
+                int_vector<> val_buf;
+                int_vector<1> bp_buf;
+#else
                 int_vector_buffer<> val_buf(val_file, std::ios::out);
                 int_vector_buffer<1> bp_buf(bp_file, std::ios::out);
+#endif
 
                 auto end = std::end(v);
                 uint64_t last_level_nodes = 1;
@@ -302,12 +326,23 @@ class k2_treap
                     });
                     last_level_nodes = level_nodes;
                 }
+#if SDSL_HAS_CEREAL
+                store_to_file(val_buf, val_file);
+                store_to_file(bp_buf, bp_file);
+#endif
             }
             bit_vector bp;
             load_from_file(bp, bp_file);
             {
+#if SDSL_HAS_CEREAL
+                int_vector<> val_rw;
+                load_from_file(val_rw, val_file);
+                int_vector<> val_r;
+                load_from_file(val_r, val_file);
+#else
                 int_vector_buffer<> val_rw(val_file, std::ios::in | std::ios::out);
                 int_vector_buffer<> val_r(val_file, std::ios::in);
+#endif
                 uint64_t bp_idx = bp.size();
                 uint64_t r_idx = m_level_idx[0];
                 uint64_t rw_idx = val_rw.size();
@@ -320,9 +355,17 @@ class k2_treap
                         }
                     }
                 }
+#if SDSL_HAS_CEREAL
+                store_to_file(val_rw, val_file);
+#endif
             }
             {
+#if SDSL_HAS_CEREAL
+                int_vector<> val_r;
+                load_from_file(val_r, val_file);
+#else
                 int_vector_buffer<> val_r(val_file);
+#endif
                 m_maxval = t_max_vec(val_r);
             }
             {
@@ -363,6 +406,31 @@ class k2_treap
             load_vector(m_coord, in);
             m_maxval.load(in);
             m_level_idx.load(in);
+        }
+
+        //!\brief Serialise (save) via cereal
+        template <typename archive_t>
+        void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+        {
+            ar(CEREAL_NVP(cereal::make_size_tag(static_cast<uint8_t>(m_t))));
+            ar(CEREAL_NVP(m_bp));
+            ar(CEREAL_NVP(m_bp_rank));
+            ar(CEREAL_NVP(m_coord));
+            ar(CEREAL_NVP(m_maxval));
+            ar(CEREAL_NVP(m_level_idx));
+        }
+
+        //!\brief Load via cereal
+        template <typename archive_t>
+        void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+        {
+            ar(CEREAL_NVP(cereal::make_size_tag(m_t)));
+            ar(CEREAL_NVP(m_bp));
+            ar(CEREAL_NVP(m_bp_rank));
+            m_bp_rank.set_vector(&m_bp);
+            ar(CEREAL_NVP(m_coord));
+            ar(CEREAL_NVP(m_maxval));
+            ar(CEREAL_NVP(m_level_idx));
         }
 
         node_type

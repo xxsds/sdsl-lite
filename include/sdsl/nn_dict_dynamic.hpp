@@ -255,6 +255,28 @@ public:
 		return written_bytes;
 	}
 
+	//!\brief Serialise (save) via cereal
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+	{
+		ar(CEREAL_NVP(cereal::make_size_tag(static_cast<uint64_t>(m_depth))));
+		ar(CEREAL_NVP(cereal::make_size_tag(static_cast<uint64_t>(m_v_begin_leaves))));
+		ar(CEREAL_NVP(cereal::make_size_tag(static_cast<size_type>(m_size))));
+		ar(CEREAL_NVP(m_offset));
+		ar(CEREAL_NVP(m_tree));
+	}
+
+	//!\brief Load via cereal
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+	{
+		ar(CEREAL_NVP(cereal::make_size_tag(m_depth)));
+		ar(CEREAL_NVP(cereal::make_size_tag(m_v_begin_leaves)));
+		ar(CEREAL_NVP(cereal::make_size_tag(m_size)));
+		ar(CEREAL_NVP(m_offset));
+		ar(CEREAL_NVP(m_tree));
+	}
+
 	class reference {
 	private:
 		nn_dict_dynamic* m_pbv; // pointer to the bit_vector_nearest_neigbour
