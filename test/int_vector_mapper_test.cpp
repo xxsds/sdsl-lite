@@ -74,7 +74,9 @@ TEST_F(int_vector_mapper_test, iterator)
     for (const auto& size : vec_sizes) {
         sdsl::int_vector<25> vec(size);
         sdsl::util::set_to_id(vec);
-        store_to_file(vec,temp_dir+"/int_vector_mapper_itrtest");
+        sdsl::osfstream ofs(temp_dir+"/int_vector_mapper_itrtest",std::ios::binary | std::ios::trunc | std::ios::out);
+        vec.serialize(ofs);
+        ofs.close();
         {
             const sdsl::int_vector_mapper<25,std::ios_base::in> ivm(temp_dir+"/int_vector_mapper_itrtest");
             ASSERT_EQ(size,ivm.size());
@@ -97,7 +99,9 @@ TEST_F(int_vector_mapper_test, iterator)
         sdsl::int_vector<> vec(size);
         sdsl::util::set_to_id(vec);
         sdsl::util::bit_compress(vec);
-        store_to_file(vec,temp_dir+"/int_vector_mapper_itrtest");
+        sdsl::osfstream ofs(temp_dir+"/int_vector_mapper_itrtest",std::ios::binary | std::ios::trunc | std::ios::out);
+        vec.serialize(ofs);
+        ofs.close();
         {
             const sdsl::int_vector_mapper<0,std::ios_base::in> ivm(temp_dir+"/int_vector_mapper_itrtest");
             ASSERT_EQ(size,ivm.size());
@@ -150,7 +154,9 @@ TEST_F(int_vector_mapper_test, push_back)
         std::vector<uint64_t> stdvec(size);
         sdsl::util::set_to_id(vec);
         sdsl::util::set_to_id(stdvec);
-        store_to_file(vec,temp_dir+"/int_vector_mapper_push_backtest");
+        sdsl::osfstream ofs(temp_dir+"/int_vector_mapper_push_backtest",std::ios::binary | std::ios::trunc | std::ios::out);
+        vec.serialize(ofs);
+        ofs.close();
         {
             sdsl::int_vector_mapper<31> ivm(temp_dir+"/int_vector_mapper_push_backtest");
             ASSERT_EQ(size,ivm.size());
@@ -175,7 +181,9 @@ TEST_F(int_vector_mapper_test, push_back)
         sdsl::util::set_to_id(vec);
         sdsl::util::set_to_id(stdvec);
         sdsl::util::bit_compress(vec);
-        store_to_file(vec,temp_dir+"/int_vector_mapper_push_backtest");
+        sdsl::osfstream ofs(temp_dir+"/int_vector_mapper_push_backtest",std::ios::binary | std::ios::trunc | std::ios::out);
+        vec.serialize(ofs);
+        ofs.close();
         {
             sdsl::int_vector_mapper<> ivm(temp_dir+"/int_vector_mapper_push_backtest");
             ASSERT_EQ(size,ivm.size());
@@ -199,9 +207,13 @@ TEST_F(int_vector_mapper_test, bit_compress)
     for (const auto& size : vec_sizes) {
         sdsl::int_vector<> vec(size);
         sdsl::util::set_to_id(vec);
-        store_to_file(vec,temp_dir+"/int_vector_mapper_bit_compress_test_uncompressed");
+        sdsl::osfstream ofs(temp_dir+"/int_vector_mapper_bit_compress_test_uncompressed",std::ios::binary | std::ios::trunc | std::ios::out);
+        vec.serialize(ofs);
+        ofs.close();
         sdsl::util::bit_compress(vec);
-        store_to_file(vec,temp_dir+"/int_vector_mapper_bit_compress_test");
+        sdsl::osfstream ofs2(temp_dir+"/int_vector_mapper_bit_compress_test",std::ios::binary | std::ios::trunc | std::ios::out);
+        vec.serialize(ofs2);
+        ofs2.close();
         {
             sdsl::int_vector_mapper<> ivmc(temp_dir+"/int_vector_mapper_bit_compress_test");
             sdsl::int_vector_mapper<> ivmu(temp_dir+"/int_vector_mapper_bit_compress_test_uncompressed");
@@ -231,7 +243,9 @@ TEST_F(int_vector_mapper_test, bitvector_mapping)
     for (const auto& size : vec_sizes) {
         sdsl::bit_vector bv(size);
         sdsl::util::set_random_bits(bv,4711);
-        store_to_file(bv,temp_dir+"/bit_vector_mapper_test");
+        sdsl::osfstream ofs(temp_dir+"/bit_vector_mapper_test",std::ios::binary | std::ios::trunc | std::ios::out);
+        bv.serialize(ofs);
+        ofs.close();
         {
             // load/store test
             const sdsl::bit_vector_mapper<std::ios_base::in> bvm(temp_dir+"/bit_vector_mapper_test");

@@ -41,11 +41,8 @@ TYPED_TEST(k2_treap_test, create_and_store_test)
 {
     TypeParam k2treap;
     cache_config config(true, temp_dir, util::basename(test_file));
-    std::cout<<"construct begin"<<std::endl;
     construct(k2treap, test_file, config);
-    std::cout<<"construct end"<<std::endl;
     ASSERT_TRUE(store_to_file(k2treap, temp_file));
-    std::cout<<"store end"<<std::endl;
 }
 
 template<class t_k2treap>

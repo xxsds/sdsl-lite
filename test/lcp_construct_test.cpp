@@ -65,6 +65,7 @@ class lcp_construct_test : public ::testing::Test
         virtual void TearDown()
         {
             sdsl::remove(cache_file_name(CHECK_KEY, test_config));
+            util::delete_all_files(test_config.file_map);
         }
 
         cache_config test_config;

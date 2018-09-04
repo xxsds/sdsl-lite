@@ -77,12 +77,22 @@ TYPED_TEST(wt_int_test, constructor)
         ASSERT_TRUE(store_to_file(wt, temp_file));
     }
     {
+#if SDSL_HAS_CEREAL
+        int_vector<> iv_buf;
+        load_from_file(iv_buf, test_file);
+#else
         int_vector_buffer<> iv_buf(test_file);
+#endif
         TypeParam wt(iv_buf.begin(), iv_buf.begin());
         ASSERT_EQ((size_type)0,  wt.size());
     }
     {
+#if SDSL_HAS_CEREAL
+        int_vector<> iv_buf;
+        load_from_file(iv_buf, test_file);
+#else
         int_vector_buffer<> iv_buf(test_file);
+#endif
         size_type len = (iv.size() >= 6) ? 6 : iv.size();
         TypeParam wt(iv_buf.begin(), iv_buf.begin()+len);
         ASSERT_EQ(len, wt.size());

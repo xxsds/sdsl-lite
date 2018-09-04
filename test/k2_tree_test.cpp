@@ -11,6 +11,8 @@ namespace
 using namespace sdsl;
 using namespace std;
 
+std::string temp_dir;
+
 typedef int_vector<>::size_type size_type;
 
 template<class T>
@@ -42,9 +44,9 @@ template<typename t_tree>
 void check_serialize_load(t_tree& tree)
 {
     auto unserialized_tree = t_tree();
-    std::stringstream ss;
-    tree.serialize(ss);
-    unserialized_tree.load(ss);
+    std::string file_name = temp_dir+"/int_vector";
+    store_to_file(tree, file_name);
+    load_from_file(unserialized_tree, file_name);
     ASSERT_EQ(tree, unserialized_tree);
 }
 }
@@ -543,6 +545,12 @@ TYPED_TEST(k2_tree_test, serialize_test)
 int main(int argc, char** argv)
 {
     ::testing::InitGoogleTest(&argc, argv);
-
+    if (argc < 2) {
+        // LCOV_EXCL_START
+        std::cout << "Usage: " << argv[0] << " tmp_dir" << std::endl;
+        return 1;
+        // LCOV_EXCL_STOP
+    }
+    temp_dir = argv[1];
     return RUN_ALL_TESTS();
 }

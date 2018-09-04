@@ -370,7 +370,7 @@ TEST_F(int_vector_buffer_test, random_access)
     test_random_access< sdsl::int_vector_buffer<64> >();
 }
 
-
+#if not SDSL_HAS_CEREAL // int_vector_buffer and cereal serialized int_vectors are incompatible
 template<class t_T, class t_V>
 void test_file_handling(size_type exp_w)
 {
@@ -401,6 +401,7 @@ void test_file_handling(size_type exp_w)
     }
     ivb2.close(true);
 }
+#endif
 
 template<class t_T>
 void test_plain_file_handling(uint8_t exp_w)
@@ -436,6 +437,7 @@ void test_plain_file_handling(uint8_t exp_w)
 //! Test opening of existing file, int_vector-format and close()
 TEST_F(int_vector_buffer_test, file_handling)
 {
+#if not SDSL_HAS_CEREAL // int_vector_buffer and cereal serialized int_vectors are incompatible
     for (size_type width=1; width <= 64; ++width) { // for each possible width
         test_file_handling< sdsl::int_vector_buffer<>, sdsl::int_vector<> >(width);
     }
@@ -446,6 +448,7 @@ TEST_F(int_vector_buffer_test, file_handling)
     test_file_handling< sdsl::int_vector_buffer<16>, sdsl::int_vector<16> >(16);
     test_file_handling< sdsl::int_vector_buffer<32>, sdsl::int_vector<32> >(32);
     test_file_handling< sdsl::int_vector_buffer<64>, sdsl::int_vector<64> >(64);
+#endif
     test_plain_file_handling< sdsl::int_vector_buffer<> >(8);
     test_plain_file_handling< sdsl::int_vector_buffer<> >(16);
     test_plain_file_handling< sdsl::int_vector_buffer<> >(32);

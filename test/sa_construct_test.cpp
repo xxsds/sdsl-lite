@@ -40,7 +40,12 @@ TEST_F(sa_construct_test, divsufsort)
     construct_sa<8>(config);
     memory_monitor::stop();
     {
+#if SDSL_HAS_CEREAL
+        int_vector<> sa_buf;
+        load_from_file(sa_buf, cache_file_name(conf::KEY_SA, config));
+#else
         int_vector_buffer<> sa_buf(cache_file_name(conf::KEY_SA, config));
+#endif
         ASSERT_EQ(n, (uint64_t)sa_buf.size());
     }
     // Rename sa-file
@@ -60,7 +65,12 @@ TEST_F(sa_construct_test, sesais)
     construct_sa<8>(config);
     memory_monitor::stop();
     {
+#if SDSL_HAS_CEREAL
+        int_vector<> sa_buf;
+        load_from_file(sa_buf, cache_file_name(conf::KEY_SA, config));
+#else
         int_vector_buffer<> sa_buf(cache_file_name(conf::KEY_SA, config));
+#endif
         ASSERT_EQ(n, (uint64_t)sa_buf.size());
     }
     cout << "# constructs_space = " << (1.0*memory_monitor::peak())/n 
@@ -72,8 +82,15 @@ TEST_F(sa_construct_test, compare)
 {
     // Load both SAs
     {
+#if SDSL_HAS_CEREAL
+        int_vector<> sa_check;
+        load_from_file(sa_check, cache_file_name("check_sa", config));
+        int_vector<> sa;
+        load_from_file(sa, cache_file_name(conf::KEY_SA, config));
+#else
         int_vector_buffer<> sa_check(cache_file_name("check_sa", config));
         int_vector_buffer<> sa(cache_file_name(conf::KEY_SA, config));
+#endif
 
         // Verify
         ASSERT_EQ(sa_check.size(), sa.size()) << " suffix array size differ";
