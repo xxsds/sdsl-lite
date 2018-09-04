@@ -63,6 +63,10 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR}/../include
 
 link_libraries(gtest)
 
+if(SDSL_CEREAL)
+    include_directories(${CMAKE_CURRENT_BINARY_DIR}/../external/cereal/include)
+endif(SDSL_CEREAL)
+
 add_executable(int_vector_generator int_vector_generator.cpp)
 add_executable(bit_vector_generator bit_vector_generator.cpp)
 add_executable(replace_int_vector_value replace_int_vector_value.cpp)
