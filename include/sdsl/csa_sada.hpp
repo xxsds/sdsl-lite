@@ -241,6 +241,12 @@ public:
          */
 	void load(std::istream& in);
 
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const;
+
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar);
+
 	uint32_t get_sample_dens() const { return t_dens; }
 
 private:
@@ -364,11 +370,18 @@ cache_config& config)
 	}
 	size_type n = 0;
 	{
+#if SDSL_HAS_CEREAL
+		int_vector<alphabet_type::int_width> bwt_buf;
+		load_from_file(bwt_buf, cache_file_name(key_bwt<alphabet_type::int_width>(), config));
+		n = bwt_buf.size();
+		m_alphabet = alphabet_type(bwt_buf, n);
+#else
 		int_vector_buffer<alphabet_type::int_width> bwt_buf(
 		cache_file_name(key_bwt<alphabet_type::int_width>(), config));
 		n		   = bwt_buf.size();
 		auto event = memory_monitor::event("construct csa-alpbabet");
 		m_alphabet = alphabet_type(bwt_buf, n);
+#endif
 	}
 	{
 		auto event  = memory_monitor::event("sample SA");
@@ -389,7 +402,19 @@ cache_config& config)
 	}
 	// calculate psi
 	{
-		auto										event = memory_monitor::event("construct PSI");
+#if SDSL_HAS_CEREAL
+		int_vector<alphabet_type::int_width> bwt_buf;
+		load_from_file(bwt_buf, cache_file_name(key_bwt<alphabet_type::int_width>(), config));
+		std::string psi_file = cache_file_name(conf::KEY_PSI, config);
+		int_vector<> psi;
+		psi.width(bits::hi(n) + 1);
+		psi.resize(n);
+		for (size_type i = 0; i < n; ++i) {
+			psi[cnt_chr[char2comp[bwt_buf[i]]]++] = i;
+		}
+		store_to_file(psi, psi_file);
+#else
+		auto				event = memory_monitor::event("construct PSI");
 		int_vector_buffer<alphabet_type::int_width> bwt_buf(
 		cache_file_name(key_bwt<alphabet_type::int_width>(), config));
 		std::string psi_file = cache_file_name(conf::KEY_PSI, config);
@@ -397,11 +422,17 @@ cache_config& config)
 		for (size_type i = 0; i < n; ++i) {
 			psi[cnt_chr[char2comp[bwt_buf[i]]]++] = i;
 		}
+#endif
 		register_cache_file(conf::KEY_PSI, config);
 	}
 	{
 		auto				event = memory_monitor::event("encode PSI");
+#if SDSL_HAS_CEREAL
+		int_vector<> psi_buf;
+		load_from_file(psi_buf, cache_file_name(conf::KEY_PSI, config));
+#else
 		int_vector_buffer<> psi_buf(cache_file_name(conf::KEY_PSI, config));
+#endif
 		m_psi = t_enc_vec(psi_buf);
 	}
 }
@@ -460,6 +491,39 @@ std::istream& in)
 	m_sa_sample.load(in);
 	m_isa_sample.load(in, &m_sa_sample);
 	m_alphabet.load(in);
+}
+
+template <class t_enc_vec,
+		  uint32_t t_dens,
+		  uint32_t t_inv_dens,
+		  class t_sa_sample_strat,
+		  class t_isa,
+		  class t_alphabet_strat>
+template <typename archive_t>
+void csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::
+CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+{
+	ar(CEREAL_NVP(m_psi));
+	ar(CEREAL_NVP(m_sa_sample));
+	ar(CEREAL_NVP(m_isa_sample));
+	ar(CEREAL_NVP(m_alphabet));
+}
+
+template <class t_enc_vec,
+		  uint32_t t_dens,
+		  uint32_t t_inv_dens,
+		  class t_sa_sample_strat,
+		  class t_isa,
+		  class t_alphabet_strat>
+template <typename archive_t>
+void csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::
+CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+{
+	ar(CEREAL_NVP(m_psi));
+	ar(CEREAL_NVP(m_sa_sample));
+	ar(CEREAL_NVP(m_isa_sample));
+	m_isa_sample.set_vector(&m_sa_sample);
+	ar(CEREAL_NVP(m_alphabet));
 }
 
 } // end namespace sdsl

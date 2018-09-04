@@ -235,6 +235,14 @@ public:
          */
 	void load(std::istream& in);
 
+	//!\brief Serialise (save) via cereal
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const;
+
+	//!\brief Serialise (load) via cereal
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar);
+
 private:
 	// Calculates how many symbols c are in the prefix [0..i-1] of the BWT of the original text.
 	/*
@@ -282,12 +290,21 @@ cache_config& config)
 	if (!cache_file_exists(key_bwt<alphabet_type::int_width>(), config)) {
 		return;
 	}
+	size_type n = 0;
 	{
 		auto event = memory_monitor::event("construct csa-alpbabet");
+#if SDSL_HAS_CEREAL
+		int_vector<alphabet_type::int_width> bwt_buf;
+		load_from_file(bwt_buf,
+		cache_file_name(key_bwt<alphabet_type::int_width>(), config));
+		n = bwt_buf.size();
+		m_alphabet = alphabet_type(bwt_buf, n);
+#else
 		int_vector_buffer<alphabet_type::int_width> bwt_buf(
 		cache_file_name(key_bwt<alphabet_type::int_width>(), config));
-		size_type n = bwt_buf.size();
+		n = bwt_buf.size();
 		m_alphabet  = alphabet_type(bwt_buf, n);
+#endif
 	}
 	{
 		auto event  = memory_monitor::event("sample SA");
@@ -304,8 +321,13 @@ cache_config& config)
 	// }
 	{
 		auto event = memory_monitor::event("construct wavelet tree");
+#if SDSL_HAS_CEREAL
+		int_vector<alphabet_type::int_width> bwt_buf;
+		load_from_file(bwt_buf, cache_file_name(key_bwt<alphabet_type::int_width>(), config));
+#else
 		int_vector_buffer<alphabet_type::int_width> bwt_buf(
 		cache_file_name(key_bwt<alphabet_type::int_width>(), config));
+#endif
 		m_wavelet_tree = wavelet_tree_type(bwt_buf.begin(), bwt_buf.end(), config.dir);
 	}
 }
@@ -365,6 +387,39 @@ std::istream& in)
 	m_sa_sample.load(in);
 	m_isa_sample.load(in, &m_sa_sample);
 	m_alphabet.load(in);
+}
+
+template <class t_wt,
+		  uint32_t t_dens,
+		  uint32_t t_inv_dens,
+		  class t_sa_sample_strat,
+		  class t_isa,
+		  class t_alphabet_strat>
+template <typename archive_t>
+void csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::CEREAL_SAVE_FUNCTION_NAME(
+archive_t & ar) const
+{
+	ar(CEREAL_NVP(m_wavelet_tree));
+	ar(CEREAL_NVP(m_sa_sample));
+	ar(CEREAL_NVP(m_isa_sample));
+	ar(CEREAL_NVP(m_alphabet));
+}
+
+template <class t_wt,
+		  uint32_t t_dens,
+		  uint32_t t_inv_dens,
+		  class t_sa_sample_strat,
+		  class t_isa,
+		  class t_alphabet_strat>
+template <typename archive_t>
+void csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::CEREAL_LOAD_FUNCTION_NAME(
+archive_t & ar)
+{
+	ar(CEREAL_NVP(m_wavelet_tree));
+	ar(CEREAL_NVP(m_sa_sample));
+	ar(CEREAL_NVP(m_isa_sample));
+	m_isa_sample.set_vector(&m_sa_sample);
+	ar(CEREAL_NVP(m_alphabet));
 }
 
 } // end namespace sdsl

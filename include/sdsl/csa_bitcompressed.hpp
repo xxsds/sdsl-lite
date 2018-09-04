@@ -113,8 +113,15 @@ public:
 	{
 		std::string text_file =
 		cache_file_name(key_text<alphabet_type::int_width>(), config);
+#if SDSL_HAS_CEREAL
+		int_vector<alphabet_type::int_width> text_buf;
+		load_from_file(text_buf, text_file);
+		int_vector<> sa_buf;
+		load_from_file(sa_buf, cache_file_name(conf::KEY_SA, config));
+#else
 		int_vector_buffer<alphabet_type::int_width> text_buf(text_file);
 		int_vector_buffer<>							sa_buf(cache_file_name(conf::KEY_SA, config));
+#endif
 		size_type									n = text_buf.size();
 
 		m_alphabet = alphabet_type(text_buf, n);
@@ -208,6 +215,22 @@ public:
 		m_sa.load(in);
 		m_isa.load(in);
 		m_alphabet.load(in);
+	}
+
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+	{
+		ar(CEREAL_NVP(m_sa));
+		ar(CEREAL_NVP(m_isa));
+		ar(CEREAL_NVP(m_alphabet));
+	}
+
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+	{
+		ar(CEREAL_NVP(m_sa));
+		ar(CEREAL_NVP(m_isa));
+		ar(CEREAL_NVP(m_alphabet));
 	}
 
 	size_type get_sample_dens() const { return 1; }

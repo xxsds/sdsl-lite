@@ -69,8 +69,14 @@ public:
          */
 	_sa_order_sampling(const cache_config& cconfig, SDSL_UNUSED const t_csa* csa = nullptr)
 	{
+#if SDSL_HAS_CEREAL
+        	int_vector<> sa_buf;
+        	load_from_file(sa_buf, cache_file_name(conf::KEY_SA, cconfig));
+        	size_type n = sa_buf.size();
+#else
 		int_vector_buffer<> sa_buf(cache_file_name(conf::KEY_SA, cconfig));
 		size_type			n = sa_buf.size();
+#endif
 		this->width(bits::hi(n) + 1);
 		this->resize((n + sample_dens - 1) / sample_dens);
 
@@ -134,7 +140,12 @@ public:
          */
 	_text_order_sampling(const cache_config& cconfig, SDSL_UNUSED const t_csa* csa = nullptr)
 	{
+#if SDSL_HAS_CEREAL
+	        int_vector<> sa_buf;
+	        load_from_file(sa_buf, cache_file_name(conf::KEY_SA, cconfig));
+#else
 		int_vector_buffer<> sa_buf(cache_file_name(conf::KEY_SA, cconfig));
+#endif
 		size_type			n = sa_buf.size();
 		bit_vector			marked(n, 0); // temporary bitvector for the marked text positions
 		this->width(bits::hi(n / sample_dens) + 1);
@@ -209,6 +220,23 @@ public:
 		m_rank_marked.load(in);
 		m_rank_marked.set_vector(&m_marked);
 	}
+
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+	{
+		base_type::CEREAL_SAVE_FUNCTION_NAME(ar);
+		ar(CEREAL_NVP(m_marked));
+		ar(CEREAL_NVP(m_rank_marked));
+	}
+
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+	{
+		base_type::CEREAL_LOAD_FUNCTION_NAME(ar);
+		ar(CEREAL_NVP(m_marked));
+		ar(CEREAL_NVP(m_rank_marked));
+		m_rank_marked.set_vector(&m_marked);
+	}
 };
 
 template <class t_bit_vec  = sd_vector<>,
@@ -268,7 +296,12 @@ public:
 			register_cache_file(conf::KEY_SA, cconfig);
 		}
 		{
+#if SDSL_HAS_CEREAL
+			int_vector<> isa_buf;
+			load_from_file(isa_buf, cache_file_name(conf::KEY_ISA, cconfig));
+#else
 			int_vector_buffer<> isa_buf(cache_file_name(conf::KEY_ISA, cconfig));
+#endif
 			size_type			n = isa_buf.size();
 			bit_vector			marked_isa(n, 0); // temporary bitvector for marked ISA positions
 			bit_vector			marked_sa(n, 0);  // temporary bitvector for marked SA positions
@@ -407,6 +440,28 @@ public:
 		m_select_marked_isa.set_vector(&m_marked_isa);
 		m_inv_perm.load(in);
 	}
+
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+	{
+		ar(CEREAL_NVP(m_marked_sa));
+		ar(CEREAL_NVP(m_rank_marked_sa));
+		ar(CEREAL_NVP(m_marked_isa));
+		ar(CEREAL_NVP(m_select_marked_isa));
+		ar(CEREAL_NVP(m_inv_perm));
+	}
+
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+	{
+		ar(CEREAL_NVP(m_marked_sa));
+		ar(CEREAL_NVP(m_rank_marked_sa));
+		m_rank_marked_sa.set_vector(&m_marked_sa);
+		ar(CEREAL_NVP(m_marked_isa));
+		ar(CEREAL_NVP(m_select_marked_isa));
+		m_select_marked_isa.set_vector(&m_marked_isa);
+		ar(CEREAL_NVP(m_inv_perm));
+	}
 };
 template <class t_bv_sa		 = sd_vector<>,
 		  class t_bv_isa	 = sd_vector<>,
@@ -471,9 +526,17 @@ public:
          */
 	_bwt_sampling(const cache_config& cconfig, SDSL_UNUSED const t_csa* csa = nullptr)
 	{
+#if SDSL_HAS_CEREAL
+		int_vector<> sa_buf;
+		load_from_file(sa_buf, cache_file_name(conf::KEY_SA, cconfig));
+		int_vector<t_csa::alphabet_type::int_width> bwt_buf;
+		load_from_file(sa_buf,
+		cache_file_name(cache_file_name(key_bwt<t_csa::alphabet_type::int_width>(), cconfig)));
+#else
 		int_vector_buffer<> sa_buf(cache_file_name(conf::KEY_SA, cconfig));
 		int_vector_buffer<t_csa::alphabet_type::int_width> bwt_buf(
 		cache_file_name(key_bwt<t_csa::alphabet_type::int_width>(), cconfig));
+#endif
 		size_type  n = sa_buf.size();
 		bit_vector marked(n, 0); // temporary bitvector for the marked text positions
 		this->width(bits::hi(n) + 1);
@@ -565,6 +628,23 @@ public:
 		m_rank_marked.load(in);
 		m_rank_marked.set_vector(&m_marked);
 	}
+
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+	{
+		base_type::CEREAL_SAVE_FUNCTION_NAME(ar);
+		ar(CEREAL_NVP(m_marked));
+		ar(CEREAL_NVP(m_rank_marked));
+	}
+
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+	{
+		base_type::CEREAL_LOAD_FUNCTION_NAME(ar);
+		ar(CEREAL_NVP(m_marked));
+		ar(CEREAL_NVP(m_rank_marked));
+		m_rank_marked.set_vector(&m_marked);
+	}
 };
 
 template <class t_bit_vec  = bit_vector,
@@ -598,8 +678,22 @@ public:
          */
 	_isa_sampling(const cache_config& cconfig, SDSL_UNUSED const sa_type* sa_sample = nullptr)
 	{
+#if SDSL_HAS_CEREAL
+	        auto file = cache_file_name(conf::KEY_SA, cconfig);
+	        isfstream in(file, std::ios::binary | std::ios::in);
+	    	if (!in) {
+	    		if (util::verbose) {
+	    			std::cerr << "Could not load file `" << file << "`" << std::endl;
+	    		}
+	    	}
+	        cereal::BinaryInputArchive iarchive(in);
+	        int_vector<> sa_buf;
+	        iarchive(sa_buf);
+	        size_type n = sa_buf.size();
+#else
 		int_vector_buffer<> sa_buf(cache_file_name(conf::KEY_SA, cconfig));
 		size_type			n = sa_buf.size();
+#endif
 		if (n >= 1) { // so n+t_csa::isa_sample_dens >= 2
 			this->width(bits::hi(n) + 1);
 			this->resize((n - 1) / sample_dens + 1);
@@ -639,6 +733,18 @@ public:
 	void load(std::istream& in, SDSL_UNUSED const sa_type* sa_sample = nullptr)
 	{
 		base_type::load(in);
+	}
+
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+	{
+		base_type::CEREAL_SAVE_FUNCTION_NAME(ar);
+	}
+
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+	{
+		base_type::CEREAL_LOAD_FUNCTION_NAME(ar);
 	}
 
 	void set_vector(SDSL_UNUSED const sa_type*) {}
@@ -754,6 +860,21 @@ public:
 	{
 		m_inv_perm.load(in);
 		m_select_marked.load(in);
+		set_vector(sa_sample);
+	}
+
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+	{
+		ar(CEREAL_NVP(m_inv_perm));
+		ar(CEREAL_NVP(m_select_marked));
+	}
+
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar, const sa_type* sa_sample = nullptr)
+	{
+		ar(CEREAL_NVP(m_inv_perm));
+		ar(CEREAL_NVP(m_select_marked));
 		set_vector(sa_sample);
 	}
 
@@ -884,6 +1005,19 @@ public:
 	void load(std::istream& in, const sa_type* sa_sample = nullptr)
 	{
 		m_select_marked_sa.load(in);
+		set_vector(sa_sample);
+	}
+
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+	{
+		ar(CEREAL_NVP(m_select_marked_sa));
+	}
+
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar, const sa_type* sa_sample = nullptr)
+	{
+		ar(CEREAL_NVP(m_select_marked_sa));
 		set_vector(sa_sample);
 	}
 

@@ -154,7 +154,11 @@ public:
      *  \param text_buf Byte stream.
      *  \param len      Length of the byte stream.
      */
+#if SDSL_HAS_CEREAL
+    byte_alphabet(int_vector<8>& text_buf, int_vector_size_type len)
+#else
     byte_alphabet(int_vector_buffer<8>& text_buf, int_vector_size_type len)
+#endif
         : char2comp(m_char2comp), comp2char(m_comp2char), C(m_C), sigma(m_sigma)
     {
         m_sigma = 0;
@@ -250,6 +254,24 @@ public:
         m_C.load(in);
         read_member(m_sigma, in);
     }
+
+    template <typename archive_t>
+    void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+    {
+        ar(CEREAL_NVP(m_char2comp));
+        ar(CEREAL_NVP(m_comp2char));
+        ar(CEREAL_NVP(m_C));
+        ar(CEREAL_NVP(m_sigma));
+    }
+
+    template <typename archive_t>
+    void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+    {
+        ar(CEREAL_NVP(m_char2comp));
+        ar(CEREAL_NVP(m_comp2char));
+        ar(CEREAL_NVP(m_C));
+        ar(CEREAL_NVP(m_sigma));
+    }
 };
 
 
@@ -335,7 +357,11 @@ public:
          *  \param text_buf Byte stream.
          *  \param len      Length of the byte stream.
          */
+#if SDSL_HAS_CEREAL
+	succinct_byte_alphabet(int_vector<8>& text_buf, int_vector_size_type len)
+#else
 	succinct_byte_alphabet(int_vector_buffer<8>& text_buf, int_vector_size_type len)
+#endif
 		: char2comp(this), comp2char(this), C(m_C), sigma(m_sigma)
 	{
 		m_sigma = 0;
@@ -451,6 +477,28 @@ public:
 		m_char_select.set_vector(&m_char);
 		m_C.load(in);
 		read_member(m_sigma, in);
+	}
+
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+	{
+		ar(CEREAL_NVP(m_char));
+		ar(CEREAL_NVP(m_char_rank));
+		ar(CEREAL_NVP(m_char_select));
+		ar(CEREAL_NVP(m_C));
+		ar(CEREAL_NVP(m_sigma));
+	}
+
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+	{
+		ar(CEREAL_NVP(m_char));
+		ar(CEREAL_NVP(m_char_rank));
+		m_char_rank.set_vector(&m_char);
+		ar(CEREAL_NVP(m_char_select));
+		m_char_select.set_vector(&m_char);
+		ar(CEREAL_NVP(m_C));
+		ar(CEREAL_NVP(m_sigma));
 	}
 };
 
@@ -577,7 +625,11 @@ public:
          *  \param text_buf Byte stream.
          *  \param len      Length of the byte stream.
          */
+#if SDSL_HAS_CEREAL
+	int_alphabet(int_vector<0>& text_buf, int_vector_size_type len)
+#else
 	int_alphabet(int_vector_buffer<0>& text_buf, int_vector_size_type len)
+#endif
 		: char2comp(this), comp2char(this), C(m_C), sigma(m_sigma)
 	{
 		m_sigma = 0;
@@ -689,6 +741,28 @@ public:
 		m_char_select.set_vector(&m_char);
 		m_C.load(in);
 		read_member(m_sigma, in);
+	}
+
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+	{
+		ar(CEREAL_NVP(m_char));
+		ar(CEREAL_NVP(m_char_rank));
+		ar(CEREAL_NVP(m_char_select));
+		ar(CEREAL_NVP(m_C));
+		ar(CEREAL_NVP(m_sigma));
+	}
+
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+	{
+		ar(CEREAL_NVP(m_char));
+		ar(CEREAL_NVP(m_char_rank));
+		m_char_rank.set_vector(&m_char);
+		ar(CEREAL_NVP(m_char_select));
+		m_char_select.set_vector(&m_char);
+		ar(CEREAL_NVP(m_C));
+		ar(CEREAL_NVP(m_sigma));
 	}
 };
 
