@@ -148,7 +148,12 @@ public:
 	{
 		{
 			auto				event = memory_monitor::event("bps-dfs");
+#if SDSL_HAS_CEREAL
+			int_vector<> lcp;
+			load_from_file(lcp, cache_file_name(conf::KEY_LCP, config));
+#else
 			int_vector_buffer<> lcp(cache_file_name(conf::KEY_LCP, config));
+#endif
 
 			const bool o_par = true;
 			const bool c_par = !o_par;
@@ -371,6 +376,32 @@ public:
 		m_bp_support.load(in, &m_bp);
 		m_bp_rank10.load(in, &m_bp);
 		m_bp_select10.load(in, &m_bp);
+	}
+
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+	{
+		ar(CEREAL_NVP(m_csa));
+		ar(CEREAL_NVP(m_lcp));
+		ar(CEREAL_NVP(m_bp));
+		ar(CEREAL_NVP(m_bp_support));
+		ar(CEREAL_NVP(m_bp_rank10));
+		ar(CEREAL_NVP(m_bp_select10));
+	}
+
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+	{
+		ar(CEREAL_NVP(m_csa));
+		ar(CEREAL_NVP(m_lcp));
+		set_lcp_pointer(m_lcp, *this);
+		ar(CEREAL_NVP(m_bp));
+		ar(CEREAL_NVP(m_bp_support));
+		m_bp_support.set_vector(&m_bp);
+		ar(CEREAL_NVP(m_bp_rank10));
+		m_bp_rank10.set_vector(&m_bp);
+		ar(CEREAL_NVP(m_bp_select10));
+		m_bp_select10.set_vector(&m_bp);
 	}
 
 	/*! \defgroup cst_sada_tree_methods Tree methods of cst_sada */

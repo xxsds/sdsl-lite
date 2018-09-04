@@ -266,6 +266,37 @@ public:
 		m_depth.load(in);
 	}
 
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+	{
+		ar(CEREAL_NVP(cereal::make_size_tag(static_cast<size_type>(m_delta))));
+		ar(CEREAL_NVP(cereal::make_size_tag(static_cast<size_type>(m_nodes))));
+		ar(CEREAL_NVP(m_csa));
+		ar(CEREAL_NVP(m_s));
+		ar(CEREAL_NVP(m_s_support));
+		ar(CEREAL_NVP(m_b));
+		ar(CEREAL_NVP(m_b_select0));
+		ar(CEREAL_NVP(m_b_select1));
+		ar(CEREAL_NVP(m_depth));
+	}
+
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+	{
+		ar(CEREAL_NVP(cereal::make_size_tag(m_delta)));
+		ar(CEREAL_NVP(cereal::make_size_tag(m_nodes)));
+		ar(CEREAL_NVP(m_csa));
+		ar(CEREAL_NVP(m_s));
+		ar(CEREAL_NVP(m_s_support));
+		m_s_support.set_vector(&m_s);
+		ar(CEREAL_NVP(m_b));
+		ar(CEREAL_NVP(m_b_select0));
+		m_b_select0.set_vector(&m_b);
+		ar(CEREAL_NVP(m_b_select1));
+		m_b_select1.set_vector(&m_b);
+		ar(CEREAL_NVP(m_depth));
+	}
+
 	//! Returns the root of the suffix tree.
 	node_type root() const { return node_type(0, m_csa.size() - 1); }
 
