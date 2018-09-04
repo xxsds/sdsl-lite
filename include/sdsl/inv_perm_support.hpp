@@ -192,6 +192,25 @@ public:
 		m_marked.load(in);
 		m_rank_marked.load(in, &m_marked);
 	}
+
+	//!\brief Serialise (save) via cereal
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+	{
+		ar(CEREAL_NVP(m_back_pointer));
+		ar(CEREAL_NVP(m_marked));
+		ar(CEREAL_NVP(m_rank_marked));
+	}
+
+	//!\brief Load via cereal
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+	{
+		ar(CEREAL_NVP(m_back_pointer));
+		ar(CEREAL_NVP(m_marked));
+		ar(CEREAL_NVP(m_rank_marked));
+		m_rank_marked.set_vector(&m_marked);
+	}
 };
 
 } // end namespace sdsl

@@ -90,6 +90,12 @@ public:
 	serialize(std::ostream& out, structure_tree_node* v = nullptr, std::string name = "") const;
 	void load(std::istream& in, const bit_vector* v = nullptr);
 	void set_vector(const bit_vector* v = nullptr);
+	//!\brief Serialise (save) via cereal
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const;
+	//!\brief Serialise (load) via cereal
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar);
 	select_support_mcl<t_b, t_pat_len>& operator=(const select_support_mcl& ss);
 	select_support_mcl<t_b, t_pat_len>& operator=(select_support_mcl&&);
 };
@@ -487,6 +493,69 @@ void select_support_mcl<t_b, t_pat_len>::load(std::istream& in, const bit_vector
 			} else {
 				m_miniblock[i].load(in);
 			}
+	}
+}
+
+template <uint8_t t_b, uint8_t t_pat_len>
+template <typename archive_t>
+void select_support_mcl<t_b, t_pat_len>::CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+{
+	ar(CEREAL_NVP(cereal::make_size_tag(static_cast<size_type>(m_arg_cnt))));
+	size_type sb = (m_arg_cnt + 4095) >> 12;
+	if (m_arg_cnt) {
+		ar(CEREAL_NVP(m_superblock));
+		bit_vector mini_or_long;
+		if (m_longsuperblock != nullptr) {
+			mini_or_long.resize(sb);
+			for (size_type i	= 0; i < sb; ++i) {
+				mini_or_long[i] = !m_miniblock[i].empty();
+			}
+		}
+		ar(CEREAL_NVP(mini_or_long));
+		for (size_type i = 0; i < sb; ++i) {
+			if (!mini_or_long.empty() and !mini_or_long[i]) {
+				ar(CEREAL_NVP(m_longsuperblock[i]));
+			}
+			else {
+				ar(CEREAL_NVP(m_miniblock[i]));
+			}
+		}
+	}
+}
+
+template <uint8_t t_b, uint8_t t_pat_len>
+template <typename archive_t>
+void select_support_mcl<t_b, t_pat_len>::CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+{
+	initData();
+
+	ar(CEREAL_NVP(cereal::make_size_tag(m_arg_cnt)));
+	size_type sb = (m_arg_cnt + 4095) >> 12;
+
+	if (m_arg_cnt) {
+		ar(CEREAL_NVP(m_superblock));
+
+		delete[] m_miniblock;
+		m_miniblock = nullptr;
+		delete[] m_longsuperblock;
+		m_longsuperblock = nullptr;
+
+		bit_vector mini_or_long;
+		ar(CEREAL_NVP(mini_or_long));
+		m_miniblock = new int_vector<0>[sb];
+
+		if (!mini_or_long.empty()) {
+			m_longsuperblock = new int_vector<0>[sb];
+		}
+
+		for (size_type i = 0; i < sb; ++i) {
+			if (!mini_or_long.empty() and !mini_or_long[i]) {
+				ar(CEREAL_NVP(m_longsuperblock[i]));
+			}
+			else {
+				ar(CEREAL_NVP(m_miniblock[i]));
+			}
+		}
 	}
 }
 }

@@ -148,6 +148,21 @@ public:
 		m_sct_bp.load(in);
 		m_sct_bp_support.load(in, &m_sct_bp);
 	}
+
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+	{
+		ar(CEREAL_NVP(m_sct_bp));
+		ar(CEREAL_NVP(m_sct_bp_support));
+	}
+
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+	{
+		ar(CEREAL_NVP(m_sct_bp));
+		ar(CEREAL_NVP(m_sct_bp_support));
+		m_sct_bp_support.set_vector(&m_sct_bp);
+	}
 };
 
 } // end namespace sdsl

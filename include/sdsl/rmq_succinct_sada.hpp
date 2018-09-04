@@ -226,6 +226,27 @@ public:
 		m_ect_bp_rank10.load(in, &m_ect_bp);
 		m_ect_bp_select10.load(in, &m_ect_bp);
 	}
+
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+	{
+		ar(CEREAL_NVP(m_ect_bp));
+		ar(CEREAL_NVP(m_ect_bp_support));
+		ar(CEREAL_NVP(m_ect_bp_rank10));
+		ar(CEREAL_NVP(m_ect_bp_select10));
+	}
+
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+	{
+		ar(CEREAL_NVP(m_ect_bp));
+		ar(CEREAL_NVP(m_ect_bp_support));
+		m_ect_bp_support.set_vector(&m_ect_bp);
+		ar(CEREAL_NVP(m_ect_bp_rank10));
+		m_ect_bp_rank10.set_vector(&m_ect_bp);
+		ar(CEREAL_NVP(m_ect_bp_select10));
+		m_ect_bp_select10.set_vector(&m_ect_bp);
+	}
 };
 
 } // end namespace sdsl

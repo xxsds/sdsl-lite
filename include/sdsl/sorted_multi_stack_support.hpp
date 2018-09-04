@@ -75,6 +75,10 @@ public:
 	size_type
 	serialize(std::ostream& out, structure_tree_node* v = nullptr, std::string name = "") const;
 	void load(std::istream& in);
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const;
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar);
 };
 
 inline sorted_multi_stack_support::sorted_multi_stack_support(size_type n)
@@ -166,6 +170,26 @@ inline void sorted_multi_stack_support::load(std::istream& in)
 	read_member(m_cnt, in);
 	m_stack.load(in);
 	m_duplication_stack.load(in);
+}
+
+template <typename archive_t>
+void sorted_multi_stack_support::CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+{
+	ar(CEREAL_NVP(cereal::make_size_tag(static_cast<size_type>(m_n))));
+	ar(CEREAL_NVP(cereal::make_size_tag(static_cast<size_type>(m_cnt))));
+	ar(CEREAL_NVP(cereal::make_size_tag(static_cast<size_type>(m_top))));
+	ar(CEREAL_NVP(m_stack));
+	ar(CEREAL_NVP(m_duplication_stack));
+}
+
+template <typename archive_t>
+void sorted_multi_stack_support::CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+{
+	ar(CEREAL_NVP(cereal::make_size_tag(m_n)));
+	ar(CEREAL_NVP(cereal::make_size_tag(m_cnt)));
+	ar(CEREAL_NVP(cereal::make_size_tag(m_top)));
+	ar(CEREAL_NVP(m_stack));
+	ar(CEREAL_NVP(m_duplication_stack));
 }
 
 } // end namespace sdsl

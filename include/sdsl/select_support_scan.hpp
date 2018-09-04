@@ -50,7 +50,12 @@ public:
 		return serialize_empty_object(out, v, name, this);
 	}
 	void load(std::istream&, SDSL_UNUSED const bit_vector* v = nullptr) { set_vector(v); }
-
+	//!\brief Serialise (save) via cereal
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const;
+	//!\brief Serialise (load) via cereal
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar);
 	void set_vector(const bit_vector* v = nullptr) { m_v = v; }
 	select_support_scan<t_b, t_pat_len>& operator=(const select_support_scan& ss)
 	{
@@ -58,6 +63,14 @@ public:
 		return *this;
 	}
 };
+
+template <uint8_t t_b, uint8_t t_pat_len>
+template <typename archive_t>
+void select_support_scan<t_b, t_pat_len>::CEREAL_SAVE_FUNCTION_NAME(archive_t &) const {}
+
+template <uint8_t t_b, uint8_t t_pat_len>
+template <typename archive_t>
+void select_support_scan<t_b, t_pat_len>::CEREAL_LOAD_FUNCTION_NAME(archive_t &) {}
 
 template <uint8_t t_b, uint8_t t_pat_len>
 inline typename select_support_scan<t_b, t_pat_len>::size_type

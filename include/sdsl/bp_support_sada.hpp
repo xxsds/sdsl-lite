@@ -898,6 +898,32 @@ public:
 		m_sml_block_min_max.load(in);
 		m_med_block_min_max.load(in);
 	}
+
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+	{
+		ar(CEREAL_NVP(cereal::make_size_tag(static_cast<size_type>(m_size))));
+		ar(CEREAL_NVP(cereal::make_size_tag(static_cast<size_type>(m_sml_blocks))));
+		ar(CEREAL_NVP(cereal::make_size_tag(static_cast<size_type>(m_med_blocks))));
+		ar(CEREAL_NVP(cereal::make_size_tag(static_cast<size_type>(m_med_inner_blocks))));
+		ar(CEREAL_NVP(m_bp_rank));
+		ar(CEREAL_NVP(m_bp_select));
+		ar(CEREAL_NVP(m_sml_block_min_max));
+		ar(CEREAL_NVP(m_med_block_min_max));
+	}
+
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+	{
+		ar(CEREAL_NVP(cereal::make_size_tag(m_size)));
+		ar(CEREAL_NVP(cereal::make_size_tag(m_sml_blocks)));
+		ar(CEREAL_NVP(cereal::make_size_tag(m_med_blocks)));
+		ar(CEREAL_NVP(cereal::make_size_tag(m_med_inner_blocks)));
+		ar(CEREAL_NVP(m_bp_rank));
+		ar(CEREAL_NVP(m_bp_select));
+		ar(CEREAL_NVP(m_sml_block_min_max));
+		ar(CEREAL_NVP(m_med_block_min_max));
+	}
 };
 
 } // end namespace

@@ -134,6 +134,18 @@ public:
 		m_basic_block.load(in);
 	}
 
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+	{
+		ar(CEREAL_NVP(m_basic_block));
+	}
+
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+	{
+		ar(CEREAL_NVP(m_basic_block));
+	}
+
 	void set_vector(const bit_vector* v = nullptr) { m_v = v; }
 };
 

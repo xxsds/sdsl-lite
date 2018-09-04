@@ -52,6 +52,10 @@ public:
 	}
 	void load(std::istream&, const int_vector<1>* v = nullptr) { set_vector(v); }
 	void set_vector(const bit_vector* v = nullptr) { m_v = v; }
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t &) const {}
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t &) {}
 };
 
 template <uint8_t t_b, uint8_t t_pat_len>
