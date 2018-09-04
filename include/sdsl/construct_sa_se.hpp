@@ -274,7 +274,12 @@ void _construct_sa_se(int_vector_type& text,
 	size_t parts = 10;
 
 	{
+#if SDSL_HAS_CEREAL
+		int_vector<1> lms_pos_b;
+		lms_pos_b.resize(n);
+#else
 		int_vector_buffer<1> lms_pos_b(filename_lms_pos_b, std::ios::out, buffersize, 1);
+#endif
 		uint64_t			 ci = text[n - 1];
 		++C[ci];
 		bool was_s_typ = 1;
@@ -303,7 +308,11 @@ void _construct_sa_se(int_vector_type& text,
 			bkt_l[i] = C[i] - bkt_s[i];
 			C[i]	 = C[i] + C[i - 1];
 		}
+#if SDSL_HAS_CEREAL
+		store_to_file(lms_pos_b, filename_lms_pos_b);
+#else
 		lms_pos_b.close();
+#endif
 	}
 
 	// Step 2 - Scan Text from right to left and detect LMS-Positions. Sort and write them to disk
@@ -736,12 +745,21 @@ void _construct_sa_se(int_vector_type& text,
 			select_support_mcl<> lms_select_support;			// select_support for bit_vector
 			util::init_support(lms_select_support, &lms_pos_b); // create select_support
 			// write to left sa_rec buffered
+#if SDSL_HAS_CEREAL
+			int_vector<> sa_rec_buf;
+			load_from_file(sa_rec_buf, filename_sa_rec);
+#else
 			int_vector_buffer<> sa_rec_buf(filename_sa_rec, std::ios::in, buffersize, nsize);
+#endif
 			for (uint64_t i = 0; i < sa_rec_buf.size(); ++i) {
 				uint64_t pos = lms_select_support.select(sa_rec_buf[i] + 1);
 				left[number_of_lms_strings - 1 - left_pointer++] = pos;
 			}
+#if SDSL_HAS_CEREAL
+			sdsl::remove(filename_sa_rec);
+#else
 			sa_rec_buf.close(true);
+#endif
 			left_pointer--;
 		}
 		//TODO test sa_rec unbuffered in recursion level 1 -> space still good?
@@ -755,7 +773,13 @@ void _construct_sa_se(int_vector_type& text,
 	// Step 12 - Scan virtual array from left to right second time
 	right.buffersize(buffersize);
 	right_pointer = 0;
+#if SDSL_HAS_CEREAL
+	int_vector<> cached_sa;
+	cached_sa.width(nsize);
+	cached_sa.resize(n);
+#else
 	int_vector_buffer<> cached_sa(filename_sa, std::ios::out, buffersize, nsize);
+#endif
 	size_t				sa_pointer = 0;
 	{
 		size_t							 partsize = bkt_l_sum / parts + 1;
@@ -934,7 +958,11 @@ void _construct_sa_se(int_vector_type& text,
 		}
 	}
 	right.close(true);
+#if SDSL_HAS_CEREAL
+	store_to_file(cached_sa, filename_sa);
+#else
 	cached_sa.close();
+#endif
 
 	return;
 }
