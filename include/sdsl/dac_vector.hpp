@@ -160,6 +160,12 @@ public:
 		read_member(m_max_level, in);
 	}
 
+	//!\brief Serialise (save) via cereal
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const;
+
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar);
 
 	bool operator==(const dac_vector& v) const
 	{
@@ -335,6 +341,29 @@ dac_vector<>::size_type dac_vector<t_b, t_rank>::serialize(std::ostream& out,
 	written_bytes += write_member(m_max_level, out, child, "max_level");
 	structure_tree::add_size(child, written_bytes);
 	return written_bytes;
+}
+
+template <uint8_t t_b, typename t_rank>
+template <typename archive_t>
+void dac_vector<t_b, t_rank>::CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+{
+	ar(CEREAL_NVP(cereal::make_size_tag(static_cast<uint8_t>(m_max_level))));
+	ar(CEREAL_NVP(m_data));
+	ar(CEREAL_NVP(m_overflow));
+	ar(CEREAL_NVP(m_overflow_rank));
+	ar(CEREAL_NVP(m_level_pointer_and_rank));
+}
+
+template <uint8_t t_b, typename t_rank>
+template <typename archive_t>
+void dac_vector<t_b, t_rank>::CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+{
+	ar(CEREAL_NVP(cereal::make_size_tag(m_max_level)));
+	ar(CEREAL_NVP(m_data));
+	ar(CEREAL_NVP(m_overflow));
+	ar(CEREAL_NVP(m_overflow_rank));
+	m_overflow_rank.set_vector(&m_overflow);
+	ar(CEREAL_NVP(m_level_pointer_and_rank));
 }
 
 } // end namespace sdsl

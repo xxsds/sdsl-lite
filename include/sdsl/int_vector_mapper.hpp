@@ -383,7 +383,13 @@ public:
 	{
 		//write empty int_vector to init the file
 		int_vector<t_width> tmp_vector;
+#if SDSL_HAS_CEREAL
+		sdsl::osfstream ofs(file_name, std::ios::binary | std::ios::trunc | std::ios::out);
+		tmp_vector.serialize(ofs);
+		ofs.close();
+#else
 		store_to_file(tmp_vector, file_name);
+#endif
 		return int_vector_mapper<t_width, std::ios_base::out | std::ios_base::in>(
 		file_name, false, true);
 	}

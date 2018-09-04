@@ -365,6 +365,26 @@ public:
 		m_rank.load(in);
 	}
 
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+	{
+		ar(CEREAL_NVP(cereal::make_size_tag(static_cast<size_type>(m_size))));
+		ar(CEREAL_NVP(m_bt));
+		ar(CEREAL_NVP(m_btnr));
+		ar(CEREAL_NVP(m_btnrp));
+		ar(CEREAL_NVP(m_rank));
+	}
+
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+	{
+		ar(CEREAL_NVP(cereal::make_size_tag(m_size)));
+		ar(CEREAL_NVP(m_bt));
+		ar(CEREAL_NVP(m_btnr));
+		ar(CEREAL_NVP(m_btnrp));
+		ar(CEREAL_NVP(m_rank));
+	}
+
 	iterator begin() const { return iterator(this, 0); }
 
 	iterator end() const { return iterator(this, size()); }
@@ -527,6 +547,12 @@ public:
 		structure_tree::add_size(child, 0);
 		return 0;
 	}
+
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t &) const {}
+
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t &) {}
 };
 
 
@@ -652,6 +678,12 @@ public:
 		structure_tree::add_size(child, 0);
 		return 0;
 	}
+
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t &) const {}
+
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t &) {}
 };
 
 } // end namespace sdsl

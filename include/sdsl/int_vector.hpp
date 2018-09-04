@@ -648,6 +648,26 @@ public:
 	//! Load the int_vector for a stream.
 	void load(std::istream& in);
 
+	// //!\brief Serialise (save) via cereal if archive is not binary
+	template <typename archive_t> inline
+	typename std::enable_if<!cereal::traits::is_output_serializable<cereal::BinaryData<int_vector<t_width>>, archive_t>::value, void>::type
+	CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const;
+
+	// //!\brief Serialise (save) via cereal if archive is binary
+	template <typename archive_t> inline
+	typename std::enable_if<cereal::traits::is_output_serializable<cereal::BinaryData<int_vector<t_width>>, archive_t>::value, void>::type
+	CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const;
+
+	// //!\brief Serialise (load) via cereal if archive is not binary
+	template <typename archive_t> inline
+	typename std::enable_if<!cereal::traits::is_input_serializable<cereal::BinaryData<int_vector<t_width>>, archive_t>::value, void>::type
+	CEREAL_LOAD_FUNCTION_NAME(archive_t & ar);
+
+	// //!\brief Serialise (save) via cereal if archive is binary
+	template <typename archive_t> inline
+	typename std::enable_if<cereal::traits::is_input_serializable<cereal::BinaryData<int_vector<t_width>>, archive_t>::value, void>::type
+	CEREAL_LOAD_FUNCTION_NAME(archive_t & ar);
+
 	//! non const version of [] operator
 	/*! \param i Index the i-th integer of length width().
          *  \return A reference to the i-th integer of length width().
@@ -1810,6 +1830,60 @@ void int_vector<t_width>::load(std::istream& in)
 		idx += conf::SDSL_BLOCK_SIZE;
 	}
 	in.read((char*)p, (bit_data_size() - idx) * sizeof(uint64_t));
+}
+
+template <uint8_t t_width>
+template <typename archive_t> inline
+typename std::enable_if<cereal::traits::is_output_serializable<cereal::BinaryData<int_vector<t_width>>, archive_t>::value, void>::type
+int_vector<t_width>::CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+{
+	ar(CEREAL_NVP(cereal::make_size_tag(static_cast<int_width_type>(m_width))));
+	ar(CEREAL_NVP(growth_factor));
+	ar(CEREAL_NVP(cereal::make_size_tag(static_cast<size_type>(m_size))));
+	ar(cereal::make_nvp("data", cereal::binary_data(m_data, bit_data_size() * sizeof(uint64_t))));
+}
+
+template <uint8_t t_width>
+template <typename archive_t> inline
+typename std::enable_if<!cereal::traits::is_output_serializable<cereal::BinaryData<int_vector<t_width>>, archive_t>::value, void>::type
+int_vector<t_width>::CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+{
+	ar(CEREAL_NVP(m_width));
+	ar(CEREAL_NVP(growth_factor));
+	ar(CEREAL_NVP(m_size));
+	for(value_type const & v : *this)
+		ar(v);
+}
+
+template <uint8_t t_width>
+template <typename archive_t> inline
+typename std::enable_if<cereal::traits::is_input_serializable<cereal::BinaryData<int_vector<t_width>>, archive_t>::value, void>::type
+int_vector<t_width>::CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+{
+	ar(CEREAL_NVP(cereal::make_size_tag(m_width)));
+	ar(CEREAL_NVP(growth_factor));
+	ar(CEREAL_NVP(cereal::make_size_tag(m_size)));
+	resize(size());
+	ar(cereal::make_nvp("data", cereal::binary_data(m_data, bit_data_size() * sizeof(uint64_t))));
+}
+
+template <uint8_t t_width>
+template <typename archive_t> inline
+typename std::enable_if<!cereal::traits::is_input_serializable<cereal::BinaryData<int_vector<t_width>>, archive_t>::value, void>::type
+int_vector<t_width>::CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+{
+	ar(CEREAL_NVP(m_width));
+	width(width());
+	ar(CEREAL_NVP(growth_factor));
+	ar(CEREAL_NVP(m_size));
+	resize(size());
+
+	for (size_t i = 0; i<size(); ++i)
+	{
+		value_type tmp;
+		ar(tmp);
+		operator[](i) = tmp;
+	}
 }
 
 } // end namespace sdsl

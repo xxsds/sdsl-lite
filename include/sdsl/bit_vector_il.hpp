@@ -212,6 +212,28 @@ public:
 		m_rank_samples.load(in);
 	}
 
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+	{
+		ar(CEREAL_NVP(cereal::make_size_tag(static_cast<size_type>(m_size))));
+		ar(CEREAL_NVP(cereal::make_size_tag(static_cast<size_type>(m_block_num))));
+		ar(CEREAL_NVP(cereal::make_size_tag(static_cast<size_type>(m_superblocks))));
+		ar(CEREAL_NVP(cereal::make_size_tag(static_cast<size_type>(m_block_shift))));
+		ar(CEREAL_NVP(m_data));
+		ar(CEREAL_NVP(m_rank_samples));
+	}
+
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+	{
+		ar(CEREAL_NVP(cereal::make_size_tag(m_size)));
+		ar(CEREAL_NVP(cereal::make_size_tag(m_block_num)));
+		ar(CEREAL_NVP(cereal::make_size_tag(m_superblocks)));
+		ar(CEREAL_NVP(cereal::make_size_tag(m_block_shift)));
+		ar(CEREAL_NVP(m_data));
+		ar(CEREAL_NVP(m_rank_samples));
+	}
+
 	iterator begin() const { return iterator(this, 0); }
 
 	iterator end() const { return iterator(this, size()); }
@@ -312,6 +334,12 @@ public:
 	{
 		return serialize_empty_object(out, v, name, this);
 	}
+
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t &) const {}
+
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t &) {}
 };
 
 
@@ -470,6 +498,12 @@ public:
 	{
 		return serialize_empty_object(out, v, name, this);
 	}
+
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t &) const {}
+
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t &) {}
 };
 
 } // end namespace sdsl
