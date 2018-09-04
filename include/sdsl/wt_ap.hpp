@@ -365,6 +365,32 @@ public:
 			m_offset[i].load(in);
 		}
 	}
+
+	//!\brief Serialise (save) via cereal
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+	{
+		ar(CEREAL_NVP(cereal::make_size_tag(static_cast<size_type>(m_size))));
+		ar(CEREAL_NVP(cereal::make_size_tag(static_cast<value_type>(m_sigma))));
+		ar(CEREAL_NVP(cereal::make_size_tag(static_cast<value_type>(m_singleton_class_cnt))));
+		ar(CEREAL_NVP(cereal::make_size_tag(static_cast<value_type>(m_class_cnt))));
+		ar(CEREAL_NVP(m_char2class));
+		ar(CEREAL_NVP(m_class));
+		ar(CEREAL_NVP(m_offset));
+	}
+
+	//!\brief Load via cereal
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+	{
+		ar(CEREAL_NVP(cereal::make_size_tag(m_size)));
+		ar(CEREAL_NVP(cereal::make_size_tag(m_sigma)));
+		ar(CEREAL_NVP(cereal::make_size_tag(m_singleton_class_cnt)));
+		ar(CEREAL_NVP(cereal::make_size_tag(m_class_cnt)));
+		ar(CEREAL_NVP(m_char2class));
+		ar(CEREAL_NVP(m_class));
+		ar(CEREAL_NVP(m_offset));
+	}
 };
 
 } // end namespace sdsl

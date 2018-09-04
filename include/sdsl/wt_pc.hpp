@@ -635,6 +635,33 @@ public:
 		m_tree.load(in);
 	}
 
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+	{
+		ar(CEREAL_NVP(cereal::make_size_tag(static_cast<size_type>(m_size))));
+		ar(CEREAL_NVP(cereal::make_size_tag(static_cast<size_type>(m_sigma))));
+		ar(CEREAL_NVP(m_bv));
+		ar(CEREAL_NVP(m_bv_rank));
+		ar(CEREAL_NVP(m_bv_select1));
+		ar(CEREAL_NVP(m_bv_select0));
+		ar(CEREAL_NVP(m_tree));
+	}
+
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+	{
+		ar(CEREAL_NVP(cereal::make_size_tag(m_size)));
+		ar(CEREAL_NVP(cereal::make_size_tag(m_sigma)));
+		ar(CEREAL_NVP(m_bv));
+		ar(CEREAL_NVP(m_bv_rank));
+		m_bv_rank.set_vector(&m_bv);
+		ar(CEREAL_NVP(m_bv_select1));
+		m_bv_select1.set_vector(&m_bv);
+		ar(CEREAL_NVP(m_bv_select0));
+		m_bv_select0.set_vector(&m_bv);
+		ar(CEREAL_NVP(m_tree));
+	}
+
 	//! Random access container to bitvector of node v
 	auto bit_vec(const node_type& v) const -> node_bv_container<t_bitvector>
 	{

@@ -225,6 +225,27 @@ public:
 		m_marked.load(in);
 		m_marked_rank.load(in, &m_marked);
 	}
+
+	//!\brief Serialise (save) via cereal
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+	{
+		ar(CEREAL_NVP(cereal::make_size_tag(static_cast<uint64_t>(m_chunksize))));
+		ar(CEREAL_NVP(m_back_pointer));
+		ar(CEREAL_NVP(m_marked));
+		ar(CEREAL_NVP(m_marked_rank));
+	}
+
+	//!\brief Load via cereal
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+	{
+		ar(CEREAL_NVP(cereal::make_size_tag(m_chunksize)));
+		ar(CEREAL_NVP(m_back_pointer));
+		ar(CEREAL_NVP(m_marked));
+		ar(CEREAL_NVP(m_marked_rank));
+		m_marked_rank.set_vector(&m_marked);
+	}
 };
 
 template <class t_rac>
@@ -236,9 +257,17 @@ const std::string filename)
 	std::string tmp_file_name = tmp_file(filename, "_compress_int_vector");
 	store_to_file(iv, tmp_file_name);
 	util::clear(iv);
+#if SDSL_HAS_CEREAL
+	int_vector<> buf;
+	buf.width(iv.width());
+	load_from_file(buf, tmp_file_name);
+	rac = t_rac(buf);
+	sdsl::remove(tmp_file_name); // delete tmp_file
+#else
 	int_vector_buffer<> buf(tmp_file_name, std::ios::in, 1024 * 1024, iv.width());
 	rac = t_rac(buf);
 	buf.close(true); // delete tmp_file
+#endif
 }
 
 template <class t_rac>
@@ -606,6 +635,36 @@ public:
 		m_bv_blocks.load(in);
 		m_bv_blocks_select0.load(in, &m_bv_blocks);
 		m_bv_blocks_select1.load(in, &m_bv_blocks);
+	}
+
+	//!\brief Serialise (save) via cereal
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+	{
+		ar(CEREAL_NVP(cereal::make_size_tag(static_cast<uint64_t>(m_size))));
+		ar(CEREAL_NVP(cereal::make_size_tag(static_cast<uint64_t>(m_block_size))));
+		ar(CEREAL_NVP(cereal::make_size_tag(static_cast<uint64_t>(m_blocks))));
+		ar(CEREAL_NVP(cereal::make_size_tag(static_cast<uint64_t>(m_sigma))));
+		ar(CEREAL_NVP(m_e));
+		ar(CEREAL_NVP(m_bv_blocks));
+		ar(CEREAL_NVP(m_bv_blocks_select0));
+		ar(CEREAL_NVP(m_bv_blocks_select1));
+	}
+
+	//!\brief Load via cereal
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+	{
+		ar(CEREAL_NVP(cereal::make_size_tag(m_size)));
+		ar(CEREAL_NVP(cereal::make_size_tag(m_block_size)));
+		ar(CEREAL_NVP(cereal::make_size_tag(m_blocks)));
+		ar(CEREAL_NVP(cereal::make_size_tag(m_sigma)));
+		ar(CEREAL_NVP(m_e));
+		ar(CEREAL_NVP(m_bv_blocks));
+		ar(CEREAL_NVP(m_bv_blocks_select0));
+		m_bv_blocks_select0.set_vector(&m_bv_blocks);
+		ar(CEREAL_NVP(m_bv_blocks_select1));
+		m_bv_blocks_select1.set_vector(&m_bv_blocks);
 	}
 };
 
@@ -992,6 +1051,49 @@ public:
 		m_perm.load(in);
 		m_ips.load(in, &m_perm);
 	}
+
+    //!\brief Serialise (save) via cereal
+    template <typename archive_t>
+    void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+    {
+        ar(CEREAL_NVP(cereal::make_size_tag(static_cast<uint64_t>(m_size))));
+        ar(CEREAL_NVP(cereal::make_size_tag(static_cast<uint64_t>(m_max_symbol))));
+        ar(CEREAL_NVP(cereal::make_size_tag(static_cast<uint64_t>(m_chunks))));
+        ar(CEREAL_NVP(cereal::make_size_tag(static_cast<uint64_t>(m_chunksize))));
+        ar(CEREAL_NVP(cereal::make_size_tag(static_cast<uint64_t>(m_sigma))));
+        ar(CEREAL_NVP(m_bv_blocks));
+        ar(CEREAL_NVP(m_bv_blocks_select0));
+        ar(CEREAL_NVP(m_bv_blocks_select1));
+        ar(CEREAL_NVP(m_bv_chunks));
+        ar(CEREAL_NVP(m_bv_chunks_select0));
+        ar(CEREAL_NVP(m_bv_chunks_select1));
+        ar(CEREAL_NVP(m_perm));
+        ar(CEREAL_NVP(m_ips));
+    }
+
+    //!\brief Load via cereal
+    template <typename archive_t>
+    void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+    {
+        ar(CEREAL_NVP(cereal::make_size_tag(m_size)));
+        ar(CEREAL_NVP(cereal::make_size_tag(m_max_symbol)));
+        ar(CEREAL_NVP(cereal::make_size_tag(m_chunks)));
+        ar(CEREAL_NVP(cereal::make_size_tag(m_chunksize)));
+        ar(CEREAL_NVP(cereal::make_size_tag(m_sigma)));
+        ar(CEREAL_NVP(m_bv_blocks));
+        ar(CEREAL_NVP(m_bv_blocks_select0));
+        m_bv_blocks_select0.set_vector(&m_bv_blocks);
+        ar(CEREAL_NVP(m_bv_blocks_select1));
+        m_bv_blocks_select1.set_vector(&m_bv_blocks);
+        ar(CEREAL_NVP(m_bv_chunks));
+        ar(CEREAL_NVP(m_bv_chunks_select0));
+        m_bv_chunks_select0.set_vector(&m_bv_chunks);
+        ar(CEREAL_NVP(m_bv_chunks_select1));
+        m_bv_chunks_select1.set_vector(&m_bv_chunks);
+        ar(CEREAL_NVP(m_perm));
+        ar(CEREAL_NVP(m_ips));
+        m_ips.set_vector(&m_perm);
+    }
 };
 }
 

@@ -158,6 +158,20 @@ public:
 		m_small_lcp.load(in);
 		m_big_lcp.load(in);
 	}
+
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+	{
+		ar(CEREAL_NVP(m_small_lcp));
+		ar(CEREAL_NVP(m_big_lcp));
+	}
+
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+	{
+		ar(CEREAL_NVP(m_small_lcp));
+		ar(CEREAL_NVP(m_big_lcp));
+	}
 };
 
 } // end namespace sdsl
