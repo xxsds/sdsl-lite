@@ -63,7 +63,12 @@ public:
 		if ("" != other_key) {
 			lcp_key = other_key;
 		}
+#if SDSL_HAS_CEREAL
+		int_vector<> lcp_buf;
+		load_from_file(lcp_buf, cache_file_name(lcp_key, config));
+#else
 		int_vector_buffer<> lcp_buf(cache_file_name(lcp_key, config));
+#endif
 		m_vec = vlc_vec_type(lcp_buf);
 	}
 
@@ -99,6 +104,18 @@ public:
 
 	//! Load from a stream.
 	void load(std::istream& in) { m_vec.load(in); }
+
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+	{
+		ar(CEREAL_NVP(m_vec));
+	}
+
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+	{
+		ar(CEREAL_NVP(m_vec));
+	}
 };
 
 } // end namespace sdsl

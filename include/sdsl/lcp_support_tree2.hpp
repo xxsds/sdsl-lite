@@ -16,8 +16,13 @@ namespace sdsl {
 
 // Forward declaration of helper method
 template <uint32_t t_dens, uint8_t t_bwt_width>
+#if SDSL_HAS_CEREAL
+void construct_first_child_and_lf_lcp(int_vector<>&,
+									  int_vector<t_bwt_width>&,
+#else
 void construct_first_child_and_lf_lcp(int_vector_buffer<>&,
 									  int_vector_buffer<t_bwt_width>&,
+#endif
 									  const std::string&,
 									  const std::string&,
 									  int_vector<>&);
@@ -80,21 +85,35 @@ public:
 	_lcp_support_tree2(cache_config& config, const cst_type* cst = nullptr)
 	{
 		m_cst = cst;
-
+#if SDSL_HAS_CEREAL
+		int_vector<> lcp_buf;
+		load_from_file(lcp_buf, cache_file_name(conf::KEY_LCP, config));
+#else
 		int_vector_buffer<> lcp_buf(cache_file_name(conf::KEY_LCP, config));
+#endif
 		std::string			bwt_file =
 		cache_file_name(key_bwt<t_cst::csa_type::alphabet_type::int_width>(), config);
+#if SDSL_HAS_CEREAL
+		int_vector<t_cst::csa_type::alphabet_type::int_width> bwt_buf;
+		load_from_file(bwt_buf, bwt_file);
+#else
 		int_vector_buffer<t_cst::csa_type::alphabet_type::int_width> bwt_buf(bwt_file);
-
+#endif
 		std::string sml_lcp_file = tmp_file(config, "_fc_lf_lcp_sml");
 		std::string big_lcp_file = tmp_file(config, "_fc_lf_lcp_big");
 
 		construct_first_child_and_lf_lcp<t_dens>(
 		lcp_buf, bwt_buf, sml_lcp_file, big_lcp_file, m_big_lcp);
+#if SDSL_HAS_CEREAL
+		int_vector<8> sml_lcp_buf;
+		load_from_file(sml_lcp_buf, sml_lcp_file);
+#else
 		int_vector_buffer<8> sml_lcp_buf(sml_lcp_file);
-
+#endif
 		m_small_lcp = small_lcp_type(sml_lcp_buf.begin(), sml_lcp_buf.end(), config.dir);
+#if not SDSL_HAS_CEREAL
 		sml_lcp_buf.close(true);
+#endif
 		sdsl::remove(big_lcp_file);
 	}
 
@@ -154,6 +173,20 @@ public:
 		m_big_lcp.load(in);
 		m_cst = cst;
 	}
+
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+	{
+		ar(CEREAL_NVP(m_small_lcp));
+		ar(CEREAL_NVP(m_big_lcp));
+	}
+
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+	{
+		ar(CEREAL_NVP(m_small_lcp));
+		ar(CEREAL_NVP(m_big_lcp));
+	}
 };
 
 //! Helper class which provides _lcp_support_tree2 the context of a CST.
@@ -170,21 +203,31 @@ struct lcp_support_tree2 {
  * \tparam
  */
 template <uint32_t t_dens, uint8_t t_bwt_width>
-void construct_first_child_and_lf_lcp(int_vector_buffer<>&			  lcp_buf,
+#if SDSL_HAS_CEREAL
+void construct_first_child_and_lf_lcp(int_vector<>&                   lcp_buf,
+									  int_vector<t_bwt_width>&        bwt_buf,
+#else
+void construct_first_child_and_lf_lcp(int_vector_buffer<>&            lcp_buf,
 									  int_vector_buffer<t_bwt_width>& bwt_buf,
-									  const std::string&			  small_lcp_file,
-									  const std::string&			  big_lcp_file,
-									  int_vector<>&					  big_lcp)
+#endif
+									  const std::string&              small_lcp_file,
+									  const std::string&              big_lcp_file,
+									  int_vector<>&			       big_lcp)
 {
 	typedef int_vector<>::size_type size_type;
 	const size_type					M = 255; // limit for values represented in the small LCP part
+#if not SDSL_HAS_CEREAL
 	size_type						buf_len = 1000000;
 	lcp_buf.buffersize(buf_len);
 	bwt_buf.buffersize(buf_len);
+#endif
 	size_type n = lcp_buf.size();
 
+#if SDSL_HAS_CEREAL
+	int_vector<8> sml_lcp_out;
+#else
 	int_vector_buffer<8> sml_lcp_out(small_lcp_file, std::ios::out);
-
+#endif
 	osfstream big_lcp_out(big_lcp_file, std::ios::out | std::ios::trunc | std::ios::binary);
 
 	size_type fc_cnt = 0; // number of lcp values at the first child r
@@ -262,6 +305,9 @@ void construct_first_child_and_lf_lcp(int_vector_buffer<>&			  lcp_buf,
 		big_lcp_in.read((char*)&y, sizeof(y));
 		big_lcp[i] = y;
 	}
+#if SDSL_HAS_CEREAL
+	store_to_file(sml_lcp_out, small_lcp_file);
+#endif
 }
 
 } // end namespace
