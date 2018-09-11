@@ -7,5 +7,5 @@ Name: @PROJECT_NAME@
 Description: @PROJECT_DESCRIPTION@
 Version: @LIBRARY_VERSION_FULL@
 URL: @PROJECT_URL@
-Libs: -L${libdir} -ldivsufsort -ldivsufsort64
+Libs: -L${libdir}
 Cflags: -I${includedir}

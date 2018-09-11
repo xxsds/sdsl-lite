@@ -12,8 +12,7 @@
 #include "config.hpp"
 #include "int_vector.hpp"
 
-#include "divsufsort.h"
-#include "divsufsort64.h"
+#include "divsufsort.hpp"
 
 #include "qsufsort.hpp"
 
@@ -94,7 +93,7 @@ void calculate_sa(const unsigned char* c, typename t_int_vec::size_type len, t_i
 		if (32 == t_width or (0 == t_width and 32 >= sa_width)) {
 			sa.width(32);
 			sa.resize(len);
-			divsufsort(c, (int32_t*)sa.data(), len);
+			divsufsort(c, (int32_t*)sa.data(), (int32_t)len);
 			// copy integers back to the right positions
 			if (sa_width != 32) {
 				for (size_type i = 0, p = 0; i < len; ++i, p += sa_width) {
@@ -108,7 +107,7 @@ void calculate_sa(const unsigned char* c, typename t_int_vec::size_type len, t_i
 				throw std::logic_error("width of int_vector is to small for the text!!!");
 			}
 			int_vector<> sufarray(len, 0, 32);
-			divsufsort(c, (int32_t*)sufarray.data(), len);
+			divsufsort(c, (int32_t*)sufarray.data(), (int32_t)len);
 			sa.resize(len);
 			for (size_type i = 0; i < len; ++i) {
 				sa[i] = sufarray[i];
