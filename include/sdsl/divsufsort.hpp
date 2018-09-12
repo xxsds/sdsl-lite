@@ -360,7 +360,7 @@ inline void ss_mintrosort(const uint8_t *T, const saidx_t *PA, saidx_t *first, s
   int32_t limit;
   int32_t v, x = 0;
 
-  for(ssize = 0, limit = ss_ilg(last - first);;) {
+  for(ssize = 0, limit = ss_ilg((saidx_t)(last - first));;) {
 
     if((last - first) <= SS_INSERTIONSORT_THRESHOLD) {
 #if 1 < SS_INSERTIONSORT_THRESHOLD
@@ -386,16 +386,16 @@ inline void ss_mintrosort(const uint8_t *T, const saidx_t *PA, saidx_t *first, s
       if((a - first) <= (last - a)) {
         if(1 < (a - first)) {
           STACK_PUSH(a, last, depth, -1);
-          last = a, depth += 1, limit = ss_ilg(a - first);
+          last = a, depth += 1, limit = ss_ilg((saidx_t)(a - first));
         } else {
           first = a, limit = -1;
         }
       } else {
         if(1 < (last - a)) {
-          STACK_PUSH(first, a, depth + 1, ss_ilg(a - first));
+          STACK_PUSH(first, a, depth + 1, ss_ilg((saidx_t)(a - first)));
           first = a, limit = -1;
         } else {
-          last = a, depth += 1, limit = ss_ilg(a - first);
+          last = a, depth += 1, limit = ss_ilg((saidx_t)(a - first));
         }
       }
       continue;
@@ -442,38 +442,38 @@ inline void ss_mintrosort(const uint8_t *T, const saidx_t *PA, saidx_t *first, s
 
       if((a - first) <= (last - c)) {
         if((last - c) <= (c - b)) {
-          STACK_PUSH(b, c, depth + 1, ss_ilg(c - b));
+          STACK_PUSH(b, c, depth + 1, ss_ilg((saidx_t)(c - b)));
           STACK_PUSH(c, last, depth, limit);
           last = a;
         } else if((a - first) <= (c - b)) {
           STACK_PUSH(c, last, depth, limit);
-          STACK_PUSH(b, c, depth + 1, ss_ilg(c - b));
+          STACK_PUSH(b, c, depth + 1, ss_ilg((saidx_t)(c - b)));
           last = a;
         } else {
           STACK_PUSH(c, last, depth, limit);
           STACK_PUSH(first, a, depth, limit);
-          first = b, last = c, depth += 1, limit = ss_ilg(c - b);
+          first = b, last = c, depth += 1, limit = ss_ilg((saidx_t)(c - b));
         }
       } else {
         if((a - first) <= (c - b)) {
-          STACK_PUSH(b, c, depth + 1, ss_ilg(c - b));
+          STACK_PUSH(b, c, depth + 1, ss_ilg((saidx_t)(c - b)));
           STACK_PUSH(first, a, depth, limit);
           first = c;
         } else if((last - c) <= (c - b)) {
           STACK_PUSH(first, a, depth, limit);
-          STACK_PUSH(b, c, depth + 1, ss_ilg(c - b));
+          STACK_PUSH(b, c, depth + 1, ss_ilg((saidx_t)(c - b)));
           first = c;
         } else {
           STACK_PUSH(first, a, depth, limit);
           STACK_PUSH(c, last, depth, limit);
-          first = b, last = c, depth += 1, limit = ss_ilg(c - b);
+          first = b, last = c, depth += 1, limit = ss_ilg((saidx_t)(c - b));
         }
       }
     } else {
       limit += 1;
       if(Td[PA[*first] - 1] < v) {
         first = ss_partition(PA, first, last, depth);
-        limit = ss_ilg(last - first);
+        limit = ss_ilg((saidx_t)(last - first));
       }
       depth += 1;
     }
@@ -1093,7 +1093,7 @@ inline void tr_introsort(saidx_t *ISA, const saidx_t *ISAd,
   int32_t limit, next;
   int32_t ssize, trlink = -1;
 
-  for(ssize = 0, limit = tr_ilg(last - first);;) {
+  for(ssize = 0, limit = tr_ilg((saidx_t)(last - first));;) {
 
     if(limit < 0) {
       if(limit == -1) {
@@ -1116,19 +1116,19 @@ inline void tr_introsort(saidx_t *ISA, const saidx_t *ISAd,
         }
         if((a - first) <= (last - b)) {
           if(1 < (a - first)) {
-            STACK_PUSH5(ISAd, b, last, tr_ilg(last - b), trlink);
-            last = a, limit = tr_ilg(a - first);
+            STACK_PUSH5(ISAd, b, last, tr_ilg((saidx_t)(last - b)), trlink);
+            last = a, limit = tr_ilg((saidx_t)(a - first));
           } else if(1 < (last - b)) {
-            first = b, limit = tr_ilg(last - b);
+            first = b, limit = tr_ilg((saidx_t)(last - b));
           } else {
             STACK_POP5(ISAd, first, last, limit, trlink);
           }
         } else {
           if(1 < (last - b)) {
-            STACK_PUSH5(ISAd, first, a, tr_ilg(a - first), trlink);
-            first = b, limit = tr_ilg(last - b);
+            STACK_PUSH5(ISAd, first, a, tr_ilg((saidx_t)(a - first)), trlink);
+            first = b, limit = tr_ilg((saidx_t)(last - b));
           } else if(1 < (a - first)) {
-            last = a, limit = tr_ilg(a - first);
+            last = a, limit = tr_ilg((saidx_t)(a - first));
           } else {
             STACK_POP5(ISAd, first, last, limit, trlink);
           }
@@ -1152,7 +1152,7 @@ inline void tr_introsort(saidx_t *ISA, const saidx_t *ISAd,
         }
         if(first < last) {
           a = first; do { *a = ~*a; } while(*++a < 0);
-          next = (ISA[*a] != ISAd[*a]) ? tr_ilg(a - first + 1) : -1;
+          next = (ISA[*a] != ISAd[*a]) ? tr_ilg((saidx_t)(a - first + 1)) : -1;
           if(++a < last) { for(b = first, v = a - SA - 1; b < a; ++b) { ISA[*b] = v; } }
 
           /* push */
@@ -1206,7 +1206,7 @@ inline void tr_introsort(saidx_t *ISA, const saidx_t *ISAd,
     /* partition */
     tr_partition(ISAd, first, first + 1, last, &a, &b, v);
     if((last - first) != (b - a)) {
-      next = (ISA[*a] != v) ? tr_ilg(b - a) : -1;
+      next = (ISA[*a] != v) ? tr_ilg((saidx_t)(b - a)) : -1;
 
       /* update ranks */
       for(c = first, v = a - SA - 1; c < a; ++c) { ISA[*c] = v; }
@@ -1291,7 +1291,7 @@ inline void tr_introsort(saidx_t *ISA, const saidx_t *ISAd,
       }
     } else {
       if(trbudget_check(budget, (saidx_t)(last - first))) {
-        limit = tr_ilg(last - first), ISAd += incr;
+        limit = tr_ilg((saidx_t)(last - first)), ISAd += incr;
       } else {
         if(0 <= trlink) { stack[trlink].d = -1; }
         STACK_POP5(ISAd, first, last, limit, trlink);
