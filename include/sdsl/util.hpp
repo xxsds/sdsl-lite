@@ -553,8 +553,11 @@ inline void util::cyclic_shifts(uint64_t* vec, uint8_t & n, uint64_t k, uint8_t 
 		vec[n] |= k << offset;
 		offset += int_width;
 		if (offset >= 64) {
-			vec[n + 1] = 0;
-			vec[++n] = k >> (int_width - (offset - 64));
+			++n;
+			if (int_width == 64)
+				return;
+			assert(int_width - (offset - 64) < 64);
+			vec[n] = k >> (int_width - (offset - 64));
 			offset -= 64;
 		}
 	} while (offset != 0);
