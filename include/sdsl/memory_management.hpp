@@ -291,7 +291,7 @@ inline void block_markfree(mm_block_t* ptr) { block_update(ptr, SETFREE(ptr->siz
 /* mark the block as used */
 inline void block_markused(mm_block_t* ptr) { block_update(ptr, UNMASK_SIZE(ptr->size)); }
 
-#ifndef MSVC_COMPILER
+#ifndef _WIN32
 
 class hugepage_allocator {
 private:
@@ -713,7 +713,7 @@ private:
 public:
 	static uint64_t* alloc_mem(size_t size_in_bytes)
 	{
-#ifndef MSVC_COMPILER
+#ifndef _WIN32
 		auto& m = the_manager();
 		if (m.hugepages) {
 			return (uint64_t*)hugepage_allocator::the_allocator().mm_alloc(size_in_bytes);
@@ -723,7 +723,7 @@ public:
 	}
 	static void free_mem(uint64_t* ptr)
 	{
-#ifndef MSVC_COMPILER
+#ifndef _WIN32
 		auto& m = the_manager();
 		if (m.hugepages and hugepage_allocator::the_allocator().in_address_space(ptr)) {
 			hugepage_allocator::the_allocator().mm_free(ptr);
@@ -734,7 +734,7 @@ public:
 	}
 	static uint64_t* realloc_mem(uint64_t* ptr, size_t size)
 	{
-#ifndef MSVC_COMPILER
+#ifndef _WIN32
 		auto& m = the_manager();
 		if (m.hugepages and hugepage_allocator::the_allocator().in_address_space(ptr)) {
 			return (uint64_t*)hugepage_allocator::the_allocator().mm_realloc(ptr, size);
@@ -746,12 +746,14 @@ public:
 public:
 	static void use_hugepages(size_t bytes = 0)
 	{
-#ifndef MSVC_COMPILER
+#ifndef _WIN32
 		auto& m = the_manager();
 		hugepage_allocator::the_allocator().init(bytes);
 		m.hugepages = true;
 #else
-		throw std::runtime_error("hugepages not support on MSVC_COMPILER");
+		throw std::runtime_error(std::string("hugepages not supported on Windows"));
+        // avoid error: unused parameter 'bytes' [-Werror=unused-parameter]
+        (void) bytes;
 #endif
 	}
 	template <class t_vec>
@@ -826,7 +828,7 @@ public:
 			return file_content.data();
 		}
 		memory_monitor::record(file_size);
-#ifdef MSVC_COMPILER
+#ifdef _WIN32
 		HANDLE fh = (HANDLE)_get_osfhandle(fd);
 		if (fh == INVALID_HANDLE_VALUE) {
 			return nullptr;
@@ -871,7 +873,7 @@ public:
 			return 0;
 		}
 		memory_monitor::record(-((int64_t)size));
-#ifdef MSVC_COMPILER
+#ifdef _WIN32
 		if (UnmapViewOfFile(addr)) return 0;
 		return -1;
 #else
@@ -898,7 +900,7 @@ public:
 		if (is_ram_file(fd)) {
 			return ram_fs::truncate(fd, new_size);
 		}
-#ifdef MSVC_COMPILER
+#ifdef _WIN32
 		auto ret		  = _chsize_s(fd, new_size);
 		if (ret != 0) ret = -1;
 		return ret;

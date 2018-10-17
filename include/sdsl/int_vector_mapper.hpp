@@ -346,7 +346,7 @@ private:
 	static std::string tmp_file(const std::string& dir)
 	{
 		char tmp_file_name[1024] = {0};
-#ifdef MSVC_COMPILER
+#ifdef _WIN32
 		auto ret = GetTempFileName(dir.c_str(), "tmp_mapper_file_", 0, tmp_file_name);
 		if (ret == 0) {
 			throw std::runtime_error("could not create temporary file.");

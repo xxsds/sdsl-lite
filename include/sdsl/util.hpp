@@ -46,11 +46,14 @@
 
 
 #ifndef MSVC_COMPILER
-#include <sys/time.h>	 // for struct timeval
+#include <cxxabi.h>
+#endif
+
+#ifndef _WIN32
+#include <sys/time.h>	  // for struct timeval
 #include <sys/resource.h> // for struct rusage
 #include <libgen.h>		  // for basename
 #include <unistd.h>		  // for getpid, file_size, clock_gettime
-#include <cxxabi.h>
 #else
 #include <process.h>
 #include <iso646.h>
@@ -197,10 +200,14 @@ inline size_t file_size(const std::string& file)
 inline std::string basename(std::string file)
 {
 	file = disk_file_name(file); // remove RAM-prefix
-#ifdef MSVC_COMPILER
+#ifdef _WIN32
 	char* c						= _strdup((const char*)file.c_str());
 	char  file_name[_MAX_FNAME] = {0};
+#ifdef MSVC_COMPILER
 	::_splitpath_s(c, NULL, 0, NULL, NULL, file_name, _MAX_FNAME, NULL, 0);
+#else
+	::_splitpath(c, NULL, NULL, file_name, NULL);
+#endif
 	std::string res(file_name);
 #else
 	char*		c   = strdup((const char*)file.c_str());
@@ -218,11 +225,15 @@ inline std::string dirname(std::string file)
 {
 	bool ram_file = is_ram_file(file);
 	file		  = disk_file_name(file); // remove RAM-prefix
-#ifdef MSVC_COMPILER
-	char* c					 = _strdup((const char*)file.c_str());
+#ifdef _WIN32
+	char* c                  = _strdup((const char*)file.c_str());
 	char  dir_name[_MAX_DIR] = {0};
 	char  drive[_MAX_DRIVE]  = {0};
-	::_splitpath_s(c, drive, _MAX_DRIVE, dir_name, _MAX_DIR, NULL, 0, NULL, 0);
+#ifdef MSVC_COMPILER
+    ::_splitpath_s(c, drive, _MAX_DRIVE, dir_name, _MAX_DIR, NULL, 0, NULL, 0);
+#else
+    ::_splitpath  (c, drive, dir_name,NULL, NULL);
+#endif
 	std::string res = std::string(drive) + std::string(dir_name);
 #else
 	char*		c   = strdup((const char*)file.c_str());
