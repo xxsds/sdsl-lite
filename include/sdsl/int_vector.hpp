@@ -1198,7 +1198,7 @@ public:
 	bool operator>=(const int_vector_iterator& it) const noexcept { return !(*this < it); }
 
 	bool operator<=(const int_vector_iterator& it) const noexcept { return !(*this > it); }
-	inline difference_type operator-(const int_vector_iterator& it)
+	inline difference_type operator-(const int_vector_iterator& it) const noexcept
 	{
 		return (((m_word - it.m_word) << 6) + m_offset - it.m_offset) / m_len;
 	}
