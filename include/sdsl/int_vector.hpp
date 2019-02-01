@@ -843,12 +843,19 @@ private:
 	const uint8_t							 m_offset;
 	const uint8_t							 m_len; //!< Length of the integer referred to in bits.
 public:
+
+	//! Default constructor explicitly deleted.
+	int_vector_reference() = delete;
+	//! Copy and move explicitly defaulted.
+	constexpr int_vector_reference(int_vector_reference const &) noexcept = default;
+	constexpr int_vector_reference(int_vector_reference &&) noexcept = default;
+
 	//! Constructor for the reference class
 	/*! \param word Pointer to the corresponding 64bit word in the int_vector.
             \param offset Offset to the starting bit (offset in [0..63])
             \param len length of the integer, should be v->width()!!!
         */
-	int_vector_reference(value_type* word, uint8_t offset, uint8_t len)
+	int_vector_reference(value_type* word, uint8_t offset, uint8_t len) noexcept
 		: m_word(word), m_offset(offset), m_len(len){};
 
 	//! Assignment operator for the proxy class
@@ -859,22 +866,27 @@ public:
             \param x 64bit integer to assign
             \return A const_reference to the assigned reference
          */
-	int_vector_reference& operator=(value_type x)
+	int_vector_reference& operator=(value_type x) noexcept
 	{
 		bits::write_int(m_word, x, m_offset, m_len);
 		return *this;
 	};
 
-	int_vector_reference& operator=(const int_vector_reference& x)
+	int_vector_reference& operator=(const int_vector_reference& x) noexcept
 	{
 		return *this = value_type(x);
 	};
 
+	int_vector_reference& operator=(int_vector_reference&& x) noexcept
+	{
+		return *this = value_type(std::move(x));
+	};
+
 	//! Cast the reference to a int_vector<>::value_type
-	operator value_type() const { return bits::read_int(m_word, m_offset, m_len); }
+	operator value_type() const noexcept { return bits::read_int(m_word, m_offset, m_len); }
 
 	//! Prefix increment of the proxy object
-	int_vector_reference& operator++()
+	int_vector_reference& operator++() noexcept
 	{
 		value_type x = bits::read_int(m_word, m_offset, m_len);
 		bits::write_int(m_word, x + 1, m_offset, m_len);
@@ -882,7 +894,7 @@ public:
 	}
 
 	//! Postfix increment of the proxy object
-	value_type operator++(int)
+	value_type operator++(int) noexcept
 	{
 		value_type val = (typename t_int_vector::value_type) * this;
 		++(*this);
@@ -890,7 +902,7 @@ public:
 	}
 
 	//! Prefix decrement of the proxy object
-	int_vector_reference& operator--()
+	int_vector_reference& operator--() noexcept
 	{
 		value_type x = bits::read_int(m_word, m_offset, m_len);
 		bits::write_int(m_word, x - 1, m_offset, m_len);
@@ -898,7 +910,7 @@ public:
 	}
 
 	//! Postfix decrement of the proxy object
-	value_type operator--(int)
+	value_type operator--(int) noexcept
 	{
 		value_type val = (value_type) * this;
 		--(*this);
@@ -906,7 +918,7 @@ public:
 	}
 
 	//! Add assign from the proxy object
-	int_vector_reference& operator+=(const value_type x)
+	int_vector_reference& operator+=(const value_type x) noexcept
 	{
 		value_type w = bits::read_int(m_word, m_offset, m_len);
 		bits::write_int(m_word, w + x, m_offset, m_len);
@@ -914,19 +926,19 @@ public:
 	}
 
 	//! Subtract assign from the proxy object
-	int_vector_reference& operator-=(const value_type x)
+	int_vector_reference& operator-=(const value_type x) noexcept
 	{
 		value_type w = bits::read_int(m_word, m_offset, m_len);
 		bits::write_int(m_word, w - x, m_offset, m_len);
 		return *this;
 	}
 
-	bool operator==(const int_vector_reference& x) const
+	bool operator==(const int_vector_reference& x) const noexcept
 	{
 		return value_type(*this) == value_type(x);
 	}
 
-	bool operator<(const int_vector_reference& x) const
+	bool operator<(const int_vector_reference& x) const noexcept
 	{
 		return value_type(*this) < value_type(x);
 	}
@@ -977,15 +989,22 @@ private:
 	uint64_t		m_mask;
 
 public:
+
+	//! Default constructor explicitly deleted.
+	int_vector_reference() = delete;
+	//! Copy and move explicitly defaulted.
+	constexpr int_vector_reference(int_vector_reference const &) noexcept = default;
+	constexpr int_vector_reference(int_vector_reference &&) noexcept = default;
+
 	//! Constructor for the reference class
 	/*! \param word Pointer to the corresponding 64bit word in the int_vector.
             \param offset Offset to the starting bit (offset in [0..63])
         */
-	int_vector_reference(uint64_t* word, uint8_t offset, uint8_t)
+	int_vector_reference(uint64_t* word, uint8_t offset, uint8_t) noexcept
 		: m_word(word), m_mask(1ULL << offset){};
 
 	//! Assignment operator for the proxy class
-	int_vector_reference& operator=(bool x)
+	int_vector_reference& operator=(bool x) noexcept
 	{
 		if (x)
 			*m_word |= m_mask;
@@ -994,10 +1013,11 @@ public:
 		return *this;
 	};
 
-	int_vector_reference& operator=(const int_vector_reference& x) { return *this = bool(x); };
+	int_vector_reference& operator=(const int_vector_reference& x) noexcept { return *this = bool(x); };
+	int_vector_reference& operator=(int_vector_reference && x) noexcept { return *this = bool(x); };
 
 	//! Cast the reference to a bool
-	operator bool() const { return !!(*m_word & m_mask); }
+	operator bool() const noexcept { return !!(*m_word & m_mask); }
 
 	bool operator==(const int_vector_reference& x) const noexcept { return bool(*this) == bool(x); }
 
