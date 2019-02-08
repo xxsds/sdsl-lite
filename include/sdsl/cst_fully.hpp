@@ -896,12 +896,4 @@ cache_config& config)
 
 } // end namespace sdsl
 
-// TODO: make dependent on cst_fully
-template <class T>
-std::ostream& operator<<(std::ostream& os, const std::pair<T, T>& v)
-{
-	os << "[" << v.first << ", " << v.second << "]";
-	return os;
-}
-
 #endif // INCLUDED_SDSL_CST_FULLY
