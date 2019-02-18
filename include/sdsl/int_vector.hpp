@@ -1460,8 +1460,9 @@ template <uint8_t	t_width>
 int_vector<t_width>& int_vector<t_width>::operator=(int_vector&& v)
 {
 	if (this != &v) { // if v is not the same object
+		memory_manager::clear(*this); // clear allocated memory
 		m_size     = v.m_size;
-		m_data     = v.m_data;
+		m_data     = v.m_data; // assign new memory
 		m_width    = v.m_width;
 		m_capacity = v.m_capacity;
 		v.m_data     = nullptr;
