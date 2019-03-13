@@ -46,7 +46,7 @@ intersect(const t_wt& wt, const std::vector<range_type>& ranges, typename t_wt::
 	using p_t = std::pair<value_type, size_type>;
 	std::vector<p_t> res;
 
-	auto push_node = [&wt, &t](stack_type& s, node_type& child, range_vec_type& child_range) {
+	auto push_node = [&t](stack_type& s, node_type& child, range_vec_type& child_range) {
 		auto end = std::remove_if(
 		child_range.begin(), child_range.end(), [&](const range_type& x) { return empty(x); });
 		if (end > child_range.begin() + t - 1) {
