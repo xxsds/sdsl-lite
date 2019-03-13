@@ -1688,7 +1688,7 @@ divsufsort(const uint8_t *T, saidx_t *SA, saidx_t n) {
 // }
 
 inline int32_t divsufsort64(const uint8_t *T, int64_t *SA, int64_t n) {
-    return divsufsort64(T, SA, n);
+    return divsufsort(T, SA, n);
 }
 
 template <typename saidx_t>
