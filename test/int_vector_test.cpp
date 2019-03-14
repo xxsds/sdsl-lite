@@ -77,7 +77,7 @@ void test_Constructors(uint8_t template_width, size_type constructor_size, uint8
         ASSERT_EQ(template_width, iv.width());
         expected_val &= sdsl::bits::lo_set[iv.width()];
         for (size_type j=0; j < iv.size(); ++j) { // should be initialized with expected_val
-            ASSERT_EQ(expected_val, iv[j]);
+            ASSERT_EQ(expected_val, (value_type)iv[j]);
         }
     }
     {
@@ -92,7 +92,7 @@ void test_Constructors(uint8_t template_width, size_type constructor_size, uint8
         }
         expected_val &= sdsl::bits::lo_set[iv.width()];
         for (size_type j=0; j < iv.size(); ++j) { // should be initialized with expected_val
-            ASSERT_EQ(expected_val, iv[j]);
+            ASSERT_EQ(expected_val, (value_type)iv[j]);
         }
     }
     {

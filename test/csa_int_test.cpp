@@ -26,7 +26,26 @@ class csa_int_test : public ::testing::Test { };
 
 using testing::Types;
 
-typedef Types<@typedef_line@> Implementations;
+#ifdef FULL_TEST_SUITE
+
+typedef Types<
+    csa_wt<wt_int<>, 32, 32, sa_order_sa_sampling<>, isa_sampling<>, int_alphabet<>>,
+    csa_sada<enc_vector<>, 32, 32, sa_order_sa_sampling<>, isa_sampling<>, int_alphabet<>>,
+    csa_bitcompressed<int_alphabet<>>,
+    csa_wt<wt_int<rrr_vector<63> >, 8, 8, sa_order_sa_sampling<>, isa_sampling<>, int_alphabet<>>,
+    csa_wt<wt_int<>, 16, 16, text_order_sa_sampling<>, text_order_isa_sampling_support<>, int_alphabet<>>,
+    csa_sada<enc_vector<>, 32, 32, text_order_sa_sampling<>, isa_sampling<>, int_alphabet<>>
+> Implementations;
+
+#else
+
+typedef Types<
+    csa_wt<wt_int<>, 32, 32, sa_order_sa_sampling<>, isa_sampling<>, int_alphabet<>>,
+    csa_sada<enc_vector<>, 32, 32, sa_order_sa_sampling<>, isa_sampling<>, int_alphabet<>>,
+    csa_bitcompressed<int_alphabet<>>
+> Implementations;
+
+#endif
 
 TYPED_TEST_CASE(csa_int_test, Implementations);
 
@@ -34,7 +53,8 @@ TYPED_TEST(csa_int_test, create_and_store)
 {
     static_assert(sdsl::util::is_regular<TypeParam>::value, "Type is not regular");
     TypeParam csa;
-    cache_config config(false, temp_dir, util::basename(test_file));
+    std::string temp_file2 = sdsl::tmp_file(temp_dir+"/"+util::basename(test_file),util::basename(test_file));
+    cache_config config(false, temp_dir, util::basename(temp_file2));
     construct(csa, test_file, config, num_bytes);
     test_case_file_map = config.file_map;
     ASSERT_TRUE(store_to_file(csa, temp_file));

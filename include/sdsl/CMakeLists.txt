@@ -2,12 +2,6 @@ include(CheckIncludeFile)
 include(CheckIncludeFileCXX)	
 include(CheckTypeSize)	
 
-configure_file("${CMAKE_CURRENT_SOURCE_DIR}/bits.hpp.cmake"
-               "${CMAKE_CURRENT_SOURCE_DIR}/bits.hpp" @ONLY)
-
-configure_file("${CMAKE_CURRENT_SOURCE_DIR}/uint128_t.hpp.cmake"
-               "${CMAKE_CURRENT_SOURCE_DIR}/uint128_t.hpp" @ONLY)
-
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/structure_tree.hpp.cmake"
                "${CMAKE_CURRENT_SOURCE_DIR}/structure_tree.hpp" @ONLY)
 

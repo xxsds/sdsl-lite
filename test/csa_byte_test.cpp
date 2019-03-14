@@ -21,10 +21,38 @@ string temp_dir;
 template<class T>
 class csa_byte_test : public ::testing::Test { };
 
-
 using testing::Types;
 
-typedef Types<@typedef_line@> Implementations;
+#ifdef FULL_TEST_SUITE
+
+typedef Types<
+    csa_wt<>,
+    csa_sada<>,
+    csa_bitcompressed<>,
+    csa_sada<enc_vector<coder::fibonacci>>,
+    csa_sada<enc_vector<coder::elias_gamma>>,
+    csa_wt<wt_huff<>, 8, 16, text_order_sa_sampling<>>,
+    csa_wt<wt_huff<>,32,32,fuzzy_sa_sampling<>>,
+    csa_wt<wt_huff<>,32,32,fuzzy_sa_sampling<bit_vector, bit_vector>, fuzzy_isa_sampling_support<>>,
+    csa_wt<wt_huff<>,32,32,fuzzy_sa_sampling<>, fuzzy_isa_sampling_support<>>,
+    csa_wt<wt_huff<>,32,32,text_order_sa_sampling<>,isa_sampling<>>,
+    csa_wt<wt_huff<>,32,32,text_order_sa_sampling<>,text_order_isa_sampling_support<>>,
+    csa_sada<enc_vector<>, 32,32,text_order_sa_sampling<>,isa_sampling<>>,
+    csa_sada<enc_vector<>, 32,32,text_order_sa_sampling<>,text_order_isa_sampling_support<>>,
+    csa_wt<wt_huff<>, 8, 16, sa_order_sa_sampling<>>,
+    csa_wt<wt_huff<>, 8, 16, sa_order_sa_sampling<>, isa_sampling<>, succinct_byte_alphabet<bit_vector, rank_support_v<>, select_support_mcl<>>>,
+    csa_wt<wt_huff<>, 8, 16, sa_order_sa_sampling<>, isa_sampling<>, succinct_byte_alphabet<>>
+> Implementations;
+
+#else
+
+typedef Types<
+    csa_wt<>,
+    csa_sada<>,
+    csa_bitcompressed<>
+> Implementations;
+
+#endif
 
 TYPED_TEST_CASE(csa_byte_test, Implementations);
 
@@ -32,7 +60,8 @@ TYPED_TEST(csa_byte_test, create_and_store_test)
 {
     static_assert(sdsl::util::is_regular<TypeParam>::value, "Type is not regular");
     TypeParam csa;
-    cache_config config(false, temp_dir, util::basename(test_file));
+    std::string temp_file2 = sdsl::tmp_file(temp_dir+"/"+util::basename(test_file),util::basename(test_file));
+    cache_config config(false, temp_dir, util::basename(temp_file2));
     construct(csa, test_file, config, 1);
     test_case_file_map = config.file_map;
     ASSERT_TRUE(store_to_file(csa, temp_file));

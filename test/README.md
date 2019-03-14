@@ -61,8 +61,7 @@ target will be `your-structure-test`.
 
 ## Acknowledgements
   We thank
-  * Project Gutenberg for providing text files `faust.txt` and
-    `zarathustra.txt`.
+  * Project Gutenberg for providing text files `faust.txt`.
   * Shane Culpepper for providing the test inputs
     `keeper.int` and `moby.int` for the integer-alphabet CSAs and CSTs.
 

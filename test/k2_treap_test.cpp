@@ -26,14 +26,14 @@ class k2_treap_test : public ::testing::Test { };
 using testing::Types;
 
 typedef Types<
-k2_treap<2, bit_vector>,
-         k2_treap<2, rrr_vector<63>>,
-         k2_treap<3, bit_vector>,
-         k2_treap<4, rrr_vector<63>>,
-         k2_treap<5, rrr_vector<63>>,
-         k2_treap<6, rrr_vector<63>>,
-         k2_treap<16, rrr_vector<63>>
-         > Implementations;
+    k2_treap<2, bit_vector>,
+    k2_treap<2, rrr_vector<63>>,
+    k2_treap<3, bit_vector>,
+    k2_treap<4, rrr_vector<63>>,
+    k2_treap<5, rrr_vector<63>>,
+    k2_treap<6, rrr_vector<63>>,
+    k2_treap<16, rrr_vector<63>>
+> Implementations;
 
 TYPED_TEST_CASE(k2_treap_test, Implementations);
 

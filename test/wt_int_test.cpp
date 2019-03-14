@@ -25,7 +25,36 @@ class wt_int_test : public ::testing::Test { };
 
 using testing::Types;
 
-typedef Types<@typedef_line@> Implementations;
+#ifdef FULL_TEST_SUITE
+
+typedef Types<
+    wt_blcd<bit_vector, rank_support_v<>, select_support_mcl<1>, select_support_mcl<0>, int_tree<>>,
+    wt_huff<bit_vector, rank_support_v<>, select_support_mcl<1>, select_support_mcl<0>, int_tree<>>,
+    wt_hutu<bit_vector, rank_support_v<>, select_support_mcl<1>, select_support_mcl<0>, int_tree<>>,
+    wt_gmr<>,
+    wt_ap<>,
+    wm_int<>,
+    wt_int<>,
+    wt_int<rrr_vector<15>>,
+    wt_int<rrr_vector<63>>,
+    wt_rlmn<bit_vector, rank_support_v5<>, select_support_mcl<1>, wt_int<>>,
+    wt_huff<rrr_vector<63>, rrr_vector<63>::rank_1_type, rrr_vector<63>::select_1_type, rrr_vector<63>::select_0_type, int_tree<>>
+> Implementations;
+
+#else
+
+typedef Types<
+    wt_blcd<bit_vector, rank_support_v<>, select_support_mcl<1>, select_support_mcl<0>, int_tree<>>,
+    wt_huff<bit_vector, rank_support_v<>, select_support_mcl<1>, select_support_mcl<0>, int_tree<>>,
+    wt_hutu<bit_vector, rank_support_v<>, select_support_mcl<1>, select_support_mcl<0>, int_tree<>>,
+    wt_gmr<>,
+    wt_ap<>,
+    wm_int<>,
+    wt_int<>,
+    wt_rlmn<bit_vector, rank_support_v5<>, select_support_mcl<1>, wt_int<>>
+> Implementations;
+
+#endif
 
 TYPED_TEST_CASE(wt_int_test, Implementations);
 
@@ -830,6 +859,6 @@ int main(int argc, char** argv)
     if ( init_2_arg_test(argc, argv, "WT_INT", test_file, temp_dir, temp_file) != 0 ) {
         return 1;
     }
- 
+
     return RUN_ALL_TESTS();
 }
