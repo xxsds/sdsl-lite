@@ -361,7 +361,9 @@ TYPED_TEST(cst_byte_test, child)
             auto w = cst.child(cst.root(), c);
             ASSERT_EQ(v, w);
             if (cst.is_leaf(v)) {
-                ASSERT_EQ(cst.root(), cst.select_child(v, c));
+                if (c > 0) {
+                    ASSERT_EQ(cst.root(), cst.select_child(v, c));
+                }
             }
         }
         for (size_type i=0; i < 256; ++i) {
@@ -383,14 +385,19 @@ TYPED_TEST(cst_byte_test, edge)
 
     if (cst.csa.size() > 0) {
         auto v = cst.select_leaf(cst.csa.isa[0]+1);
-        size_type max_depth = std::min(cst.depth(v), (size_type)20);
-        for (size_type i=0; i<max_depth; ++i) {
-            ASSERT_EQ(data[i], cst.edge(v, i+1)); //<<" i="<<i<<" v="<<v;
+        if (cst.depth(v) > 0) {
+            size_type max_depth = std::min(cst.depth(v) - 1, (size_type)20);
+            for (size_type i=0; i<max_depth; ++i) {
+                ASSERT_EQ(data[i], cst.edge(v, i+1)); //<<" i="<<i<<" v="<<v;
+            }
         }
+
         v = cst.parent(v);
-        max_depth = std::min(max_depth, cst.depth(v));
-        for (size_type i=0; i<max_depth; ++i) {
-            ASSERT_EQ(data[i], cst.edge(v, i+1)); //<<" i="<<i<<" v="<<v;
+        if (cst.depth(v) > 0) {
+            size_type max_depth = std::min(cst.depth(v) - 1, (size_type)20);
+            for (size_type i=0; i<max_depth; ++i) {
+                ASSERT_EQ(data[i], cst.edge(v, i+1)); //<<" i="<<i<<" v="<<v;
+            }
         }
     }
 }
@@ -428,6 +435,8 @@ TYPED_TEST(cst_byte_test, suffix_and_weiner_link)
 
         for (size_type i=0; i<100; ++i) {
             auto v = cst.select_leaf(dice()+1);
+            if (cst.depth(v) < 1)
+                continue;
             auto c = cst.edge(v, 1);
             ASSERT_EQ(v, cst.wl(cst.sl(v), c));
             for (size_type j=0; j<5; ++j) {
