@@ -757,8 +757,6 @@ public:
 	template <class t_vec>
 	static void resize(t_vec& v, const typename t_vec::size_type capacity)
 	{
-		if (capacity == 0)
-			return; // Do not allocate memory if none is requested
 		uint64_t old_capacity_in_bytes = ((v.m_capacity + 63) >> 6) << 3;
 		uint64_t new_capacity_in_bytes = ((capacity + 63) >> 6) << 3;
 		bool	 do_realloc		   = old_capacity_in_bytes != new_capacity_in_bytes;

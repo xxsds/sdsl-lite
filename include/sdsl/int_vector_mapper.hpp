@@ -196,6 +196,7 @@ public:
 		}
 
 		m_wrapper.m_size = size_in_bits;
+		free(m_wrapper.m_data);
 		m_wrapper.m_data = (uint64_t*)(m_mapped_data + m_data_offset);
 	}
 
