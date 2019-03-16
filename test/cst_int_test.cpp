@@ -14,12 +14,6 @@ using namespace std;
 using namespace std::chrono;
 using timer = std::chrono::high_resolution_clock;
 
-template <class T>
-std::ostream& operator<<(std::ostream& os, const std::pair<T, T>& v)
-{
-    os << "[" << v.first << ", " << v.second << "]";
-    return os;
-}
 
 namespace
 {
