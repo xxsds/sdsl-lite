@@ -31,11 +31,13 @@ inline void trivial_sa_construction(suffix_array_t & sa, text_t const & text)
             ++a, ++b;
         }
 
-        if (a == text.size())
-            return true;
-
+        // If a == b == text.size(), cmp needs to return false.
+        // Hence, we check b == text.size() before a == text.size().
         if (b == text.size())
             return false;
+
+        if (a == text.size())
+            return true;
 
         return text[a] < text[b];
     });
