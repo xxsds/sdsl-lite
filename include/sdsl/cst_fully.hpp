@@ -854,7 +854,8 @@ cache_config& config)
 
 	m_s.resize(2 * sample_count);
 	util::set_to_value(m_s, 0);
-	bit_vector	 tmp_b(2 * sample_count + cst.size(), 0);
+	// increase size of tmp_b resp. m_b by two if text is empty
+	bit_vector	 tmp_b(2 * sample_count + cst.size() + 2 * (cst.size() == 1), 0);
 	int_vector<64> tmp_depth;
 	tmp_depth.resize(sample_count);
 

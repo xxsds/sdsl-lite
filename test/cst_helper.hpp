@@ -3,10 +3,19 @@
 
 #include <sstream>
 #include <iostream>
-#include "gtest/gtest.h"
 #ifdef WIN32
 #include "iso646.h"
 #endif
+
+// this has to be declared before gtest is included
+template <class T>
+std::ostream& operator<<(std::ostream& os, const std::pair<T, T>& v)
+{
+    os << "[" << v.first << ", " << v.second << "]";
+    return os;
+}
+
+#include "gtest/gtest.h"
 
 template<class Cst>
 std::string format_node(const Cst& cst, const typename Cst::node_type& v)

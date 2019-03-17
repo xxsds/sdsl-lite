@@ -74,7 +74,7 @@ def run_unit_tests(slave_name, compiler, build_type)
     {
         dir("$workspace/build")
         {
-            sh "cmake $checkout_dir -DCMAKE_BUILD_TYPE=$build_type -DCMAKE_CXX_COMPILER=$compiler -DCMAKE_CXX_FLAGS=-DFULL_TEST_SUITE"
+            sh "cmake $checkout_dir -DCMAKE_BUILD_TYPE=$build_type -DCMAKE_CXX_COMPILER=$compiler -DCMAKE_CXX_FLAGS=\"-Werror -Wno-missing-field-initializers -DFULL_TEST_SUITE\""
         }
     }
 
@@ -106,7 +106,10 @@ def run_unit_tests(slave_name, compiler, build_type)
     {
         dir("$workspace/build")
         {
-            sh "ctest --output-on-failure -j 4"
+            def ctest_args = ""
+            if (build_type == "Debug")
+                ctest_args = "-E \"faust|moby\"" // turn off slow tests using faust.txt and moby.int
+            sh "ctest --output-on-failure -j 4 $ctest_args"
         }
     }
 }

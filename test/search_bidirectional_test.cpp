@@ -131,7 +131,7 @@ int main(int argc, char** argv)
         return 1;
     }
     test_file = argv[1];
-    test_file_rev = test_file + "_rev";
+    test_file_rev = test_file + "_" + std::to_string(util::pid()) + "_rev";
 
     {
         //reverse input

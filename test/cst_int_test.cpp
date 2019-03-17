@@ -14,12 +14,6 @@ using namespace std;
 using namespace std::chrono;
 using timer = std::chrono::high_resolution_clock;
 
-template <class T>
-std::ostream& operator<<(std::ostream& os, const std::pair<T, T>& v)
-{
-    os << "[" << v.first << ", " << v.second << "]";
-    return os;
-}
 
 namespace
 {
@@ -356,7 +350,7 @@ TYPED_TEST(cst_int_test, child)
             auto v = cst.select_child(cst.root(), i+1);
             auto w = cst.child(cst.root(), c);
             ASSERT_EQ(v, w);
-            if (!leaf_tested and cst.is_leaf(v)) {
+            if (!leaf_tested && cst.is_leaf(v) && c > 0) {
                 ASSERT_EQ(cst.root(), cst.select_child(v, c));
             }
         }
@@ -373,14 +367,19 @@ TYPED_TEST(cst_int_test, edge)
 
     if (cst.csa.size() > 0) {
         auto v = cst.select_leaf(cst.csa.isa[0]+1);
-        size_type max_depth = std::min(cst.depth(v), (size_type)20);
-        for (size_type i=0; i<max_depth; ++i) {
-            ASSERT_EQ(data[i], cst.edge(v, i+1))<<" i="<<i<<" v="<<v;
+        if (cst.depth(v) > 0) {
+            size_type max_depth = std::min(cst.depth(v) - 1, (size_type)20);
+            for (size_type i=0; i<max_depth; ++i) {
+                ASSERT_EQ(data[i], cst.edge(v, i+1))<<" i="<<i<<" v="<<v;
+            }
         }
+
         v = cst.parent(v);
-        max_depth = std::min(max_depth, cst.depth(v));
-        for (size_type i=0; i<max_depth; ++i) {
-            ASSERT_EQ(data[i], cst.edge(v, i+1))<<" i="<<i<<" v="<<v;
+        if (cst.depth(v) > 0) {
+            size_type max_depth = std::min(cst.depth(v) - 1, (size_type)20);
+            for (size_type i=0; i<max_depth; ++i) {
+                ASSERT_EQ(data[i], cst.edge(v, i+1))<<" i="<<i<<" v="<<v;
+            }
         }
     }
 }
@@ -418,6 +417,8 @@ TYPED_TEST(cst_int_test, suffix_and_weiner_link)
 
         for (size_type i=0; i<100; ++i) {
             auto v = cst.select_leaf(dice()+1);
+            if (cst.depth(v) < 1)
+                continue;
             auto c = cst.edge(v, 1);
             ASSERT_EQ(v, cst.wl(cst.sl(v), c));
             for (size_type j=0; j<5; ++j) {
