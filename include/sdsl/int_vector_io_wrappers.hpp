@@ -104,7 +104,7 @@ public:
 	}
 };
 
-template <class coder_type = coder::elias_delta>
+template <class coder_type = coder::elias_delta<>>
 class int_vector_serialize_vlen_wrapper {
 public:
 	typedef int_vector<>						 int_vector_type;
@@ -130,7 +130,7 @@ public:
 	}
 };
 
-template <class coder_type = coder::elias_delta>
+template <class coder_type = coder::elias_delta<>>
 class int_vector_load_vlen_wrapper {
 public:
 	typedef int_vector<>						 int_vector_type;

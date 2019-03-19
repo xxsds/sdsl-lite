@@ -8,7 +8,6 @@
 #ifndef INCLUDED_SDSL_RMQ_SUCCINCT_SCT
 #define INCLUDED_SDSL_RMQ_SUCCINCT_SCT
 
-#include "rmq_support.hpp"
 #include "int_vector.hpp"
 #include "bp_support_sada.hpp"
 #include "suffix_tree_helper.hpp"

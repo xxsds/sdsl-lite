@@ -44,13 +44,13 @@ uint64_t _get_next_lms_position(int_vector_type& text, uint64_t i)
 	return candidate;
 }
 
-void _construct_sa_IS(int_vector<>& text,
-					  int_vector<>& sa,
-					  std::string&  filename_sa,
-					  size_t		n,
-					  size_t		text_offset,
-					  size_t		sigma,
-					  uint64_t		recursion)
+inline void _construct_sa_IS(int_vector<>& text,
+		             int_vector<>& sa,
+		             std::string&  filename_sa,
+		             size_t	   n,
+		             size_t	   text_offset,
+		             size_t	   sigma,
+		             uint64_t	   recursion)
 {
     uint64_t buffersize = 1024*1024/8;
 

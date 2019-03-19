@@ -32,7 +32,7 @@ struct vlc_vector_trait<32> {
  *  \tparam t_dens  Sampling density of pointers into the stream of self-delimiting coded numbers.
  *  \tparam t_width Width of the underlying int_vector for the pointers.
  */
-template <class t_coder = coder::elias_delta, uint32_t t_dens = 128, uint8_t t_width = 0>
+template <class t_coder = coder::elias_delta<>, uint32_t t_dens = 128, uint8_t t_width = 0>
 class vlc_vector {
 private:
 	static_assert(t_dens > 1, "vlc_vector: Sampling density must be larger than 1");

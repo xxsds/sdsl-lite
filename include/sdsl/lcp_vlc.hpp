@@ -8,7 +8,6 @@
 #ifndef INCLUDED_SDSL_LCP_VLC
 #define INCLUDED_SDSL_LCP_VLC
 
-#include "lcp.hpp"
 #include "vlc_vector.hpp"
 #include "int_vector.hpp"
 #include "iterators.hpp"

@@ -9,6 +9,7 @@
 #define SDSL_CODER_COMMA_INCLUDED
 
 #include <sdsl/bits.hpp>
+#include <sdsl/config.hpp>
 #include <array>
 #include <math.h>
 

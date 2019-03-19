@@ -8,7 +8,6 @@
 #ifndef INCLUDED_SDSL_LCP_WT
 #define INCLUDED_SDSL_LCP_WT
 
-#include "lcp.hpp"
 #include "wt_huff.hpp"
 #include "int_vector.hpp"
 #include "iterators.hpp"

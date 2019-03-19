@@ -9,6 +9,7 @@
 #define INCLUDED_SDSL_SUFFIX_ARRAY_ALGORITHM
 
 #include <iterator>
+#include "csa_wt.hpp"
 #include "suffix_array_helper.hpp"
 
 namespace sdsl {
