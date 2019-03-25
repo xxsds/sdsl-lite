@@ -11,6 +11,7 @@
 #include "int_vector.hpp"
 #include "rank_support.hpp"
 #include "util.hpp"
+#include "wm_int.hpp"
 #include <stdexcept>
 #include <string>
 

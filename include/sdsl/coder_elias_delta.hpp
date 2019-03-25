@@ -15,6 +15,7 @@ namespace sdsl {
 namespace coder {
 
 //! A class to encode and decode between Elias-\f$\delta\f$ and binary code.
+template <typename T = void>
 class elias_delta {
 public:
 	typedef uint64_t size_type;
@@ -143,14 +144,16 @@ public:
 };
 
 // \sa coder::elias_delta::encoding_length
-inline uint8_t elias_delta::encoding_length(uint64_t w)
+template <typename T>
+inline uint8_t elias_delta<T>::encoding_length(uint64_t w)
 {
 	uint8_t len_1 = w ? bits::hi(w) : 64;
 	return len_1 + (bits::hi(len_1 + 1) << 1) + 1;
 }
 
+template <typename T>
 template <class int_vector>
-bool elias_delta::encode(const int_vector& v, int_vector& z)
+inline bool elias_delta<T>::encode(const int_vector& v, int_vector& z)
 {
 	typedef typename int_vector::size_type size_type;
 	z.width(v.width());
@@ -191,7 +194,8 @@ bool elias_delta::encode(const int_vector& v, int_vector& z)
 	return true;
 }
 
-inline void elias_delta::encode(uint64_t x, uint64_t*& z, uint8_t& offset)
+template <typename T>
+inline void elias_delta<T>::encode(uint64_t x, uint64_t*& z, uint8_t& offset)
 {
 	uint8_t len, len_1_len;
 	// (number of bits to represent w)
@@ -206,7 +210,8 @@ inline void elias_delta::encode(uint64_t x, uint64_t*& z, uint8_t& offset)
 	}
 }
 
-inline uint64_t elias_delta::decode_prefix_sum(const uint64_t* d,
+template <typename T>
+inline uint64_t elias_delta<T>::decode_prefix_sum(const uint64_t* d,
 										const size_type start_idx,
 										const size_type end_idx,
 										size_type		n)
@@ -283,7 +288,7 @@ start_decoding:
 		{
 		// i < n
 		begin_decode:
-			uint32_t psum = elias_delta::data.prefixsum[w & 0x0000FFFF];
+			uint32_t psum = elias_delta<T>::data.prefixsum[w & 0x0000FFFF];
 			if (!psum or i + ((psum >> 16) & 0x00FF) > n) {
 				if (w == 0) { // buffer is not full
 					w |= (((*d) >> read) << buffered);
@@ -388,8 +393,8 @@ start_decoding:
 	return value;
 }
 
-
-inline uint64_t elias_delta::decode_prefix_sum(const uint64_t* d, const size_type start_idx, size_type n)
+template <typename T>
+inline uint64_t elias_delta<T>::decode_prefix_sum(const uint64_t* d, const size_type start_idx, size_type n)
 {
 	if (n == 0) return 0;
 	d += (start_idx >> 6);
@@ -443,13 +448,13 @@ start_decoding:
 			if (rbp == maxdecode) continue;
 		}
 		while (i < n) {
-			uint32_t psum = elias_delta::data.prefixsum[bits::read_int(d, offset, 16)];
+			uint32_t psum = elias_delta<T>::data.prefixsum[bits::read_int(d, offset, 16)];
 			//			if( psum == 0 or i+((psum>>16)&0x00FF) > n ){ // value does not fit in 16 bits
 			if (psum == 0) { // value does not fit in 16 bits
 				goto decode_single;
 			} else if (i + ((psum >> 16) & 0x00FF) > n) { // decoded too much
 				if (n - i <= 8) {
-					psum = elias_delta::data
+					psum = elias_delta<T>::data
 						   .prefixsum_8bit[bits::read_int(d, offset, 8) | ((n - i - 1) << 8)];
 					if (psum > 0) {
 						value += (psum & 0xF);
@@ -485,8 +490,9 @@ start_decoding:
 	return value;
 }
 
+template <typename T>
 template <class int_vector>
-bool elias_delta::decode(const int_vector& z, int_vector& v)
+inline bool elias_delta<T>::decode(const int_vector& z, int_vector& v)
 {
 	typename int_vector::size_type len_1_len, len, n = 0;
 	const uint64_t*				   z_data = z.data();
@@ -506,9 +512,10 @@ bool elias_delta::decode(const int_vector& z, int_vector& v)
 	return decode<false, true>(z.data(), 0, n, v.begin());
 }
 
+template <typename T>
 template <bool t_sumup, bool t_inc, class t_iter>
 inline uint64_t
-elias_delta::decode(const uint64_t* d, const size_type start_idx, size_type n, t_iter it)
+elias_delta<T>::decode(const uint64_t* d, const size_type start_idx, size_type n, t_iter it)
 {
 	d += (start_idx >> 6);
 	uint64_t  value = 0;
@@ -530,8 +537,8 @@ elias_delta::decode(const uint64_t* d, const size_type start_idx, size_type n, t
 	return value;
 }
 
-
-elias_delta::impl elias_delta::data;
+template <typename T>
+typename elias_delta<T>::impl elias_delta<T>::data;
 
 } // end namespace coder
 } // end namespace sdsl

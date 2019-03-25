@@ -9,7 +9,7 @@ For information about usage of this benchmark, see displayUsage - function.
 To compile this benchmark, the following macros have to be defined 
 (e.g. by passing them to compiler):
 - VTYPES: a comma - separated list of sdsl vector types to be testet,
-	e.g. vlc_vector<coder::elias_gamma>,vlc_vector<coder::elias_delta>
+	e.g. vlc_vector<coder::elias_gamma<>>,vlc_vector<coder::elias_delta<>>
 - VNAMES: symbolic names of the corresponding vector types, in same order 
 	as in macro VTYPES, defined as a character array.
 	According to the upper sample on macro VTYPES, VNAMES could be defined as

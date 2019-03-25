@@ -15,6 +15,7 @@ namespace sdsl {
 namespace coder {
 
 //! A class to encode and decode between Elias-\f$\delta\f$ and binary code.
+template <typename T = void>
 class elias_gamma {
 public:
 	typedef uint64_t size_type;
@@ -139,14 +140,16 @@ public:
 };
 
 // \sa coder::elias_gamma::encoding_length
-inline uint8_t elias_gamma::encoding_length(uint64_t w)
+template <typename T>
+inline uint8_t elias_gamma<T>::encoding_length(uint64_t w)
 {
 	uint8_t len_1 = w ? bits::hi(w) : 64;
 	return 2 * len_1 + 1;
 }
 
+template <typename T>
 template <class int_vector>
-bool elias_gamma::encode(const int_vector& v, int_vector& z)
+inline bool elias_gamma<T>::encode(const int_vector& v, int_vector& z)
 {
 	typedef typename int_vector::size_type size_type;
 	z.width(v.width());
@@ -189,7 +192,8 @@ bool elias_gamma::encode(const int_vector& v, int_vector& z)
 	return true;
 }
 
-inline void elias_gamma::encode(uint64_t x, uint64_t*& z, uint8_t& offset)
+template <typename T>
+inline void elias_gamma<T>::encode(uint64_t x, uint64_t*& z, uint8_t& offset)
 {
 	uint8_t len_1 = 0;
 	if (!x) {
@@ -205,8 +209,9 @@ inline void elias_gamma::encode(uint64_t x, uint64_t*& z, uint8_t& offset)
 	}
 }
 
+template <typename T>
 template <class int_vector>
-bool elias_gamma::decode(const int_vector& z, int_vector& v)
+inline bool elias_gamma<T>::decode(const int_vector& z, int_vector& v)
 {
 	typename int_vector::size_type len_1, n = 0;
 	const uint64_t*				   z_data = z.data();
@@ -225,9 +230,10 @@ bool elias_gamma::decode(const int_vector& z, int_vector& v)
 	return decode<false, true>(z.data(), 0, n, v.begin());
 }
 
+template <typename T>
 template <bool t_sumup, bool t_inc, class t_iter>
 inline uint64_t
-elias_gamma::decode(const uint64_t* d, const size_type start_idx, size_type n, t_iter it)
+elias_gamma<T>::decode(const uint64_t* d, const size_type start_idx, size_type n, t_iter it)
 {
 	d += (start_idx >> 6);
 	uint64_t  value = 0;
@@ -247,7 +253,8 @@ elias_gamma::decode(const uint64_t* d, const size_type start_idx, size_type n, t
 	return value;
 }
 
-inline uint64_t elias_gamma::decode_prefix_sum(const uint64_t* d,
+template <typename T>
+inline uint64_t elias_gamma<T>::decode_prefix_sum(const uint64_t* d,
 										const size_type start_idx,
 										const size_type end_idx,
 										size_type		n)
@@ -308,7 +315,7 @@ start_decoding:
 		{
 		// i < n
 		begin_decode:
-			uint32_t psum = elias_gamma::data.prefixsum[w & 0x0000FFFF];
+			uint32_t psum = elias_gamma<T>::data.prefixsum[w & 0x0000FFFF];
 			if (!psum or i + ((psum >> 16) & 0x00FF) > n) {
 				if (w == 0) { // buffer is not full
 					w |= (((*d) >> read) << buffered);
@@ -381,8 +388,8 @@ start_decoding:
 	return value;
 }
 
-
-inline uint64_t elias_gamma::decode_prefix_sum(const uint64_t* d, const size_type start_idx, size_type n)
+template <typename T>
+inline uint64_t elias_gamma<T>::decode_prefix_sum(const uint64_t* d, const size_type start_idx, size_type n)
 {
 	if (n == 0) return 0;
 	d += (start_idx >> 6);
@@ -437,12 +444,12 @@ start_decoding:
 		}
 
 		while (i < n) {
-			uint32_t psum = elias_gamma::data.prefixsum[bits::read_int(d, offset, 16)];
+			uint32_t psum = elias_gamma<T>::data.prefixsum[bits::read_int(d, offset, 16)];
 			if (psum == 0) { // value does not fit in 16 bits
 				goto decode_single;
 			} else if (i + ((psum >> 16) & 0x00FF) > n) { // decoded too much
 				if (n - i <= 8) {
-					psum = elias_gamma::data
+					psum = elias_gamma<T>::data
 						   .prefixsum_8bit[bits::read_int(d, offset, 8) | ((n - i - 1) << 8)];
 					if (psum > 0) {
 						value += (psum & 0xFF);
@@ -475,7 +482,8 @@ start_decoding:
 	return value;
 }
 
-elias_gamma::impl elias_gamma::data;
+template <typename T>
+typename elias_gamma<T>::impl elias_gamma<T>::data;
 
 } // end namespace coder
 

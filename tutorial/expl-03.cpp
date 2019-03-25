@@ -13,7 +13,7 @@ int main()
     v[0] = 1ULL<<63;
     //util::bit_compress(v);
     cout << size_in_mega_bytes(v) << endl;
-    vlc_vector<coder::fibonacci> vv(v);
+    vlc_vector<coder::fibonacci<>> vv(v);
     cout << size_in_mega_bytes(vv) << endl;
 	cout << "Percentage: " << size_in_mega_bytes(vv) / size_in_mega_bytes(v) * 100 << endl;
 }

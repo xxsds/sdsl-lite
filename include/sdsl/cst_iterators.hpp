@@ -8,6 +8,8 @@
 #ifndef INCLUDED_SDSL_CST_ITERATORS
 #define INCLUDED_SDSL_CST_ITERATORS
 
+#include <queue>
+
 namespace sdsl {
 
 //! An forward iterator for (compressed) suffix trees.

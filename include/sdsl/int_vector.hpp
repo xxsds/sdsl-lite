@@ -77,8 +77,11 @@ template <uint8_t t_bit_pattern, uint8_t t_pattern_len>
 class select_support_mcl;
 
 namespace coder {
+template <typename T>
 class fibonacci;
+template <typename T>
 class elias_delta;
+template <typename T>
 class elias_gamma;
 template <uint8_t t_width>
 class comma;
@@ -278,8 +281,11 @@ public:
 	friend class int_vector_const_iterator<int_vector>;
 	template <uint8_t, std::ios_base::openmode>
 	friend class int_vector_mapper;
+	template <typename T>
 	friend class coder::elias_delta;
+	template <typename T>
 	friend class coder::elias_gamma;
+	template <typename T>
 	friend class coder::fibonacci;
 	template <uint8_t>
 	friend class coder::comma;

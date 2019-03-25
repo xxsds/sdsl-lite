@@ -85,10 +85,10 @@ void build_template_vector(bit_vector& k_t_, bit_vector& k_l_, t_bv& k_t, t_bv& 
 }
 
 template <>
-void build_template_vector<bit_vector>(bit_vector& k_t_,
-									   bit_vector& k_l_,
-									   bit_vector& k_t,
-									   bit_vector& k_l)
+inline void build_template_vector<bit_vector>(bit_vector& k_t_,
+					      bit_vector& k_l_,
+					      bit_vector& k_t,
+					      bit_vector& k_l)
 {
 	std::swap(k_t, k_t_);
 	std::swap(k_l, k_l_);
