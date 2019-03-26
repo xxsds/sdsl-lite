@@ -39,8 +39,9 @@ Boolean is_nightly = is_triggered_by_cron()
  * \param slave_name   The name of the slave this test is executed on; String
  * \param compiler     The name of the compiler to use; String
  * \param build_type   The build type to use [Debug, Release]; String
+ * \param has_cereal   Whether to use cereal; Boolean
  */
-def run_unit_tests(slave_name, compiler, build_type)
+def run_unit_tests(slave_name, compiler, build_type, has_cereal)
 {
     def build_name
     def cxx
@@ -74,7 +75,7 @@ def run_unit_tests(slave_name, compiler, build_type)
     {
         dir("$workspace/build")
         {
-            sh "cmake $checkout_dir -DCMAKE_BUILD_TYPE=$build_type -DCMAKE_CXX_COMPILER=$compiler -DCMAKE_CXX_FLAGS=\"-Werror -Wno-missing-field-initializers -DFULL_TEST_SUITE\""
+            sh "cmake $checkout_dir -DCMAKE_BUILD_TYPE=$build_type -DCMAKE_CXX_COMPILER=$compiler -DCMAKE_CXX_FLAGS=\"-Werror -Wno-missing-field-initializers -DFULL_TEST_SUITE\" -DSDSL_CEREAL=$has_cereal"
         }
     }
 
@@ -114,30 +115,19 @@ def run_unit_tests(slave_name, compiler, build_type)
     }
 }
 
-// ============================================================================
-// Define unit test matrix
-// ============================================================================
-
-// Configure unit tests. Add platforms here but adapt the inner loop of the matrix setup to call instantiate and
-// setup the right agent.
-def axis_agent = ["ubuntu"]
-def axis_compiler = ["g++-4.9", "g++-5", "g++-6", "g++-7", "g++-8"] // "clang++"
-def tasks = [:]
-
-// The following nested for loops define the compiler matrix for the unit tests.
-// First iterate over all supported compiler versions
-// If the compilers do not match on the respective platform either use a different scope to
-// iterate over them or define some kind of map to point to the right compiler name per platform.
-for(int i = 0; i < axis_compiler.size(); ++i)
+/* Defines unit tests
+ * \param tasks        The task map to add the job to; Map
+ * \param compiler     The name of the compiler to use; String
+ * \param build_type   The build type to use [Debug, Release]; String
+ * \param has_cereal   Whether to use cereal; Boolean
+ */
+def define_unit_test(tasks, compiler, build_type, has_cereal)
 {
-    def axis_compiler_value = axis_compiler[i]
-    def axis_build_type_value = "Release"
-
-    def label = "ubuntu_${axis_compiler_value}_$axis_build_type_value"
+    def label = "ubuntu_${compiler}_${build_type}_$has_cereal"
     label = label.replace("++", "cc") // currently CMake of SDSL fails since it uses the path in a regex string and ++ characters are not escaped
-    tasks["ubuntu-${axis_compiler_value}-${axis_build_type_value}"] =
+    tasks["ubuntu-${compiler}-${build_type}-${has_cereal}"] =
     {
-        node("ubuntu && $axis_compiler_value")
+        node("ubuntu && $compiler")
         {
             // For docker nodes we need to define the workspace explicitly, as they use a mounted
             // volume on the filesystem which is shared by all docker instances. Since the docker executor
@@ -148,48 +138,52 @@ for(int i = 0; i < axis_compiler.size(); ++i)
                 {
                     sh """
                         sudo apt-get update
-                        sudo apt-get install -y $axis_compiler_value cmake git clang-format
+                        sudo apt-get install -y $compiler cmake git clang-format
                     """
 
                 }
                 run_unit_tests(env.DOCKER_SLAVE_NAME,
-                               axis_compiler_value,
-                               axis_build_type_value)
+                               compiler,
+                               build_type,
+                               has_cereal)
             }
         }
     }
+}
+
+// ============================================================================
+// Define unit test matrix
+// ============================================================================
+
+// Configure unit tests. Add platforms here but adapt the inner loop of the matrix setup to call instantiate and
+// setup the right agent.
+def axis_agent = ["ubuntu"]
+def axis_compiler = ["g++-4.9", "g++-5", "g++-6", "g++-7", "g++-8"] // "clang++"
+def tasks = [:]
+
+// The following for loop defines the compiler matrix for the unit tests.
+// First iterate over all supported compiler versions
+// If the compilers do not match on the respective platform either use a different scope to
+// iterate over them or define some kind of map to point to the right compiler name per platform.
+for(int i = 0; i < axis_compiler.size(); ++i)
+{
+    define_unit_test(tasks,
+                     axis_compiler[i],
+                     "Release",
+                     "0")
 }
 
 // Debug build
-def axis_compiler_value = "g++-8"
-def axis_build_type_value = "Debug"
+define_unit_test(tasks,
+                 "g++-8",
+                 "Debug",
+                 "0")
 
-def label = "ubuntu_${axis_compiler_value}_$axis_build_type_value"
-label = label.replace("++", "cc") // currently CMake of SDSL fails since it uses the path in a regex string and ++ characters are not escaped
-
-tasks["ubuntu-${axis_compiler_value}-${axis_build_type_value}"] =
-{
-    node("ubuntu && $axis_compiler_value")
-    {
-        // For docker nodes we need to define the workspace explicitly, as they use a mounted
-        // volume on the filesystem which is shared by all docker instances. Since the docker executor
-        // doesn't know the other running instances it cannot locking the workspace.
-        ws("$env.WORKSPACE/ws/$label")
-        {
-            stage('install')
-            {
-                sh """
-                    sudo apt-get update
-                    sudo apt-get install -y $axis_compiler_value cmake git clang-format
-                """
-
-            }
-            run_unit_tests(env.DOCKER_SLAVE_NAME,
-                           axis_compiler_value,
-                           axis_build_type_value)
-        }
-    }
-}
+// Cereal build
+define_unit_test(tasks,
+                 "g++-7",
+                 "Release",
+                 "1")
 
 /* TODO sanitizer builds
  * g++-7 sanitizer options
