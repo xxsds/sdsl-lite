@@ -78,12 +78,7 @@ public:
 	lcp_byte(cache_config& config)
 	{
 		std::string			lcp_file = cache_file_name(conf::KEY_LCP, config);
-#if SDSL_HAS_CEREAL
-		int_vector<> lcp_buf;
-		load_from_file(lcp_buf, lcp_file);
-#else
 		int_vector_buffer<> lcp_buf(lcp_file);
-#endif
 		m_small_lcp = int_vector<8>(lcp_buf.size());
 		size_type l = 0, max_l = 0, max_big_idx = 0, big_sum = 0;
 
@@ -174,6 +169,19 @@ public:
 		ar(CEREAL_NVP(m_small_lcp));
 		ar(CEREAL_NVP(m_big_lcp));
 		ar(CEREAL_NVP(m_big_lcp_idx));
+	}
+
+	//! Equality operator.
+	bool operator==(lcp_byte const & other) const noexcept
+	{
+		return (m_small_lcp == other.m_small_lcp) && (m_big_lcp == other.m_big_lcp) &&
+		       (m_big_lcp_idx == other.m_big_lcp_idx);
+	}
+
+	//! Inequality operator.
+	bool operator!=(lcp_byte const & other) const noexcept
+	{
+		return !(*this == other);
 	}
 };
 

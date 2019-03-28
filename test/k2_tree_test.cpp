@@ -11,8 +11,6 @@ namespace
 using namespace sdsl;
 using namespace std;
 
-std::string temp_dir;
-
 typedef int_vector<>::size_type size_type;
 
 template<class T>
@@ -44,9 +42,9 @@ template<typename t_tree>
 void check_serialize_load(t_tree& tree)
 {
     auto unserialized_tree = t_tree();
-    std::string file_name = temp_dir+"/int_vector";
-    store_to_file(tree, file_name);
-    load_from_file(unserialized_tree, file_name);
+    std::stringstream ss;
+    tree.serialize(ss);
+    unserialized_tree.load(ss);
     ASSERT_EQ(tree, unserialized_tree);
 }
 }
@@ -540,17 +538,41 @@ TYPED_TEST(k2_tree_test, serialize_test)
 
 }
 
+#if SDSL_HAS_CEREAL
+template <typename in_archive_t, typename out_archive_t, typename TypeParam>
+void do_serialisation(TypeParam const & l)
+{
+	std::stringstream ss;
+	{
+		out_archive_t oarchive{ss};
+		oarchive(l);
+	}
+
+	{
+		TypeParam in_l{};
+		in_archive_t iarchive{ss};
+		iarchive(in_l);
+		EXPECT_EQ(l, in_l);
+	}
+}
+
+TYPED_TEST(k2_tree_test, cereal)
+{
+	TypeParam k2tree;
+        // ASSERT_TRUE(load_from_file(k2treap, temp_file));
+
+	do_serialisation<cereal::BinaryInputArchive,         cereal::BinaryOutputArchive>        (k2tree);
+	do_serialisation<cereal::PortableBinaryInputArchive, cereal::PortableBinaryOutputArchive>(k2tree);
+	do_serialisation<cereal::JSONInputArchive,           cereal::JSONOutputArchive>          (k2tree);
+	do_serialisation<cereal::XMLInputArchive,            cereal::XMLOutputArchive>           (k2tree);
+}
+#endif // SDSL_HAS_CEREAL
+
 }  // namespace
 
 int main(int argc, char** argv)
 {
     ::testing::InitGoogleTest(&argc, argv);
-    if (argc < 2) {
-        // LCOV_EXCL_START
-        std::cout << "Usage: " << argv[0] << " tmp_dir" << std::endl;
-        return 1;
-        // LCOV_EXCL_STOP
-    }
-    temp_dir = argv[1];
+
     return RUN_ALL_TESTS();
 }

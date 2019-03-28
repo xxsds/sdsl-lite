@@ -141,7 +141,8 @@ struct _node {
 		ar(CEREAL_NVP(bv_pos));
 		ar(CEREAL_NVP(bv_pos_rank));
 		ar(CEREAL_NVP(parent));
-		ar(CEREAL_NVP(child));
+		ar(CEREAL_NVP(child[0]));
+		ar(CEREAL_NVP(child[1]));
 	}
 
 	template <typename archive_t>
@@ -150,7 +151,21 @@ struct _node {
 		ar(CEREAL_NVP(bv_pos));
 		ar(CEREAL_NVP(bv_pos_rank));
 		ar(CEREAL_NVP(parent));
-		ar(CEREAL_NVP(child));
+		ar(CEREAL_NVP(child[0]));
+		ar(CEREAL_NVP(child[1]));
+	}
+
+	//! Equality operator.
+	bool operator==(_node const & other) const noexcept
+	{
+		return (bv_pos == other.bv_pos) && (bv_pos_rank == other.bv_pos_rank) &&
+		       (parent == other.parent) && (child[0] == other.child[0]) && (child[1] == other.child[1]);
+	}
+
+	//! Inequality operator.
+	bool operator!=(_node const & other) const noexcept
+	{
+		return !(*this == other);
 	}
 };
 
@@ -335,6 +350,19 @@ struct _byte_tree {
 		ar(CEREAL_NVP(m_nodes));
 		ar(CEREAL_NVP(m_c_to_leaf));
 		ar(CEREAL_NVP(m_path));
+	}
+
+	//! Equality operator.
+	bool operator==(_byte_tree const & other) const noexcept
+	{
+		return (m_nodes == other.m_nodes)/* && (m_c_to_leaf == other.m_c_to_leaf) &&
+		       (m_path == other.m_path)*/;
+	}
+
+	//! Inequality operator.
+	bool operator!=(_byte_tree const & other) const noexcept
+	{
+		return !(*this == other);
 	}
 
 	//! Get corresponding leaf for symbol c.
@@ -556,6 +584,19 @@ struct _int_tree {
 		read_member(m_path_size, in);
 		m_path = std::vector<uint64_t>(m_path_size);
 		load_vector(m_path, in);
+	}
+
+	//! Equality operator.
+	bool operator==(_int_tree const & other) const noexcept
+	{
+		return (m_nodes == other.m_nodes) && (m_c_to_leaf == other.m_c_to_leaf) &&
+		       (m_path == other.m_path);
+	}
+
+	//! Inequality operator.
+	bool operator!=(_int_tree const & other) const noexcept
+	{
+		return !(*this == other);
 	}
 
 	template <typename archive_t>

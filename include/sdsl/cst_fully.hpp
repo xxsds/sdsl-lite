@@ -269,8 +269,8 @@ public:
 	template <typename archive_t>
 	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
 	{
-		ar(CEREAL_NVP(cereal::make_size_tag(static_cast<size_type>(m_delta))));
-		ar(CEREAL_NVP(cereal::make_size_tag(static_cast<size_type>(m_nodes))));
+		ar(CEREAL_NVP(m_delta));
+		ar(CEREAL_NVP(m_nodes));
 		ar(CEREAL_NVP(m_csa));
 		ar(CEREAL_NVP(m_s));
 		ar(CEREAL_NVP(m_s_support));
@@ -283,8 +283,8 @@ public:
 	template <typename archive_t>
 	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
 	{
-		ar(CEREAL_NVP(cereal::make_size_tag(m_delta)));
-		ar(CEREAL_NVP(cereal::make_size_tag(m_nodes)));
+		ar(CEREAL_NVP(m_delta));
+		ar(CEREAL_NVP(m_nodes));
 		ar(CEREAL_NVP(m_csa));
 		ar(CEREAL_NVP(m_s));
 		ar(CEREAL_NVP(m_s_support));
@@ -295,6 +295,22 @@ public:
 		ar(CEREAL_NVP(m_b_select1));
 		m_b_select1.set_vector(&m_b);
 		ar(CEREAL_NVP(m_depth));
+	}
+
+	//! Equality operator.
+	bool operator==(cst_fully const & other) const noexcept
+	{
+		return (m_delta == other.m_delta) && (m_nodes == other.m_nodes) &&
+		       (m_csa == other.m_csa) && (m_s == other.m_s) &&
+		       (m_s_support == other.m_s_support) && (m_b == other.m_b) &&
+		       (m_b_select0 == other.m_b_select0) && (m_b_select1 == other.m_b_select1) &&
+		       (m_depth == other.m_depth);
+	}
+
+	//! Inequality operator.
+	bool operator!=(cst_fully const & other) const noexcept
+	{
+		return !(*this == other);
 	}
 
 	//! Returns the root of the suffix tree.

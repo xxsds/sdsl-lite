@@ -56,6 +56,16 @@ public:
 	void CEREAL_SAVE_FUNCTION_NAME(archive_t &) const {}
 	template <typename archive_t>
 	void CEREAL_LOAD_FUNCTION_NAME(archive_t &) {}
+	//! Equality operator.
+	bool operator==(rank_support_scan const & other) const noexcept
+	{
+		return (*m_v == *other.m_v);
+	}
+	//! Inequality operator.
+	bool operator!=(rank_support_scan const & other) const noexcept
+	{
+		return !(*this == other);
+	}
 };
 
 template <uint8_t t_b, uint8_t t_pat_len>

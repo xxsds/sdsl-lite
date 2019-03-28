@@ -113,15 +113,8 @@ public:
 	{
 		std::string text_file =
 		cache_file_name(key_text<alphabet_type::int_width>(), config);
-#if SDSL_HAS_CEREAL
-		int_vector<alphabet_type::int_width> text_buf;
-		load_from_file(text_buf, text_file);
-		int_vector<> sa_buf;
-		load_from_file(sa_buf, cache_file_name(conf::KEY_SA, config));
-#else
 		int_vector_buffer<alphabet_type::int_width> text_buf(text_file);
 		int_vector_buffer<>							sa_buf(cache_file_name(conf::KEY_SA, config));
-#endif
 		size_type									n = text_buf.size();
 
 		m_alphabet = alphabet_type(text_buf, n);
@@ -192,6 +185,18 @@ public:
 			m_alphabet = std::move(csa.m_alphabet);
 		}
 		return *this;
+	}
+
+	//! Equality operator.
+	bool operator==(csa_bitcompressed const & other) const noexcept
+	{
+		return (m_sa == other.m_sa) && (m_isa == other.m_isa) && (m_alphabet == other.m_alphabet);
+	}
+
+	//! Inequality operator.
+	bool operator!=(csa_bitcompressed const & other) const noexcept
+	{
+		return !(*this == other);
 	}
 
 	//! Serialize to a stream.

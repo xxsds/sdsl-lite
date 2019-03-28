@@ -368,7 +368,7 @@ public:
 	template <typename archive_t>
 	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
 	{
-		ar(CEREAL_NVP(cereal::make_size_tag(static_cast<size_type>(m_size))));
+		ar(CEREAL_NVP(m_size));
 		ar(CEREAL_NVP(m_bt));
 		ar(CEREAL_NVP(m_btnr));
 		ar(CEREAL_NVP(m_btnrp));
@@ -378,7 +378,7 @@ public:
 	template <typename archive_t>
 	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
 	{
-		ar(CEREAL_NVP(cereal::make_size_tag(m_size)));
+		ar(CEREAL_NVP(m_size));
 		ar(CEREAL_NVP(m_bt));
 		ar(CEREAL_NVP(m_btnr));
 		ar(CEREAL_NVP(m_btnrp));
@@ -553,6 +553,16 @@ public:
 
 	template <typename archive_t>
 	void CEREAL_LOAD_FUNCTION_NAME(archive_t &) {}
+
+	bool operator==(const rank_support_rrr& other) const noexcept
+	{
+		return *m_v == *other.m_v;
+	}
+
+	bool operator!=(const rank_support_rrr& other) const noexcept
+	{
+		return !(*this == other);
+	}
 };
 
 
@@ -684,6 +694,16 @@ public:
 
 	template <typename archive_t>
 	void CEREAL_LOAD_FUNCTION_NAME(archive_t &) {}
+
+	bool operator==(const select_support_rrr& other) const noexcept
+	{
+		return *m_v == *other.m_v;
+	}
+
+	bool operator!=(const select_support_rrr& other) const noexcept
+	{
+		return !(*this == other);
+	}
 };
 
 } // end namespace sdsl

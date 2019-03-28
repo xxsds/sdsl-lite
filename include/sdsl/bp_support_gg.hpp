@@ -504,8 +504,8 @@ public:
 	template <typename archive_t>
 	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
 	{
-		ar(CEREAL_NVP(cereal::make_size_tag(static_cast<size_type>(m_size))));
-		ar(CEREAL_NVP(cereal::make_size_tag(static_cast<size_type>(m_blocks))));
+		ar(CEREAL_NVP(m_size));
+		ar(CEREAL_NVP(m_blocks));
 		ar(CEREAL_NVP(m_rank_bp));
 		ar(CEREAL_NVP(m_select_bp));
 		ar(CEREAL_NVP(m_nnd));
@@ -516,8 +516,8 @@ public:
 	template <typename archive_t>
 	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
 	{
-		ar(CEREAL_NVP(cereal::make_size_tag(m_size)));
-		ar(CEREAL_NVP(cereal::make_size_tag(m_blocks)));
+		ar(CEREAL_NVP(m_size));
+		ar(CEREAL_NVP(m_blocks));
 		ar(CEREAL_NVP(m_rank_bp));
 		ar(CEREAL_NVP(m_select_bp));
 		ar(CEREAL_NVP(m_nnd));
@@ -526,6 +526,22 @@ public:
 		if (m_pioneer_bp_support != nullptr) {
 			m_pioneer_bp_support->set_vector(&m_pioneer_bp);
 		}
+	}
+
+	//! Equality operator.
+	bool operator==(bp_support_gg const & other) const noexcept
+	{
+		return (m_size == other.m_size) && (m_blocks == other.m_blocks) &&
+		       (m_rank_bp == other.m_rank_bp) && (m_select_bp == other.m_select_bp) &&
+		       (m_nnd == other.m_nnd) && (m_pioneer_bp == other.m_pioneer_bp) &&
+		       ((m_pioneer_bp_support == other.m_pioneer_bp_support) ||
+		        (*m_pioneer_bp_support == *other.m_pioneer_bp_support));
+	}
+
+	//! Inequality operator.
+	bool operator!=(bp_support_gg const & other) const noexcept
+	{
+		return !(*this == other);
 	}
 };
 

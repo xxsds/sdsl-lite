@@ -399,8 +399,8 @@ public:
 	template <typename archive_t>
 	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
 	{
-		ar(CEREAL_NVP(cereal::make_size_tag(static_cast<size_type>(m_size))));
-		ar(CEREAL_NVP(cereal::make_size_tag(static_cast<uint8_t>(m_wl))));
+		ar(CEREAL_NVP(m_size));
+		ar(CEREAL_NVP(m_wl));
 		ar(CEREAL_NVP(m_low));
 		ar(CEREAL_NVP(m_high));
 		ar(CEREAL_NVP(m_high_1_select));
@@ -410,8 +410,8 @@ public:
 	template <typename archive_t>
 	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
 	{
-		ar(CEREAL_NVP(cereal::make_size_tag(m_size)));
-		ar(CEREAL_NVP(cereal::make_size_tag(m_wl)));
+		ar(CEREAL_NVP(m_size));
+		ar(CEREAL_NVP(m_wl));
 		ar(CEREAL_NVP(m_low));
 		ar(CEREAL_NVP(m_high));
 		ar(CEREAL_NVP(m_high_1_select));
@@ -510,6 +510,16 @@ public:
 
 	template <typename archive_t>
 	void CEREAL_LOAD_FUNCTION_NAME(archive_t &) {}
+
+	bool operator==(const rank_support_sd& other) const noexcept
+	{
+		return *m_v == *other.m_v;
+	}
+
+	bool operator!=(const rank_support_sd& other) const noexcept
+	{
+		return !(*this == other);
+	}
 };
 
 template <uint8_t t_b, class t_sd_vec>
@@ -597,6 +607,16 @@ public:
 
 	template <typename archive_t>
 	void CEREAL_LOAD_FUNCTION_NAME(archive_t &) {}
+
+	bool operator==(const select_support_sd& other) const noexcept
+	{
+		return *m_v == *other.m_v;
+	}
+
+	bool operator!=(const select_support_sd& other) const noexcept
+	{
+		return !(*this == other);
+	}
 };
 
 
@@ -773,6 +793,16 @@ public:
 	{
 		ar(CEREAL_NVP(m_pointer));
 		ar(CEREAL_NVP(m_rank1));
+	}
+
+	bool operator==(const select_0_support_sd& other) const noexcept
+	{
+		return (m_pointer == other.m_pointer) && (m_rank1 == other.m_rank1);
+	}
+
+	bool operator!=(const select_0_support_sd& other) const noexcept
+	{
+		return !(*this == other);
 	}
 };
 

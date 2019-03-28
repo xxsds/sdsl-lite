@@ -148,12 +148,7 @@ public:
 	{
 		{
 			auto				event = memory_monitor::event("bps-dfs");
-#if SDSL_HAS_CEREAL
-			int_vector<> lcp;
-			load_from_file(lcp, cache_file_name(conf::KEY_LCP, config));
-#else
 			int_vector_buffer<> lcp(cache_file_name(conf::KEY_LCP, config));
-#endif
 
 			const bool o_par = true;
 			const bool c_par = !o_par;
@@ -344,6 +339,20 @@ public:
 			m_bp_select10.set_vector(&m_bp);
 		}
 		return *this;
+	}
+
+	//! Equality operator.
+	bool operator==(cst_sada const & other) const noexcept
+	{
+		return (m_csa == other.m_csa) && (m_lcp == other.m_lcp) && (m_bp == other.m_bp) &&
+		       (m_bp_support == other.m_bp_support) && (m_bp_rank10 == other.m_bp_rank10) &&
+		       (m_bp_select10 == other.m_bp_select10);
+	}
+
+	//! Inequality operator.
+	bool operator!=(cst_sada const & other) const noexcept
+	{
+		return !(*this == other);
 	}
 
 	//! Serialize to a stream.

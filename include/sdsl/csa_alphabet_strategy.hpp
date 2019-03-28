@@ -154,11 +154,7 @@ public:
      *  \param text_buf Byte stream.
      *  \param len      Length of the byte stream.
      */
-#if SDSL_HAS_CEREAL
-    byte_alphabet(int_vector<8>& text_buf, int_vector_size_type len)
-#else
     byte_alphabet(int_vector_buffer<8>& text_buf, int_vector_size_type len)
-#endif
         : char2comp(m_char2comp), comp2char(m_comp2char), C(m_C), sigma(m_sigma)
     {
         m_sigma = 0;
@@ -253,6 +249,19 @@ public:
         m_comp2char.load(in);
         m_C.load(in);
         read_member(m_sigma, in);
+    }
+
+    //! Equality operator.
+    bool operator==(byte_alphabet const & other) const noexcept
+    {
+	    return (m_char2comp == other.m_char2comp) && (m_comp2char == other.m_comp2char) &&
+		   (m_C == other.m_C) && (m_sigma == other.m_sigma);
+    }
+
+    //! Inequality operator.
+    bool operator!=(byte_alphabet const & other) const noexcept
+    {
+	    return !(*this == other);
     }
 
     template <typename archive_t>
@@ -357,11 +366,7 @@ public:
          *  \param text_buf Byte stream.
          *  \param len      Length of the byte stream.
          */
-#if SDSL_HAS_CEREAL
-	succinct_byte_alphabet(int_vector<8>& text_buf, int_vector_size_type len)
-#else
 	succinct_byte_alphabet(int_vector_buffer<8>& text_buf, int_vector_size_type len)
-#endif
 		: char2comp(this), comp2char(this), C(m_C), sigma(m_sigma)
 	{
 		m_sigma = 0;
@@ -477,6 +482,20 @@ public:
 		m_char_select.set_vector(&m_char);
 		m_C.load(in);
 		read_member(m_sigma, in);
+	}
+
+	//! Equality operator.
+	bool operator==(succinct_byte_alphabet const & other) const noexcept
+	{
+		return (m_char == other.m_char) && (m_char_rank == other.m_char_rank) &&
+		       (m_char_select == other.m_char_select) && (m_C == other.m_C) &&
+		       (m_sigma == other.m_sigma);
+	}
+
+	//! Inequality operator.
+	bool operator!=(succinct_byte_alphabet const & other) const noexcept
+	{
+		return !(*this == other);
 	}
 
 	template <typename archive_t>
@@ -625,11 +644,7 @@ public:
          *  \param text_buf Byte stream.
          *  \param len      Length of the byte stream.
          */
-#if SDSL_HAS_CEREAL
-	int_alphabet(int_vector<0>& text_buf, int_vector_size_type len)
-#else
 	int_alphabet(int_vector_buffer<0>& text_buf, int_vector_size_type len)
-#endif
 		: char2comp(this), comp2char(this), C(m_C), sigma(m_sigma)
 	{
 		m_sigma = 0;
@@ -741,6 +756,20 @@ public:
 		m_char_select.set_vector(&m_char);
 		m_C.load(in);
 		read_member(m_sigma, in);
+	}
+
+	//! Equality operator.
+	bool operator==(int_alphabet const & other) const noexcept
+	{
+		return (m_char == other.m_char) && (m_char_rank == other.m_char_rank) &&
+		       (m_char_select == other.m_char_select) && (m_C == other.m_C) &&
+		       (m_sigma == other.m_sigma);
+	}
+
+	//! Inequality operator.
+	bool operator!=(int_alphabet const & other) const noexcept
+	{
+		return !(*this == other);
 	}
 
 	template <typename archive_t>

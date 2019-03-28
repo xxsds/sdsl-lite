@@ -222,6 +222,18 @@ public:
 		return *this;
 	}
 
+	//! Equality operator.
+	bool operator==(csa_wt const & other) const noexcept
+	{
+		return (m_wavelet_tree == other.m_wavelet_tree) && (m_sa_sample == other.m_sa_sample) &&
+		       (m_isa_sample == other.m_isa_sample) && (m_alphabet == other.m_alphabet);
+	}
+
+	//! Inequality operator.
+	bool operator!=(csa_wt const & other) const noexcept
+	{
+		return !(*this == other);
+	}
 
 	//! Serialize to a stream.
 	/*! \param out Output stream to write the data structure.
@@ -290,21 +302,12 @@ cache_config& config)
 	if (!cache_file_exists(key_bwt<alphabet_type::int_width>(), config)) {
 		return;
 	}
-	size_type n = 0;
 	{
 		auto event = memory_monitor::event("construct csa-alpbabet");
-#if SDSL_HAS_CEREAL
-		int_vector<alphabet_type::int_width> bwt_buf;
-		load_from_file(bwt_buf,
-		cache_file_name(key_bwt<alphabet_type::int_width>(), config));
-		n = bwt_buf.size();
-		m_alphabet = alphabet_type(bwt_buf, n);
-#else
 		int_vector_buffer<alphabet_type::int_width> bwt_buf(
 		cache_file_name(key_bwt<alphabet_type::int_width>(), config));
-		n = bwt_buf.size();
+		size_type n = bwt_buf.size();
 		m_alphabet  = alphabet_type(bwt_buf, n);
-#endif
 	}
 	{
 		auto event  = memory_monitor::event("sample SA");
@@ -321,13 +324,8 @@ cache_config& config)
 	// }
 	{
 		auto event = memory_monitor::event("construct wavelet tree");
-#if SDSL_HAS_CEREAL
-		int_vector<alphabet_type::int_width> bwt_buf;
-		load_from_file(bwt_buf, cache_file_name(key_bwt<alphabet_type::int_width>(), config));
-#else
 		int_vector_buffer<alphabet_type::int_width> bwt_buf(
 		cache_file_name(key_bwt<alphabet_type::int_width>(), config));
-#endif
 		m_wavelet_tree = wavelet_tree_type(bwt_buf.begin(), bwt_buf.end(), config.dir);
 	}
 }

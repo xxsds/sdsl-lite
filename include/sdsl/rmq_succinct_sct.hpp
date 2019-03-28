@@ -163,6 +163,18 @@ public:
 		ar(CEREAL_NVP(m_sct_bp_support));
 		m_sct_bp_support.set_vector(&m_sct_bp);
 	}
+
+	//! Equality operator.
+	bool operator==(rmq_succinct_sct const & other) const noexcept
+	{
+		return (m_sct_bp == other.m_sct_bp) && (m_sct_bp_support == other.m_sct_bp_support);
+	}
+
+	//! Inequality operator.
+	bool operator!=(rmq_succinct_sct const & other) const noexcept
+	{
+		return !(*this == other);
+	}
 };
 
 } // end namespace sdsl

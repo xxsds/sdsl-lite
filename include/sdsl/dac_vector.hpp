@@ -347,7 +347,7 @@ template <uint8_t t_b, typename t_rank>
 template <typename archive_t>
 void dac_vector<t_b, t_rank>::CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
 {
-	ar(CEREAL_NVP(cereal::make_size_tag(static_cast<uint8_t>(m_max_level))));
+	ar(CEREAL_NVP(m_max_level));
 	ar(CEREAL_NVP(m_data));
 	ar(CEREAL_NVP(m_overflow));
 	ar(CEREAL_NVP(m_overflow_rank));
@@ -358,7 +358,7 @@ template <uint8_t t_b, typename t_rank>
 template <typename archive_t>
 void dac_vector<t_b, t_rank>::CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
 {
-	ar(CEREAL_NVP(cereal::make_size_tag(m_max_level)));
+	ar(CEREAL_NVP(m_max_level));
 	ar(CEREAL_NVP(m_data));
 	ar(CEREAL_NVP(m_overflow));
 	ar(CEREAL_NVP(m_overflow_rank));

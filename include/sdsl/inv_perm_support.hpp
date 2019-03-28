@@ -211,6 +211,19 @@ public:
 		ar(CEREAL_NVP(m_rank_marked));
 		m_rank_marked.set_vector(&m_marked);
 	}
+
+	//! Equality operator.
+	bool operator==(inv_perm_support const & other) const noexcept
+	{
+		return (m_back_pointer == other.m_back_pointer) && (m_marked == other.m_marked) &&
+		       (m_rank_marked == other.m_rank_marked);
+	}
+
+	//! Inequality operator.
+	bool operator!=(inv_perm_support const & other) const noexcept
+	{
+		return !(*this == other);
+	}
 };
 
 } // end namespace sdsl

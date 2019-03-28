@@ -50,20 +50,11 @@ inline void construct_sa_se(cache_config& config)
 
 	if (text.size() <= 2) {
 		// If text is c$ or $ write suffix array [1, 0] or [0]
-        #if SDSL_HAS_CEREAL
-        	int_vector<2> sa;
-		if (text.size() == 2) {
-			sa.push_back(1);
-		}
-		sa.push_back(0);
-        	store_to_file(sa, cache_file_name(conf::KEY_SA, config));
-#else
 		int_vector_buffer<> sa(cache_file_name(conf::KEY_SA, config), std::ios::out, 8, 2);
 		if (text.size() == 2) {
 			sa.push_back(1);
 		}
 		sa.push_back(0);
-#endif
 	} else {
 		_construct_sa_se<int_vector<8>>(text, cache_file_name(conf::KEY_SA, config), 256, 0);
 	}
@@ -165,22 +156,11 @@ void construct_sa(cache_config& config)
 	const char* KEY_TEXT = key_text_trait<t_width>::KEY_TEXT;
 	if (t_width == 8) {
 		if (construct_config().byte_algo_sa == LIBDIVSUFSORT) {
-#if SDSL_HAS_CEREAL
-			int_vector<t_width> text;
-			load_from_file(text, cache_file_name(conf::KEY_TEXT, config));
-			decltype(t_width) sa_width = bits::hi(text.size()) + 1;
-			int_vector<> sa;
-			sa.width(sa_width);
-#else
 			read_only_mapper<t_width> text(KEY_TEXT, config);
 			auto					  sa = write_out_mapper<0>::create(
 			cache_file_name(conf::KEY_SA, config), 0, bits::hi(text.size()) + 1);
-#endif
 			// call divsufsort
 			algorithm::calculate_sa((const unsigned char*)text.data(), text.size(), sa);
-#if SDSL_HAS_CEREAL
-			store_to_file(sa, cache_file_name(conf::KEY_SA, config));
-#endif
 		} else if (construct_config().byte_algo_sa == SE_SAIS) {
 			construct_sa_se(config);
 		}

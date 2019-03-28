@@ -119,12 +119,7 @@ public:
 		int_vector<> lcp;
 		load_from_file(lcp, cache_file_name(conf::KEY_LCP, config));
 		std::string			isa_file = cache_file_name(conf::KEY_ISA, config);
-#if SDSL_HAS_CEREAL
-		int_vector<> isa_buf;
-		load_from_file(isa_buf, isa_file);
-#else
 		int_vector_buffer<> isa_buf(isa_file);
-#endif
 		size_type			n		 = lcp.size();
 		bit_vector			data	 = bit_vector(2 * n, 0);
 		size_type			data_cnt = 0;
@@ -202,6 +197,18 @@ public:
 		ar(CEREAL_NVP(m_data));
 		ar(CEREAL_NVP(m_select_support));
 		m_select_support.set_vector(&m_data);
+	}
+
+	//! Equality operator.
+	bool operator==(_lcp_support_sada const & other) const noexcept
+	{
+		return (m_data == other.m_data) && (m_select_support == other.m_select_support);
+	}
+
+	//! Inequality operator.
+	bool operator!=(_lcp_support_sada const & other) const noexcept
+	{
+		return !(*this == other);
 	}
 };
 

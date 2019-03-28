@@ -339,18 +339,9 @@ template<uint8_t  t_k,
 void
 construct(k2_treap<t_k, t_bv, t_rank, t_max_vec>& idx, std::string file, cache_config& config)
 {
-#if SDSL_HAS_CEREAL
-    int_vector<> buf_x;
-    load_from_file(buf_x, file+".x");
-    int_vector<> buf_y;
-    load_from_file(buf_y, file+".y");
-    int_vector<> buf_w;
-    load_from_file(buf_w, file+".w");
-#else
     int_vector_buffer<> buf_x(file+".x", std::ios::in);
     int_vector_buffer<> buf_y(file+".y", std::ios::in);
     int_vector_buffer<> buf_w(file+".w", std::ios::in);
-#endif
     idx = k2_treap<t_k, t_bv, t_rank, t_max_vec>(buf_x, buf_y, buf_w, config.dir);
 }
 

@@ -175,9 +175,9 @@ inline void sorted_multi_stack_support::load(std::istream& in)
 template <typename archive_t>
 void sorted_multi_stack_support::CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
 {
-	ar(CEREAL_NVP(cereal::make_size_tag(static_cast<size_type>(m_n))));
-	ar(CEREAL_NVP(cereal::make_size_tag(static_cast<size_type>(m_cnt))));
-	ar(CEREAL_NVP(cereal::make_size_tag(static_cast<size_type>(m_top))));
+	ar(CEREAL_NVP(m_n));
+	ar(CEREAL_NVP(m_cnt));
+	ar(CEREAL_NVP(m_top));
 	ar(CEREAL_NVP(m_stack));
 	ar(CEREAL_NVP(m_duplication_stack));
 }
@@ -185,9 +185,9 @@ void sorted_multi_stack_support::CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
 template <typename archive_t>
 void sorted_multi_stack_support::CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
 {
-	ar(CEREAL_NVP(cereal::make_size_tag(m_n)));
-	ar(CEREAL_NVP(cereal::make_size_tag(m_cnt)));
-	ar(CEREAL_NVP(cereal::make_size_tag(m_top)));
+	ar(CEREAL_NVP(m_n));
+	ar(CEREAL_NVP(m_cnt));
+	ar(CEREAL_NVP(m_top));
 	ar(CEREAL_NVP(m_stack));
 	ar(CEREAL_NVP(m_duplication_stack));
 }

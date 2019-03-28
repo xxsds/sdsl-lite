@@ -50,12 +50,7 @@ public:
 	lcp_bitcompressed(cache_config& config)
 	{
 		std::string			lcp_file = cache_file_name(conf::KEY_LCP, config);
-#if SDSL_HAS_CEREAL
-		int_vector<> lcp_buf;
-		load_from_file(lcp_buf, lcp_file);
-#else
 		int_vector_buffer<> lcp_buf(lcp_file);
-#endif
 		m_lcp = int_vector<t_width>(lcp_buf.size(), 0, lcp_buf.width());
 		for (size_type i = 0; i < m_lcp.size(); ++i) {
 			m_lcp[i] = lcp_buf[i];
@@ -103,6 +98,18 @@ public:
 		written_bytes += m_lcp.serialize(out, child, "lcp");
 		structure_tree::add_size(child, written_bytes);
 		return written_bytes;
+	}
+
+	//! Equality operator.
+	bool operator==(lcp_bitcompressed const & other) const noexcept
+	{
+		return (m_lcp == other.m_lcp);
+	}
+
+	//! Inequality operator.
+	bool operator!=(lcp_bitcompressed const & other) const noexcept
+	{
+		return !(*this == other);
 	}
 
 	//! Load from a stream.

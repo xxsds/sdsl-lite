@@ -63,12 +63,7 @@ public:
 		if ("" != other_key) {
 			lcp_key = other_key;
 		}
-#if SDSL_HAS_CEREAL
-		int_vector<> lcp_buf;
-		load_from_file(lcp_buf, cache_file_name(lcp_key, config));
-#else
 		int_vector_buffer<> lcp_buf(cache_file_name(lcp_key, config));
-#endif
 		m_vec = vlc_vec_type(lcp_buf);
 	}
 
@@ -115,6 +110,18 @@ public:
 	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
 	{
 		ar(CEREAL_NVP(m_vec));
+	}
+
+	//! Equality operator.
+	bool operator==(lcp_vlc const & other) const noexcept
+	{
+		return (m_vec == other.m_vec);
+	}
+
+	//! Inequality operator.
+	bool operator!=(lcp_vlc const & other) const noexcept
+	{
+		return !(*this == other);
 	}
 };
 

@@ -69,14 +69,8 @@ public:
          */
 	_sa_order_sampling(const cache_config& cconfig, SDSL_UNUSED const t_csa* csa = nullptr)
 	{
-#if SDSL_HAS_CEREAL
-        	int_vector<> sa_buf;
-        	load_from_file(sa_buf, cache_file_name(conf::KEY_SA, cconfig));
-        	size_type n = sa_buf.size();
-#else
 		int_vector_buffer<> sa_buf(cache_file_name(conf::KEY_SA, cconfig));
 		size_type			n = sa_buf.size();
-#endif
 		this->width(bits::hi(n) + 1);
 		this->resize((n + sample_dens - 1) / sample_dens);
 
@@ -140,12 +134,7 @@ public:
          */
 	_text_order_sampling(const cache_config& cconfig, SDSL_UNUSED const t_csa* csa = nullptr)
 	{
-#if SDSL_HAS_CEREAL
-	        int_vector<> sa_buf;
-	        load_from_file(sa_buf, cache_file_name(conf::KEY_SA, cconfig));
-#else
 		int_vector_buffer<> sa_buf(cache_file_name(conf::KEY_SA, cconfig));
-#endif
 		size_type			n = sa_buf.size();
 		bit_vector			marked(n, 0); // temporary bitvector for the marked text positions
 		this->width(bits::hi(n / sample_dens) + 1);
@@ -296,12 +285,7 @@ public:
 			register_cache_file(conf::KEY_SA, cconfig);
 		}
 		{
-#if SDSL_HAS_CEREAL
-			int_vector<> isa_buf;
-			load_from_file(isa_buf, cache_file_name(conf::KEY_ISA, cconfig));
-#else
 			int_vector_buffer<> isa_buf(cache_file_name(conf::KEY_ISA, cconfig));
-#endif
 			size_type			n = isa_buf.size();
 			bit_vector			marked_isa(n, 0); // temporary bitvector for marked ISA positions
 			bit_vector			marked_sa(n, 0);  // temporary bitvector for marked SA positions
@@ -462,6 +446,20 @@ public:
 		m_select_marked_isa.set_vector(&m_marked_isa);
 		ar(CEREAL_NVP(m_inv_perm));
 	}
+
+	//! Equality operator.
+	bool operator==(_fuzzy_sa_sampling const & other) const noexcept
+	{
+		return (m_marked_sa == other.m_marked_sa) && (m_rank_marked_sa == other.m_rank_marked_sa) &&
+		       (m_marked_isa == other.m_marked_isa) && (m_select_marked_isa == other.m_select_marked_isa) &&
+		       (m_inv_perm == other.m_inv_perm);
+	}
+
+	//! Inequality operator.
+	bool operator!=(_fuzzy_sa_sampling const & other) const noexcept
+	{
+		return !(*this == other);
+	}
 };
 template <class t_bv_sa		 = sd_vector<>,
 		  class t_bv_isa	 = sd_vector<>,
@@ -526,17 +524,9 @@ public:
          */
 	_bwt_sampling(const cache_config& cconfig, SDSL_UNUSED const t_csa* csa = nullptr)
 	{
-#if SDSL_HAS_CEREAL
-		int_vector<> sa_buf;
-		load_from_file(sa_buf, cache_file_name(conf::KEY_SA, cconfig));
-		int_vector<t_csa::alphabet_type::int_width> bwt_buf;
-		load_from_file(sa_buf,
-		cache_file_name(cache_file_name(key_bwt<t_csa::alphabet_type::int_width>(), cconfig)));
-#else
 		int_vector_buffer<> sa_buf(cache_file_name(conf::KEY_SA, cconfig));
 		int_vector_buffer<t_csa::alphabet_type::int_width> bwt_buf(
 		cache_file_name(key_bwt<t_csa::alphabet_type::int_width>(), cconfig));
-#endif
 		size_type  n = sa_buf.size();
 		bit_vector marked(n, 0); // temporary bitvector for the marked text positions
 		this->width(bits::hi(n) + 1);
@@ -678,22 +668,8 @@ public:
          */
 	_isa_sampling(const cache_config& cconfig, SDSL_UNUSED const sa_type* sa_sample = nullptr)
 	{
-#if SDSL_HAS_CEREAL
-	        auto file = cache_file_name(conf::KEY_SA, cconfig);
-	        isfstream in(file, std::ios::binary | std::ios::in);
-	    	if (!in) {
-	    		if (util::verbose) {
-	    			std::cerr << "Could not load file `" << file << "`" << std::endl;
-	    		}
-	    	}
-	        cereal::BinaryInputArchive iarchive(in);
-	        int_vector<> sa_buf;
-	        iarchive(sa_buf);
-	        size_type n = sa_buf.size();
-#else
 		int_vector_buffer<> sa_buf(cache_file_name(conf::KEY_SA, cconfig));
 		size_type			n = sa_buf.size();
-#endif
 		if (n >= 1) { // so n+t_csa::isa_sample_dens >= 2
 			this->width(bits::hi(n) + 1);
 			this->resize((n - 1) / sample_dens + 1);
@@ -878,6 +854,18 @@ public:
 		set_vector(sa_sample);
 	}
 
+	//! Equality operator.
+	bool operator==(_text_order_isa_sampling_support const & other) const noexcept
+	{
+		return (m_inv_perm == other.m_inv_perm) && (m_select_marked == other.m_select_marked);
+	}
+
+	//! Inequality operator.
+	bool operator!=(_text_order_isa_sampling_support const & other) const noexcept
+	{
+		return !(*this == other);
+	}
+
 	void set_vector(const sa_type* sa_sample = nullptr)
 	{
 		if (sa_sample == nullptr) {
@@ -1019,6 +1007,18 @@ public:
 	{
 		ar(CEREAL_NVP(m_select_marked_sa));
 		set_vector(sa_sample);
+	}
+
+	//! Equality operator.
+	bool operator==(_fuzzy_isa_sampling_support const & other) const noexcept
+	{
+		return (m_select_marked_sa == other.m_select_marked_sa);
+	}
+
+	//! Inequality operator.
+	bool operator!=(_fuzzy_isa_sampling_support const & other) const noexcept
+	{
+		return !(*this == other);
 	}
 
 	void set_vector(const sa_type* sa_sample = nullptr)

@@ -299,15 +299,8 @@ public:
          */
 	k2_tree(std::string filename, size_type size = 0)
 	{
-#if SDSL_HAS_CEREAL
-		int_vector<> buf_x;
-		load_from_file(buf_x, filename + ".x");
-		int_vector<> buf_y;
-		load_from_file(buf_y, filename + ".y");
-#else
 		int_vector_buffer<> buf_x(filename + ".x", std::ios::in);
 		int_vector_buffer<> buf_y(filename + ".y", std::ios::in);
-#endif
 
 		assert(buf_x.size() == buf_y.size());
 		assert(buf_x.size() > 0);
@@ -494,8 +487,8 @@ public:
 	template <typename archive_t>
 	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
 	{
-		ar(CEREAL_NVP(cereal::make_size_tag(static_cast<uint8_t>(k_k))));
-		ar(CEREAL_NVP(cereal::make_size_tag(static_cast<uint16_t>(k_height))));
+		ar(CEREAL_NVP(k_k));
+		ar(CEREAL_NVP(k_height));
 		ar(CEREAL_NVP(k_t));
 		ar(CEREAL_NVP(k_l));
 		ar(CEREAL_NVP(k_t_rank));
@@ -505,8 +498,8 @@ public:
 	template <typename archive_t>
 	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
 	{
-		ar(CEREAL_NVP(cereal::make_size_tag(k_k)));
-		ar(CEREAL_NVP(cereal::make_size_tag(k_height)));
+		ar(CEREAL_NVP(k_k));
+		ar(CEREAL_NVP(k_height));
 		ar(CEREAL_NVP(k_t));
 		ar(CEREAL_NVP(k_l));
 		ar(CEREAL_NVP(k_t_rank));

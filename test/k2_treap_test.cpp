@@ -239,6 +239,40 @@ TYPED_TEST(k2_treap_test, count)
     }
 }
 
+#if SDSL_HAS_CEREAL
+template <typename in_archive_t, typename out_archive_t, typename TypeParam>
+void do_serialisation(TypeParam const & l)
+{
+	{
+		std::ofstream os{temp_file, std::ios::binary};
+		out_archive_t oarchive{os};
+		oarchive(l);
+	}
+
+	{
+		TypeParam in_l{};
+		std::ifstream is{temp_file, std::ios::binary};
+		in_archive_t iarchive{is};
+		iarchive(in_l);
+		EXPECT_EQ(l, in_l);
+	}
+}
+
+TYPED_TEST(k2_treap_test, cereal)
+{
+	if (temp_dir != "@/")
+	{
+		TypeParam k2treap;
+	        ASSERT_TRUE(load_from_file(k2treap, temp_file));
+
+		do_serialisation<cereal::BinaryInputArchive,         cereal::BinaryOutputArchive>        (k2treap);
+		do_serialisation<cereal::PortableBinaryInputArchive, cereal::PortableBinaryOutputArchive>(k2treap);
+		do_serialisation<cereal::JSONInputArchive,           cereal::JSONOutputArchive>          (k2treap);
+		do_serialisation<cereal::XMLInputArchive,            cereal::XMLOutputArchive>           (k2treap);
+	}
+}
+#endif // SDSL_HAS_CEREAL
+
 
 TYPED_TEST(k2_treap_test, delete_)
 {

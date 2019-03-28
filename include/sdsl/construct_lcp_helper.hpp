@@ -28,47 +28,31 @@ inline void insert_lcp_values(int_vector<>& partial_lcp,
 					   uint64_t		 lcp_value_offset)
 {
 	std::string						tmp_lcp_file = lcp_file + "_TMP";
-	typedef int_vector<>::size_type size_type;
-	#if SDSL_HAS_CEREAL
-	int_vector<> lcp_buffer;
-	load_from_file(lcp_buffer, lcp_file);
-	#else
 	const uint64_t					buffer_size  = 1000000; // has to be a multiple of 64
+	typedef int_vector<>::size_type size_type;
 	int_vector_buffer<> lcp_buffer(lcp_file, std::ios::in, buffer_size); // open lcp_file
-	#endif
 	uint64_t			n = lcp_buffer.size();
 
-	// open tmp_lcp_file
-	uint8_t int_width = bits::hi(max_lcp_value)+1;
-#if SDSL_HAS_CEREAL
-	int_vector<> out_buf;
-	out_buf.width(int_width);
-	out_buf.resize(n);
-#else
-	int_vector_buffer<> out_buf(tmp_lcp_file, std::ios::out, buffer_size, int_width);		// Output buffer
-#endif
-	// Write values into buffer
-	for (size_type i=0, calc_idx=0; i < n; ++i) {
-		if (index_done[i]) {   // If value was already calculated
-	    		out_buf[i] = lcp_buffer[i]; // Copy value
-		} else {
-			if (partial_lcp[calc_idx]) {   // If value was calculated now
-				// Insert value
-				out_buf[i] = partial_lcp[calc_idx]+lcp_value_offset;
-				index_done[i] = true;
-			}
-			++calc_idx;
-		}
-	}
-#if SDSL_HAS_CEREAL
-	store_to_file(lcp_buffer, lcp_file);
-	store_to_file(out_buf, tmp_lcp_file);
-#else
-	lcp_buffer.close();
-	out_buf.close();
-#endif
-	// Close file and replace old file with new one
-	sdsl::rename(tmp_lcp_file, lcp_file);
+    // open tmp_lcp_file
+    uint8_t int_width = bits::hi(max_lcp_value)+1;
+    int_vector_buffer<> out_buf(tmp_lcp_file, std::ios::out, buffer_size, int_width);		// Output buffer
+    // Write values into buffer
+    for (size_type i=0, calc_idx=0; i < n; ++i) {
+        if (index_done[i]) {   // If value was already calculated
+            out_buf[i] = lcp_buffer[i]; // Copy value
+        } else {
+            if (partial_lcp[calc_idx]) {   // If value was calculated now
+                // Insert value
+                out_buf[i] = partial_lcp[calc_idx]+lcp_value_offset;
+                index_done[i] = true;
+            }
+            ++calc_idx;
+        }
+    }
+    lcp_buffer.close();
+    out_buf.close();
+    // Close file and replace old file with new one
+    sdsl::rename(tmp_lcp_file, lcp_file);
 }
 
 

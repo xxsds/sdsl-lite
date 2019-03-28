@@ -139,11 +139,7 @@ public:
 		tmp_dir + +"_wt_rlmn_" + util::to_string(util::pid()) + "_" + util::to_string(util::id());
 		{
 			if (0 == m_size) return;
-#if SDSL_HAS_CEREAL
-			int_vector<width> condensed_wt;
-#else
 			int_vector_buffer<width> condensed_wt(temp_file, std::ios::out);
-#endif
 			// scope for bl and bf
 			bit_vector bl = bit_vector(m_size, 0);
 
@@ -159,11 +155,7 @@ public:
 				++C[c];
 				last_c = c;
 			}
-#if SDSL_HAS_CEREAL
-			store_to_file(condensed_wt, temp_file);
-#else
 			condensed_wt.close();
-#endif
 			m_C = wt_rlmn_trait<alphabet_category>::init_C(C, m_size);
 
 			for (size_type i = 0, prefix_sum = 0; i < m_C.size(); ++i) {
@@ -183,12 +175,7 @@ public:
 				++lf_map[c];
 			}
 			{
-#if SDSL_HAS_CEREAL
-				int_vector<width> temp_bwt_buf;
-				load_from_file(temp_bwt_buf, temp_file);
-#else
 				int_vector_buffer<width> temp_bwt_buf(temp_file);
-#endif
 				m_wt = wt_type(temp_bwt_buf.begin(), temp_bwt_buf.end(), tmp_dir);
 			}
 			sdsl::remove(temp_file);
@@ -409,7 +396,7 @@ public:
 	template <typename archive_t>
 	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
 	{
-		ar(CEREAL_NVP(cereal::make_size_tag(static_cast<size_type>(m_size))));
+		ar(CEREAL_NVP(m_size));
 		ar(CEREAL_NVP(m_bl));
 		ar(CEREAL_NVP(m_bf));
 		ar(CEREAL_NVP(m_wt));
@@ -425,7 +412,7 @@ public:
 	template <typename archive_t>
 	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
 	{
-		ar(CEREAL_NVP(cereal::make_size_tag(m_size)));
+		ar(CEREAL_NVP(m_size));
 		ar(CEREAL_NVP(m_bl));
 		ar(CEREAL_NVP(m_bf));
 		ar(CEREAL_NVP(m_wt));
@@ -439,6 +426,22 @@ public:
 		m_bf_select.set_vector(&m_bf);
 		ar(CEREAL_NVP(m_C));
 		ar(CEREAL_NVP(m_C_bf_rank));
+	}
+
+	//! Equality operator.
+	bool operator==(wt_rlmn const & other) const noexcept
+	{
+		return (m_size == other.m_size) && (m_bl == other.m_bl) && (m_bf == other.m_bf) &&
+		       (m_wt == other.m_wt) && (m_bl_rank == other.m_bl_rank) &&
+		       (m_bf_rank == other.m_bf_rank) && (m_bl_select == other.m_bl_select) &&
+		       (m_bf_select == other.m_bf_select) && (m_C == other.m_C) &&
+		       (m_C_bf_rank == other.m_C_bf_rank);
+	}
+
+	//! Inequality operator.
+	bool operator!=(wt_rlmn const & other) const noexcept
+	{
+		return !(*this == other);
 	}
 };
 

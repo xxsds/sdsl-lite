@@ -115,22 +115,16 @@ public:
 		{
 			int_vector<> rac(m_size, 0, m_max_level);
 			std::copy(begin, end, rac.begin());
-			size_type bit_size = m_size * m_max_level;
-			std::string zero_buf_file_name	 = tmp_file(tmp_dir, "_zero_buf");
+
 			// buffer for elements in the right node
-#if SDSL_HAS_CEREAL
-			int_vector<> buf1;
-			uint64_t vector_pos = 0;
-			buf1.width(m_max_level);
-			buf1.resize(m_size);
-			int_vector<1> tree_out_buf(bit_size, 0);
-#else
+			std::string zero_buf_file_name	 = tmp_file(tmp_dir, "_zero_buf");
 			osfstream   tree_out_buf(tree_out_buf_file_name,
 								   std::ios::binary | std::ios::trunc |
 								   std::ios::out); // open buffer for tree
+			size_type bit_size = m_size * m_max_level;
 			int_vector<1>::write_header(bit_size, 1, tree_out_buf); // write bv header
 
-#endif
+
 			size_type tree_pos  = 0;
 			uint64_t  tree_word = 0;
 
@@ -143,7 +137,6 @@ public:
 				size_type			zeros = 0;
 				int_vector_buffer<> zero_buf(
 				zero_buf_file_name, std::ios::out, 1024 * 1024, m_max_level);
-
 				for (size_t i = 0; i < m_size; ++i) {
 					x = rac[i];
 					if (x & mask) {
@@ -154,13 +147,7 @@ public:
 					}
 					++tree_pos;
 					if ((tree_pos & 0x3FULL) == 0) { // if tree_pos % 64 == 0 write old word
-			                        // write the bit representation of tree_word into a bit_vector
-#if SDSL_HAS_CEREAL
-						tree_out_buf.set_int(vector_pos, static_cast<uint64_t>(tree_word), 64);
-						vector_pos += 64;
-#else
 						tree_out_buf.write((char*)&tree_word, sizeof(tree_word));
-#endif
 						tree_word = 0;
 					}
 				}
@@ -169,21 +156,12 @@ public:
 					rac[i] = zero_buf[i - zeros];
 				}
 			}
-			if ((tree_pos & 0x3FULL) != 0) { // if tree_pos % 64 > 0 => there are remaining entries we have to write
-#if SDSL_HAS_CEREAL
-				tree_out_buf.set_int(vector_pos, static_cast<uint64_t>(tree_word), 64);
-				vector_pos += 64;
-#else
+			if ((tree_pos & 0x3FULL) !=
+				0) { // if tree_pos % 64 > 0 => there are remaining entries we have to write
 				tree_out_buf.write((char*)&tree_word, sizeof(tree_word));
-#endif
-				tree_word = 0;
 			}
 			sdsl::remove(zero_buf_file_name);
-#if SDSL_HAS_CEREAL
-			store_to_file(tree_out_buf, tree_out_buf_file_name);
-#else
 			tree_out_buf.close();
-#endif
 			m_sigma = std::unique(rac.begin(), rac.end()) - rac.begin();
 		}
 		bit_vector tree;
@@ -553,9 +531,9 @@ public:
 	template <typename archive_t>
 	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
 	{
-		ar(CEREAL_NVP(cereal::make_size_tag(static_cast<size_type>(m_size))));
-		ar(CEREAL_NVP(cereal::make_size_tag(static_cast<size_type>(m_sigma))));
-		ar(CEREAL_NVP(cereal::make_size_tag(static_cast<uint32_t>(m_max_level))));
+		ar(CEREAL_NVP(m_size));
+		ar(CEREAL_NVP(m_sigma));
+		ar(CEREAL_NVP(m_max_level));
 		ar(CEREAL_NVP(m_tree));
 		ar(CEREAL_NVP(m_tree_rank));
 		ar(CEREAL_NVP(m_tree_select1));
@@ -568,9 +546,9 @@ public:
 	template <typename archive_t>
 	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
 	{
-		ar(CEREAL_NVP(cereal::make_size_tag(m_size)));
-		ar(CEREAL_NVP(cereal::make_size_tag(m_sigma)));
-		ar(CEREAL_NVP(cereal::make_size_tag(m_max_level)));
+		ar(CEREAL_NVP(m_size));
+		ar(CEREAL_NVP(m_sigma));
+		ar(CEREAL_NVP(m_max_level));
 		ar(CEREAL_NVP(m_tree));
 		ar(CEREAL_NVP(m_tree_rank));
 		m_tree_rank.set_vector(&m_tree);
@@ -580,6 +558,22 @@ public:
 		m_tree_select0.set_vector(&m_tree);
 		ar(CEREAL_NVP(m_zero_cnt));
 		ar(CEREAL_NVP(m_rank_level));
+	}
+
+
+	//! Equality operator.
+	bool operator==(wm_int const & other) const noexcept
+	{
+		return (m_size == other.m_size) && (m_sigma == other.m_sigma) && (m_max_level == other.m_max_level) &&
+		       (m_tree == other.m_tree) && (m_tree_rank == other.m_tree_rank) &&
+		       (m_tree_select1 == other.m_tree_select1) && (m_tree_select0 == other.m_tree_select0) &&
+		       (m_zero_cnt == other.m_zero_cnt) && (m_rank_level == other.m_rank_level);
+	}
+
+	//! Inequality operator.
+	bool operator!=(wm_int const & other) const noexcept
+	{
+		return !(*this == other);
 	}
 
 	//! Represents a node in the wavelet tree

@@ -229,6 +229,19 @@ public:
 		return *this;
 	}
 
+	//! Equality operator.
+	bool operator==(csa_sada const & other) const noexcept
+	{
+		return (m_psi == other.m_psi) && (m_sa_sample == other.m_sa_sample) &&
+		       (m_isa_sample == other.m_isa_sample) && (m_alphabet == other.m_alphabet);
+	}
+
+	//! Inequality operator.
+	bool operator!=(csa_sada const & other) const noexcept
+	{
+		return !(*this == other);
+	}
+
 	//! Serialize to a stream.
 	/*! \param out Outstream to write the data structure.
          *  \return The number of written bytes.
@@ -370,18 +383,11 @@ cache_config& config)
 	}
 	size_type n = 0;
 	{
-#if SDSL_HAS_CEREAL
-		int_vector<alphabet_type::int_width> bwt_buf;
-		load_from_file(bwt_buf, cache_file_name(key_bwt<alphabet_type::int_width>(), config));
-		n = bwt_buf.size();
-		m_alphabet = alphabet_type(bwt_buf, n);
-#else
 		int_vector_buffer<alphabet_type::int_width> bwt_buf(
 		cache_file_name(key_bwt<alphabet_type::int_width>(), config));
 		n		   = bwt_buf.size();
 		auto event = memory_monitor::event("construct csa-alpbabet");
 		m_alphabet = alphabet_type(bwt_buf, n);
-#endif
 	}
 	{
 		auto event  = memory_monitor::event("sample SA");
@@ -402,19 +408,7 @@ cache_config& config)
 	}
 	// calculate psi
 	{
-#if SDSL_HAS_CEREAL
-		int_vector<alphabet_type::int_width> bwt_buf;
-		load_from_file(bwt_buf, cache_file_name(key_bwt<alphabet_type::int_width>(), config));
-		std::string psi_file = cache_file_name(conf::KEY_PSI, config);
-		int_vector<> psi;
-		psi.width(bits::hi(n) + 1);
-		psi.resize(n);
-		for (size_type i = 0; i < n; ++i) {
-			psi[cnt_chr[char2comp[bwt_buf[i]]]++] = i;
-		}
-		store_to_file(psi, psi_file);
-#else
-		auto				event = memory_monitor::event("construct PSI");
+		auto										event = memory_monitor::event("construct PSI");
 		int_vector_buffer<alphabet_type::int_width> bwt_buf(
 		cache_file_name(key_bwt<alphabet_type::int_width>(), config));
 		std::string psi_file = cache_file_name(conf::KEY_PSI, config);
@@ -422,17 +416,11 @@ cache_config& config)
 		for (size_type i = 0; i < n; ++i) {
 			psi[cnt_chr[char2comp[bwt_buf[i]]]++] = i;
 		}
-#endif
 		register_cache_file(conf::KEY_PSI, config);
 	}
 	{
 		auto				event = memory_monitor::event("encode PSI");
-#if SDSL_HAS_CEREAL
-		int_vector<> psi_buf;
-		load_from_file(psi_buf, cache_file_name(conf::KEY_PSI, config));
-#else
 		int_vector_buffer<> psi_buf(cache_file_name(conf::KEY_PSI, config));
-#endif
 		m_psi = t_enc_vec(psi_buf);
 	}
 }

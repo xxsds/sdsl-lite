@@ -77,22 +77,12 @@ TYPED_TEST(wt_int_test, constructor)
         ASSERT_TRUE(store_to_file(wt, temp_file));
     }
     {
-#if SDSL_HAS_CEREAL
-        int_vector<> iv_buf;
-        load_from_file(iv_buf, test_file);
-#else
         int_vector_buffer<> iv_buf(test_file);
-#endif
         TypeParam wt(iv_buf.begin(), iv_buf.begin());
         ASSERT_EQ((size_type)0,  wt.size());
     }
     {
-#if SDSL_HAS_CEREAL
-        int_vector<> iv_buf;
-        load_from_file(iv_buf, test_file);
-#else
         int_vector_buffer<> iv_buf(test_file);
-#endif
         size_type len = (iv.size() >= 6) ? 6 : iv.size();
         TypeParam wt(iv_buf.begin(), iv_buf.begin()+len);
         ASSERT_EQ(len, wt.size());
@@ -853,6 +843,40 @@ TYPED_TEST(wt_int_test, restricted_unique_range_values)
     TypeParam wt;
     test_range_unique_values<TypeParam>(wt);
 }
+
+#if SDSL_HAS_CEREAL
+template <typename in_archive_t, typename out_archive_t, typename TypeParam>
+void do_serialisation(TypeParam const & l)
+{
+	{
+		std::ofstream os{temp_file, std::ios::binary};
+		out_archive_t oarchive{os};
+		oarchive(l);
+	}
+
+	{
+		TypeParam in_l{};
+		std::ifstream is{temp_file, std::ios::binary};
+		in_archive_t iarchive{is};
+		iarchive(in_l);
+		EXPECT_EQ(l, in_l);
+	}
+}
+
+TYPED_TEST(wt_int_test, cereal)
+{
+	if (temp_dir != "@/")
+	{
+		TypeParam wt;
+	        ASSERT_TRUE(load_from_file(wt, temp_file));
+
+		do_serialisation<cereal::BinaryInputArchive,         cereal::BinaryOutputArchive>        (wt);
+		do_serialisation<cereal::PortableBinaryInputArchive, cereal::PortableBinaryOutputArchive>(wt);
+		do_serialisation<cereal::JSONInputArchive,           cereal::JSONOutputArchive>          (wt);
+		do_serialisation<cereal::XMLInputArchive,            cereal::XMLOutputArchive>           (wt);
+	}
+}
+#endif // SDSL_HAS_CEREAL
 
 
 

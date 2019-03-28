@@ -223,6 +223,40 @@ TYPED_TEST(csa_int_test, swap_test)
     }
 }
 
+#if SDSL_HAS_CEREAL
+template <typename in_archive_t, typename out_archive_t, typename TypeParam>
+void do_serialisation(TypeParam const & l)
+{
+	{
+		std::ofstream os{temp_file, std::ios::binary};
+		out_archive_t oarchive{os};
+		oarchive(l);
+	}
+
+	{
+		TypeParam in_l{};
+		std::ifstream is{temp_file, std::ios::binary};
+		in_archive_t iarchive{is};
+		iarchive(in_l);
+		EXPECT_EQ(l, in_l);
+	}
+}
+
+TYPED_TEST(csa_int_test, cereal)
+{
+	if (temp_dir != "@/")
+	{
+		TypeParam csa;
+	        ASSERT_TRUE(load_from_file(csa, temp_file));
+
+		do_serialisation<cereal::BinaryInputArchive,         cereal::BinaryOutputArchive>        (csa);
+		do_serialisation<cereal::PortableBinaryInputArchive, cereal::PortableBinaryOutputArchive>(csa);
+		do_serialisation<cereal::JSONInputArchive,           cereal::JSONOutputArchive>          (csa);
+		do_serialisation<cereal::XMLInputArchive,            cereal::XMLOutputArchive>           (csa);
+	}
+}
+#endif // SDSL_HAS_CEREAL
+
 TYPED_TEST(csa_int_test, delete_)
 {
     sdsl::remove(temp_file);

@@ -643,8 +643,8 @@ public:
 		ar(CEREAL_NVP(m_match));
 		ar(CEREAL_NVP(m_enclose));
 		ar(CEREAL_NVP(m_range_max_match));
-		ar(CEREAL_NVP(cereal::make_size_tag(static_cast<size_type>(m_size))));
-		ar(CEREAL_NVP(cereal::make_size_tag(static_cast<size_type>(m_blocks))));
+		ar(CEREAL_NVP(m_size));
+		ar(CEREAL_NVP(m_blocks));
 	}
 
 	template <typename archive_t>
@@ -661,8 +661,25 @@ public:
 		ar(CEREAL_NVP(m_enclose));
 		ar(CEREAL_NVP(m_range_max_match));
 		m_range_max_match.set_vector(&m_match);
-		ar(CEREAL_NVP(cereal::make_size_tag(m_size)));
-		ar(CEREAL_NVP(cereal::make_size_tag(m_blocks)));
+		ar(CEREAL_NVP(m_size));
+		ar(CEREAL_NVP(m_blocks));
+	}
+
+	//! Equality operator.
+	bool operator==(bp_support_g const & other) const noexcept
+	{
+		return (m_rank_bp == other.m_rank_bp) && (m_select_bp == other.m_select_bp) &&
+		       (m_nnd == other.m_nnd) && (m_pioneer_bp == other.m_pioneer_bp) &&
+		       (m_rank_pioneer_bp == other.m_rank_pioneer_bp) && (m_nnd2 == other.m_nnd2) &&
+		       (m_match == other.m_match) && (m_enclose == other.m_enclose) &&
+		       (m_range_max_match == other.m_range_max_match) && (m_size == other.m_size) &&
+		       (m_blocks == other.m_blocks);
+	}
+
+	//! Inequality operator.
+	bool operator!=(bp_support_g const & other) const noexcept
+	{
+		return !(*this == other);
 	}
 };
 

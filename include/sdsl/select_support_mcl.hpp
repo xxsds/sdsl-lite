@@ -98,6 +98,8 @@ public:
 	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar);
 	select_support_mcl<t_b, t_pat_len>& operator=(const select_support_mcl& ss);
 	select_support_mcl<t_b, t_pat_len>& operator=(select_support_mcl&&);
+	bool operator==(const select_support_mcl& other) const noexcept;
+	bool operator!=(const select_support_mcl& other) const noexcept;
 };
 
 
@@ -500,7 +502,10 @@ template <uint8_t t_b, uint8_t t_pat_len>
 template <typename archive_t>
 void select_support_mcl<t_b, t_pat_len>::CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
 {
-	ar(CEREAL_NVP(cereal::make_size_tag(static_cast<size_type>(m_arg_cnt))));
+	ar(CEREAL_NVP(m_arg_cnt));
+	ar(CEREAL_NVP(m_logn));
+	ar(CEREAL_NVP(m_logn2));
+	ar(CEREAL_NVP(m_logn4));
 	size_type sb = (m_arg_cnt + 4095) >> 12;
 	if (m_arg_cnt) {
 		ar(CEREAL_NVP(m_superblock));
@@ -527,9 +532,16 @@ template <uint8_t t_b, uint8_t t_pat_len>
 template <typename archive_t>
 void select_support_mcl<t_b, t_pat_len>::CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
 {
-	initData();
+	delete[] m_longsuperblock;
+	m_longsuperblock = nullptr;
+	delete[] m_miniblock;
+	m_miniblock = nullptr;
 
-	ar(CEREAL_NVP(cereal::make_size_tag(m_arg_cnt)));
+	ar(CEREAL_NVP(m_arg_cnt));
+	ar(CEREAL_NVP(m_logn));
+	ar(CEREAL_NVP(m_logn2));
+	ar(CEREAL_NVP(m_logn4));
+
 	size_type sb = (m_arg_cnt + 4095) >> 12;
 
 	if (m_arg_cnt) {
@@ -557,6 +569,22 @@ void select_support_mcl<t_b, t_pat_len>::CEREAL_LOAD_FUNCTION_NAME(archive_t & a
 			}
 		}
 	}
+}
+
+template <uint8_t t_b, uint8_t t_pat_len>
+bool select_support_mcl<t_b, t_pat_len>::operator==(const select_support_mcl& other) const noexcept
+{
+	return (m_logn == other.m_logn) && (m_logn2 == other.m_logn2) && (m_logn4 == other.m_logn4) &&
+	       (m_superblock == other.m_superblock) && (m_arg_cnt == other.m_arg_cnt) &&
+	       ((m_longsuperblock == nullptr && other.m_longsuperblock == nullptr) ||
+	        (*m_longsuperblock == *other.m_longsuperblock)) &&
+	       ((m_miniblock == other.m_miniblock) || (*m_miniblock == *other.m_miniblock));
+}
+
+template <uint8_t t_b, uint8_t t_pat_len>
+bool select_support_mcl<t_b, t_pat_len>::operator!=(const select_support_mcl& other) const noexcept
+{
+	return !(*this == other);
 }
 }
 

@@ -43,12 +43,7 @@ void construct_bwt(cache_config& config)
 	const char*						KEY_BWT  = key_bwt_trait<t_width>::KEY_BWT;
 
 	//  (1) Load text from disk
-#if SDSL_HAS_CEREAL
-	int_vector<t_width> text;
-	load_from_file(text, cache_file_name(KEY_TEXT, config));
-#else
 	read_only_mapper<t_width> text(KEY_TEXT, config);
-#endif
 	size_type				  n			= text.size();
 	uint8_t					  bwt_width = text.width();
 	std::string				  bwt_file  = cache_file_name(KEY_BWT, config);
@@ -60,15 +55,6 @@ void construct_bwt(cache_config& config)
 		}
 	};
 	//  (2) Prepare to stream SA from disc and BWT to disc
-#if SDSL_HAS_CEREAL
-	int_vector<> sa;
-	load_from_file(sa, cache_file_name(conf::KEY_SA, config));
-	int_vector<> bwt;
-	bwt.width(bwt_width);
-	bwt.resize(n);
-	gen_bwt(bwt, text, sa);
-	store_to_file(bwt, bwt_file);
-#else
 	if (is_ram_file(bwt_file)) {
 		int_vector_mapper<> sa(conf::KEY_SA, config);
 		auto				bwt = write_out_mapper<t_width>::create(bwt_file, n, bwt_width);
@@ -81,7 +67,6 @@ void construct_bwt(cache_config& config)
 		//  (3) Construct BWT sequentially by streaming SA and random access to text
 		gen_bwt(bwt, text, sa_buf);
 	}
-#endif
 	register_cache_file(KEY_BWT, config);
 }
 

@@ -14,11 +14,7 @@
 namespace sdsl {
 
 inline void
-#if SDSL_HAS_CEREAL
-construct_first_child_lcp(int_vector<>& lcp_buf, int_vector<>& fc_lcp)
-#else
 construct_first_child_lcp(int_vector_buffer<>& lcp_buf, int_vector<>& fc_lcp)
-#endif
 {
 	typedef int_vector_size_type size_type;
 	size_type					 n = lcp_buf.size();
@@ -113,12 +109,7 @@ public:
 		std::string tmp_file   = cache_file_name(fc_lcp_key, config);
 		{
 			int_vector<0>		temp_lcp;
-#if SDSL_HAS_CEREAL
-			int_vector<> lcp_buf;
-			load_from_file(lcp_buf, cache_file_name(conf::KEY_LCP, config));
-#else
 			int_vector_buffer<> lcp_buf(cache_file_name(conf::KEY_LCP, config));
-#endif
 			construct_first_child_lcp(lcp_buf, temp_lcp);
 			// TODO: store LCP values directly
 			store_to_file(temp_lcp, tmp_file);
@@ -181,6 +172,18 @@ public:
 	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
 	{
 		ar(CEREAL_NVP(m_lcp));
+	}
+
+	//! Equality operator.
+	bool operator==(_lcp_support_tree const & other) const noexcept
+	{
+		return (m_lcp == other.m_lcp);
+	}
+
+	//! Inequality operator.
+	bool operator!=(_lcp_support_tree const & other) const noexcept
+	{
+		return !(*this == other);
 	}
 };
 

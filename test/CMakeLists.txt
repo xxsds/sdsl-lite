@@ -64,7 +64,8 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR}/../include
 link_libraries(gtest)
 
 if(SDSL_CEREAL)
-    include_directories(${CMAKE_CURRENT_BINARY_DIR}/../external/cereal/include)
+    # Include via -isystem suppresses warnings of external dependencies in cereal
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isystem${CMAKE_CURRENT_BINARY_DIR}/../external/cereal/include")
 endif(SDSL_CEREAL)
 
 add_executable(int_vector_generator int_vector_generator.cpp)

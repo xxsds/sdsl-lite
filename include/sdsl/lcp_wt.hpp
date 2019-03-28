@@ -83,12 +83,7 @@ public:
 		if ("" != other_key) {
 			lcp_key = other_key;
 		}
-#if SDSL_HAS_CEREAL
-		int_vector<> lcp_buf;
-		load_from_file(lcp_buf, cache_file_name(lcp_key, config));
-#else
 		int_vector_buffer<> lcp_buf(cache_file_name(lcp_key, config));
-#endif
 		size_type			l = 0, max_l = 0, big_sum = 0, n = lcp_buf.size();
 		{
 			int_vector<8> small_lcp = int_vector<8>(n);
@@ -104,12 +99,7 @@ public:
 			store_to_file(small_lcp, temp_file);
 		}
 		{
-#if SDSL_HAS_CEREAL
-			int_vector<8> lcp_sml_buf;
-			load_from_file(lcp_sml_buf, temp_file);
-#else
 			int_vector_buffer<8> lcp_sml_buf(temp_file);
-#endif
 			m_small_lcp = small_lcp_type(lcp_sml_buf.begin(), lcp_sml_buf.end(), config.dir);
 		}
 		sdsl::remove(temp_file);
@@ -181,6 +171,18 @@ public:
 	{
 		ar(CEREAL_NVP(m_small_lcp));
 		ar(CEREAL_NVP(m_big_lcp));
+	}
+
+	//! Equality operator.
+	bool operator==(lcp_wt const & other) const noexcept
+	{
+		return (m_small_lcp == other.m_small_lcp) && (m_big_lcp == other.m_big_lcp);
+	}
+
+	//! Inequality operator.
+	bool operator!=(lcp_wt const & other) const noexcept
+	{
+		return !(*this == other);
 	}
 };
 

@@ -385,14 +385,9 @@ uint64_t serialize_vector(const std::vector<T>&		 vec,
 template <typename T>
 void load_vector(std::vector<T>& vec, std::istream& in)
 {
-#if SDSL_HAS_CEREAL
-	cereal::BinaryInputArchive iarchive(in);
-	iarchive(vec);
-#else
 	for (typename std::vector<T>::size_type i = 0; i < vec.size(); ++i) {
 		load(vec[i], in);
 	}
-#endif
 }
 
 
@@ -807,12 +802,7 @@ bool store_to_file(const T& t, const std::string& file)
 		}
 		return false;
 	}
-#if SDSL_HAS_CEREAL
-	cereal::BinaryOutputArchive oarchive(out);
-	oarchive(t);
-#else
 	serialize(t, out);
-#endif
 	out.close();
 	if (util::verbose) {
 		std::cerr << "INFO: store_to_file: `" << file << "`" << std::endl;
@@ -881,12 +871,7 @@ bool store_to_file(const int_vector<t_width>& v, const std::string& file)
 			std::cerr << "INFO: store_to_file: `" << file << "`" << std::endl;
 		}
 	}
-#if SDSL_HAS_CEREAL
-	cereal::BinaryOutputArchive oarchive(out);
-	oarchive(v);
-#else
 	v.serialize(out, nullptr, "");
-#endif
 	out.close();
 	return true;
 }
@@ -920,12 +905,7 @@ bool load_from_file(T& v, const std::string& file)
 		}
 		return false;
 	}
-#if SDSL_HAS_CEREAL
-	cereal::BinaryInputArchive iarchive(in);
-	iarchive(v);
-#else
 	load(v, in);
-#endif
 	in.close();
 	if (util::verbose) {
 		std::cerr << "Load file `" << file << "`" << std::endl;

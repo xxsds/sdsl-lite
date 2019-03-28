@@ -87,27 +87,9 @@ t_index& idx, const std::string& file, cache_config& config, uint8_t num_bytes, 
 	auto event = memory_monitor::event("construct wavelet tree");
 	if ((t_index::alphabet_category::WIDTH == 8 and num_bytes <= 1) or
 		(t_index::alphabet_category::WIDTH == 0 and num_bytes != 'd')) {
-#if SDSL_HAS_CEREAL
-		std::string suf = ".txt";
-		if (file.size() >= suf.size() && 0 == file.compare(file.size()- suf.size(), suf.size(), suf))
-		{
-			// TODO use this if raw text
-			int_vector_buffer<t_index::alphabet_category::WIDTH> text_buf(
-			file, std::ios::in, 1024 * 1024, num_bytes * 8, (bool)num_bytes);
-			idx = t_index(text_buf.begin(), text_buf.end(), config.dir);
-		}
-		else
-		{
-			// TODO use this if int_vector
-			int_vector<t_index::alphabet_category::WIDTH> text_buf;
-			load_from_file(text_buf, file);
-			idx = t_index(text_buf.begin(), text_buf.end(), config.dir);
-		}
-#else
-        	int_vector_buffer<t_index::alphabet_category::WIDTH> text_buf(
-			file, std::ios::in, 1024 * 1024, num_bytes * 8, (bool)num_bytes);
-        	idx = t_index(text_buf.begin(), text_buf.end(), config.dir);
-#endif
+		int_vector_buffer<t_index::alphabet_category::WIDTH> text_buf(
+		file, std::ios::in, 1024 * 1024, num_bytes * 8, (bool)num_bytes);
+		idx = t_index(text_buf.begin(), text_buf.end(), config.dir);
 	} else {
 		int_vector<t_index::alphabet_category::WIDTH> text;
 		load_vector_from_file(text, file, num_bytes);

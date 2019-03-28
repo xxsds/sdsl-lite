@@ -266,7 +266,7 @@ template <class t_coder, uint32_t t_dens, uint8_t t_width>
 template <typename archive_t>
 void vlc_vector<t_coder, t_dens, t_width>::CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
 {
-	ar(CEREAL_NVP(cereal::make_size_tag(static_cast<size_type>(m_size))));
+	ar(CEREAL_NVP(m_size));
 	ar(CEREAL_NVP(m_z));
 	ar(CEREAL_NVP(m_sample_pointer));
 }
@@ -275,7 +275,7 @@ template <class t_coder, uint32_t t_dens, uint8_t t_width>
 template <typename archive_t>
 void vlc_vector<t_coder, t_dens, t_width>::CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
 {
-	ar(CEREAL_NVP(cereal::make_size_tag(m_size)));
+	ar(CEREAL_NVP(m_size));
 	ar(CEREAL_NVP(m_z));
 	ar(CEREAL_NVP(m_sample_pointer));
 }

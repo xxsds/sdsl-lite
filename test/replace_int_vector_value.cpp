@@ -16,17 +16,6 @@ int main(int argc, char* argv[])
     }
     uint64_t x = atoi(argv[2]);
     uint64_t y = atoi(argv[3]);
-#if SDSL_HAS_CEREAL
-    int_vector<> v;
-    load_from_file(v, argv[1]);
-    for (size_t i=0; i<v.size(); ++i) {
-        uint64_t val = v[i];
-        if (val == x) {
-            v[i] = y;
-        }
-    }
-    store_to_file(v, argv[1]);
-#else
     int_vector_buffer<> v(argv[1]);
     if (v.good()) {
         for (size_t i=0; i<v.size(); ++i) {
@@ -39,5 +28,4 @@ int main(int argc, char* argv[])
         cerr << "Could not open int_vector<> file " << argv[1] << endl;
         return 1;
     }
-#endif
 }

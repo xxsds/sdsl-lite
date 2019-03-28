@@ -95,6 +95,43 @@ TYPED_TEST(select_support_test, select_method)
     }
 }
 
+#if SDSL_HAS_CEREAL
+template <typename in_archive_t, typename out_archive_t, typename TypeParam>
+void do_serialisation(TypeParam const & l, typename TypeParam::bit_vector_type const & bv)
+{
+	{
+		std::ofstream os{temp_file, std::ios::binary};
+		out_archive_t oarchive{os};
+		oarchive(l);
+	}
+
+	{
+		TypeParam in_l{};
+		std::ifstream is{temp_file, std::ios::binary};
+		in_archive_t iarchive{is};
+		iarchive(in_l);
+		in_l.set_vector(&bv);
+		EXPECT_EQ(l, in_l);
+	}
+}
+
+TYPED_TEST(select_support_test, cereal)
+{
+	if (temp_dir != "@/")
+	{
+		bit_vector bvec;
+	        ASSERT_TRUE(load_from_file(bvec, test_file));
+	        typename TypeParam::bit_vector_type bv(bvec);
+	        TypeParam rs(&bv);
+
+		do_serialisation<cereal::BinaryInputArchive,         cereal::BinaryOutputArchive>        (rs, bv);
+		do_serialisation<cereal::PortableBinaryInputArchive, cereal::PortableBinaryOutputArchive>(rs, bv);
+		do_serialisation<cereal::JSONInputArchive,           cereal::JSONOutputArchive>          (rs, bv);
+		do_serialisation<cereal::XMLInputArchive,            cereal::XMLOutputArchive>           (rs, bv);
+	}
+}
+#endif // SDSL_HAS_CEREAL
+
 }// end namespace
 
 int main(int argc, char** argv)

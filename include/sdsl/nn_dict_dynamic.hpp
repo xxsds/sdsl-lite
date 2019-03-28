@@ -259,9 +259,9 @@ public:
 	template <typename archive_t>
 	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
 	{
-		ar(CEREAL_NVP(cereal::make_size_tag(static_cast<uint64_t>(m_depth))));
-		ar(CEREAL_NVP(cereal::make_size_tag(static_cast<uint64_t>(m_v_begin_leaves))));
-		ar(CEREAL_NVP(cereal::make_size_tag(static_cast<size_type>(m_size))));
+		ar(CEREAL_NVP(m_depth));
+		ar(CEREAL_NVP(m_v_begin_leaves));
+		ar(CEREAL_NVP(m_size));
 		ar(CEREAL_NVP(m_offset));
 		ar(CEREAL_NVP(m_tree));
 	}
@@ -270,11 +270,25 @@ public:
 	template <typename archive_t>
 	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
 	{
-		ar(CEREAL_NVP(cereal::make_size_tag(m_depth)));
-		ar(CEREAL_NVP(cereal::make_size_tag(m_v_begin_leaves)));
-		ar(CEREAL_NVP(cereal::make_size_tag(m_size)));
+		ar(CEREAL_NVP(m_depth));
+		ar(CEREAL_NVP(m_v_begin_leaves));
+		ar(CEREAL_NVP(m_size));
 		ar(CEREAL_NVP(m_offset));
 		ar(CEREAL_NVP(m_tree));
+	}
+
+	//! Equality operator.
+	bool operator==(nn_dict_dynamic const & other) const noexcept
+	{
+		return (m_depth == other.m_depth) && (m_v_begin_leaves == other.m_v_begin_leaves) &&
+		       (m_size == other.m_size) && (m_offset == other.m_offset) &&
+		       (m_tree == other.m_tree);
+	}
+
+	//! Inequality operator.
+	bool operator!=(nn_dict_dynamic const & other) const noexcept
+	{
+		return !(*this == other);
 	}
 
 	class reference {

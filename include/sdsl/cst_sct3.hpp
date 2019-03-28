@@ -475,6 +475,21 @@ public:
 	template <typename archive_t>
 	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar);
 
+	//! Equality operator.
+	bool operator==(cst_sct3 const & other) const noexcept
+	{
+		return (m_csa == other.m_csa) && (m_lcp == other.m_lcp) &&
+		       (m_bp == other.m_bp) && (m_bp_support == other.m_bp_support) &&
+		       (m_first_child == other.m_first_child) && (m_first_child_rank == other.m_first_child_rank) &&
+		       (m_first_child_select == other.m_first_child_select) /*&& (m_nodes == other.m_nodes)*/;
+	}
+
+	//! Inequality operator.
+	bool operator!=(cst_sct3 const & other) const noexcept
+	{
+		return !(*this == other);
+	}
+
 	/*! \defgroup cst_sct3_tree_methods Tree methods of cst_sct3 */
 	/* @{ */
 
@@ -1133,12 +1148,7 @@ cst_sct3<t_csa, t_lcp, t_bp_support, t_bv, t_rank, t_sel>::cst_sct3(cache_config
 {
 	{
 		auto				event = memory_monitor::event("bps-sct");
-#if SDSL_HAS_CEREAL
-		int_vector<> lcp_buf;
-		load_from_file(lcp_buf, cache_file_name(conf::KEY_LCP, config));
-#else
 		int_vector_buffer<> lcp_buf(cache_file_name(conf::KEY_LCP, config));
-#endif
 		m_nodes =
 		construct_supercartesian_tree_bp_succinct_and_first_child(lcp_buf, m_bp, m_first_child);
 		m_nodes += m_bp.size() / 2;
@@ -1209,7 +1219,7 @@ void cst_sct3<t_csa, t_lcp, t_bp_support, t_bv, t_rank, t_sel>::CEREAL_SAVE_FUNC
 	ar(CEREAL_NVP(m_first_child));
 	ar(CEREAL_NVP(m_first_child_rank));
 	ar(CEREAL_NVP(m_first_child_select));
-	ar(CEREAL_NVP(cereal::make_size_tag(static_cast<size_type>(m_nodes))));
+	ar(CEREAL_NVP(m_nodes));
 }
 
 template <class t_csa, class t_lcp, class t_bp_support, class t_bv, class t_rank, class t_sel>
@@ -1227,7 +1237,7 @@ void cst_sct3<t_csa, t_lcp, t_bp_support, t_bv, t_rank, t_sel>::CEREAL_LOAD_FUNC
 	m_first_child_rank.set_vector(&m_first_child);
 	ar(CEREAL_NVP(m_first_child_select));
 	m_first_child_select.set_vector(&m_first_child);
-	ar(CEREAL_NVP(cereal::make_size_tag(m_nodes)));
+	ar(CEREAL_NVP(m_nodes));
 }
 
 template <class t_int>
