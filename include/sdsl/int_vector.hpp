@@ -648,22 +648,27 @@ public:
 	//! Load the int_vector for a stream.
 	void load(std::istream& in);
 
-	// //!\brief Serialise (save) via cereal if archive is not binary
+	/* For cereal we need to define different versions of the load and save function depending on whether we want
+	 * binary data or text (XML/JSON) data.
+	 * See https://github.com/USCiLab/cereal/blob/master/include/cereal/types/vector.hpp for an example.
+	 */
+
+	//!\brief Serialise (save) via cereal if archive is not binary
 	template <typename archive_t> inline
 	typename std::enable_if<!cereal::traits::is_output_serializable<cereal::BinaryData<int_vector<t_width>>, archive_t>::value, void>::type
 	CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const;
 
-	// //!\brief Serialise (save) via cereal if archive is binary
+	//!\brief Serialise (save) via cereal if archive is binary
 	template <typename archive_t> inline
 	typename std::enable_if<cereal::traits::is_output_serializable<cereal::BinaryData<int_vector<t_width>>, archive_t>::value, void>::type
 	CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const;
 
-	// //!\brief Serialise (load) via cereal if archive is not binary
+	//!\brief Serialise (load) via cereal if archive is not binary
 	template <typename archive_t> inline
 	typename std::enable_if<!cereal::traits::is_input_serializable<cereal::BinaryData<int_vector<t_width>>, archive_t>::value, void>::type
 	CEREAL_LOAD_FUNCTION_NAME(archive_t & ar);
 
-	// //!\brief Serialise (save) via cereal if archive is binary
+	//!\brief Serialise (save) via cereal if archive is binary
 	template <typename archive_t> inline
 	typename std::enable_if<cereal::traits::is_input_serializable<cereal::BinaryData<int_vector<t_width>>, archive_t>::value, void>::type
 	CEREAL_LOAD_FUNCTION_NAME(archive_t & ar);

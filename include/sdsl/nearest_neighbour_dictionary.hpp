@@ -267,12 +267,12 @@ public:
 	}
 
 	//! Equality operator.
-	bool operator==(nearest_neighbour_dictionary const &) const noexcept
+	bool operator==(nearest_neighbour_dictionary const & other) const noexcept
 	{
-		return true; /*(m_ones == other.m_ones) && (m_size == other.m_size) &&
+		return (m_ones == other.m_ones) && (m_size == other.m_size) &&
 		       (m_abs_samples == other.m_abs_samples) && (m_differences == other.m_differences) &&
 		       (m_contains_abs_sample == other.m_contains_abs_sample) &&
-		       (m_rank_contains_abs_sample == other.m_rank_contains_abs_sample);*/
+		       (m_rank_contains_abs_sample == other.m_rank_contains_abs_sample);
 	}
 
 	//! Inequality operator.

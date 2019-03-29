@@ -558,8 +558,14 @@ void do_serialisation(TypeParam const & l)
 
 TYPED_TEST(k2_tree_test, cereal)
 {
-	TypeParam k2tree;
-        // ASSERT_TRUE(load_from_file(k2treap, temp_file));
+	vector<vector <int>> mat({{1, 0, 0, 0, 1},
+	    {0, 0, 0, 0, 0},
+	    {0, 0, 1, 1, 0},
+	    {0, 0, 0, 0, 0},
+	    {0, 0, 1, 0, 1}
+	});
+
+	TypeParam k2tree(mat);
 
 	do_serialisation<cereal::BinaryInputArchive,         cereal::BinaryOutputArchive>        (k2tree);
 	do_serialisation<cereal::PortableBinaryInputArchive, cereal::PortableBinaryOutputArchive>(k2tree);
