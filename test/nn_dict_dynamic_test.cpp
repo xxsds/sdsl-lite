@@ -146,7 +146,59 @@ TEST_F(nn_dict_dynamic_test, serialize_and_load)
     sdsl::remove(file_name);
 }
 
+#if SDSL_HAS_CEREAL
+template <typename in_archive_t, typename out_archive_t>
+void do_serialisation(sdsl::nn_dict_dynamic const & l, std::string const & temp_file)
+{
+	{
+		std::ofstream os{temp_file, std::ios::binary};
+		out_archive_t oarchive{os};
+		oarchive(l);
+	}
 
+	{
+		sdsl::nn_dict_dynamic in_l(0);
+		std::ifstream is{temp_file, std::ios::binary};
+		in_archive_t iarchive{is};
+		iarchive(in_l);
+		EXPECT_EQ(l, in_l);
+	}
+}
+
+TEST_F(nn_dict_dynamic_test, cereal)
+{
+	if (temp_dir != "@/")
+	{
+		std::string file_name = temp_dir+"/nn_dict_dynamic";
+		uint64_t testsize = 100000;
+		sdsl::nn_dict_dynamic nndd(testsize);
+		sdsl::bit_vector bv(testsize, 0);
+		{
+		    std::mt19937_64 rng;
+		    std::uniform_int_distribution<uint64_t> distribution(0, testsize-1);
+		    auto dice = bind(distribution, rng);
+		    for (uint64_t i=0; i<testsize/4; ++i) {
+			uint64_t value = dice();
+			if (bv[value]) {
+			    bv[value] = 0;
+			    nndd[value] = 0;
+			} else {
+			    bv[value] = 1;
+			    nndd[value] = 1;
+			}
+		    }
+		    sdsl::store_to_file(nndd, file_name);
+		}
+
+		do_serialisation<cereal::BinaryInputArchive,         cereal::BinaryOutputArchive>        (nndd, file_name);
+		do_serialisation<cereal::PortableBinaryInputArchive, cereal::PortableBinaryOutputArchive>(nndd, file_name);
+		do_serialisation<cereal::JSONInputArchive,           cereal::JSONOutputArchive>          (nndd, file_name);
+		do_serialisation<cereal::XMLInputArchive,            cereal::XMLOutputArchive>           (nndd, file_name);
+
+		sdsl::remove(file_name);
+	}
+}
+#endif // SDSL_HAS_CEREAL
 
 }  // namespace
 

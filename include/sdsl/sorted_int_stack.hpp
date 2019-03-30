@@ -71,6 +71,12 @@ public:
 	size_type
 	serialize(std::ostream& out, structure_tree_node* v = nullptr, std::string name = "") const;
 	void load(std::istream& in);
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const;
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar);
+	bool operator==(sorted_int_stack const & other) const noexcept;
+	bool operator!=(sorted_int_stack const & other) const noexcept;
 };
 
 inline sorted_int_stack::sorted_int_stack(size_type n) : m_n(n), m_cnt(0), m_top(0)
@@ -154,6 +160,39 @@ inline void sorted_int_stack::load(std::istream& in)
 	read_member(m_cnt, in);
 	m_stack.load(in);
 	sdsl::load(m_overflow, in);
+}
+
+template <typename archive_t>
+void sorted_int_stack::CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+{
+	ar(CEREAL_NVP(m_n));
+	ar(CEREAL_NVP(m_cnt));
+	ar(CEREAL_NVP(m_top));
+	ar(CEREAL_NVP(m_stack));
+	ar(CEREAL_NVP(m_overflow));
+}
+
+template <typename archive_t>
+void sorted_int_stack::CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+{
+	ar(CEREAL_NVP(m_n));
+	ar(CEREAL_NVP(m_cnt));
+	ar(CEREAL_NVP(m_top));
+	ar(CEREAL_NVP(m_stack));
+	ar(CEREAL_NVP(m_overflow));
+}
+
+//! Equality operator.
+bool sorted_int_stack::operator==(sorted_int_stack const & other) const noexcept
+{
+	return (m_n == other.m_n) && (m_cnt == other.m_cnt) && (m_top == other.m_top) &&
+	       (m_stack == other.m_stack) && (m_overflow == other.m_overflow);
+}
+
+//! Inequality operator.
+bool sorted_int_stack::operator!=(sorted_int_stack const & other) const noexcept
+{
+	return !(*this == other);
 }
 
 } // end namespace sdsl

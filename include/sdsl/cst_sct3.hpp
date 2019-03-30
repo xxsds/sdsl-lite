@@ -467,6 +467,29 @@ public:
          */
 	void load(std::istream& in);
 
+	//!\brief Serialise (save) via cereal
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const;
+
+	//!\brief Serialise (load) via cereal
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar);
+
+	//! Equality operator.
+	bool operator==(cst_sct3 const & other) const noexcept
+	{
+		return (m_csa == other.m_csa) && (m_lcp == other.m_lcp) &&
+		       (m_bp == other.m_bp) && (m_bp_support == other.m_bp_support) &&
+		       (m_first_child == other.m_first_child) && (m_first_child_rank == other.m_first_child_rank) &&
+		       (m_first_child_select == other.m_first_child_select) /*&& (m_nodes == other.m_nodes)*/;
+	}
+
+	//! Inequality operator.
+	bool operator!=(cst_sct3 const & other) const noexcept
+	{
+		return !(*this == other);
+	}
+
 	/*! \defgroup cst_sct3_tree_methods Tree methods of cst_sct3 */
 	/* @{ */
 
@@ -1183,6 +1206,38 @@ void cst_sct3<t_csa, t_lcp, t_bp_support, t_bv, t_rank, t_sel>::load(std::istrea
 	m_first_child_rank.load(in, &m_first_child);
 	m_first_child_select.load(in, &m_first_child);
 	read_member(m_nodes, in);
+}
+
+template <class t_csa, class t_lcp, class t_bp_support, class t_bv, class t_rank, class t_sel>
+template <typename archive_t>
+void cst_sct3<t_csa, t_lcp, t_bp_support, t_bv, t_rank, t_sel>::CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+{
+	ar(CEREAL_NVP(m_csa));
+	ar(CEREAL_NVP(m_lcp));
+	ar(CEREAL_NVP(m_bp));
+	ar(CEREAL_NVP(m_bp_support));
+	ar(CEREAL_NVP(m_first_child));
+	ar(CEREAL_NVP(m_first_child_rank));
+	ar(CEREAL_NVP(m_first_child_select));
+	ar(CEREAL_NVP(m_nodes));
+}
+
+template <class t_csa, class t_lcp, class t_bp_support, class t_bv, class t_rank, class t_sel>
+template <typename archive_t>
+void cst_sct3<t_csa, t_lcp, t_bp_support, t_bv, t_rank, t_sel>::CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+{
+	ar(CEREAL_NVP(m_csa));
+	ar(CEREAL_NVP(m_lcp));
+	set_lcp_pointer(m_lcp, *this);
+	ar(CEREAL_NVP(m_bp));
+	ar(CEREAL_NVP(m_bp_support));
+	m_bp_support.set_vector(&m_bp);
+	ar(CEREAL_NVP(m_first_child));
+	ar(CEREAL_NVP(m_first_child_rank));
+	m_first_child_rank.set_vector(&m_first_child);
+	ar(CEREAL_NVP(m_first_child_select));
+	m_first_child_select.set_vector(&m_first_child);
+	ar(CEREAL_NVP(m_nodes));
 }
 
 template <class t_int>

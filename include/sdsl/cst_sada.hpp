@@ -341,6 +341,20 @@ public:
 		return *this;
 	}
 
+	//! Equality operator.
+	bool operator==(cst_sada const & other) const noexcept
+	{
+		return (m_csa == other.m_csa) && (m_lcp == other.m_lcp) && (m_bp == other.m_bp) &&
+		       (m_bp_support == other.m_bp_support) && (m_bp_rank10 == other.m_bp_rank10) &&
+		       (m_bp_select10 == other.m_bp_select10);
+	}
+
+	//! Inequality operator.
+	bool operator!=(cst_sada const & other) const noexcept
+	{
+		return !(*this == other);
+	}
+
 	//! Serialize to a stream.
 	/*! \param out Outstream to write the data structure.
          *  \return The number of written bytes.
@@ -371,6 +385,32 @@ public:
 		m_bp_support.load(in, &m_bp);
 		m_bp_rank10.load(in, &m_bp);
 		m_bp_select10.load(in, &m_bp);
+	}
+
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+	{
+		ar(CEREAL_NVP(m_csa));
+		ar(CEREAL_NVP(m_lcp));
+		ar(CEREAL_NVP(m_bp));
+		ar(CEREAL_NVP(m_bp_support));
+		ar(CEREAL_NVP(m_bp_rank10));
+		ar(CEREAL_NVP(m_bp_select10));
+	}
+
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+	{
+		ar(CEREAL_NVP(m_csa));
+		ar(CEREAL_NVP(m_lcp));
+		set_lcp_pointer(m_lcp, *this);
+		ar(CEREAL_NVP(m_bp));
+		ar(CEREAL_NVP(m_bp_support));
+		m_bp_support.set_vector(&m_bp);
+		ar(CEREAL_NVP(m_bp_rank10));
+		m_bp_rank10.set_vector(&m_bp);
+		ar(CEREAL_NVP(m_bp_select10));
+		m_bp_select10.set_vector(&m_bp);
 	}
 
 	/*! \defgroup cst_sada_tree_methods Tree methods of cst_sada */

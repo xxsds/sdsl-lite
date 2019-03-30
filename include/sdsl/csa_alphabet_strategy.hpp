@@ -250,6 +250,37 @@ public:
         m_C.load(in);
         read_member(m_sigma, in);
     }
+
+    //! Equality operator.
+    bool operator==(byte_alphabet const & other) const noexcept
+    {
+	    return (m_char2comp == other.m_char2comp) && (m_comp2char == other.m_comp2char) &&
+		   (m_C == other.m_C) && (m_sigma == other.m_sigma);
+    }
+
+    //! Inequality operator.
+    bool operator!=(byte_alphabet const & other) const noexcept
+    {
+	    return !(*this == other);
+    }
+
+    template <typename archive_t>
+    void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+    {
+        ar(CEREAL_NVP(m_char2comp));
+        ar(CEREAL_NVP(m_comp2char));
+        ar(CEREAL_NVP(m_C));
+        ar(CEREAL_NVP(m_sigma));
+    }
+
+    template <typename archive_t>
+    void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+    {
+        ar(CEREAL_NVP(m_char2comp));
+        ar(CEREAL_NVP(m_comp2char));
+        ar(CEREAL_NVP(m_C));
+        ar(CEREAL_NVP(m_sigma));
+    }
 };
 
 
@@ -451,6 +482,42 @@ public:
 		m_char_select.set_vector(&m_char);
 		m_C.load(in);
 		read_member(m_sigma, in);
+	}
+
+	//! Equality operator.
+	bool operator==(succinct_byte_alphabet const & other) const noexcept
+	{
+		return (m_char == other.m_char) && (m_char_rank == other.m_char_rank) &&
+		       (m_char_select == other.m_char_select) && (m_C == other.m_C) &&
+		       (m_sigma == other.m_sigma);
+	}
+
+	//! Inequality operator.
+	bool operator!=(succinct_byte_alphabet const & other) const noexcept
+	{
+		return !(*this == other);
+	}
+
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+	{
+		ar(CEREAL_NVP(m_char));
+		ar(CEREAL_NVP(m_char_rank));
+		ar(CEREAL_NVP(m_char_select));
+		ar(CEREAL_NVP(m_C));
+		ar(CEREAL_NVP(m_sigma));
+	}
+
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+	{
+		ar(CEREAL_NVP(m_char));
+		ar(CEREAL_NVP(m_char_rank));
+		m_char_rank.set_vector(&m_char);
+		ar(CEREAL_NVP(m_char_select));
+		m_char_select.set_vector(&m_char);
+		ar(CEREAL_NVP(m_C));
+		ar(CEREAL_NVP(m_sigma));
 	}
 };
 
@@ -689,6 +756,42 @@ public:
 		m_char_select.set_vector(&m_char);
 		m_C.load(in);
 		read_member(m_sigma, in);
+	}
+
+	//! Equality operator.
+	bool operator==(int_alphabet const & other) const noexcept
+	{
+		return (m_char == other.m_char) && (m_char_rank == other.m_char_rank) &&
+		       (m_char_select == other.m_char_select) && (m_C == other.m_C) &&
+		       (m_sigma == other.m_sigma);
+	}
+
+	//! Inequality operator.
+	bool operator!=(int_alphabet const & other) const noexcept
+	{
+		return !(*this == other);
+	}
+
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+	{
+		ar(CEREAL_NVP(m_char));
+		ar(CEREAL_NVP(m_char_rank));
+		ar(CEREAL_NVP(m_char_select));
+		ar(CEREAL_NVP(m_C));
+		ar(CEREAL_NVP(m_sigma));
+	}
+
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+	{
+		ar(CEREAL_NVP(m_char));
+		ar(CEREAL_NVP(m_char_rank));
+		m_char_rank.set_vector(&m_char);
+		ar(CEREAL_NVP(m_char_select));
+		m_char_select.set_vector(&m_char);
+		ar(CEREAL_NVP(m_C));
+		ar(CEREAL_NVP(m_sigma));
 	}
 };
 

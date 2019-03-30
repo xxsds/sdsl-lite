@@ -255,6 +255,42 @@ public:
 		return written_bytes;
 	}
 
+	//!\brief Serialise (save) via cereal
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+	{
+		ar(CEREAL_NVP(m_depth));
+		ar(CEREAL_NVP(m_v_begin_leaves));
+		ar(CEREAL_NVP(m_size));
+		ar(CEREAL_NVP(m_offset));
+		ar(CEREAL_NVP(m_tree));
+	}
+
+	//!\brief Load via cereal
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+	{
+		ar(CEREAL_NVP(m_depth));
+		ar(CEREAL_NVP(m_v_begin_leaves));
+		ar(CEREAL_NVP(m_size));
+		ar(CEREAL_NVP(m_offset));
+		ar(CEREAL_NVP(m_tree));
+	}
+
+	//! Equality operator.
+	bool operator==(nn_dict_dynamic const & other) const noexcept
+	{
+		return (m_depth == other.m_depth) && (m_v_begin_leaves == other.m_v_begin_leaves) &&
+		       (m_size == other.m_size) && (m_offset == other.m_offset) &&
+		       (m_tree == other.m_tree);
+	}
+
+	//! Inequality operator.
+	bool operator!=(nn_dict_dynamic const & other) const noexcept
+	{
+		return !(*this == other);
+	}
+
 	class reference {
 	private:
 		nn_dict_dynamic* m_pbv; // pointer to the bit_vector_nearest_neigbour

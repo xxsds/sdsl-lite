@@ -630,6 +630,57 @@ public:
 		assert(m_size == bp->size());
 		read_member(m_blocks, in);
 	}
+
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+	{
+		ar(CEREAL_NVP(m_rank_bp));
+		ar(CEREAL_NVP(m_select_bp));
+		ar(CEREAL_NVP(m_nnd));
+		ar(CEREAL_NVP(m_pioneer_bp));
+		ar(CEREAL_NVP(m_rank_pioneer_bp));
+		ar(CEREAL_NVP(m_nnd2));
+		ar(CEREAL_NVP(m_match));
+		ar(CEREAL_NVP(m_enclose));
+		ar(CEREAL_NVP(m_range_max_match));
+		ar(CEREAL_NVP(m_size));
+		ar(CEREAL_NVP(m_blocks));
+	}
+
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+	{
+		ar(CEREAL_NVP(m_rank_bp));
+		ar(CEREAL_NVP(m_select_bp));
+		ar(CEREAL_NVP(m_nnd));
+		ar(CEREAL_NVP(m_pioneer_bp));
+		ar(CEREAL_NVP(m_rank_pioneer_bp));
+		m_rank_pioneer_bp.set_vector(&m_pioneer_bp);
+		ar(CEREAL_NVP(m_nnd2));
+		ar(CEREAL_NVP(m_match));
+		ar(CEREAL_NVP(m_enclose));
+		ar(CEREAL_NVP(m_range_max_match));
+		m_range_max_match.set_vector(&m_match);
+		ar(CEREAL_NVP(m_size));
+		ar(CEREAL_NVP(m_blocks));
+	}
+
+	//! Equality operator.
+	bool operator==(bp_support_g const & other) const noexcept
+	{
+		return (m_rank_bp == other.m_rank_bp) && (m_select_bp == other.m_select_bp) &&
+		       (m_nnd == other.m_nnd) && (m_pioneer_bp == other.m_pioneer_bp) &&
+		       (m_rank_pioneer_bp == other.m_rank_pioneer_bp) && (m_nnd2 == other.m_nnd2) &&
+		       (m_match == other.m_match) && (m_enclose == other.m_enclose) &&
+		       (m_range_max_match == other.m_range_max_match) && (m_size == other.m_size) &&
+		       (m_blocks == other.m_blocks);
+	}
+
+	//! Inequality operator.
+	bool operator!=(bp_support_g const & other) const noexcept
+	{
+		return !(*this == other);
+	}
 };
 
 } // end namespace

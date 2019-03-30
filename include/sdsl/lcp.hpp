@@ -156,6 +156,35 @@ void load_lcp(t_lcp& lcp, std::istream& in, const t_cst& cst, lcp_tree_and_lf_co
 	lcp.load(in, &cst);
 }
 
+// set lcp pointers
+template <class t_lcp, class t_cst>
+void set_lcp_pointer(t_lcp& lcp, const t_cst& cst)
+{
+	typename t_lcp::lcp_category tag;
+	set_lcp_pointer(lcp, cst, tag);
+}
+
+template <class t_lcp, class t_cst>
+void set_lcp_pointer(t_lcp&, const t_cst&, lcp_plain_tag) {}
+
+template <class t_lcp, class t_cst>
+void set_lcp_pointer(t_lcp& lcp, const t_cst& cst, lcp_permuted_tag)
+{
+	lcp.set_csa(&(cst.csa));
+}
+
+template <class t_lcp, class t_cst>
+void set_lcp_pointer(t_lcp& lcp, const t_cst& cst, lcp_tree_compressed_tag)
+{
+	lcp.set_cst(&cst);
+}
+
+template <class t_lcp, class t_cst>
+void set_lcp_pointer(t_lcp& lcp, const t_cst& cst, lcp_tree_and_lf_compressed_tag)
+{
+	lcp.set_cst(&cst);
+}
+
 } // end namespace sdsl
 
 #include "lcp_support_sada.hpp"  // type (b)

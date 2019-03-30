@@ -635,6 +635,48 @@ public:
 		m_tree.load(in);
 	}
 
+	//! Equality operator.
+	bool operator==(wt_pc const & other) const noexcept
+	{
+		return (m_size == other.m_size) && (m_sigma == other.m_sigma) &&
+		       (m_bv == other.m_bv) && (m_bv_rank == other.m_bv_rank) &&
+		       (m_bv_select1 == other.m_bv_select1) && (m_bv_select0 == other.m_bv_select0) &&
+		       (m_tree == other.m_tree);
+	}
+
+	//! Inequality operator.
+	bool operator!=(wt_pc const & other) const noexcept
+	{
+		return !(*this == other);
+	}
+
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+	{
+		ar(CEREAL_NVP(m_size));
+		ar(CEREAL_NVP(m_sigma));
+		ar(CEREAL_NVP(m_bv));
+		ar(CEREAL_NVP(m_bv_rank));
+		ar(CEREAL_NVP(m_bv_select1));
+		ar(CEREAL_NVP(m_bv_select0));
+		ar(CEREAL_NVP(m_tree));
+	}
+
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+	{
+		ar(CEREAL_NVP(m_size));
+		ar(CEREAL_NVP(m_sigma));
+		ar(CEREAL_NVP(m_bv));
+		ar(CEREAL_NVP(m_bv_rank));
+		m_bv_rank.set_vector(&m_bv);
+		ar(CEREAL_NVP(m_bv_select1));
+		m_bv_select1.set_vector(&m_bv);
+		ar(CEREAL_NVP(m_bv_select0));
+		m_bv_select0.set_vector(&m_bv);
+		ar(CEREAL_NVP(m_tree));
+	}
+
 	//! Random access container to bitvector of node v
 	auto bit_vec(const node_type& v) const -> node_bv_container<t_bitvector>
 	{

@@ -147,6 +147,37 @@ public:
 				m_table[i].load(in);
 		}
 	}
+
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+	{
+		ar(CEREAL_NVP(m_k));
+		for (size_type i = 0; i < m_k; ++i) {
+			ar(CEREAL_NVP(m_table[i]));
+		}
+	}
+
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+	{
+		ar(CEREAL_NVP(m_k));
+		m_table.resize(m_k);
+		for (size_type i = 0; i < m_k; ++i) {
+			ar(CEREAL_NVP(m_table[i]));
+	    	}
+	}
+
+	//! Equality operator.
+	bool operator==(rmq_support_sparse_table const & other) const noexcept
+	{
+		return (m_table == other.m_table);
+	}
+
+	//! Inequality operator.
+	bool operator!=(rmq_support_sparse_table const & other) const noexcept
+	{
+		return !(*this == other);
+	}
 };
 
 } // end namespace sds;

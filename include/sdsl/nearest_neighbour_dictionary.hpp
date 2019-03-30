@@ -242,6 +242,44 @@ public:
 		m_contains_abs_sample.load(in);
 		m_rank_contains_abs_sample.load(in, &m_contains_abs_sample);
 	}
+
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+	{
+		ar(CEREAL_NVP(m_ones));
+		ar(CEREAL_NVP(m_size));
+		ar(CEREAL_NVP(m_abs_samples));
+		ar(CEREAL_NVP(m_differences));
+		ar(CEREAL_NVP(m_contains_abs_sample));
+		ar(CEREAL_NVP(m_rank_contains_abs_sample));
+	}
+
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+	{
+		ar(CEREAL_NVP(m_ones));
+		ar(CEREAL_NVP(m_size));
+		ar(CEREAL_NVP(m_abs_samples));
+		ar(CEREAL_NVP(m_differences));
+		ar(CEREAL_NVP(m_contains_abs_sample));
+		ar(CEREAL_NVP(m_rank_contains_abs_sample));
+		m_rank_contains_abs_sample.set_vector(&m_contains_abs_sample);
+	}
+
+	//! Equality operator.
+	bool operator==(nearest_neighbour_dictionary const & other) const noexcept
+	{
+		return (m_ones == other.m_ones) && (m_size == other.m_size) &&
+		       (m_abs_samples == other.m_abs_samples) && (m_differences == other.m_differences) &&
+		       (m_contains_abs_sample == other.m_contains_abs_sample) &&
+		       (m_rank_contains_abs_sample == other.m_rank_contains_abs_sample);
+	}
+
+	//! Inequality operator.
+	bool operator!=(nearest_neighbour_dictionary const & other) const noexcept
+	{
+		return !(*this == other);
+	}
 };
 
 

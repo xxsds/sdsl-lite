@@ -225,6 +225,40 @@ public:
 		m_marked.load(in);
 		m_marked_rank.load(in, &m_marked);
 	}
+
+	//!\brief Serialise (save) via cereal
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+	{
+		ar(CEREAL_NVP(m_chunksize));
+		ar(CEREAL_NVP(m_back_pointer));
+		ar(CEREAL_NVP(m_marked));
+		ar(CEREAL_NVP(m_marked_rank));
+	}
+
+	//!\brief Load via cereal
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+	{
+		ar(CEREAL_NVP(m_chunksize));
+		ar(CEREAL_NVP(m_back_pointer));
+		ar(CEREAL_NVP(m_marked));
+		ar(CEREAL_NVP(m_marked_rank));
+		m_marked_rank.set_vector(&m_marked);
+	}
+
+	//! Equality operator.
+	bool operator==(inv_multi_perm_support const & other) const noexcept
+	{
+		return (m_chunksize == other.m_chunksize) && (m_back_pointer == other.m_back_pointer) &&
+		       (m_marked == other.m_marked) && (m_marked_rank == other.m_marked_rank);
+	}
+
+	//! Inequality operator.
+	bool operator!=(inv_multi_perm_support const & other) const noexcept
+	{
+		return !(*this == other);
+	}
 };
 
 template <class t_rac>
@@ -275,6 +309,9 @@ class wt_gmr_rs {
 public:
 	typedef int_vector<>::size_type  size_type;
 	typedef int_vector<>::value_type value_type;
+	typedef typename t_bitvector::difference_type difference_type;
+	typedef random_access_const_iterator<wt_gmr_rs> const_iterator;
+	typedef const_iterator						  iterator;
 	typedef wt_tag					 index_category;
 	typedef int_alphabet_tag		 alphabet_category;
 	enum { lex_ordered = 0 };
@@ -607,6 +644,56 @@ public:
 		m_bv_blocks_select0.load(in, &m_bv_blocks);
 		m_bv_blocks_select1.load(in, &m_bv_blocks);
 	}
+
+	//!\brief Serialise (save) via cereal
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+	{
+		ar(CEREAL_NVP(m_size));
+		ar(CEREAL_NVP(m_block_size));
+		ar(CEREAL_NVP(m_blocks));
+		ar(CEREAL_NVP(m_sigma));
+		ar(CEREAL_NVP(m_e));
+		ar(CEREAL_NVP(m_bv_blocks));
+		ar(CEREAL_NVP(m_bv_blocks_select0));
+		ar(CEREAL_NVP(m_bv_blocks_select1));
+	}
+
+	//!\brief Load via cereal
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+	{
+		ar(CEREAL_NVP(m_size));
+		ar(CEREAL_NVP(m_block_size));
+		ar(CEREAL_NVP(m_blocks));
+		ar(CEREAL_NVP(m_sigma));
+		ar(CEREAL_NVP(m_e));
+		ar(CEREAL_NVP(m_bv_blocks));
+		ar(CEREAL_NVP(m_bv_blocks_select0));
+		m_bv_blocks_select0.set_vector(&m_bv_blocks);
+		ar(CEREAL_NVP(m_bv_blocks_select1));
+		m_bv_blocks_select1.set_vector(&m_bv_blocks);
+	}
+
+	iterator begin() { return {this, 0}; };
+	const_iterator end() { return {this, size()}; };
+	iterator begin() const { return {this, 0}; };
+	const_iterator end() const { return {this, size()}; };
+
+	//! Equality operator.
+	bool operator==(wt_gmr_rs const & other) const noexcept
+	{
+		return (m_size == other.m_size) && (m_block_size == other.m_block_size) && (m_blocks == other.m_blocks) &&
+		       (m_sigma == other.m_sigma) && (m_e == other.m_e) &&
+		       (m_bv_blocks == other.m_bv_blocks) && (m_bv_blocks_select0 == other.m_bv_blocks_select0) &&
+		       (m_bv_blocks_select1 == other.m_bv_blocks_select1);
+	}
+
+	//! Inequality operator.
+	bool operator!=(wt_gmr_rs const & other) const noexcept
+	{
+		return !(*this == other);
+	}
 };
 
 //! A wavelet tree class for integer sequences.
@@ -636,6 +723,9 @@ class wt_gmr {
 public:
 	typedef typename t_rac::size_type  size_type;
 	typedef typename t_rac::value_type value_type;
+	typedef typename t_bitvector::difference_type difference_type;
+	typedef random_access_const_iterator<wt_gmr> const_iterator;
+	typedef const_iterator						  iterator;
 	typedef wt_tag					   index_category;
 	typedef int_alphabet_tag		   alphabet_category;
 	enum { lex_ordered = 0 };
@@ -663,7 +753,7 @@ public:
 	wt_gmr() = default;
 
 	//! Construct the wavelet tree from a sequence defined by two interators
-	/*! 
+	/*!
          * \param begin   Iterator to the start of the input.
          * \param end     Iterator one past the end of the input.
          * \param tmp_dir Temporary directory for intermediate results.
@@ -992,6 +1082,71 @@ public:
 		m_perm.load(in);
 		m_ips.load(in, &m_perm);
 	}
+
+    //!\brief Serialise (save) via cereal
+    template <typename archive_t>
+    void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+    {
+        ar(CEREAL_NVP(m_size));
+        ar(CEREAL_NVP(m_max_symbol));
+        ar(CEREAL_NVP(m_chunks));
+        ar(CEREAL_NVP(m_chunksize));
+        ar(CEREAL_NVP(m_sigma));
+        ar(CEREAL_NVP(m_bv_blocks));
+        ar(CEREAL_NVP(m_bv_blocks_select0));
+        ar(CEREAL_NVP(m_bv_blocks_select1));
+        ar(CEREAL_NVP(m_bv_chunks));
+        ar(CEREAL_NVP(m_bv_chunks_select0));
+        ar(CEREAL_NVP(m_bv_chunks_select1));
+        ar(CEREAL_NVP(m_perm));
+        ar(CEREAL_NVP(m_ips));
+    }
+
+    //!\brief Load via cereal
+    template <typename archive_t>
+    void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+    {
+        ar(CEREAL_NVP(m_size));
+        ar(CEREAL_NVP(m_max_symbol));
+        ar(CEREAL_NVP(m_chunks));
+        ar(CEREAL_NVP(m_chunksize));
+        ar(CEREAL_NVP(m_sigma));
+        ar(CEREAL_NVP(m_bv_blocks));
+        ar(CEREAL_NVP(m_bv_blocks_select0));
+        m_bv_blocks_select0.set_vector(&m_bv_blocks);
+        ar(CEREAL_NVP(m_bv_blocks_select1));
+        m_bv_blocks_select1.set_vector(&m_bv_blocks);
+        ar(CEREAL_NVP(m_bv_chunks));
+        ar(CEREAL_NVP(m_bv_chunks_select0));
+        m_bv_chunks_select0.set_vector(&m_bv_chunks);
+        ar(CEREAL_NVP(m_bv_chunks_select1));
+        m_bv_chunks_select1.set_vector(&m_bv_chunks);
+        ar(CEREAL_NVP(m_perm));
+        ar(CEREAL_NVP(m_ips));
+        m_ips.set_vector(&m_perm);
+    }
+
+    iterator begin() { return {this, 0}; };
+    const_iterator end() { return {this, size()}; };
+    iterator begin() const { return {this, 0}; };
+    const_iterator end() const { return {this, size()}; };
+
+    //! Equality operator.
+    bool operator==(wt_gmr const & other) const noexcept
+    {
+	    return (m_size == other.m_size) && (m_max_symbol == other.m_max_symbol) && (m_chunks == other.m_chunks) &&
+		   (m_chunksize == other.m_chunksize) && (m_sigma == other.m_sigma) &&
+		   (m_bv_blocks == other.m_bv_blocks) && (m_bv_blocks_select0 == other.m_bv_blocks_select0) &&
+		   (m_bv_blocks_select1 == other.m_bv_blocks_select1) && (m_bv_chunks == other.m_bv_chunks) &&
+		   (m_bv_chunks_select0 == other.m_bv_chunks_select0) && (m_bv_chunks_select1 == other.m_bv_chunks_select1) &&
+		   (m_perm == other.m_perm) && (m_ips == other.m_ips);
+    }
+
+    //! Inequality operator.
+    bool operator!=(wt_gmr const & other) const noexcept
+    {
+	    return !(*this == other);
+    }
 };
 }
 

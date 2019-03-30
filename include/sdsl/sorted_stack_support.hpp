@@ -75,6 +75,12 @@ public:
 	size_type
 	serialize(std::ostream& out, structure_tree_node* v = nullptr, std::string name = "") const;
 	void load(std::istream& in);
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const;
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar);
+	bool operator==(sorted_stack_support const & other) const noexcept;
+	bool operator!=(sorted_stack_support const & other) const noexcept;
 };
 
 inline sorted_stack_support::sorted_stack_support(size_type n)
@@ -147,6 +153,37 @@ inline void sorted_stack_support::load(std::istream& in)
 	read_member(m_top, in);
 	read_member(m_cnt, in);
 	m_stack.load(in);
+}
+
+template <typename archive_t>
+void sorted_stack_support::CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+{
+	ar(CEREAL_NVP(m_n));
+	ar(CEREAL_NVP(m_cnt));
+	ar(CEREAL_NVP(m_top));
+	ar(CEREAL_NVP(m_stack));
+}
+
+template <typename archive_t>
+void sorted_stack_support::CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+{
+	ar(CEREAL_NVP(m_n));
+	ar(CEREAL_NVP(m_cnt));
+	ar(CEREAL_NVP(m_top));
+	ar(CEREAL_NVP(m_stack));
+}
+
+//! Equality operator.
+bool sorted_stack_support::operator==(sorted_stack_support const & other) const noexcept
+{
+	return (m_n == other.m_n) && (m_cnt == other.m_cnt) && (m_top == other.m_top) &&
+	       (m_stack == other.m_stack);
+}
+
+//! Inequality operator.
+bool sorted_stack_support::operator!=(sorted_stack_support const & other) const noexcept
+{
+	return !(*this == other);
 }
 
 } // end namespace sdsl

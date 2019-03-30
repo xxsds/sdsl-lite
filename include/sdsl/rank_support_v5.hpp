@@ -142,6 +142,28 @@ public:
 		m_basic_block.load(in);
 	}
 
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+	{
+		ar(CEREAL_NVP(m_basic_block));
+	}
+
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+	{
+		ar(CEREAL_NVP(m_basic_block));
+	}
+
+	bool operator==(const rank_support_v5& other) const noexcept
+	{
+		return m_basic_block == other.m_basic_block;
+	}
+
+	bool operator!=(const rank_support_v5& other) const noexcept
+	{
+		return !(*this == other);
+	}
+
 	void set_vector(const bit_vector* v = nullptr) { m_v = v; }
 };
 

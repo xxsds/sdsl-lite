@@ -77,6 +77,18 @@ public:
          */
 	value_type operator[](size_type i) const { return m_lcp[i]; }
 
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+	{
+		ar(CEREAL_NVP(m_lcp));
+	}
+
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+	{
+		ar(CEREAL_NVP(m_lcp));
+	}
+
 	//! Serialize to a stream.
 	size_type
 	serialize(std::ostream& out, structure_tree_node* v = nullptr, std::string name = "") const
@@ -86,6 +98,18 @@ public:
 		written_bytes += m_lcp.serialize(out, child, "lcp");
 		structure_tree::add_size(child, written_bytes);
 		return written_bytes;
+	}
+
+	//! Equality operator.
+	bool operator==(lcp_bitcompressed const & other) const noexcept
+	{
+		return (m_lcp == other.m_lcp);
+	}
+
+	//! Inequality operator.
+	bool operator!=(lcp_bitcompressed const & other) const noexcept
+	{
+		return !(*this == other);
 	}
 
 	//! Load from a stream.

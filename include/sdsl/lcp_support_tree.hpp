@@ -161,6 +161,30 @@ public:
 		m_lcp.load(in); // works for lcp_byte and lcp_bitcompressed
 		m_cst = cst;
 	}
+
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+	{
+		ar(CEREAL_NVP(m_lcp));
+	}
+
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+	{
+		ar(CEREAL_NVP(m_lcp));
+	}
+
+	//! Equality operator.
+	bool operator==(_lcp_support_tree const & other) const noexcept
+	{
+		return (m_lcp == other.m_lcp);
+	}
+
+	//! Inequality operator.
+	bool operator!=(_lcp_support_tree const & other) const noexcept
+	{
+		return !(*this == other);
+	}
 };
 
 //! Helper class which provides _lcp_support_tree the context of a CST.

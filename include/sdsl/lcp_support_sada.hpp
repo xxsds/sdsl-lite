@@ -183,6 +183,33 @@ public:
 		m_data.load(in);
 		m_select_support.load(in, &m_data);
 	}
+
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+	{
+		ar(CEREAL_NVP(m_data));
+		ar(CEREAL_NVP(m_select_support));
+	}
+
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+	{
+		ar(CEREAL_NVP(m_data));
+		ar(CEREAL_NVP(m_select_support));
+		m_select_support.set_vector(&m_data);
+	}
+
+	//! Equality operator.
+	bool operator==(_lcp_support_sada const & other) const noexcept
+	{
+		return (m_data == other.m_data) && (m_select_support == other.m_select_support);
+	}
+
+	//! Inequality operator.
+	bool operator!=(_lcp_support_sada const & other) const noexcept
+	{
+		return !(*this == other);
+	}
 };
 
 //! Helper class which provides _lcp_support_sada the context of a CSA.

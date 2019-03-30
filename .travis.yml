@@ -60,6 +60,15 @@ matrix:
           sources: ['ubuntu-toolchain-r-test']
           packages: ['cmake', 'g++-7']
 
+    - env:
+        - MYCC="gcc-7" MYCXX="g++-7" MYBUILD=Release
+        - HAS_CEREAL="1"
+      os: linux
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test']
+          packages: ['cmake', 'g++-7']
+
     - env: MYCC="gcc-8" MYCXX="g++-8" MYBUILD=Release
       os: linux
       addons:
@@ -92,7 +101,7 @@ before_script:
 script:
   - cd ${TRAVIS_BUILD_DIR}
   - mkdir sdsl-lite-build && cd sdsl-lite-build
-  - cmake ${TRAVIS_BUILD_DIR} -DCMAKE_BUILD_TYPE=$MYBUILD -DCMAKE_CXX_FLAGS="-Werror -Wno-missing-field-initializers ${CXX_FLAGS}"
+  - cmake ${TRAVIS_BUILD_DIR} -DCMAKE_BUILD_TYPE=$MYBUILD -DCMAKE_CXX_FLAGS="-Werror -Wno-missing-field-initializers ${CXX_FLAGS}" -DSDSL_CEREAL=$HAS_CEREAL
   - make sdsl_test_targets -k -j 2
   - travis_wait 90 sleep infinity & ctest . -j 2 --output-on-failure -E ${CTEST_EXCLUDE} -R ${CTEST_INCLUDE}
   - make sdsl_examples -k -j 2

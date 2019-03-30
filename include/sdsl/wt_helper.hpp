@@ -134,6 +134,39 @@ struct _node {
 		read_member(parent, in);
 		in.read((char*)child, 2 * sizeof(child[0]));
 	}
+
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+	{
+		ar(CEREAL_NVP(bv_pos));
+		ar(CEREAL_NVP(bv_pos_rank));
+		ar(CEREAL_NVP(parent));
+		ar(CEREAL_NVP(child[0]));
+		ar(CEREAL_NVP(child[1]));
+	}
+
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+	{
+		ar(CEREAL_NVP(bv_pos));
+		ar(CEREAL_NVP(bv_pos_rank));
+		ar(CEREAL_NVP(parent));
+		ar(CEREAL_NVP(child[0]));
+		ar(CEREAL_NVP(child[1]));
+	}
+
+	//! Equality operator.
+	bool operator==(_node const & other) const noexcept
+	{
+		return (bv_pos == other.bv_pos) && (bv_pos_rank == other.bv_pos_rank) &&
+		       (parent == other.parent) && (child[0] == other.child[0]) && (child[1] == other.child[1]);
+	}
+
+	//! Inequality operator.
+	bool operator!=(_node const & other) const noexcept
+	{
+		return !(*this == other);
+	}
 };
 
 // TODO: version of _byte_tree for lex_ordered tree shapes
@@ -301,6 +334,35 @@ struct _byte_tree {
 		load_vector(m_nodes, in);
 		in.read((char*)m_c_to_leaf, fixed_sigma * sizeof(m_c_to_leaf[0]));
 		in.read((char*)m_path, fixed_sigma * sizeof(m_path[0]));
+	}
+
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+	{
+		ar(CEREAL_NVP(m_nodes));
+		ar(CEREAL_NVP(m_c_to_leaf));
+		ar(CEREAL_NVP(m_path));
+	}
+
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+	{
+		ar(CEREAL_NVP(m_nodes));
+		ar(CEREAL_NVP(m_c_to_leaf));
+		ar(CEREAL_NVP(m_path));
+	}
+
+	//! Equality operator.
+	bool operator==(_byte_tree const & other) const noexcept
+	{
+		return (m_nodes == other.m_nodes)/* && (m_c_to_leaf == other.m_c_to_leaf) &&
+		       (m_path == other.m_path)*/;
+	}
+
+	//! Inequality operator.
+	bool operator!=(_byte_tree const & other) const noexcept
+	{
+		return !(*this == other);
 	}
 
 	//! Get corresponding leaf for symbol c.
@@ -522,6 +584,35 @@ struct _int_tree {
 		read_member(m_path_size, in);
 		m_path = std::vector<uint64_t>(m_path_size);
 		load_vector(m_path, in);
+	}
+
+	//! Equality operator.
+	bool operator==(_int_tree const & other) const noexcept
+	{
+		return (m_nodes == other.m_nodes) && (m_c_to_leaf == other.m_c_to_leaf) &&
+		       (m_path == other.m_path);
+	}
+
+	//! Inequality operator.
+	bool operator!=(_int_tree const & other) const noexcept
+	{
+		return !(*this == other);
+	}
+
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+	{
+		ar(CEREAL_NVP(m_nodes));
+		ar(CEREAL_NVP(m_c_to_leaf));
+		ar(CEREAL_NVP(m_path));
+	}
+
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+	{
+		ar(CEREAL_NVP(m_nodes));
+		ar(CEREAL_NVP(m_c_to_leaf));
+		ar(CEREAL_NVP(m_path));
 	}
 
 	//! Get corresponding leaf for symbol c.

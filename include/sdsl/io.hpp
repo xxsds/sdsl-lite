@@ -12,6 +12,7 @@
 #include "platform.hpp"
 #include "sdsl_concepts.hpp"
 #include "structure_tree.hpp"
+#include "cereal.hpp"
 #include <algorithm>
 #include <string>
 #include <vector>

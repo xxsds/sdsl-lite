@@ -209,6 +209,23 @@ public:
 		m_rank_marked.load(in);
 		m_rank_marked.set_vector(&m_marked);
 	}
+
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+	{
+		base_type::CEREAL_SAVE_FUNCTION_NAME(ar);
+		ar(CEREAL_NVP(m_marked));
+		ar(CEREAL_NVP(m_rank_marked));
+	}
+
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+	{
+		base_type::CEREAL_LOAD_FUNCTION_NAME(ar);
+		ar(CEREAL_NVP(m_marked));
+		ar(CEREAL_NVP(m_rank_marked));
+		m_rank_marked.set_vector(&m_marked);
+	}
 };
 
 template <class t_bit_vec  = sd_vector<>,
@@ -407,6 +424,42 @@ public:
 		m_select_marked_isa.set_vector(&m_marked_isa);
 		m_inv_perm.load(in);
 	}
+
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+	{
+		ar(CEREAL_NVP(m_marked_sa));
+		ar(CEREAL_NVP(m_rank_marked_sa));
+		ar(CEREAL_NVP(m_marked_isa));
+		ar(CEREAL_NVP(m_select_marked_isa));
+		ar(CEREAL_NVP(m_inv_perm));
+	}
+
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+	{
+		ar(CEREAL_NVP(m_marked_sa));
+		ar(CEREAL_NVP(m_rank_marked_sa));
+		m_rank_marked_sa.set_vector(&m_marked_sa);
+		ar(CEREAL_NVP(m_marked_isa));
+		ar(CEREAL_NVP(m_select_marked_isa));
+		m_select_marked_isa.set_vector(&m_marked_isa);
+		ar(CEREAL_NVP(m_inv_perm));
+	}
+
+	//! Equality operator.
+	bool operator==(_fuzzy_sa_sampling const & other) const noexcept
+	{
+		return (m_marked_sa == other.m_marked_sa) && (m_rank_marked_sa == other.m_rank_marked_sa) &&
+		       (m_marked_isa == other.m_marked_isa) && (m_select_marked_isa == other.m_select_marked_isa) &&
+		       (m_inv_perm == other.m_inv_perm);
+	}
+
+	//! Inequality operator.
+	bool operator!=(_fuzzy_sa_sampling const & other) const noexcept
+	{
+		return !(*this == other);
+	}
 };
 template <class t_bv_sa		 = sd_vector<>,
 		  class t_bv_isa	 = sd_vector<>,
@@ -565,6 +618,23 @@ public:
 		m_rank_marked.load(in);
 		m_rank_marked.set_vector(&m_marked);
 	}
+
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+	{
+		base_type::CEREAL_SAVE_FUNCTION_NAME(ar);
+		ar(CEREAL_NVP(m_marked));
+		ar(CEREAL_NVP(m_rank_marked));
+	}
+
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+	{
+		base_type::CEREAL_LOAD_FUNCTION_NAME(ar);
+		ar(CEREAL_NVP(m_marked));
+		ar(CEREAL_NVP(m_rank_marked));
+		m_rank_marked.set_vector(&m_marked);
+	}
 };
 
 template <class t_bit_vec  = bit_vector,
@@ -639,6 +709,18 @@ public:
 	void load(std::istream& in, SDSL_UNUSED const sa_type* sa_sample = nullptr)
 	{
 		base_type::load(in);
+	}
+
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+	{
+		base_type::CEREAL_SAVE_FUNCTION_NAME(ar);
+	}
+
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+	{
+		base_type::CEREAL_LOAD_FUNCTION_NAME(ar);
 	}
 
 	void set_vector(SDSL_UNUSED const sa_type*) {}
@@ -755,6 +837,33 @@ public:
 		m_inv_perm.load(in);
 		m_select_marked.load(in);
 		set_vector(sa_sample);
+	}
+
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+	{
+		ar(CEREAL_NVP(m_inv_perm));
+		ar(CEREAL_NVP(m_select_marked));
+	}
+
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar, const sa_type* sa_sample = nullptr)
+	{
+		ar(CEREAL_NVP(m_inv_perm));
+		ar(CEREAL_NVP(m_select_marked));
+		set_vector(sa_sample);
+	}
+
+	//! Equality operator.
+	bool operator==(_text_order_isa_sampling_support const & other) const noexcept
+	{
+		return (m_inv_perm == other.m_inv_perm) && (m_select_marked == other.m_select_marked);
+	}
+
+	//! Inequality operator.
+	bool operator!=(_text_order_isa_sampling_support const & other) const noexcept
+	{
+		return !(*this == other);
 	}
 
 	void set_vector(const sa_type* sa_sample = nullptr)
@@ -885,6 +994,31 @@ public:
 	{
 		m_select_marked_sa.load(in);
 		set_vector(sa_sample);
+	}
+
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+	{
+		ar(CEREAL_NVP(m_select_marked_sa));
+	}
+
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar, const sa_type* sa_sample = nullptr)
+	{
+		ar(CEREAL_NVP(m_select_marked_sa));
+		set_vector(sa_sample);
+	}
+
+	//! Equality operator.
+	bool operator==(_fuzzy_isa_sampling_support const & other) const noexcept
+	{
+		return (m_select_marked_sa == other.m_select_marked_sa);
+	}
+
+	//! Inequality operator.
+	bool operator!=(_fuzzy_isa_sampling_support const & other) const noexcept
+	{
+		return !(*this == other);
 	}
 
 	void set_vector(const sa_type* sa_sample = nullptr)

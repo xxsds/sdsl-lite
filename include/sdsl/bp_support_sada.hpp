@@ -898,6 +898,47 @@ public:
 		m_sml_block_min_max.load(in);
 		m_med_block_min_max.load(in);
 	}
+
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+	{
+		ar(CEREAL_NVP(m_size));
+		ar(CEREAL_NVP(m_sml_blocks));
+		ar(CEREAL_NVP(m_med_blocks));
+		ar(CEREAL_NVP(m_med_inner_blocks));
+		ar(CEREAL_NVP(m_bp_rank));
+		ar(CEREAL_NVP(m_bp_select));
+		ar(CEREAL_NVP(m_sml_block_min_max));
+		ar(CEREAL_NVP(m_med_block_min_max));
+	}
+
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+	{
+		ar(CEREAL_NVP(m_size));
+		ar(CEREAL_NVP(m_sml_blocks));
+		ar(CEREAL_NVP(m_med_blocks));
+		ar(CEREAL_NVP(m_med_inner_blocks));
+		ar(CEREAL_NVP(m_bp_rank));
+		ar(CEREAL_NVP(m_bp_select));
+		ar(CEREAL_NVP(m_sml_block_min_max));
+		ar(CEREAL_NVP(m_med_block_min_max));
+	}
+
+	//! Equality operator.
+	bool operator==(bp_support_sada const & other) const noexcept
+	{
+		return (m_bp_rank == other.m_bp_rank) && (m_bp_select == other.m_bp_select) &&
+		       (m_sml_block_min_max == other.m_sml_block_min_max) && (m_med_block_min_max == other.m_med_block_min_max) &&
+		       (m_size == other.m_size) && (m_sml_blocks == other.m_sml_blocks) &&
+		       (m_med_blocks == other.m_med_blocks) && (m_med_inner_blocks == other.m_med_inner_blocks);
+	}
+
+	//! Inequality operator.
+	bool operator!=(bp_support_sada const & other) const noexcept
+	{
+		return !(*this == other);
+	}
 };
 
 } // end namespace

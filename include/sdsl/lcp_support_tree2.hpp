@@ -154,6 +154,32 @@ public:
 		m_big_lcp.load(in);
 		m_cst = cst;
 	}
+
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+	{
+		ar(CEREAL_NVP(m_small_lcp));
+		ar(CEREAL_NVP(m_big_lcp));
+	}
+
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+	{
+		ar(CEREAL_NVP(m_small_lcp));
+		ar(CEREAL_NVP(m_big_lcp));
+	}
+
+	//! Equality operator.
+	bool operator==(_lcp_support_tree2 const & other) const noexcept
+	{
+		return (m_small_lcp == other.m_small_lcp) && (m_big_lcp == other.m_big_lcp);
+	}
+
+	//! Inequality operator.
+	bool operator!=(_lcp_support_tree2 const & other) const noexcept
+	{
+		return !(*this == other);
+	}
 };
 
 //! Helper class which provides _lcp_support_tree2 the context of a CST.

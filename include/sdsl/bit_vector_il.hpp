@@ -212,6 +212,28 @@ public:
 		m_rank_samples.load(in);
 	}
 
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+	{
+		ar(CEREAL_NVP(m_size));
+		ar(CEREAL_NVP(m_block_num));
+		ar(CEREAL_NVP(m_superblocks));
+		ar(CEREAL_NVP(m_block_shift));
+		ar(CEREAL_NVP(m_data));
+		ar(CEREAL_NVP(m_rank_samples));
+	}
+
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+	{
+		ar(CEREAL_NVP(m_size));
+		ar(CEREAL_NVP(m_block_num));
+		ar(CEREAL_NVP(m_superblocks));
+		ar(CEREAL_NVP(m_block_shift));
+		ar(CEREAL_NVP(m_data));
+		ar(CEREAL_NVP(m_rank_samples));
+	}
+
 	iterator begin() const { return iterator(this, 0); }
 
 	iterator end() const { return iterator(this, size()); }
@@ -311,6 +333,22 @@ public:
 	serialize(std::ostream& out, structure_tree_node* v = nullptr, std::string name = "") const
 	{
 		return serialize_empty_object(out, v, name, this);
+	}
+
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t &) const {}
+
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t &) {}
+
+	bool operator==(const rank_support_il& other) const noexcept
+	{
+		return (*m_v == *other.m_v);
+	}
+
+	bool operator!=(const rank_support_il& other) const noexcept
+	{
+		return !(*this == other);
 	}
 };
 
@@ -469,6 +507,22 @@ public:
 	serialize(std::ostream& out, structure_tree_node* v = nullptr, std::string name = "") const
 	{
 		return serialize_empty_object(out, v, name, this);
+	}
+
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t &) const {}
+
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t &) {}
+
+	bool operator==(const select_support_il& other) const noexcept
+	{
+		return (*m_v == *other.m_v);
+	}
+
+	bool operator!=(const select_support_il& other) const noexcept
+	{
+		return !(*this == other);
 	}
 };
 

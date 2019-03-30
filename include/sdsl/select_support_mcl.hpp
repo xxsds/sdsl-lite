@@ -90,8 +90,16 @@ public:
 	serialize(std::ostream& out, structure_tree_node* v = nullptr, std::string name = "") const;
 	void load(std::istream& in, const bit_vector* v = nullptr);
 	void set_vector(const bit_vector* v = nullptr);
+	//!\brief Serialise (save) via cereal
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const;
+	//!\brief Serialise (load) via cereal
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar);
 	select_support_mcl<t_b, t_pat_len>& operator=(const select_support_mcl& ss);
 	select_support_mcl<t_b, t_pat_len>& operator=(select_support_mcl&&);
+	bool operator==(const select_support_mcl& other) const noexcept;
+	bool operator!=(const select_support_mcl& other) const noexcept;
 };
 
 
@@ -488,6 +496,95 @@ void select_support_mcl<t_b, t_pat_len>::load(std::istream& in, const bit_vector
 				m_miniblock[i].load(in);
 			}
 	}
+}
+
+template <uint8_t t_b, uint8_t t_pat_len>
+template <typename archive_t>
+void select_support_mcl<t_b, t_pat_len>::CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+{
+	ar(CEREAL_NVP(m_arg_cnt));
+	ar(CEREAL_NVP(m_logn));
+	ar(CEREAL_NVP(m_logn2));
+	ar(CEREAL_NVP(m_logn4));
+	size_type sb = (m_arg_cnt + 4095) >> 12;
+	if (m_arg_cnt) {
+		ar(CEREAL_NVP(m_superblock));
+		bit_vector mini_or_long;
+		if (m_longsuperblock != nullptr) {
+			mini_or_long.resize(sb);
+			for (size_type i	= 0; i < sb; ++i) {
+				mini_or_long[i] = !m_miniblock[i].empty();
+			}
+		}
+		ar(CEREAL_NVP(mini_or_long));
+		for (size_type i = 0; i < sb; ++i) {
+			if (!mini_or_long.empty() and !mini_or_long[i]) {
+				ar(CEREAL_NVP(m_longsuperblock[i]));
+			}
+			else {
+				ar(CEREAL_NVP(m_miniblock[i]));
+			}
+		}
+	}
+}
+
+template <uint8_t t_b, uint8_t t_pat_len>
+template <typename archive_t>
+void select_support_mcl<t_b, t_pat_len>::CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+{
+	delete[] m_longsuperblock;
+	m_longsuperblock = nullptr;
+	delete[] m_miniblock;
+	m_miniblock = nullptr;
+
+	ar(CEREAL_NVP(m_arg_cnt));
+	ar(CEREAL_NVP(m_logn));
+	ar(CEREAL_NVP(m_logn2));
+	ar(CEREAL_NVP(m_logn4));
+
+	size_type sb = (m_arg_cnt + 4095) >> 12;
+
+	if (m_arg_cnt) {
+		ar(CEREAL_NVP(m_superblock));
+
+		delete[] m_miniblock;
+		m_miniblock = nullptr;
+		delete[] m_longsuperblock;
+		m_longsuperblock = nullptr;
+
+		bit_vector mini_or_long;
+		ar(CEREAL_NVP(mini_or_long));
+		m_miniblock = new int_vector<0>[sb];
+
+		if (!mini_or_long.empty()) {
+			m_longsuperblock = new int_vector<0>[sb];
+		}
+
+		for (size_type i = 0; i < sb; ++i) {
+			if (!mini_or_long.empty() and !mini_or_long[i]) {
+				ar(CEREAL_NVP(m_longsuperblock[i]));
+			}
+			else {
+				ar(CEREAL_NVP(m_miniblock[i]));
+			}
+		}
+	}
+}
+
+template <uint8_t t_b, uint8_t t_pat_len>
+bool select_support_mcl<t_b, t_pat_len>::operator==(const select_support_mcl& other) const noexcept
+{
+	return (m_logn == other.m_logn) && (m_logn2 == other.m_logn2) && (m_logn4 == other.m_logn4) &&
+	       (m_superblock == other.m_superblock) && (m_arg_cnt == other.m_arg_cnt) &&
+	       ((m_longsuperblock == nullptr && other.m_longsuperblock == nullptr) ||
+	        (*m_longsuperblock == *other.m_longsuperblock)) &&
+	       ((m_miniblock == other.m_miniblock) || (*m_miniblock == *other.m_miniblock));
+}
+
+template <uint8_t t_b, uint8_t t_pat_len>
+bool select_support_mcl<t_b, t_pat_len>::operator!=(const select_support_mcl& other) const noexcept
+{
+	return !(*this == other);
 }
 }
 

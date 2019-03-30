@@ -42,6 +42,7 @@ class wt_ap {
 public:
 	typedef int_vector<>::size_type				size_type;
 	typedef int_vector<>::value_type			value_type;
+	typedef int_vector<>::difference_type difference_type;
 	typedef random_access_const_iterator<wt_ap> const_iterator;
 	typedef const_iterator						iterator;
 	typedef t_wt_byte							wt_byte_type;
@@ -364,6 +365,51 @@ public:
 		for (value_type i = 0; i < offset_size; ++i) {
 			m_offset[i].load(in);
 		}
+	}
+
+	//!\brief Serialise (save) via cereal
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+	{
+		ar(CEREAL_NVP(m_size));
+		ar(CEREAL_NVP(m_sigma));
+		ar(CEREAL_NVP(m_singleton_class_cnt));
+		ar(CEREAL_NVP(m_class_cnt));
+		ar(CEREAL_NVP(m_char2class));
+		ar(CEREAL_NVP(m_class));
+		ar(CEREAL_NVP(m_offset));
+	}
+
+	//!\brief Load via cereal
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+	{
+		ar(CEREAL_NVP(m_size));
+		ar(CEREAL_NVP(m_sigma));
+		ar(CEREAL_NVP(m_singleton_class_cnt));
+		ar(CEREAL_NVP(m_class_cnt));
+		ar(CEREAL_NVP(m_char2class));
+		ar(CEREAL_NVP(m_class));
+		ar(CEREAL_NVP(m_offset));
+	}
+
+	iterator begin() { return {this, 0}; };
+	const_iterator end() { return {this, size()}; };
+	iterator begin() const { return {this, 0}; };
+	const_iterator end() const { return {this, size()}; };
+
+	//! Equality operator.
+	bool operator==(wt_ap const & other) const noexcept
+	{
+		return (m_size == other.m_size) && (m_sigma == other.m_sigma) && (m_singleton_class_cnt == other.m_singleton_class_cnt) &&
+		       (m_class_cnt == other.m_class_cnt) && (m_char2class == other.m_char2class) &&
+		       (m_class == other.m_class) && (m_offset == other.m_offset);
+	}
+
+	//! Inequality operator.
+	bool operator!=(wt_ap const & other) const noexcept
+	{
+		return !(*this == other);
 	}
 };
 

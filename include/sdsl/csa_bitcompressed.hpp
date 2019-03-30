@@ -187,6 +187,18 @@ public:
 		return *this;
 	}
 
+	//! Equality operator.
+	bool operator==(csa_bitcompressed const & other) const noexcept
+	{
+		return (m_sa == other.m_sa) && (m_isa == other.m_isa) && (m_alphabet == other.m_alphabet);
+	}
+
+	//! Inequality operator.
+	bool operator!=(csa_bitcompressed const & other) const noexcept
+	{
+		return !(*this == other);
+	}
+
 	//! Serialize to a stream.
 	/*! \param out Output stream to write the data structure.
          *  \return The number of written bytes.
@@ -208,6 +220,22 @@ public:
 		m_sa.load(in);
 		m_isa.load(in);
 		m_alphabet.load(in);
+	}
+
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+	{
+		ar(CEREAL_NVP(m_sa));
+		ar(CEREAL_NVP(m_isa));
+		ar(CEREAL_NVP(m_alphabet));
+	}
+
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+	{
+		ar(CEREAL_NVP(m_sa));
+		ar(CEREAL_NVP(m_isa));
+		ar(CEREAL_NVP(m_alphabet));
 	}
 
 	size_type get_sample_dens() const { return 1; }

@@ -229,6 +229,19 @@ public:
 		return *this;
 	}
 
+	//! Equality operator.
+	bool operator==(csa_sada const & other) const noexcept
+	{
+		return (m_psi == other.m_psi) && (m_sa_sample == other.m_sa_sample) &&
+		       (m_isa_sample == other.m_isa_sample) && (m_alphabet == other.m_alphabet);
+	}
+
+	//! Inequality operator.
+	bool operator!=(csa_sada const & other) const noexcept
+	{
+		return !(*this == other);
+	}
+
 	//! Serialize to a stream.
 	/*! \param out Outstream to write the data structure.
          *  \return The number of written bytes.
@@ -240,6 +253,12 @@ public:
 	/*! \param in Input stream to load the data structure from.
          */
 	void load(std::istream& in);
+
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const;
+
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar);
 
 	uint32_t get_sample_dens() const { return t_dens; }
 
@@ -460,6 +479,39 @@ std::istream& in)
 	m_sa_sample.load(in);
 	m_isa_sample.load(in, &m_sa_sample);
 	m_alphabet.load(in);
+}
+
+template <class t_enc_vec,
+		  uint32_t t_dens,
+		  uint32_t t_inv_dens,
+		  class t_sa_sample_strat,
+		  class t_isa,
+		  class t_alphabet_strat>
+template <typename archive_t>
+void csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::
+CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+{
+	ar(CEREAL_NVP(m_psi));
+	ar(CEREAL_NVP(m_sa_sample));
+	ar(CEREAL_NVP(m_isa_sample));
+	ar(CEREAL_NVP(m_alphabet));
+}
+
+template <class t_enc_vec,
+		  uint32_t t_dens,
+		  uint32_t t_inv_dens,
+		  class t_sa_sample_strat,
+		  class t_isa,
+		  class t_alphabet_strat>
+template <typename archive_t>
+void csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::
+CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+{
+	ar(CEREAL_NVP(m_psi));
+	ar(CEREAL_NVP(m_sa_sample));
+	ar(CEREAL_NVP(m_isa_sample));
+	m_isa_sample.set_vector(&m_sa_sample);
+	ar(CEREAL_NVP(m_alphabet));
 }
 
 } // end namespace sdsl

@@ -391,6 +391,58 @@ public:
 		m_C.load(in);
 		m_C_bf_rank.load(in);
 	}
+
+	//!\brief Serialise (save) via cereal
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+	{
+		ar(CEREAL_NVP(m_size));
+		ar(CEREAL_NVP(m_bl));
+		ar(CEREAL_NVP(m_bf));
+		ar(CEREAL_NVP(m_wt));
+		ar(CEREAL_NVP(m_bl_rank));
+		ar(CEREAL_NVP(m_bf_rank));
+		ar(CEREAL_NVP(m_bl_select));
+		ar(CEREAL_NVP(m_bf_select));
+		ar(CEREAL_NVP(m_C));
+		ar(CEREAL_NVP(m_C_bf_rank));
+	}
+
+	//!\brief Load via cereal
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+	{
+		ar(CEREAL_NVP(m_size));
+		ar(CEREAL_NVP(m_bl));
+		ar(CEREAL_NVP(m_bf));
+		ar(CEREAL_NVP(m_wt));
+		ar(CEREAL_NVP(m_bl_rank));
+		m_bl_rank.set_vector(&m_bl);
+		ar(CEREAL_NVP(m_bf_rank));
+		m_bf_rank.set_vector(&m_bf);
+		ar(CEREAL_NVP(m_bl_select));
+		m_bl_select.set_vector(&m_bl);
+		ar(CEREAL_NVP(m_bf_select));
+		m_bf_select.set_vector(&m_bf);
+		ar(CEREAL_NVP(m_C));
+		ar(CEREAL_NVP(m_C_bf_rank));
+	}
+
+	//! Equality operator.
+	bool operator==(wt_rlmn const & other) const noexcept
+	{
+		return (m_size == other.m_size) && (m_bl == other.m_bl) && (m_bf == other.m_bf) &&
+		       (m_wt == other.m_wt) && (m_bl_rank == other.m_bl_rank) &&
+		       (m_bf_rank == other.m_bf_rank) && (m_bl_select == other.m_bl_select) &&
+		       (m_bf_select == other.m_bf_select) && (m_C == other.m_C) &&
+		       (m_C_bf_rank == other.m_C_bf_rank);
+	}
+
+	//! Inequality operator.
+	bool operator!=(wt_rlmn const & other) const noexcept
+	{
+		return !(*this == other);
+	}
 };
 
 } // end namespace sdsl

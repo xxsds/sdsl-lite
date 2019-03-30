@@ -71,7 +71,7 @@ private:
 	nnd_type m_nnd; // nearest neighbour dictionary for pioneers bit_vector
 
 	bit_vector		 m_pioneer_bp; // pioneer sequence
-	bp_support_type* m_pioneer_bp_support = nullptr;
+	std::unique_ptr<bp_support_type> m_pioneer_bp_support = nullptr;
 
 	size_type m_size   = 0;
 	size_type m_blocks = 0; // number of blocks
@@ -113,7 +113,7 @@ public:
 		}
 
 		if (m_bp->size() > 0) { // m_bp != nullptr see above
-			m_pioneer_bp_support = new bp_support_type(&m_pioneer_bp);
+			m_pioneer_bp_support = std::unique_ptr<bp_support_type>(new bp_support_type(&m_pioneer_bp));
 		}
 	}
 
@@ -130,9 +130,9 @@ public:
 		m_rank_bp.set_vector(m_bp);
 		m_select_bp.set_vector(m_bp);
 
-		m_pioneer_bp_support = nullptr;
+		m_pioneer_bp_support.reset(nullptr);
 		if (v.m_pioneer_bp_support != nullptr) {
-			m_pioneer_bp_support = new bp_support_type(*(v.m_pioneer_bp_support));
+			m_pioneer_bp_support.reset(new bp_support_type(*(v.m_pioneer_bp_support)));
 			m_pioneer_bp_support->set_vector(&m_pioneer_bp);
 		}
 	}
@@ -141,7 +141,7 @@ public:
 	bp_support_gg(bp_support_gg&& bp_support) { *this = std::move(bp_support); }
 
 	//! Destructor
-	~bp_support_gg() { delete m_pioneer_bp_support; }
+	~bp_support_gg() = default;
 
 	//! Assignment operator
 	bp_support_gg& operator=(const bp_support_gg& v)
@@ -172,11 +172,9 @@ public:
 
 			m_pioneer_bp = std::move(bp_support.m_pioneer_bp);
 
-			delete m_pioneer_bp_support;
-			m_pioneer_bp_support = nullptr;
+			m_pioneer_bp_support.reset(nullptr);
 			if (bp_support.m_pioneer_bp_support != nullptr) {
-				m_pioneer_bp_support			= bp_support.m_pioneer_bp_support;
-				bp_support.m_pioneer_bp_support = nullptr;
+				std::swap(m_pioneer_bp_support, bp_support.m_pioneer_bp_support);
 				m_pioneer_bp_support->set_vector(&m_pioneer_bp);
 			}
 		}
@@ -496,12 +494,54 @@ public:
 		m_nnd.load(in);
 
 		m_pioneer_bp.load(in);
-		delete m_pioneer_bp_support;
-		m_pioneer_bp_support = nullptr;
+		m_pioneer_bp_support.reset(nullptr);
 		if (m_bp != nullptr and m_bp->size() > 0) {
-			m_pioneer_bp_support = new bp_support_type();
+			m_pioneer_bp_support.reset(new bp_support_type());
 			m_pioneer_bp_support->load(in, &m_pioneer_bp);
 		}
+	}
+
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+	{
+		ar(CEREAL_NVP(m_size));
+		ar(CEREAL_NVP(m_blocks));
+		ar(CEREAL_NVP(m_rank_bp));
+		ar(CEREAL_NVP(m_select_bp));
+		ar(CEREAL_NVP(m_nnd));
+		ar(CEREAL_NVP(m_pioneer_bp));
+		ar(CEREAL_NVP(m_pioneer_bp_support));
+	}
+
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+	{
+		ar(CEREAL_NVP(m_size));
+		ar(CEREAL_NVP(m_blocks));
+		ar(CEREAL_NVP(m_rank_bp));
+		ar(CEREAL_NVP(m_select_bp));
+		ar(CEREAL_NVP(m_nnd));
+		ar(CEREAL_NVP(m_pioneer_bp));
+		ar(CEREAL_NVP(m_pioneer_bp_support));
+		if (m_pioneer_bp_support != nullptr) {
+			m_pioneer_bp_support->set_vector(&m_pioneer_bp);
+		}
+	}
+
+	//! Equality operator.
+	bool operator==(bp_support_gg const & other) const noexcept
+	{
+		return (m_size == other.m_size) && (m_blocks == other.m_blocks) &&
+		       (m_rank_bp == other.m_rank_bp) && (m_select_bp == other.m_select_bp) &&
+		       (m_nnd == other.m_nnd) && (m_pioneer_bp == other.m_pioneer_bp) &&
+		       ((m_pioneer_bp_support == other.m_pioneer_bp_support) ||
+		        (*m_pioneer_bp_support == *other.m_pioneer_bp_support));
+	}
+
+	//! Inequality operator.
+	bool operator!=(bp_support_gg const & other) const noexcept
+	{
+		return !(*this == other);
 	}
 };
 

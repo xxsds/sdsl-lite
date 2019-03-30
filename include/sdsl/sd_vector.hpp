@@ -396,6 +396,30 @@ public:
 		m_high_0_select.load(in, &m_high);
 	}
 
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+	{
+		ar(CEREAL_NVP(m_size));
+		ar(CEREAL_NVP(m_wl));
+		ar(CEREAL_NVP(m_low));
+		ar(CEREAL_NVP(m_high));
+		ar(CEREAL_NVP(m_high_1_select));
+		ar(CEREAL_NVP(m_high_0_select));
+	}
+
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+	{
+		ar(CEREAL_NVP(m_size));
+		ar(CEREAL_NVP(m_wl));
+		ar(CEREAL_NVP(m_low));
+		ar(CEREAL_NVP(m_high));
+		ar(CEREAL_NVP(m_high_1_select));
+		m_high_1_select.set_vector(&m_high);
+		ar(CEREAL_NVP(m_high_0_select));
+		m_high_0_select.set_vector(&m_high);
+	}
+
 	iterator begin() const { return iterator(this, 0); }
 
 	iterator end() const { return iterator(this, size()); }
@@ -480,6 +504,22 @@ public:
 	{
 		return serialize_empty_object(out, v, name, this);
 	}
+
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t &) const {}
+
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t &) {}
+
+	bool operator==(const rank_support_sd& other) const noexcept
+	{
+		return *m_v == *other.m_v;
+	}
+
+	bool operator!=(const rank_support_sd& other) const noexcept
+	{
+		return !(*this == other);
+	}
 };
 
 template <uint8_t t_b, class t_sd_vec>
@@ -560,6 +600,22 @@ public:
 	serialize(std::ostream& out, structure_tree_node* v = nullptr, std::string name = "") const
 	{
 		return serialize_empty_object(out, v, name, this);
+	}
+
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t &) const {}
+
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t &) {}
+
+	bool operator==(const select_support_sd& other) const noexcept
+	{
+		return *m_v == *other.m_v;
+	}
+
+	bool operator!=(const select_support_sd& other) const noexcept
+	{
+		return !(*this == other);
 	}
 };
 
@@ -723,6 +779,30 @@ public:
 		written_bytes += m_rank1.serialize(out, child, "rank1");
 		structure_tree::add_size(child, written_bytes);
 		return written_bytes;
+	}
+
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+	{
+		ar(CEREAL_NVP(m_pointer));
+		ar(CEREAL_NVP(m_rank1));
+	}
+
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+	{
+		ar(CEREAL_NVP(m_pointer));
+		ar(CEREAL_NVP(m_rank1));
+	}
+
+	bool operator==(const select_0_support_sd& other) const noexcept
+	{
+		return (m_pointer == other.m_pointer) && (m_rank1 == other.m_rank1);
+	}
+
+	bool operator!=(const select_0_support_sd& other) const noexcept
+	{
+		return !(*this == other);
 	}
 };
 

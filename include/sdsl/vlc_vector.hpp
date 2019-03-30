@@ -118,6 +118,14 @@ public:
 	//! Load the vlc_vector from a stream.
 	void load(std::istream& in);
 
+	//!\brief Serialise (save) via cereal
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const;
+
+	//!\brief Serialise (load) via cereal
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar);
+
 	//! Returns the ith sample of vlc_vector
 	value_type sample(const size_type i) const;
 
@@ -252,6 +260,24 @@ void vlc_vector<t_coder, t_dens, t_width>::load(std::istream& in)
 	read_member(m_size, in);
 	m_z.load(in);
 	m_sample_pointer.load(in);
+}
+
+template <class t_coder, uint32_t t_dens, uint8_t t_width>
+template <typename archive_t>
+void vlc_vector<t_coder, t_dens, t_width>::CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+{
+	ar(CEREAL_NVP(m_size));
+	ar(CEREAL_NVP(m_z));
+	ar(CEREAL_NVP(m_sample_pointer));
+}
+
+template <class t_coder, uint32_t t_dens, uint8_t t_width>
+template <typename archive_t>
+void vlc_vector<t_coder, t_dens, t_width>::CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+{
+	ar(CEREAL_NVP(m_size));
+	ar(CEREAL_NVP(m_z));
+	ar(CEREAL_NVP(m_sample_pointer));
 }
 
 } // end namespace sdsl

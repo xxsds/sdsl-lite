@@ -365,6 +365,45 @@ class k2_treap
             m_level_idx.load(in);
         }
 
+        //!\brief Serialise (save) via cereal
+        template <typename archive_t>
+        void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+        {
+            ar(CEREAL_NVP(m_t));
+            ar(CEREAL_NVP(m_bp));
+            ar(CEREAL_NVP(m_bp_rank));
+            ar(CEREAL_NVP(m_coord));
+            ar(CEREAL_NVP(m_maxval));
+            ar(CEREAL_NVP(m_level_idx));
+        }
+
+        //!\brief Load via cereal
+        template <typename archive_t>
+        void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+        {
+            ar(CEREAL_NVP(m_t));
+            ar(CEREAL_NVP(m_bp));
+            ar(CEREAL_NVP(m_bp_rank));
+            m_bp_rank.set_vector(&m_bp);
+            ar(CEREAL_NVP(m_coord));
+            ar(CEREAL_NVP(m_maxval));
+            ar(CEREAL_NVP(m_level_idx));
+        }
+
+        //! Equality operator.
+        bool operator==(k2_treap const & other) const noexcept
+        {
+                return (m_t == other.m_t) && (m_bp == other.m_bp) &&
+                       (m_bp_rank == other.m_bp_rank) && (m_maxval == other.m_maxval) &&
+                       (m_coord == other.m_coord) && (m_level_idx == other.m_level_idx);
+        }
+
+        //! Inequality operator.
+        bool operator!=(k2_treap const & other) const noexcept
+        {
+                return !(*this == other);
+        }
+
         node_type
         root() const
         {

@@ -142,6 +142,55 @@ TEST_F(sorted_stack_test, serialize_and_load)
     sdsl::remove(file_name);
 }
 
+#if SDSL_HAS_CEREAL
+template <typename in_archive_t, typename out_archive_t>
+void do_serialisation(sdsl::sorted_int_stack const & l, std::string const & temp_file)
+{
+	{
+		std::ofstream os{temp_file, std::ios::binary};
+		out_archive_t oarchive{os};
+		oarchive(l);
+	}
+
+	{
+		sdsl::sorted_int_stack in_l(1000000+10);
+		std::ifstream is{temp_file, std::ios::binary};
+		in_archive_t iarchive{is};
+		iarchive(in_l);
+		EXPECT_EQ(l, in_l);
+	}
+}
+
+TEST_F(sorted_stack_test, cereal)
+{
+	if (temp_dir != "@/")
+	{
+		std::string file_name = temp_dir+"/sorted_int_stack";
+		sdsl::sorted_int_stack sis(1000000+10);
+	        std::stack<uint64_t> exp;
+	        {
+	            std::mt19937_64 rng;
+	            std::uniform_int_distribution<uint64_t> distribution(0, 10);
+	            auto dice = bind(distribution, rng);
+	            for (uint64_t k=0; k<1000000; ++k) {
+	                uint64_t value = k+dice();
+	                if (exp.empty() or exp.top() < value) {
+	                    exp.push(value);
+	                    sis.push(value);
+	                }
+	            }
+	            sdsl::store_to_file(sis, file_name);
+	        }
+
+		do_serialisation<cereal::BinaryInputArchive,         cereal::BinaryOutputArchive>        (sis, file_name);
+		do_serialisation<cereal::PortableBinaryInputArchive, cereal::PortableBinaryOutputArchive>(sis, file_name);
+		do_serialisation<cereal::JSONInputArchive,           cereal::JSONOutputArchive>          (sis, file_name);
+		do_serialisation<cereal::XMLInputArchive,            cereal::XMLOutputArchive>           (sis, file_name);
+
+		sdsl::remove(file_name);
+	}
+}
+#endif // SDSL_HAS_CEREAL
 
 
 }  // namespace

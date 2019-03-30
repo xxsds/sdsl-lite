@@ -527,6 +527,55 @@ public:
 		m_rank_level.load(in);
 	}
 
+	//!\brief Serialise (save) via cereal
+	template <typename archive_t>
+	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+	{
+		ar(CEREAL_NVP(m_size));
+		ar(CEREAL_NVP(m_sigma));
+		ar(CEREAL_NVP(m_max_level));
+		ar(CEREAL_NVP(m_tree));
+		ar(CEREAL_NVP(m_tree_rank));
+		ar(CEREAL_NVP(m_tree_select1));
+		ar(CEREAL_NVP(m_tree_select0));
+		ar(CEREAL_NVP(m_zero_cnt));
+		ar(CEREAL_NVP(m_rank_level));
+	}
+
+	//!\brief Load via cereal
+	template <typename archive_t>
+	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+	{
+		ar(CEREAL_NVP(m_size));
+		ar(CEREAL_NVP(m_sigma));
+		ar(CEREAL_NVP(m_max_level));
+		ar(CEREAL_NVP(m_tree));
+		ar(CEREAL_NVP(m_tree_rank));
+		m_tree_rank.set_vector(&m_tree);
+		ar(CEREAL_NVP(m_tree_select1));
+		m_tree_select1.set_vector(&m_tree);
+		ar(CEREAL_NVP(m_tree_select0));
+		m_tree_select0.set_vector(&m_tree);
+		ar(CEREAL_NVP(m_zero_cnt));
+		ar(CEREAL_NVP(m_rank_level));
+	}
+
+
+	//! Equality operator.
+	bool operator==(wm_int const & other) const noexcept
+	{
+		return (m_size == other.m_size) && (m_sigma == other.m_sigma) && (m_max_level == other.m_max_level) &&
+		       (m_tree == other.m_tree) && (m_tree_rank == other.m_tree_rank) &&
+		       (m_tree_select1 == other.m_tree_select1) && (m_tree_select0 == other.m_tree_select0) &&
+		       (m_zero_cnt == other.m_zero_cnt) && (m_rank_level == other.m_rank_level);
+	}
+
+	//! Inequality operator.
+	bool operator!=(wm_int const & other) const noexcept
+	{
+		return !(*this == other);
+	}
+
 	//! Represents a node in the wavelet tree
 	struct node_type {
 		size_type  offset = 0;
