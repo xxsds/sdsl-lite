@@ -496,7 +496,8 @@ public:
 
 	//!\brief Load via cereal
 	template <typename archive_t>
-	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+	typename std::enable_if<cereal::traits::is_output_serializable<k2_tree, archive_t>::value, void>::type
+	CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
 	{
 		ar(CEREAL_NVP(k_k));
 		ar(CEREAL_NVP(k_height));
