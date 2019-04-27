@@ -8,6 +8,7 @@
 #ifndef INCLUDED_SDSL_CEREAL
 #define INCLUDED_SDSL_CEREAL
 
+#include <type_traits>
 
 #if defined(__has_include)
 	#if __has_include(<cereal/cereal.hpp>)

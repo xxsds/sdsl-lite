@@ -27,8 +27,7 @@
 #ifndef INCLUDED_SDSL_DIVSUFSORT
 #define INCLUDED_SDSL_DIVSUFSORT
 
-namespace sdsl {
-
+#include <algorithm>
 #include <assert.h>
 #include <stdio.h>
 #include <inttypes.h>
@@ -36,6 +35,8 @@ namespace sdsl {
 #ifdef _OPENMP
 # include <omp.h>
 #endif
+
+namespace sdsl {
 
 #if !defined(UINT8_MAX)
 # define UINT8_MAX (255)
