@@ -17,6 +17,7 @@ endif()
 
 ## (5) Options
 option(CODE_COVERAGE "Set ON to add code coverage compile options" OFF)
+option(SDSL_HEADER_TEST "Set ON to run header tests only" OFF)
 option(GENERATE_DOC "Set ON to genrate doxygen API reference in build/doc directory" OFF)
 option(USE_LIBCPP "Use the LLVM libc++ instead of GCC libstdc++ on OS X" ON)
 
@@ -39,6 +40,10 @@ file (GLOB HEADERS "${CMAKE_CURRENT_SOURCE_DIR}/include/sdsl/*.hpp")
 add_custom_target (sdsl SOURCES ${HEADERS})
 
 # (9) test targets 
+if(SDSL_HEADER_TEST)
+  add_subdirectory(test/header)
+  return()
+endif()
 add_subdirectory(test)
 
 # (10) perform extra tasks such as doxygen / packaging and uninstall target 

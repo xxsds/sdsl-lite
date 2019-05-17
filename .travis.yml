@@ -69,6 +69,15 @@ matrix:
           sources: ['ubuntu-toolchain-r-test']
           packages: ['cmake', 'g++-7']
 
+    - env:
+        - MYCC="gcc-7" MYCXX="g++-7" MYBUILD=Release
+        - HEADER_TEST="ON"
+      os: linux
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test']
+          packages: ['cmake', 'g++-7']
+
     - env: MYCC="gcc-8" MYCXX="g++-8" MYBUILD=Release
       os: linux
       addons:
@@ -101,11 +110,14 @@ before_script:
 script:
   - cd ${TRAVIS_BUILD_DIR}
   - mkdir sdsl-lite-build && cd sdsl-lite-build
-  - cmake ${TRAVIS_BUILD_DIR} -DCMAKE_BUILD_TYPE=$MYBUILD -DCMAKE_CXX_FLAGS="-Werror -Wno-missing-field-initializers ${CXX_FLAGS}" -DSDSL_CEREAL=$HAS_CEREAL
-  - make sdsl_test_targets -k -j 2
-  - travis_wait 90 sleep infinity & ctest . -j 2 --output-on-failure -E ${CTEST_EXCLUDE} -R ${CTEST_INCLUDE}
-  - make sdsl_examples -k -j 2
-  - make sdsl_tutorials -k -j 2
+  - cmake ${TRAVIS_BUILD_DIR} -DCMAKE_BUILD_TYPE=$MYBUILD -DCMAKE_CXX_FLAGS="-Werror -Wno-missing-field-initializers ${CXX_FLAGS}" -DSDSL_CEREAL=$HAS_CEREAL -DSDSL_HEADER_TEST=$HEADER_TEST
+  - if [[ $HEADER_TEST == "ON" ]];
+    then make sdsl_header_test -k -j 2;
+    else make sdsl_test_targets -k -j 2;
+         travis_wait 90 sleep infinity & ctest . -j 2 --output-on-failure -E ${CTEST_EXCLUDE} -R ${CTEST_INCLUDE};
+         make sdsl_examples -k -j 2;
+         make sdsl_tutorials -k -j 2;
+    fi
 
 after_script:
   - ccache -s

@@ -8,6 +8,7 @@
 #ifndef INCLUDED_SDSL_CST_ITERATORS
 #define INCLUDED_SDSL_CST_ITERATORS
 
+#include <cstdint>
 #include <queue>
 
 namespace sdsl {

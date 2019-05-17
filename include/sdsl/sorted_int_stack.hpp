@@ -183,14 +183,14 @@ void sorted_int_stack::CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
 }
 
 //! Equality operator.
-bool sorted_int_stack::operator==(sorted_int_stack const & other) const noexcept
+inline bool sorted_int_stack::operator==(sorted_int_stack const & other) const noexcept
 {
 	return (m_n == other.m_n) && (m_cnt == other.m_cnt) && (m_top == other.m_top) &&
 	       (m_stack == other.m_stack) && (m_overflow == other.m_overflow);
 }
 
 //! Inequality operator.
-bool sorted_int_stack::operator!=(sorted_int_stack const & other) const noexcept
+inline bool sorted_int_stack::operator!=(sorted_int_stack const & other) const noexcept
 {
 	return !(*this == other);
 }

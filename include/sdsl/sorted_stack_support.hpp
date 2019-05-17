@@ -174,14 +174,14 @@ void sorted_stack_support::CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
 }
 
 //! Equality operator.
-bool sorted_stack_support::operator==(sorted_stack_support const & other) const noexcept
+inline bool sorted_stack_support::operator==(sorted_stack_support const & other) const noexcept
 {
 	return (m_n == other.m_n) && (m_cnt == other.m_cnt) && (m_top == other.m_top) &&
 	       (m_stack == other.m_stack);
 }
 
 //! Inequality operator.
-bool sorted_stack_support::operator!=(sorted_stack_support const & other) const noexcept
+inline bool sorted_stack_support::operator!=(sorted_stack_support const & other) const noexcept
 {
 	return !(*this == other);
 }
