@@ -22,6 +22,16 @@
 #include "iso646.h"
 #endif
 
+#ifdef __cpp_constexpr
+#   if __cpp_constexpr >= 201304
+#       define SDSL_CONSTEXPR constexpr
+#   else
+#       define SDSL_CONSTEXPR
+#   endif
+#else
+#   define SDSL_CONSTEXPR
+#endif
+
 //! Namespace for the succinct data structure library.
 namespace sdsl {
 
@@ -347,7 +357,7 @@ struct bits_impl {
 	/*! \param  x 64-bit word
         \return Number of set bits.
      */
-	static uint64_t cnt(uint64_t x);
+	SDSL_CONSTEXPR static uint64_t cnt(uint64_t x);
 
 	//! Position of the most significant set bit the 64-bit word x
 	/*! \param x 64-bit word
@@ -355,7 +365,7 @@ struct bits_impl {
                 in `x` or 0 if x equals 0.
     	\sa sel, lo
     */
-	static uint32_t hi(uint64_t x);
+	SDSL_CONSTEXPR static uint32_t hi(uint64_t x);
 
 	//! Calculates the position of the rightmost 1-bit in the 64bit integer x if it exists
 	/*! \param x 64 bit integer.
@@ -363,7 +373,7 @@ struct bits_impl {
     	        x>0 and 0 if x equals 0.
     	\sa sel, hi
     */
-	static uint32_t lo(uint64_t x);
+	SDSL_CONSTEXPR static uint32_t lo(uint64_t x);
 
 	//! Counts the number of 1-bits in the 32bit integer x.
 	/*! This function is a variant of the method cnt. If
@@ -372,40 +382,40 @@ struct bits_impl {
     	\param x 64bit integer to count the bits.
     	\return The number of 1-bits in x.
      */
-	static uint32_t cnt32(uint32_t x);
+	SDSL_CONSTEXPR static uint32_t cnt32(uint32_t x);
 
 	//! Count the number of consecutive and distinct 11 in the 64bit integer x.
 	/*!
       	\param x 64bit integer to count the terminating sequence 11 of a Fibonacci code.
     	\param c Carry equals msb of the previous 64bit integer.
      */
-	static uint32_t cnt11(uint64_t x, uint64_t& c);
+	SDSL_CONSTEXPR static uint32_t cnt11(uint64_t x, uint64_t& c);
 
 	//! Count the number of consecutive and distinct 11 in the 64bit integer x.
 	/*!
       	\param x 64bit integer to count the terminating sequence 11 of a Fibonacci code.
      */
-	static uint32_t cnt11(uint64_t x);
+	SDSL_CONSTEXPR static uint32_t cnt11(uint64_t x);
 
 	//! Count 10 bit pairs in the word x.
 	/*!
      * \param x 64bit integer to count the 10 bit pairs.
      * \param c Carry equals msb of the previous 64bit integer.
      */
-	static uint32_t cnt10(uint64_t x, uint64_t& c);
+	SDSL_CONSTEXPR static uint32_t cnt10(uint64_t x, uint64_t& c);
 
 	//! Count 01 bit pairs in the word x.
 	/*!
      * \param x 64bit integer to count the 01 bit pairs.
      * \param c Carry equals msb of the previous 64bit integer.
      */
-	static uint32_t cnt01(uint64_t x, uint64_t& c);
+	SDSL_CONSTEXPR static uint32_t cnt01(uint64_t x, uint64_t& c);
 
 	//! Map all 10 bit pairs to 01 or 1 if c=1 and the lsb=0. All other pairs are mapped to 00.
-	static uint64_t map10(uint64_t x, uint64_t c = 0);
+	SDSL_CONSTEXPR static uint64_t map10(uint64_t x, uint64_t c = 0);
 
 	//! Map all 01 bit pairs to 01 or 1 if c=1 and the lsb=0. All other pairs are mapped to 00.
-	static uint64_t map01(uint64_t x, uint64_t c = 1);
+	SDSL_CONSTEXPR static uint64_t map01(uint64_t x, uint64_t c = 1);
 
 	//! Calculate the position of the i-th rightmost 1 bit in the 64bit integer x
 	/*!
@@ -414,8 +424,8 @@ struct bits_impl {
     	\pre Argument i must be in the range \f$[1..cnt(x)]\f$.
       	\sa hi, lo
      */
-	static uint32_t sel(uint64_t x, uint32_t i);
-	static uint32_t _sel(uint64_t x, uint32_t i);
+	SDSL_CONSTEXPR static uint32_t sel(uint64_t x, uint32_t i);
+	SDSL_CONSTEXPR static uint32_t _sel(uint64_t x, uint32_t i);
 
 	//! Calculates the position of the i-th rightmost 11-bit-pattern which terminates a Fibonacci coded integer in x.
 	/*!	\param x 64 bit integer.
@@ -426,7 +436,7 @@ struct bits_impl {
         \sa cnt11, hi11, sel
 
      */
-	static uint32_t sel11(uint64_t x, uint32_t i, uint32_t c = 0);
+	SDSL_CONSTEXPR static uint32_t sel11(uint64_t x, uint32_t i, uint32_t c = 0);
 
 	//! Calculates the position of the leftmost 11-bit-pattern which terminates a Fibonacci coded integer in x.
 	/*! \param x 64 bit integer.
@@ -435,27 +445,27 @@ struct bits_impl {
     			and 0 otherwise.
     	\sa cnt11, sel11
     */
-	static uint32_t hi11(uint64_t x);
+	SDSL_CONSTEXPR static uint32_t hi11(uint64_t x);
 
 	//! Writes value x to an bit position in an array.
-	static void
+	SDSL_CONSTEXPR static void
 	write_int(uint64_t* word, uint64_t x, const uint8_t offset = 0, const uint8_t len = 64);
 
 	//! Writes value x to an bit position in an array and moves the bit-pointer.
-	static void write_int_and_move(uint64_t*& word, uint64_t x, uint8_t& offset, const uint8_t len);
+	SDSL_CONSTEXPR static void write_int_and_move(uint64_t*& word, uint64_t x, uint8_t& offset, const uint8_t len);
 
 	//! Reads a value from a bit position in an array.
-	static uint64_t read_int(const uint64_t* word, uint8_t offset = 0, const uint8_t len = 64);
+	SDSL_CONSTEXPR static uint64_t read_int(const uint64_t* word, uint8_t offset = 0, const uint8_t len = 64);
 
 	//! Reads a value from a bit position in an array and moved the bit-pointer.
-	static uint64_t
+	SDSL_CONSTEXPR static uint64_t
 	read_int_and_move(const uint64_t*& word, uint8_t& offset, const uint8_t len = 64);
 
 	//! Reads an unary decoded value from a bit position in an array.
-	static uint64_t read_unary(const uint64_t* word, uint8_t offset = 0);
+	SDSL_CONSTEXPR static uint64_t read_unary(const uint64_t* word, uint8_t offset = 0);
 
 	//! Reads an unary decoded value from a bit position in an array and moves the bit-pointer.
-	static uint64_t read_unary_and_move(const uint64_t*& word, uint8_t& offset);
+	SDSL_CONSTEXPR static uint64_t read_unary_and_move(const uint64_t*& word, uint8_t& offset);
 
 	//! Move the bit-pointer (=uint64_t word and offset) `len` to the right.
 	/*!\param word   64-bit word part of the bit pointer
@@ -463,7 +473,7 @@ struct bits_impl {
      * \param len    Move distance. \f$ len \in [0..64] \f$
      * \sa move_left
      */
-	static void move_right(const uint64_t*& word, uint8_t& offset, const uint8_t len);
+	SDSL_CONSTEXPR static void move_right(const uint64_t*& word, uint8_t& offset, const uint8_t len);
 
 	//! Move the bit-pointer (=uint64_t word and offset) `len` to the left.
 	/*!\param word   64-bit word part of the bit pointer
@@ -471,16 +481,16 @@ struct bits_impl {
      * \param len    Move distance. \f$ len \in [0..64] \f$
      * \sa move_right
      */
-	static void move_left(const uint64_t*& word, uint8_t& offset, const uint8_t len);
+	SDSL_CONSTEXPR static void move_left(const uint64_t*& word, uint8_t& offset, const uint8_t len);
 
 	//! Get the first one bit in the interval \f$[idx..\infty )\f$
-	static uint64_t next(const uint64_t* word, uint64_t idx);
+	SDSL_CONSTEXPR static uint64_t next(const uint64_t* word, uint64_t idx);
 
 	//! Get the one bit with the greatest position in the interval \f$[0..idx]\f$
-	static uint64_t prev(const uint64_t* word, uint64_t idx);
+	SDSL_CONSTEXPR static uint64_t prev(const uint64_t* word, uint64_t idx);
 
 	//! reverses a given 64 bit word
-	static uint64_t rev(uint64_t x);
+	SDSL_CONSTEXPR static uint64_t rev(uint64_t x);
 };
 
 
@@ -488,7 +498,7 @@ struct bits_impl {
 
 // see page 11, Knuth TAOCP Vol 4 F1A
 template <typename T>
-inline uint64_t bits_impl<T>::cnt(uint64_t x)
+SDSL_CONSTEXPR inline uint64_t bits_impl<T>::cnt(uint64_t x)
 {
 #ifdef __SSE4_2__
 	return __builtin_popcountll(x);
@@ -507,7 +517,7 @@ inline uint64_t bits_impl<T>::cnt(uint64_t x)
 }
 
 template <typename T>
-inline uint32_t bits_impl<T>::cnt32(uint32_t x)
+SDSL_CONSTEXPR inline uint32_t bits_impl<T>::cnt32(uint32_t x)
 {
 	x = x - ((x >> 1) & 0x55555555);
 	x = (x & 0x33333333) + ((x >> 2) & 0x33333333);
@@ -516,10 +526,10 @@ inline uint32_t bits_impl<T>::cnt32(uint32_t x)
 
 
 template <typename T>
-inline uint32_t bits_impl<T>::cnt11(uint64_t x, uint64_t& c)
+SDSL_CONSTEXPR inline uint32_t bits_impl<T>::cnt11(uint64_t x, uint64_t& c)
 {
 	// extract "11" 2bit blocks
-	uint64_t ex11 = (x & (x >> 1)) & 0x5555555555555555ULL, t;
+	uint64_t ex11 = (x & (x >> 1)) & 0x5555555555555555ULL, t{};
 	// extract "10" 2bit blocks
 	uint64_t ex10or01 = (ex11 | (ex11 << 1)) ^ x;
 
@@ -533,7 +543,7 @@ inline uint32_t bits_impl<T>::cnt11(uint64_t x, uint64_t& c)
 }
 
 template <typename T>
-inline uint32_t bits_impl<T>::cnt11(uint64_t x)
+SDSL_CONSTEXPR inline uint32_t bits_impl<T>::cnt11(uint64_t x)
 {
 	// extract "11" 2bit blocks
 	uint64_t ex11 = (x & (x >> 1)) & 0x5555555555555555ULL;
@@ -549,7 +559,7 @@ inline uint32_t bits_impl<T>::cnt11(uint64_t x)
 }
 
 template <typename T>
-inline uint32_t bits_impl<T>::cnt10(uint64_t x, uint64_t& c)
+SDSL_CONSTEXPR inline uint32_t bits_impl<T>::cnt10(uint64_t x, uint64_t& c)
 {
 	uint32_t res = cnt((x ^ ((x << 1) | c)) & (~x));
 	c			 = (x >> 63);
@@ -557,13 +567,13 @@ inline uint32_t bits_impl<T>::cnt10(uint64_t x, uint64_t& c)
 }
 
 template <typename T>
-inline uint64_t bits_impl<T>::map10(uint64_t x, uint64_t c)
+SDSL_CONSTEXPR inline uint64_t bits_impl<T>::map10(uint64_t x, uint64_t c)
 {
 	return ((x ^ ((x << 1) | c)) & (~x));
 }
 
 template <typename T>
-inline uint32_t bits_impl<T>::cnt01(uint64_t x, uint64_t& c)
+SDSL_CONSTEXPR inline uint32_t bits_impl<T>::cnt01(uint64_t x, uint64_t& c)
 {
 	uint32_t res = cnt((x ^ ((x << 1) | c)) & x);
 	c			 = (x >> 63);
@@ -571,20 +581,20 @@ inline uint32_t bits_impl<T>::cnt01(uint64_t x, uint64_t& c)
 }
 
 template <typename T>
-inline uint64_t bits_impl<T>::map01(uint64_t x, uint64_t c)
+SDSL_CONSTEXPR inline uint64_t bits_impl<T>::map01(uint64_t x, uint64_t c)
 {
 	return ((x ^ ((x << 1) | c)) & x);
 }
 
 template <typename T>
-inline uint32_t bits_impl<T>::sel(uint64_t x, uint32_t i)
+SDSL_CONSTEXPR inline uint32_t bits_impl<T>::sel(uint64_t x, uint32_t i)
 {
 #ifdef __BMI2__
 	// taken from folly
 	return _tzcnt_u64(_pdep_u64(1ULL << (i - 1), x));
 #endif
 #ifdef __SSE4_2__
-	uint64_t s = x, b;
+	uint64_t s = x, b{};
 	s		   = s - ((s >> 1) & 0x5555555555555555ULL);
 	s		   = (s & 0x3333333333333333ULL) + ((s >> 2) & 0x3333333333333333ULL);
 	s		   = (s + (s >> 4)) & 0x0F0F0F0F0F0F0F0FULL;
@@ -606,9 +616,9 @@ inline uint32_t bits_impl<T>::sel(uint64_t x, uint32_t i)
 }
 
 template <typename T>
-inline uint32_t bits_impl<T>::_sel(uint64_t x, uint32_t i)
+SDSL_CONSTEXPR inline uint32_t bits_impl<T>::_sel(uint64_t x, uint32_t i)
 {
-	uint64_t s = x, b; // s = sum
+	uint64_t s = x, b{}; // s = sum
 	s		   = s - ((s >> 1) & 0x5555555555555555ULL);
 	s		   = (s & 0x3333333333333333ULL) + ((s >> 2) & 0x3333333333333333ULL);
 	s		   = (s + (s >> 4)) & 0x0F0F0F0F0F0F0F0FULL;
@@ -651,13 +661,13 @@ inline uint32_t bits_impl<T>::_sel(uint64_t x, uint32_t i)
 // 64-bit version of 32-bit proposal of
 // http://www-graphics.stanford.edu/~seander/bithacks.html
 template <typename T>
-inline uint32_t bits_impl<T>::hi(uint64_t x)
+SDSL_CONSTEXPR inline uint32_t bits_impl<T>::hi(uint64_t x)
 {
 #ifdef __SSE4_2__
 	if (x == 0) return 0;
 	return 63 - __builtin_clzll(x);
 #else
-	uint64_t t, tt;			  // temporaries
+	uint64_t t{}, tt{};			  // temporaries
 	if ((tt = x >> 32)) {	 // hi >= 32
 		if ((t = tt >> 16)) { // hi >= 48
 			return (tt = t >> 8) ? 56 + lt_hi[tt] : 48 + lt_hi[t];
@@ -677,7 +687,7 @@ inline uint32_t bits_impl<T>::hi(uint64_t x)
 // details see: http://citeseer.ist.psu.edu/leiserson98using.html
 // or page 10, Knuth TAOCP Vol 4 F1A
 template <typename T>
-inline uint32_t bits_impl<T>::lo(uint64_t x)
+SDSL_CONSTEXPR inline uint32_t bits_impl<T>::lo(uint64_t x)
 {
 #ifdef __SSE4_2__
 	if (x == 0) return 0;
@@ -695,7 +705,7 @@ inline uint32_t bits_impl<T>::lo(uint64_t x)
 }
 
 template <typename T>
-inline uint32_t bits_impl<T>::hi11(uint64_t x)
+SDSL_CONSTEXPR inline uint32_t bits_impl<T>::hi11(uint64_t x)
 {
 	// extract "11" 2bit blocks
 	uint64_t ex11 = (x & (x >> 1)) & 0x5555555555555555ULL;
@@ -709,7 +719,7 @@ inline uint32_t bits_impl<T>::hi11(uint64_t x)
 
 
 template <typename T>
-inline uint32_t bits_impl<T>::sel11(uint64_t x, uint32_t i, uint32_t c)
+SDSL_CONSTEXPR inline uint32_t bits_impl<T>::sel11(uint64_t x, uint32_t i, uint32_t c)
 {
 	uint64_t ex11	 = (x & (x >> 1)) & 0x5555555555555555ULL;
 	uint64_t ex10or01 = (ex11 | (ex11 << 1)) ^ x;
@@ -719,7 +729,7 @@ inline uint32_t bits_impl<T>::sel11(uint64_t x, uint32_t i, uint32_t c)
 }
 
 template <typename T>
-inline void bits_impl<T>::write_int(uint64_t* word, uint64_t x, uint8_t offset, const uint8_t len)
+SDSL_CONSTEXPR inline void bits_impl<T>::write_int(uint64_t* word, uint64_t x, uint8_t offset, const uint8_t len)
 {
 	x &= bits_impl<T>::lo_set[len];
 	if (offset + len < 64) {
@@ -741,7 +751,7 @@ inline void bits_impl<T>::write_int(uint64_t* word, uint64_t x, uint8_t offset, 
 }
 
 template <typename T>
-inline void
+SDSL_CONSTEXPR inline void
 bits_impl<T>::write_int_and_move(uint64_t*& word, uint64_t x, uint8_t& offset, const uint8_t len)
 {
 	x &= bits_impl<T>::lo_set[len];
@@ -765,7 +775,7 @@ bits_impl<T>::write_int_and_move(uint64_t*& word, uint64_t x, uint8_t& offset, c
 }
 
 template <typename T>
-inline uint64_t bits_impl<T>::read_int(const uint64_t* word, uint8_t offset, const uint8_t len)
+SDSL_CONSTEXPR inline uint64_t bits_impl<T>::read_int(const uint64_t* word, uint8_t offset, const uint8_t len)
 {
 	uint64_t w1 = (*word) >> offset;
 	if ((offset + len) > 64) {												// if offset+len > 64
@@ -778,7 +788,7 @@ inline uint64_t bits_impl<T>::read_int(const uint64_t* word, uint8_t offset, con
 }
 
 template <typename T>
-inline uint64_t
+SDSL_CONSTEXPR inline uint64_t
 bits_impl<T>::read_int_and_move(const uint64_t*& word, uint8_t& offset, const uint8_t len)
 {
 	uint64_t w1 = (*word) >> offset;
@@ -797,7 +807,7 @@ bits_impl<T>::read_int_and_move(const uint64_t*& word, uint8_t& offset, const ui
 }
 
 template <typename T>
-inline uint64_t bits_impl<T>::read_unary(const uint64_t* word, uint8_t offset)
+SDSL_CONSTEXPR inline uint64_t bits_impl<T>::read_unary(const uint64_t* word, uint8_t offset)
 {
 	uint64_t w = *word >> offset;
 	if (w) {
@@ -813,7 +823,7 @@ inline uint64_t bits_impl<T>::read_unary(const uint64_t* word, uint8_t offset)
 }
 
 template <typename T>
-inline uint64_t bits_impl<T>::read_unary_and_move(const uint64_t*& word, uint8_t& offset)
+SDSL_CONSTEXPR inline uint64_t bits_impl<T>::read_unary_and_move(const uint64_t*& word, uint8_t& offset)
 {
 	uint64_t w = (*word) >> offset; // temporary variable is good for the performance
 	if (w) {
@@ -843,7 +853,7 @@ inline uint64_t bits_impl<T>::read_unary_and_move(const uint64_t*& word, uint8_t
 }
 
 template <typename T>
-inline void bits_impl<T>::move_right(const uint64_t*& word, uint8_t& offset, const uint8_t len)
+SDSL_CONSTEXPR inline void bits_impl<T>::move_right(const uint64_t*& word, uint8_t& offset, const uint8_t len)
 {
 	if ((offset += len) & 0xC0) { // if offset >= 65
 		offset &= 0x3F;
@@ -852,7 +862,7 @@ inline void bits_impl<T>::move_right(const uint64_t*& word, uint8_t& offset, con
 }
 
 template <typename T>
-inline void bits_impl<T>::move_left(const uint64_t*& word, uint8_t& offset, const uint8_t len)
+SDSL_CONSTEXPR inline void bits_impl<T>::move_left(const uint64_t*& word, uint8_t& offset, const uint8_t len)
 {
 	if ((offset -= len) & 0xC0) { // if offset-len<0
 		offset &= 0x3F;
@@ -861,7 +871,7 @@ inline void bits_impl<T>::move_left(const uint64_t*& word, uint8_t& offset, cons
 }
 
 template <typename T>
-inline uint64_t bits_impl<T>::next(const uint64_t* word, uint64_t idx)
+SDSL_CONSTEXPR inline uint64_t bits_impl<T>::next(const uint64_t* word, uint64_t idx)
 {
 	word += (idx >> 6);
 	if (*word & ~lo_set[idx & 0x3F]) {
@@ -877,7 +887,7 @@ inline uint64_t bits_impl<T>::next(const uint64_t* word, uint64_t idx)
 }
 
 template <typename T>
-inline uint64_t bits_impl<T>::prev(const uint64_t* word, uint64_t idx)
+SDSL_CONSTEXPR inline uint64_t bits_impl<T>::prev(const uint64_t* word, uint64_t idx)
 {
 	word += (idx >> 6);
 	if (*word & lo_set[(idx & 0x3F) + 1]) {
@@ -893,7 +903,7 @@ inline uint64_t bits_impl<T>::prev(const uint64_t* word, uint64_t idx)
 }
 
 template <typename T>
-inline uint64_t bits_impl<T>::rev(uint64_t x)
+SDSL_CONSTEXPR inline uint64_t bits_impl<T>::rev(uint64_t x)
 {
 	x = ((x & 0x5555555555555555ULL) << 1) | ((x & 0xAAAAAAAAAAAAAAAAULL) >> 1);
 	x = ((x & 0x3333333333333333ULL) << 2) | ((x & 0xCCCCCCCCCCCCCCCCULL) >> 2);
