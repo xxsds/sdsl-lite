@@ -550,6 +550,7 @@ void init_char_bitvector(sd_vector<t_hi_bit_vector, t_select_1, t_select_0> &cha
 class plain_byte_alphabet
 {
 public:
+    //! Helper class for the char2comp and comp2char mapping.
     class mapping_wrapper;
 
     typedef int_vector<>::size_type size_type;
@@ -563,12 +564,14 @@ public:
     typedef byte_alphabet_tag alphabet_category;
     enum { int_width = 8 };
 
-    //! Helper class for the char2comp and comp2char mapping
+    //! Helper class for the char2comp and comp2char mapping.
     class mapping_wrapper
     {
     public:
-        mapping_wrapper() {}
+        //! Default constructor.
+        mapping_wrapper() = default;
 
+        //! Random access operator.
         constexpr char_type operator[](char_type const c) const noexcept
         {
             return c;
@@ -585,15 +588,17 @@ private:
     sigma_type m_sigma; // Effective size of the alphabet.
 
 public:
-    //! Default constructor
-    plain_byte_alphabet() : C(m_C), sigma(m_sigma), m_sigma(0)
+    //! Default constructor.
+    plain_byte_alphabet() :
+        C(m_C), sigma(m_sigma), m_sigma(0)
     {}
 
-    /*! Construct from a byte-stream
+    /*! Construct from a byte-stream.
      *  \param text_buf Byte stream.
      *  \param len      Length of the byte stream.
      */
-    plain_byte_alphabet(int_vector_buffer<8> & text_buf, int_vector_size_type len) : C(m_C), sigma(m_sigma)
+    plain_byte_alphabet(int_vector_buffer<8> & text_buf, int_vector_size_type len) :
+        C(m_C), sigma(m_sigma)
     {
         m_sigma = 0;
         if (0 == len || 0 == text_buf.size())
@@ -629,18 +634,17 @@ public:
         assert(C[sigma] == len);
     }
 
-    plain_byte_alphabet(plain_byte_alphabet const & strat) : C(m_C),
-                                                             sigma(m_sigma),
-                                                             m_C(strat.m_C),
-                                                             m_sigma(strat.m_sigma)
+    //! Copy constructor.
+    plain_byte_alphabet(plain_byte_alphabet const & strat) :
+        C(m_C), sigma(m_sigma), m_C(strat.m_C), m_sigma(strat.m_sigma)
     {}
 
-    plain_byte_alphabet(plain_byte_alphabet && strat) : C(m_C),
-                                                        sigma(m_sigma),
-                                                        m_C(std::move(strat.m_C)),
-                                                        m_sigma(strat.m_sigma)
+    //! Move constructor.
+    plain_byte_alphabet(plain_byte_alphabet && strat) noexcept :
+        C(m_C), sigma(m_sigma), m_C(std::move(strat.m_C)), m_sigma(strat.m_sigma)
     {}
 
+    //! Copy assignment.
     plain_byte_alphabet & operator=(plain_byte_alphabet const & strat)
     {
         if (this != &strat)
@@ -651,17 +655,19 @@ public:
         return *this;
     }
 
-    plain_byte_alphabet & operator=(plain_byte_alphabet && strat)
+    //! Move assignment.
+    plain_byte_alphabet & operator=(plain_byte_alphabet && strat) noexcept
     {
         if (this != &strat)
         {
             m_C = std::move(strat.m_C);
-            m_sigma = std::move(strat.m_sigma);
+            m_sigma = strat.m_sigma;
         }
         return *this;
     }
 
-    size_type serialize(std::ostream & out, structure_tree_node * v, std::string name = "") const
+    //!\cond
+    size_type serialize(std::ostream & out, structure_tree_node * v, std::string const & name = "") const
     {
         structure_tree_node * child = structure_tree::add_child(v, name, util::class_name(*this));
         size_type written_bytes = 0;
@@ -700,6 +706,7 @@ public:
     {
         return !(*this == other);
     }
+    //!\endcond
 };
 
 //! A space-efficient representation for byte alphabets.
