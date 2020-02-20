@@ -4,6 +4,7 @@
 #include "gtest/gtest.h"
 #include <vector>
 #include <string>
+#include <type_traits>
 
 namespace
 {
@@ -41,7 +42,8 @@ typedef Types<
     csa_sada<enc_vector<>, 32,32,text_order_sa_sampling<>,text_order_isa_sampling_support<>>,
     csa_wt<wt_huff<>, 8, 16, sa_order_sa_sampling<>>,
     csa_wt<wt_huff<>, 8, 16, sa_order_sa_sampling<>, isa_sampling<>, succinct_byte_alphabet<bit_vector, rank_support_v<>, select_support_mcl<>>>,
-    csa_wt<wt_huff<>, 8, 16, sa_order_sa_sampling<>, isa_sampling<>, succinct_byte_alphabet<>>
+    csa_wt<wt_huff<>, 8, 16, sa_order_sa_sampling<>, isa_sampling<>, succinct_byte_alphabet<>>,
+    csa_wt<wt_huff<>, 8, 16, sa_order_sa_sampling<>, isa_sampling<>, plain_byte_alphabet>
 > Implementations;
 
 #else
@@ -133,15 +135,24 @@ TYPED_TEST(csa_byte_test, sigma)
     text.resize(text.size()+1);
     text[text.size()-1] = 0; // add 0-character to the end
     ASSERT_EQ(text.size(), csa.size());
-    bit_vector occur(256, 0);
-    uint16_t sigma = 0;
-    for (size_type j=0; j<text.size(); ++j) {
-        if (!occur[text[j]]) {
-            occur[text[j]] = 1;
-            ++sigma;
+
+    if (!std::is_same<typename TypeParam::alphabet_type, plain_byte_alphabet>::value) {
+        bit_vector occur(256, 0);
+        uint16_t sigma = 0;
+        for (size_type j=0; j<text.size(); ++j) {
+            if (!occur[text[j]]) {
+                occur[text[j]] = 1;
+                ++sigma;
+            }
         }
+        ASSERT_EQ(sigma, csa.sigma);
+    } else {
+        int max_char = 0;
+        for (int chr : text)
+            max_char = std::max(max_char, chr);
+
+        ASSERT_EQ(max_char + 1, csa.sigma);
     }
-    ASSERT_EQ(sigma, csa.sigma);
 }
 
 //! Test suffix array access methods
