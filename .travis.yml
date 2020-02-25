@@ -97,7 +97,7 @@ matrix:
       os: osx
 
 install:
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install ccache ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then HOMEBREW_NO_AUTO_UPDATE=1 brew install ccache ; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export PATH="/usr/local/opt/ccache/libexec:$PATH" ; fi
 
 before_script:
