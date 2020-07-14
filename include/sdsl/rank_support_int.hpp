@@ -4,7 +4,7 @@
 /*! \file rank_support_int.hpp
     \brief rank_support_int.hpp contains classes that support a sdsl::int_vector with constant time rank information.
            Rank is defined as the number of occurrences of a value up to a given position.
-	\author Christopher Pockrandt
+    \author Christopher Pockrandt
 */
 #ifndef INCLUDED_SDSL_RANK_SUPPORT_INT
 #define INCLUDED_SDSL_RANK_SUPPORT_INT
@@ -41,8 +41,8 @@ template <uint8_t alphabet_size>
 class rank_support_int {
 
 public:
-	typedef typename int_vector<>::size_type size_type;
-	typedef typename int_vector<>::value_type value_type;
+    typedef typename int_vector<>::size_type size_type;
+    typedef typename int_vector<>::value_type value_type;
 
     static_assert(alphabet_size > 2, "Rank support is only implemented on int_vectors with an alphabet size of > 2.");
 
@@ -57,12 +57,12 @@ protected:
     }
 
 protected:
-	const int_vector<>* m_v; //!< Pointer to the rank supported bit_vector
+    const int_vector<>* m_v; //!< Pointer to the rank supported bit_vector
     static constexpr uint8_t t_v{alphabet_size};
     static constexpr uint8_t t_b{ceil_log2(alphabet_size)};
-	static constexpr uint64_t even_mask{bm_rec<uint64_t>(bits::lo_set[t_b], t_b * 2, 64)};
-	static constexpr uint64_t carry_select_mask{bm_rec<uint64_t>(1ULL << t_b, t_b * 2, 64)};
-	uint64_t masks[alphabet_size]; // TODO: make constexpr and remove init()
+    static constexpr uint64_t even_mask{bm_rec<uint64_t>(bits::lo_set[t_b], t_b * 2, 64)};
+    static constexpr uint64_t carry_select_mask{bm_rec<uint64_t>(1ULL << t_b, t_b * 2, 64)};
+    uint64_t masks[alphabet_size]; // TODO: make constexpr and remove init()
 
     // Count how often value v or smaller occurs in the word w.
     uint64_t set_positions_prefix(const uint64_t w, const value_type v) const
@@ -144,52 +144,52 @@ protected:
     }
 
 public:
-	//! Constructor
-	/*! \param v The supported int_vector.
-         */
-	rank_support_int(const int_vector<>* v = nullptr);
-	//! Copy constructor
-	rank_support_int(const rank_support_int&) = default;
-	rank_support_int(rank_support_int&&)	  = default;
-	rank_support_int& operator=(const rank_support_int&) = default;
-	rank_support_int& operator=(rank_support_int&&) = default;
-	//! Destructor
-	virtual ~rank_support_int() {}
+    //! Constructor
+    /*! \param v The supported int_vector.
+     */
+    rank_support_int(const int_vector<>* v = nullptr);
+    //! Copy constructor
+    rank_support_int(const rank_support_int&) = default;
+    rank_support_int(rank_support_int&&) = default;
+    rank_support_int& operator=(const rank_support_int&) = default;
+    rank_support_int& operator=(rank_support_int&&) = default;
+    //! Destructor
+    virtual ~rank_support_int() {}
 
-	//! Answers rank queries for the supported int_vector.
-	/*!	\param i Argument for the length of the prefix v[0..i-1].
-            \param v Argument which value to count.
-        	\returns Number of occurrences of v in the prefix [0..i-1] of the supported int_vector.
-        	\note Method init has to be called before the first call of rank.
-        	\sa init
-         */
-	virtual size_type rank(const size_type i, const value_type v) const = 0;
-	//! Alias for rank(idx, v)
-	virtual size_type operator()(const size_type idx, const value_type v) const = 0;
-	//! Answers rank queries for the supported int_vector.
-	/*!	\param i Argument for the length of the prefix v[0..i-1].
-            \param v Argument which value (including smaller values) to count.
-        	\returns Number of occurrences of elements smaller or equal to v in the prefix [0..i-1] of the supported int_vector.
-        	\note Method init has to be called before the first call of rank.
-        	\sa init
-         */
-	virtual size_type prefix_rank(const size_type i, const value_type v) const = 0;
-	//! Serializes rank_support_int.
-	/*! \param out Out-Stream to serialize the data to.
+    //! Answers rank queries for the supported int_vector.
+    /*!	\param i Argument for the length of the prefix v[0..i-1].
+     *  \param v Argument which value to count.
+     *  \returns Number of occurrences of v in the prefix [0..i-1] of the supported int_vector.
+     *  \note Method init has to be called before the first call of rank.
+     *  \sa init
+     */
+    virtual size_type rank(const size_type i, const value_type v) const = 0;
+    //! Alias for rank(idx, v)
+    virtual size_type operator()(const size_type idx, const value_type v) const = 0;
+    //! Answers rank queries for the supported int_vector.
+    /*!	\param i Argument for the length of the prefix v[0..i-1].
+     *  \param v Argument which value (including smaller values) to count.
+     *  \returns Number of occurrences of elements smaller or equal to v in the prefix [0..i-1] of the supported int_vector.
+     *  \note Method init has to be called before the first call of rank.
+     *  \sa init
+     */
+    virtual size_type prefix_rank(const size_type i, const value_type v) const = 0;
+    //! Serializes rank_support_int.
+    /*! \param out Out-Stream to serialize the data to.
         */
-	virtual size_type
-	serialize(std::ostream& out, structure_tree_node* v, const std::string name) const = 0;
-	//! Loads the rank_support_int.
-	/*! \param in In-Stream to load the rank_support_int data from.
-            \param v The supported int_vector.
-         */
-	virtual void load(std::istream& in, const int_vector<>* v = nullptr) = 0;
-	//! Sets the supported int_vector to the given pointer.
-	/*! \param v The new int_vector to support.
-         *  \note Method init has to be called before the next call of rank or prefix_rank.
-         *  \sa init, rank, prefix_rank
-         */
-	virtual void set_vector(const int_vector<>* v = nullptr) = 0;
+    virtual size_type
+    serialize(std::ostream& out, structure_tree_node* v, const std::string name) const = 0;
+    //! Loads the rank_support_int.
+    /*! \param in In-Stream to load the rank_support_int data from.
+     *  \param v The supported int_vector.
+     */
+    virtual void load(std::istream& in, const int_vector<>* v = nullptr) = 0;
+    //! Sets the supported int_vector to the given pointer.
+    /*! \param v The new int_vector to support.
+     *  \note Method init has to be called before the next call of rank or prefix_rank.
+     *  \sa init, rank, prefix_rank
+     */
+    virtual void set_vector(const int_vector<>* v = nullptr) = 0;
 };
 
 template <uint8_t alphabet_type>
