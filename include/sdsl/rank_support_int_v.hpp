@@ -13,6 +13,73 @@
 //! Namespace for the succinct data structure library.
 namespace sdsl {
 
+/*!\brief A bit compressed
+ * \tparam value_t The actual value_type.
+ * \tparam bits_per_value How many bits are used to store one value. Must be less than 64.
+ *
+ */
+template <typename value_t, size_t bits_per_value>
+class bit_compressed_word
+{
+private:
+    static constexpr uint64_t max_size = (sizeof(uint64_t) << 3) / bits_per_value;
+    static constexpr uint64_t bit_mask = bits::lo_set[bits_per_value];
+    static constexpr uint64_t mask = ((1ull << (max_size * bits_per_value - 1)) - 1ull) << 1 | 1ull;
+
+    uint64_t word{};
+
+public:
+
+    bit_compressed_word() = default;
+
+    template <typename it_t>
+    constexpr bit_compressed_word(it_t it, it_t end) noexcept
+    {
+        assign(it, end);
+    }
+
+    constexpr value_t operator[](size_t const index) const noexcept
+    {
+        assert(index < max_size);
+        uint64_t offset = index * bits_per_value;
+        return value_t{(word >> offset) & bit_mask};
+    }
+
+    template <typename it_t>
+    constexpr void assign(it_t it, it_t end) noexcept
+    {
+        assert(std::distance(it, end) <= max_size);
+
+        for (size_t index = 0; it != end; ++it, ++index)
+        {
+            uint64_t offset = index * bits_per_value;
+            word = (word & ~(bit_mask << offset)) | uint64_t{*it} << offset;
+        }
+    }
+
+    // template <typename TPos, typename TValue2>
+    // inline TValue2
+    // assignValue(TPos k, TValue2 const source)
+    // {
+    //     SEQAN_ASSERT_GEQ(static_cast<int64_t>(k), 0);
+    //     SEQAN_ASSERT_LT(static_cast<int64_t>(k), static_cast<int64_t>(SIZE));
+
+    //     unsigned shift = ((SIZE - 1 - k) * BitsPerValue<TValue>::VALUE);
+    //     i = (i & ~(BIT_MASK << shift)) | (TBitVector)ordValue(source) << shift;
+    //     return source;
+    // }
+
+    constexpr std::add_pointer_t<uint64_t>  data() noexcept
+    {
+        return &word;
+    }
+
+    constexpr std::add_pointer_t<uint64_t const> data() const noexcept
+    {
+        return &word;
+    }
+};
+
 //! A rank structure proposed by Christopher Pockrandt
 /*!
  * This data structure is similar to rank data structures on bit vectors.
