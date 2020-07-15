@@ -4,40 +4,73 @@
 /*! \file rank_support_int_v.hpp
  *  \brief rank_support_int_v.hpp contains rank_support_int_v.
  *  \author Christopher Pockrandt
+ *  \author René Rahn
  */
 #ifndef INCLUDED_SDSL_RANK_SUPPORT_INT_V
 #define INCLUDED_SDSL_RANK_SUPPORT_INT_V
 
+#include <array>
+
 #include "rank_support_int.hpp"
 
-//! Namespace for the succinct data structure library.
-namespace sdsl {
+namespace sdsl::detail {
 
 /*!\brief A bit compressed
- * \tparam value_t The actual value_type.
+ * \tparam value_t The represented value_type.
  * \tparam bits_per_value How many bits are used to store one value. Must be less than 64.
  *
+ * \details
+ *
+ * Uses bit compression to pack as many values as possible into one word.
+ * The last bits won't be used if `bits_per_value` is not a power of two.
  */
 template <typename value_t, size_t bits_per_value>
 class bit_compressed_word
 {
 private:
-    static constexpr uint64_t max_size = (sizeof(uint64_t) << 3) / bits_per_value;
-    static constexpr uint64_t bit_mask = bits::lo_set[bits_per_value];
-    static constexpr uint64_t mask = ((1ull << (max_size * bits_per_value - 1)) - 1ull) << 1 | 1ull;
+    static_assert(bits_per_value <= 64, "The maximum bit size is 64 for a value.");
 
+    //!\brief The maximal number of values that can be stored in one word.
+    static constexpr uint64_t max_size = (sizeof(uint64_t) << 3) / bits_per_value;
+    //!\brief A mask used to zero out all bits that do not belong to the value.
+    static constexpr uint64_t bit_mask = bits::lo_set[bits_per_value];
+
+    //!\brief The data holder that stores the compressed values.
     uint64_t word{};
 
 public:
-
+    //!\brief The default constructor.
     bit_compressed_word() = default;
+    //!\brief The copy constructor.
+    bit_compressed_word(bit_compressed_word const &) = default;
+    //!\brief The move constructor.
+    bit_compressed_word(bit_compressed_word &&) = default;
+    //!\brief The copy assignment.
+    bit_compressed_word & operator=(bit_compressed_word const &) = default;
+    //!\brief The move assignment.
+    bit_compressed_word & operator=(bit_compressed_word &&) = default;
+    //!\brief The destructor.
+    ~bit_compressed_word() = default;
 
+    /*!\brief Constructs from a range of values.
+     * \tparam it_t The iterator type.
+     * \param[in] it The iterator pointing to the first element to be stored.
+     * \param[in] end The end of the range.
+     *
+     * \details
+     *
+     * The size of the range must be less or equal than `max_size`.
+     */
     template <typename it_t>
     constexpr bit_compressed_word(it_t it, it_t end) noexcept
     {
         assign(it, end);
     }
 
+    /*!\brief Extracts the value from the given index.
+     * \param[in] index The index to get the value from.
+     * \returns The value at given index.
+     */
     constexpr value_t operator[](size_t const index) const noexcept
     {
         assert(index < max_size);
@@ -45,6 +78,9 @@ public:
         return value_t{(word >> offset) & bit_mask};
     }
 
+    /*!\brief Assigns a range to the word.
+     * \copydetails sdsl::detail::bit_compressed_word::bit_compressed_word(it_t it, it_t end)
+     */
     template <typename it_t>
     constexpr void assign(it_t it, it_t end) noexcept
     {
@@ -57,28 +93,16 @@ public:
         }
     }
 
-    // template <typename TPos, typename TValue2>
-    // inline TValue2
-    // assignValue(TPos k, TValue2 const source)
-    // {
-    //     SEQAN_ASSERT_GEQ(static_cast<int64_t>(k), 0);
-    //     SEQAN_ASSERT_LT(static_cast<int64_t>(k), static_cast<int64_t>(SIZE));
-
-    //     unsigned shift = ((SIZE - 1 - k) * BitsPerValue<TValue>::VALUE);
-    //     i = (i & ~(BIT_MASK << shift)) | (TBitVector)ordValue(source) << shift;
-    //     return source;
-    // }
-
-    constexpr std::add_pointer_t<uint64_t>  data() noexcept
+    //!\brief Implicitly converts to the word type.
+    constexpr operator uint64_t() const noexcept
     {
-        return &word;
-    }
-
-    constexpr std::add_pointer_t<uint64_t const> data() const noexcept
-    {
-        return &word;
+        return word;
     }
 };
+} // namespace sdsl::detail
+
+//! Namespace for the succinct data structure library.
+namespace sdsl {
 
 //! A rank structure proposed by Christopher Pockrandt
 /*!
@@ -98,223 +122,430 @@ public:
  */
 template <uint8_t alphabet_size, uint8_t words_per_block = 1, uint8_t blocks_per_superblock = 4>
 class rank_support_int_v : public rank_support_int<alphabet_size> {
-public:
-    typedef int_vector<> int_vector_type;
-    typedef typename rank_support_int<alphabet_size>::size_type size_type;
-    typedef typename rank_support_int<alphabet_size>::value_type value_type;
-
 private:
-    int_vector<0> m_block;
-    int_vector<64> m_superblock; // TODO: set width (at runtime). benchmark space consumption and running time
+    //!\brief The type of the base class.
+    using base_t = rank_support_int<alphabet_size>;
 
-    static constexpr uint64_t values_per_word{static_cast<uint64_t>(64) / rank_support_int<alphabet_size>::t_b};
-    static constexpr uint32_t values_per_block{words_per_block * values_per_word};
+    // Import sigma specific constants from base class.
+    using base_t::sigma;
+    using base_t::sigma_bits;
+    using base_t::bits_per_word;
+
+    //!\brief How many values can be stored in one word.
+    static constexpr uint64_t values_per_word{64ULL / sigma_bits};
+    //!\brief How many values can be stored in one block.
+    static constexpr uint64_t values_per_block{words_per_block * values_per_word};
+    //!\brief How many values can be stored in one superblock.
+    static constexpr uint64_t values_per_superblock{blocks_per_superblock * values_per_block};
+    //!\brief How many words can be stored in one superblock.
+    static constexpr uint64_t words_per_superblock{words_per_block * blocks_per_superblock};
+    //!\brief The effective alphabet size needed to compute the prefix ranks.
+    static constexpr uint64_t effective_alphabet_size = alphabet_size - 1;
+
+    struct superblock_entry;
+
+    //!\brief The vector over the superblock superblocks.
+    std::vector<superblock_entry> superblocks{};
+    //!\brief The size of the original text.
+    typename base_t::size_type text_size{};
 
 public:
-    explicit rank_support_int_v(const int_vector<>* v = nullptr) : rank_support_int<alphabet_size>(v)
+    //!\brief The size type.
+    using typename base_t::size_type;
+    //!\brief The value type.
+    using typename base_t::value_type;
+
+    /*!\brief Constructs and initialises the rank support structure for the given text.
+     * \param[in] text_ptr The pointer to the text to build the rank support for.
+     *
+     * \details
+     *
+     * The text will be copied into the superblock structure to utilise better cache locality when computing the
+     * prefix rank for a given symbol and prefix length. Accordingly, the pointer to the text of the base class will
+     * always be a nullptr.
+     */
+    explicit rank_support_int_v(const int_vector<> * text_ptr = nullptr) : rank_support_int<alphabet_size>(nullptr)
     {
         static_assert(blocks_per_superblock > 1, "There must be at least two blocks per superblock!");
-        constexpr uint8_t t_v_decr{this->t_v - 1};
 
-        if (v == nullptr)
-        {
+        if (text_ptr == nullptr || text_ptr->empty())
             return;
-        }
-        else if (v->empty())
-        {
-            m_block.resize(t_v_decr, 0);
-            m_superblock.resize(t_v_decr, 0);
-            return;
-        }
 
-        constexpr uint64_t words_per_superblock{words_per_block * blocks_per_superblock};
-        constexpr uint64_t values_per_superblock{blocks_per_superblock * values_per_block};
-        constexpr uint64_t new_width{ceil_log2(values_per_superblock)};
-        m_block.width(new_width);
+        text_size = text_ptr->size();
 
         // NOTE: number of elements is artificially increased by one because rank can be called on m_v[size()]
-        uint64_t const word_count = ((this->m_v->size() - 1 + 1) / values_per_word) + 1; // equivalent to ceil(m_v->size() / values_per_word)
-        uint64_t const block_count = ((word_count - 1) / words_per_block) + 1; // equivalent to ceil(word_count / words_per_block)
+        uint64_t const word_count = (text_size + values_per_word - 1) / values_per_word;
+        uint64_t const block_count = (word_count + words_per_block - 1) / words_per_block;
+        size_type const superblock_count = (word_count + words_per_superblock - 1) / words_per_superblock;
 
-        // for each superblock we only need `blocks_per_superblock-1` instead of `blocks_per_superblock` blocks.
-        // for the last superblock we can subtract the last unused blocks.
-        size_type const blocks_needed = (((block_count - 1) / blocks_per_superblock) + 1) * (blocks_per_superblock - 1)
-                                      - ((blocks_per_superblock - (block_count % blocks_per_superblock)) % blocks_per_superblock);
-        size_type const block_size = blocks_needed * t_v_decr;
-        size_type const superblock_size = (((word_count - 1) / words_per_superblock) + 1) * t_v_decr; // equivalent to ceil(word_count / words_per_superblock) * t_v_decr
-        m_block.resize(block_size);
-        m_superblock.resize(superblock_size);
+        // Buffers to keep track of the cumulative sums for the superblocks and blocks inside of a superblock.
+        std::array<uint64_t, effective_alphabet_size> buf_blocks{};
+        std::array<uint64_t, effective_alphabet_size> buf_superblocks{};
 
-        uint64_t const * data = this->m_v->data();
-        std::vector<uint64_t> buf_blocks(t_v_decr, 0);
-        std::vector<uint64_t> buf_superblocks(t_v_decr, 0);
+        // Allocate memory for the superblocks.
+        superblocks.resize(superblock_count);
 
-        for (uint64_t v = 0; v < t_v_decr; ++v)
-            m_superblock[v] = 0;
-
-        // Precompute blocks and superblocks
-        // NOTE: divisors in modulo operations are constexpr and hence are expected to be cheap
-        for (uint64_t word_id = 0, block_id = 0, superblock_id = t_v_decr; word_id < word_count; ++word_id)
+        // Iterate over the superblock entries and initialise them.
+        auto text_slice_it = text_ptr->begin();
+        uint64_t word_id = 0;  // We basically iterate over all words of the underlying text.
+        for (auto entry_it = superblocks.begin(); entry_it != superblocks.end(); ++entry_it)
         {
-            for (uint64_t v = 0; v < t_v_decr; ++v)
-                buf_blocks[v] += this->full_word_prefix_rank(data, word_id, v);
-
-            // counted the values in the last word of the current block
-            if (word_id % words_per_block == (words_per_block - 1))
+            // First initialise the superblock text.
+            for (auto & compressed_word : entry_it->superblock_text)
             {
-                if (word_id % words_per_superblock != (words_per_superblock - 1))
+                // Get the text slice that can be stored in one word.
+                auto text_slice_end = std::next(text_slice_it,
+                                                std::min<size_t>(std::distance(text_slice_it, text_ptr->end()),
+                                                                 values_per_word));
+                compressed_word.assign(text_slice_it, text_slice_end); // Assign text slice to compressed word.
+                text_slice_it = text_slice_end; // Set to next text slice begin.
+            }
+
+            // Second initialise the superblock counts.
+            // The rank values are stored for every symbol of the alphabet in consecutive order.
+            // The last symbol can be ignored since it's prefix sum will always be same as the prefix length.
+            auto superblock_it = entry_it->superblocks.begin();  // Store the begin of the super block in the node.
+            for (size_t letter_rank = 0; letter_rank < effective_alphabet_size; ++letter_rank, ++superblock_it)
+            {
+                buf_superblocks[letter_rank] += buf_blocks[letter_rank]; // Update sum with previous superblock
+                *superblock_it = buf_superblocks[letter_rank]; // Store the counts.
+                buf_blocks[letter_rank] = 0; // Reset the block counts for the next superblock.
+            }
+
+            // Third initialise the block counts:
+            // The stored block counts represent the cumulative sum of the previous blocks in the super block.
+            // The first block of the superblock is not stored explicitly since it has no predecessor.
+            // A block stores the counts for the letters consecutive in memory from [0..max_letter] and starts then the
+            // next block at offset `i * effective_alphabet_size`, where `i` is the current block id.
+            // TODO: Make the implementation safe for multiple words per block
+            auto text_it = entry_it->superblock_text.begin();
+            for (auto block_it = entry_it->blocks.begin();
+                 word_id < word_count && block_it != entry_it->blocks.end();
+                 ++word_id, ++text_it)
+            {
+                // Get the prefix ranks for the current word for each letter and store them in the respective block
+                for (size_t letter_rank = 0; letter_rank < effective_alphabet_size; ++letter_rank, ++block_it)
                 {
-                    if (block_id < m_block.size()) // TODO: rewrite for loop to eliminate need for if clause here
-                    {
-                        for (uint64_t v = 0; v < t_v_decr; ++v)
-                            m_block[block_id + v] = buf_blocks[v];
-                        block_id += t_v_decr;
-                    }
-                }
-                else
-                { // don't store block information for the last block in the superblock!
-                    if (superblock_id < m_superblock.size()) // TODO: rewrite for loop to eliminate need for if clause here
-                    {
-                        for (uint64_t v = 0; v < t_v_decr; ++v)
-                        {
-                            buf_superblocks[v] += buf_blocks[v];
-                            m_superblock[superblock_id + v] = buf_superblocks[v];
-                            buf_blocks[v] = 0; // reset blocks
-                        }
-                    }
-                    superblock_id += t_v_decr;
+                    buf_blocks[letter_rank] += this->full_word_prefix_rank2(*text_it, letter_rank);
+                    *block_it = buf_blocks[letter_rank];
                 }
             }
+
+            // Count the last block which is not stored explicitly.
+            if (word_id < word_count)
+            {
+                for (uint64_t letter = 0; letter < effective_alphabet_size; ++letter)
+                    buf_blocks[letter] += this->full_word_prefix_rank2(*text_it, letter);
+
+                ++word_id;
+            }
         }
-
-        // std::cout << "\nBlocks:\n";
-        // for (uint64_t i = 0; i < m_block.size(); i += t_v_decr)
-        // {
-        // 	for (uint64_t v = 0; v < t_v_decr; ++v)
-        //         std::cout << (unsigned)m_block[i + v] << ' ';
-        //     std::cout << "| ";
-        // }
-        // std::cout << "\nSuperBlocks:\n";
-        // for (uint64_t i = 0; i < m_superblock.size(); i += t_v_decr)
-        // {
-        // 	for (uint64_t v = 0; v < t_v_decr; ++v)
-        //     	std::cout << (unsigned)m_superblock[i + v] << ' ';
-        //     std::cout << "| ";
-        // }
-        // std::cout << "\n\n";
     }
 
+    //!\brief Defaulted copy constructor.
     rank_support_int_v(const rank_support_int_v&) = default;
+    //!\brief Defaulted move constructor.
     rank_support_int_v(rank_support_int_v&&) = default;
+    //!\brief Defaulted copy assignment.
     rank_support_int_v& operator=(const rank_support_int_v&) = default;
+    //!\brief Defaulted move assignment.
     rank_support_int_v& operator=(rank_support_int_v&&) = default;
+    //!\brief Defaulted destructor.
+    ~rank_support_int_v() = default;
 
-    //! Counts the occurrences of v in the prefix [0..idx-1]
-    /*! \param idx Argument for the length of the prefix v[0..idx-1].
-     *  \param v Argument which value to count.
-     *  \sa prefix_rank
+    /*!\brief Counts the occurrences of v in the prefix [0..idx-1]
+     * \param position The position of the symbol to get the prefix rank for (corresponds to length of the
+     *                 prefix: `[0..position - 1]`).
+     * \param v The alphabet symbol to get the rank for.
+     * \sa prefix_rank
      */
-    size_type rank(const size_type idx, const value_type v) const
+    size_type rank(const size_type position, const value_type v) const
     {
-        assert(this->m_v != nullptr);
-        assert(idx <= this->m_v->size());
-
-        if (unlikely(v == 0))
-            return prefix_rank(idx, v);
-
-        // TODO: optimize this (and benchmark)
-        return prefix_rank(idx, v) - prefix_rank(idx, v - 1);
+        switch (v)
+        {
+            case 0 : return prefix_rank_impl<false>(position, v);
+            case sigma - 1 : return position - prefix_rank_impl<false>(position, v - 1);
+            default: return prefix_rank_impl<true>(position, v);
+        }
     }
 
-    //! Alias for rank(idx, v)
-    inline size_type operator()(const size_type idx, const value_type v) const { return rank(idx, v); }
+    //! \brief Alias for rank(position, v)
+    inline size_type operator()(const size_type position, const value_type v) const { return rank(position, v); }
 
-    //! Counts the occurrences of elements smaller or equal to v in the prefix [0..idx-1]
-    /*! \param idx Argument for the length of the prefix v[0..idx-1].
-     *  \param v Argument which value (including smaller values) to count.
-     *  \sa rank
+    /*!\brief Counts the occurrences of elements smaller or equal to v in the prefix [0..idx-1]
+     * \param position The position of the symbol to get the prefix rank for (corresponds to length of the
+     *                 prefix: `[0..position - 1]`).
+     * \param v The alphabet symbol to get the rank for.
+     * \sa rank
      */
-    size_type prefix_rank(const size_type idx, const value_type v) const
+    size_type prefix_rank(const size_type position, const value_type v) const
     {
-        assert(this->m_v != nullptr);
-        assert(idx <= this->m_v->size());
-        assert(v <= this->t_v);
+        assert(position <= this->m_v->size());
+        assert(v <= this->sigma);
 
-        if (unlikely(v == this->t_v - 1))
-            return idx;
+        if (unlikely(v == this->sigma - 1))
+            return position;
 
-        constexpr uint8_t t_v_decr{this->t_v - 1};
-
-        size_type const block_id{idx / values_per_block};
-        size_type const superblock_id{block_id / blocks_per_superblock};
-        size_type const block_id_in_superblock{block_id % blocks_per_superblock};
-
-        // retrieve superblock value
-        size_type res = m_superblock[t_v_decr * superblock_id + v];
-
-        // retrieve block value
-        if (block_id_in_superblock > 0)
-            res += m_block[t_v_decr * superblock_id * (blocks_per_superblock - 1) + (block_id_in_superblock - 1)  * t_v_decr + v];
-
+        return prefix_rank_impl<false>(position, v);
+        // TODO: Enable me!
         // compute in-block queries for all words before the in-block queries
         // this only applies when multiple words are in one block
-        if (words_per_block > 1)
-        {
-            size_type const word_id{idx / values_per_word};
-            uint64_t w{word_id - (word_id % words_per_block)};
-            while (w < word_id)
-            {
-                res += this->full_word_prefix_rank(this->m_v->data(), w, v);
-                ++w;
-            }
-        }
-
-        // compute in-block query
-        if (idx % values_per_block != 0)
-            res += this->word_prefix_rank(this->m_v->data(), idx, v);
-
-        return res;
+        // if constexpr (words_per_block > 1)
+        // {
+        //     size_type const word_id{idx / values_per_word};
+        //     uint64_t w{word_id - (word_id % words_per_block)};
+        //     while (w < word_id)
+        //     {
+        //         res += this->full_word_prefix_rank(this->m_v->data(), w, v);
+        //         ++w;
+        //     }
+        //     // std::cout << "res3=" << res << '\n';
+        // }
     }
 
-    size_type size() const { return this->m_v->size(); }
+    //!\brief Returns the size of the original text.
+    size_type size() const { return text_size; }
 
+    //!\brief Serialises the rank support data structure.
     size_type serialize(std::ostream& out, structure_tree_node* v = nullptr, const std::string name = "") const
     {
         structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
         size_type written_bytes = 0;
-        written_bytes += m_block.serialize(out, child, "prefix_block_counts");
-        written_bytes += m_superblock.serialize(out, child, "prefix_superblock_counts");
-        structure_tree::add_size(child, written_bytes);
+        // written_bytes += m_block.serialize(out, child, "prefix_block_counts");
+        // written_bytes += m_superblock.serialize(out, child, "prefix_superblock_counts");
+        // structure_tree::add_size(child, written_bytes);
         return written_bytes;
     }
 
+    //!\brief Loads the rank support data structure from the stream.
     void load(std::istream& in, const int_vector<>* v = nullptr)
     {
-        this->m_v = v;
-        m_block.load(in);
-        m_superblock.load(in);
-        this->init(v);
+        // this->m_v = v;
+        // m_block.load(in);
+        // m_superblock.load(in);
+        // this->init(v);
     }
 
+    //!\brief Serialisation via cereal.
     template <typename archive_t>
     void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
     {
-        ar(CEREAL_NVP(m_block));
-        ar(CEREAL_NVP(m_superblock));
+        // ar(CEREAL_NVP(m_block));
+        // ar(CEREAL_NVP(m_superblock));
     }
 
+    //!\brief Serialisation via cereal.
     template <typename archive_t>
     void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
     {
-        ar(CEREAL_NVP(m_block));
-        ar(CEREAL_NVP(m_superblock));
+        // ar(CEREAL_NVP(m_block));
+        // ar(CEREAL_NVP(m_superblock));
     }
 
-    void set_vector(const int_vector<>* v = nullptr)
+private:
+    //!\brief Does nothing for the rank_support_int structure.
+    void set_vector(const int_vector<>* /*other_text*/ ){} // TODO: Check where this interface is needed, since it is dangerous?
+    // I would be able to reset the text without recomputing the rank support structure which is in general a
+    // bad design.
+
+    /*!\brief Determines the superblock position covering the given text position.
+     * \param[in] position The given text position.
+     * \returns The position of the superblock that covers the given text position.
+     */
+    constexpr size_type to_superblock_position(size_t const position) const noexcept
     {
-        this->m_v = v;
-        this->init(v);
+        return position / values_per_superblock;
     }
+
+    /*!\brief Implements the prefix rank calculation.
+     * \param position The position of the symbol to get the prefix rank for (corresponds to length of the
+     *                 prefix: `[0..position - 1]`).
+     * \param v The alphabet symbol to get the rank for.
+     */
+    template <bool compute_prefix_delta>
+    size_type prefix_rank_impl(size_type const position, const value_type v) const
+    {
+        assert(position <= this->m_v->size());
+        assert(v < this->sigma); // v cannot have rank sigma - 1
+        assert(v > 0); // v cannot have rank 0
+
+        superblock_entry const & entry = superblocks[to_superblock_position(position)];
+        return entry.template superblock_rank<compute_prefix_delta>(v) +
+               entry.template block_rank<compute_prefix_delta>(position, v) +
+               entry.template in_block_rank<compute_prefix_delta>(position, v);
+
+        // TODO: Enable me!
+        // if constexpr (words_per_block > 1)
+        // {
+        //     size_type const word_id{position / values_per_word};
+        //     uint64_t w{word_id - (word_id % words_per_block)};
+        //     while (w < word_id)
+        //     {
+        //         res_upper += this->full_word_prefix_rank(this->m_v->data(), w, v);
+        //         res_lower += this->full_word_prefix_rank(this->m_v->data(), w, v - 1);
+        //         ++w;
+        //     }
+        // }
+    }
+};
+
+/*!\brief Stores a superblock entry in a cache friendly pattern.
+ *
+ * \details
+ *
+ * One superblock entry represents one superblock in the rank support structure.
+ * The text is stored efficiently in a sdsl::detail::bit_compressed_word.
+ * The superblock array stores a rank count for `sigma - 1` many values.
+ * The block array stores a rank count for `blocks_per_superblock - 1` many blocks times `sigma - 1` for every
+ * symbol of the alphabet.
+ */
+template <uint8_t alphabet_size, uint8_t words_per_block, uint8_t blocks_per_superblock>
+struct rank_support_int_v<alphabet_size, words_per_block, blocks_per_superblock>::superblock_entry
+{
+    //!\brief The offset used to jump to the correct block position.
+    static constexpr size_t block_offset = effective_alphabet_size;
+    // static constexpr size_t bits_per_block_value = ceil_log2(values_per_superblock);
+    // static constexpr size_t block_values_per_word = 64 / bits_per_block_value;
+    // static constexpr size_t how many blocks do we need to store then?
+    // -> follows we can store 10 blocks in one word -> 5 blocks for one at the moment.
+    // How many do we need then? And we need to be able to access it later on.
+    // using bit_compressed_block = bit_compressed_word<uint32_t, bits_per_block_value>;
+
+    //!\brief The array storing the super block values.
+    std::array<uint64_t, (alphabet_size - 1)> superblocks;
+    //!\brief The array storing the block values.
+    std::array<uint32_t, (blocks_per_superblock - 1) * (alphabet_size - 1)> blocks;
+    //!\brief The array storing the bit compressed text.
+    std::array<detail::bit_compressed_word<uint8_t, sigma_bits>, words_per_superblock> superblock_text;
+
+    /*!\brief Returns the rank value from the superblock.
+     * \tparam compute_prefix_delta A flag to indicate if the actual value or the delta with the previous symbol
+     *                              shall be computed.
+     * \param[in] v The symbol to get the rank for.
+     */
+    template <bool compute_prefix_delta>
+    constexpr size_type superblock_rank(value_type const v) const noexcept
+    {
+        return superblocks[v] - ((compute_prefix_delta) ? superblocks[v - 1] : 0);
+    }
+
+    /*!\brief Returns the rank value from the block.
+     * \tparam compute_prefix_delta A flag to indicate if the actual value or the delta with the previous symbol
+     *                              shall be computed.
+     * \param[in] position The text position to get the rank for.
+     * \param[in] v The symbol to get the rank for.
+     *
+     * \details
+     *
+     * The first block stores the counts for the actual second block.
+     * Hence, if we are in the first block of the superblock we get the first block value but multiply it with 0.
+     */
+    template <bool compute_prefix_delta>
+    constexpr size_type block_rank(size_t const position, value_type const v) const noexcept
+    {
+        size_type const block_id = block_position_in_superblock(position);
+        size_type const block_position = absolute_block_position(block_id) + v;
+        return (block_id != 0) * (blocks[block_position] - ((compute_prefix_delta) ? blocks[block_position - 1] : 0));
+    }
+
+    /*!\brief Returns the rank value from the in-block query.
+     * \tparam compute_prefix_delta A flag to indicate if the actual value or the delta with the previous symbol
+     *                              shall be computed.
+     * \param[in] position The text position to get the rank for.
+     * \param[in] v The symbol to get the rank for.
+     *
+     * \details
+     *
+     * If the position is at the beginning of a block the compute rank value is multiplied with 0.
+     */
+    template <bool compute_prefix_delta>
+    constexpr size_type in_block_rank(size_t const position, value_type const v) const noexcept
+    {
+        // First, get the local bit position within the data of the super block.
+        size_type const bit_pos = absolute_bit_position(position);
+        // Second, compute the word that contains this value.
+        uint64_t const word = superblock_text[absolute_word_position(bit_pos)];
+        // Third, compute the in-block rank given the current word.
+        return (position % values_per_block != 0) * word_prefix_rank<compute_prefix_delta>(word, bit_pos, v);
+    }
+
+private:
+
+    //!\brief Maps the given position to the block position inside of the superblock.
+    static constexpr size_type block_position_in_superblock(size_t const position) noexcept
+    { // if constexpr (blocks_per_superblock power of 2)
+        return (position / values_per_block) % blocks_per_superblock;
+    }
+
+    //!\brief Maps a block position to its absolute position within the block array.
+    static constexpr size_type absolute_block_position(size_t const block_position) noexcept
+    { // We don't care if it overflows as we protect against it later.
+        return (block_position - 1) * block_offset;
+    }
+
+    //!\brief Maps a text position to the respective bit position in the bit vector.
+    static constexpr size_type absolute_bit_position(size_t const position) noexcept
+    { // We don't care if it overflows as we protect against it later.
+        return (position % values_per_superblock) * sigma_bits;
+    }
+
+    //!\brief Maps a bit position to the word position within the superblock text array.
+    static constexpr size_type absolute_word_position(size_t const bit_position) noexcept
+    { // We don't care if it overflows as we protect against it later.
+        return bit_position / bits_per_word;
+    }
+
+    //!\brief Computes the in-block rank for the delta prefix.
+    template <bool compute_prefix_delta>
+    static constexpr auto word_prefix_rank(const uint64_t word, const uint64_t bit_pos, const value_type v)
+        -> typename std::enable_if<compute_prefix_delta, size_type>::type
+    {
+        auto && prefix_rank = base_t::word_prefix_rank2(word, bit_pos, v - 1, v);
+        return prefix_rank[1] - prefix_rank[0];
+    }
+
+    //!\brief Computes the in-block rank for the non-delta prefix.
+    template <bool compute_prefix_delta>
+    static constexpr auto word_prefix_rank(const uint64_t word, const uint64_t bit_pos, const value_type v)
+        -> typename std::enable_if<!compute_prefix_delta, size_type>::type
+    {
+        return base_t::word_prefix_rank2(word, bit_pos, v)[0];
+    }
+
+    //TODO Write me!
+    // size_type serialize(std::ostream& out, structure_tree_node* v = nullptr, const std::string name = "") const
+    // {
+    //     structure_tree_node* child = structure_tree::add_child(v, name, sdsl::util::class_name(*this));
+    //     size_type written_bytes = 0;
+    //     written_bytes += blocks.serialize(out, child, "prefix_block_counts");
+    //     written_bytes += superblocks.serialize(out, child, "prefix_superblock_counts");
+    //     written_bytes += text_slice.serialize(out, child, "superblock_text_slice");
+    //     structure_tree::add_size(child, written_bytes);
+    //     return written_bytes;
+    // }
+
+    // void load(std::istream& in)
+    // {
+    //     blocks.load(in);
+    //     superblocks.load(in);
+    //     text_slice.load(in);
+    // }
+
+    // template <typename archive_t>
+    // void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+    // {
+    //     ar(CEREAL_NVP(blocks));
+    //     ar(CEREAL_NVP(superblocks));
+    //     ar(CEREAL_NVP(text_slice));
+    // }
+
+    // template <typename archive_t>
+    // void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+    // {
+    //     ar(CEREAL_NVP(blocks));
+    //     ar(CEREAL_NVP(superblocks));
+    //     ar(CEREAL_NVP(text_slice));
+    // }
 };
 
 } // end namespace sdsl
