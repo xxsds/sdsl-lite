@@ -56,13 +56,7 @@ protected:
         return (length >= max_length) ? w : bm_rec(w | (w << length), length << 1, max_length);
     }
 
-protected:
-    static constexpr uint8_t sigma{alphabet_size};
-    static constexpr uint8_t sigma_bits{ceil_log2(alphabet_size)};
-    static constexpr uint8_t bits_per_word{(64 / sigma_bits) * sigma_bits};
-    static constexpr uint64_t even_mask{bm_rec<uint64_t>(bits::lo_set[sigma_bits], sigma_bits * 2, 64)};
-    static constexpr uint64_t carry_select_mask{bm_rec<uint64_t>(1ULL << sigma_bits, sigma_bits * 2, 64)};
-    static constexpr std::array<uint64_t, alphabet_size> masks = [] () constexpr
+    static std::array<uint64_t, alphabet_size> generate_mask_array()
     {
         std::array<uint64_t, alphabet_size> masks{};
 
@@ -78,7 +72,15 @@ protected:
             masks[v] |= tmp_carry << sigma_bits;
 
         return masks;
-    }();
+    }
+
+protected:
+    static constexpr uint8_t sigma{alphabet_size};
+    static constexpr uint8_t sigma_bits{ceil_log2(alphabet_size)};
+    static constexpr uint8_t bits_per_word{(64 / sigma_bits) * sigma_bits};
+    static constexpr uint64_t even_mask{bm_rec<uint64_t>(bits::lo_set[sigma_bits], sigma_bits * 2, 64)};
+    static constexpr uint64_t carry_select_mask{bm_rec<uint64_t>(1ULL << sigma_bits, sigma_bits * 2, 64)};
+    static const std::array<uint64_t, alphabet_size> masks;
 
     const int_vector<>* m_v; //!< Pointer to the rank supported bit_vector
 
@@ -214,6 +216,9 @@ protected:
         return *(data + word_position);
     }
 };
+
+template <uint8_t alphabet_size>
+const std::array<uint64_t, alphabet_size> rank_support_int<alphabet_size>::masks = generate_mask_array();
 
 } // end namespace sdsl
 
