@@ -15,6 +15,7 @@
 #include <vector>
 #include <utility>
 #include <tuple>
+#include <type_traits>
 
 //! Namespace for the succinct data structure library.
 namespace sdsl {
@@ -44,17 +45,47 @@ public:
     enum { lex_ordered = true };
 
 private:
+    //!\brief Check if underlying rank support structure stores the text implicitly.
+    static constexpr bool has_inblock_text = std::is_same<rank_type, rank_support_int_v<alphabet_size>>::value;
 
     size_type  m_size  = 0; // original text size
     size_type  m_sigma = 0; // alphabet size
     int_vector<>    m_bv; // bit vector to store the wavelet tree
     rank_type  m_bv_rank; // rank support for the wavelet tree bit vector
 
-    void construct_init_rank_select()
+    // Overload for the special epr rank structure.
+    template <bool has_inblock_text_>
+    auto construct_init_rank_select(int_vector<> intermediate_bitvector)
+        -> std::enable_if_t<has_inblock_text_, void>
     {
-        rank_type temp(&m_bv); // generate a temporary support object
-        m_bv_rank = std::move(temp); // swap its content with the target object
-        m_bv_rank.set_vector(&m_bv); // set the support object's  pointer to x
+        // The text is stored inside of the rank structure so we do not store it here.
+        m_bv_rank = rank_type{&intermediate_bitvector}; // Create the rank support structure.
+    }
+
+    // Overload for the other rank support structures.
+    template <bool has_inblock_text_>
+    auto construct_init_rank_select(int_vector<> intermediate_bitvector)
+        -> std::enable_if_t<!has_inblock_text_, void>
+    {
+        m_bv = std::move(intermediate_bitvector);
+        m_bv_rank = rank_type{&m_bv}; // Create the rank support structure.
+    }
+
+    // Extract the text value from the given position.
+    // Overload for the special epr rank structure.
+    template <bool has_inblock_text_>
+    auto value_at(size_type const position) const -> std::enable_if_t<has_inblock_text_, value_type>
+    { // In the special epr rank implementation the text is stored in the superblocks.
+        assert(position < size());
+        return m_bv_rank.value_at(position); // Extract the value from the rank support structure.
+    }
+
+    // Overload for the other rank support structures.
+    template <bool has_inblock_text_>
+    auto value_at(size_type const position) const -> std::enable_if_t<!has_inblock_text_, value_type>
+    {
+        assert(position < size());
+        return m_bv[position];
     }
 
 public:
@@ -62,15 +93,15 @@ public:
     const int_vector<>& bv = m_bv;
 
     // Default constructor
-    wt_epr(){};
+    wt_epr() = default;
 
     //! Construct the EPR-dictionary from a sequence defined by two interators
     /*!
-         * \param begin Iterator to the start of the input.
-         * \param end   Iterator one past the end of the input.
-         * \par Time complexity
-         *      \f$ \Order{n\log|\Sigma|}\f$, where \f$n=size\f$
-         */
+     * \param begin Iterator to the start of the input.
+     * \param end   Iterator one past the end of the input.
+     * \par Time complexity
+     *      \f$ \Order{n\log|\Sigma|}\f$, where \f$n=size\f$
+     */
     template <typename t_it>
     wt_epr(t_it begin, t_it end) : m_size(std::distance(begin, end))
     {
@@ -84,26 +115,26 @@ public:
         calculate_character_occurences(begin, end, C);
         // 2. Calculate effective alphabet size
         calculate_effective_alphabet_size(C, m_sigma);
+
+        // The text cannot have an alphabet larger than the required alphabet_size.
+        if (m_sigma > alphabet_size)
+            throw std::domain_error{"The given text uses an alphabet that is larger than the explicitly given "
+                                    "alphabet size."};
+
         // 4. Generate wavelet tree bit sequence m_bv
+        int_vector<> intermediate_bitvector{};
+        intermediate_bitvector.width(std::ceil(std::log2(m_sigma)));
+        intermediate_bitvector.resize(m_size);
 
-        int_vector<> m_bv_tmp;
-        m_bv_tmp.width(std::ceil(std::log2(m_sigma)));
-        m_bv_tmp.resize(m_size);
+        std::copy(begin, end, intermediate_bitvector.begin());
 
-        size_type idx = 0;
-        for (t_it it = begin; it != end; ++it) {
-            m_bv_tmp[idx++] = *it;
-        }
-        int_vector<> m_bv2(m_bv_tmp);
-        m_bv = std::move(m_bv2); // swap its content with the target object
         // 5. Initialize rank and select data structures for m_bv
-        construct_init_rank_select();
+        construct_init_rank_select<has_inblock_text>(std::move(intermediate_bitvector));
     }
 
     template <typename t_it>
     wt_epr(t_it begin, t_it end, std::string) : wt_epr(begin, end)
-    {
-    }
+    {}
 
     //! Copy constructor
     wt_epr(const wt_epr& wt)
@@ -163,10 +194,10 @@ public:
      * \par Precondition
      *      \f$ i < size() \f$
      */
-    value_type operator[](size_type i) const
+    auto operator[](size_type const i) const
     {
         assert(i < size());
-        return m_bv[i];
+        return value_at<has_inblock_text>(i);
     };
 
     //! Calculates how many symbols c are in the prefix [0..i-1].
@@ -199,7 +230,8 @@ public:
     std::pair<size_type, value_type> inverse_select(size_type i) const
     {
         assert(i < size());
-        return std::make_pair(m_bv_rank.rank(i, m_bv[i]), m_bv[i]);
+        value_type value = (*this)[i];
+        return std::make_pair(m_bv_rank.rank(i, value), value);
     }
 
     // TODO: implement (if necessary?)
