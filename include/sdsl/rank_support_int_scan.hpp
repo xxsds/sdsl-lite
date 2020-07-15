@@ -25,6 +25,8 @@ namespace sdsl {
 
 template <uint8_t alphabet_size>
 class rank_support_int_scan : public rank_support_int<alphabet_size> {
+private:
+    using base_t = rank_support_int<alphabet_size>;
 public:
     typedef int_vector<> int_vector_type;
     typedef typename rank_support_int<alphabet_size>::size_type size_type;
@@ -69,10 +71,10 @@ rank_support_int_scan<alphabet_size>::rank(const size_type idx, const value_type
     size_type result = 0;
     size_type word_pos = (idx * this->t_b) >> 6;
     while (i < word_pos) {
-        result += this->full_word_rank(p, i, v);
+        result += base_t::full_word_rank(base_t::extract_word(p, i), v);
         ++i;
     }
-    return result + word_rank(p, idx, v);
+    return result + base_t::word_rank(base_t::extract_word(p, idx), idx * this->sigma_bits, v);
 }
 
 //! Counts the occurrences of elements smaller or equal to v in the prefix [0..idx-1]
@@ -92,14 +94,16 @@ rank_support_int_scan<alphabet_size>::prefix_rank(const size_type idx, const val
         return idx;
 
     const uint64_t* p = this->m_v->data();
-    size_type		word_pos = (idx * this->t_b) >> 6;
+    size_type		word_pos = (idx * this->sigma_bits) >> 6;
     size_type       i       = 0;
     size_type		result  = 0;
+
     while (i < word_pos) {
-        result += this->full_word_prefix_rank(p, i, v);
+        result += base_t::full_word_prefix_rank(base_t::extract_word(p, i), v);
         ++i;
     }
-    return result + this->word_prefix_rank(p, idx, v);
+
+    return result + base_t::word_prefix_rank(base_t::extract_word(p, idx), idx * this->sigma_bits, v)[0];
 }
 
 } // end namespace sds

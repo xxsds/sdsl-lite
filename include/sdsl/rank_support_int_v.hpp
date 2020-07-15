@@ -226,7 +226,7 @@ public:
                 // Get the prefix ranks for the current word for each letter and store them in the respective block
                 for (size_t letter_rank = 0; letter_rank < effective_alphabet_size; ++letter_rank, ++block_it)
                 {
-                    buf_blocks[letter_rank] += this->full_word_prefix_rank2(*text_it, letter_rank);
+                    buf_blocks[letter_rank] += this->full_word_prefix_rank(*text_it, letter_rank);
                     *block_it = buf_blocks[letter_rank];
                 }
             }
@@ -235,7 +235,7 @@ public:
             if (word_id < word_count)
             {
                 for (uint64_t letter = 0; letter < effective_alphabet_size; ++letter)
-                    buf_blocks[letter] += this->full_word_prefix_rank2(*text_it, letter);
+                    buf_blocks[letter] += this->full_word_prefix_rank(*text_it, letter);
 
                 ++word_id;
             }
@@ -500,7 +500,7 @@ private:
     static constexpr auto word_prefix_rank(const uint64_t word, const uint64_t bit_pos, const value_type v)
         -> typename std::enable_if<compute_prefix_delta, size_type>::type
     {
-        auto && prefix_rank = base_t::word_prefix_rank2(word, bit_pos, v - 1, v);
+        auto && prefix_rank = base_t::word_prefix_rank(word, bit_pos, v - 1, v);
         return prefix_rank[1] - prefix_rank[0];
     }
 
@@ -509,7 +509,7 @@ private:
     static constexpr auto word_prefix_rank(const uint64_t word, const uint64_t bit_pos, const value_type v)
         -> typename std::enable_if<!compute_prefix_delta, size_type>::type
     {
-        return base_t::word_prefix_rank2(word, bit_pos, v)[0];
+        return base_t::word_prefix_rank(word, bit_pos, v)[0];
     }
 
     //TODO Write me!

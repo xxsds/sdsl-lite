@@ -140,18 +140,23 @@ public:
     virtual void set_vector(const int_vector<>* v = nullptr) = 0;
 
 protected:
+    // Mask the set prefix positions.
+    static constexpr uint64_t mask_prefix(value_type const v, uint64_t const w_even, uint64_t const w_odd) noexcept
+    {
+        // every bit that will be set corresponds to an element <= v
+        // because the preset bit to the left in the precomputed bitmask is not eliminated by the carry bit during the
+        // subtraction.
+        // since alphabet_size is > 2 and an element uses at least 2 bits, we can shift the odd positions by one to the
+        // left and it is guaranteed that when adding both with OR that no bits that are set will overlap.
+        return ((masks[v] - w_even) & carry_select_mask) | (((masks[v] - w_odd) & carry_select_mask) << 1);
+    }
+
     // Count how often value v or smaller occurs in the word w.
     static constexpr uint64_t set_positions_prefix(const uint64_t w, const value_type v) noexcept
     {
         uint64_t const w_even = even_mask & w; // retrieve even positions
         uint64_t const w_odd = even_mask & (w >> sigma_bits); // retrieve odd positions
-        // every bit that will be set corresponds to an element <= v
-        // because the preset bit to the left in the precomputed bitmask is not eliminated by the carry bit during the subtraction
-        uint64_t res = (masks[v] - w_even) & carry_select_mask;
-        // since alphabet_size is > 2 and an element uses at least 2 bits, we can shift the odd positions by one to the left
-        // and it is guaranteed that when adding both with OR that no bits that are set will overlap.
-        res |= ((masks[v] - w_odd) & carry_select_mask) << 1;
-        return res;
+        return mask_prefix(v, w_even, w_odd);
     }
 
     // Count how often value v occurs in the word w.
@@ -167,66 +172,46 @@ protected:
         return res;
     }
 
-    static constexpr uint64_t prefix_positions(value_type const v, uint64_t const w_even, uint64_t const w_odd) noexcept
-    {
-        // since alphabet_size is > 2 and an element uses at least 2 bits, we can shift the odd positions by one to the
-        // left and it is guaranteed that when adding both with OR that no bits that are set will overlap.
-        return ((masks[v] - w_even) & carry_select_mask) | (((masks[v] - w_odd) & carry_select_mask) << 1);
-    }
-
+    // Counts the occurrences of elements smaller or equal to v in the word starting at data up to position idx.
     template <typename ...value_t>
-    static constexpr std::array<uint64_t, sizeof...(value_t)> word_prefix_rank2(const uint64_t word,
-                                                                                const size_type bit_pos,
-                                                                                const value_t ...values) noexcept
+    static constexpr std::array<uint64_t, sizeof...(value_t)> word_prefix_rank(const uint64_t word,
+                                                                               const size_type bit_pos,
+                                                                               const value_t ...values) noexcept
     {
         uint64_t const mask = bits::lo_set[(bit_pos % bits_per_word) + 1];
 
         uint64_t const w_even = even_mask & word; // retrieve even positions
         uint64_t const w_odd = even_mask & (word >> sigma_bits); // retrieve odd positions
-        // every bit that will be set corresponds to an element <= v
-        // because the preset bit to the left in the precomputed bitmask is not eliminated by the carry bit during the subtraction
 
-        return {(bits::cnt(prefix_positions(values, w_even, w_odd) & mask))...};
-    }
-
-    // Counts the occurrences of elements smaller or equal to v in the word starting at data up to position idx.
-    uint32_t word_prefix_rank(const uint64_t* data, const size_type idx, const value_type v) const
-    {
-        size_type const bit_pos = idx * sigma_bits;
-        return word_prefix_rank2(*(data + (bit_pos / bits_per_word)), bit_pos, v)[0];
-        // uint64_t const w = *(data + (bit_pos >> 6));
-        // return bits::cnt(set_positions_prefix(w, v) & bits::lo_set[(bit_pos & 0x3F) + 1]);
+        return {(bits::cnt(mask_prefix(values, w_even, w_odd) & mask))...};
     }
 
     // Counts the occurrences of elements smaller or equal to v in the word starting at data up to position idx.
     // Cannot be called on v = 0. Call word_prefix_rank(data, idx, 0) instead.
-    uint32_t word_rank(const uint64_t* data, const size_type idx, const value_type v) const
+    static constexpr uint32_t word_rank(const uint64_t word, const size_type bit_pos, const value_type v) noexcept
     {
-        size_type const bit_pos = idx * sigma_bits;
-        uint64_t const w = *(data + (bit_pos >> 6)); // why bit_pos >> 6 == bit_pos / 2^6 =? bit_pos / 64. But this only works if we assume that the words are packed.
-        return bits::cnt(set_positions(w, v) & bits::lo_set[(bit_pos & 0x3F) + 1]); // And then we try to get some value from the bit position?
-    }
-
-    // Counts the occurrences of v in the word starting at data up to position idx.
-    uint32_t full_word_prefix_rank2(const uint64_t word, const value_type v) const
-    {
-        return bits::cnt(set_positions_prefix(word, v));
+        return bits::cnt(set_positions(word, v) & bits::lo_set[(bit_pos & 0x3F) + 1]);
     }
 
     // Needed by rank_support_int_scan
     // Counts the occurrences of v in the word starting at data up to position idx.
-    uint32_t full_word_prefix_rank(const uint64_t* data, const size_type word_pos, const value_type v) const
+    static constexpr uint32_t full_word_prefix_rank(const uint64_t word, const value_type v) noexcept
     {
-        uint64_t const w = *(data + word_pos);
-        return bits::cnt(set_positions_prefix(w, v));
+        return bits::cnt(set_positions_prefix(word, v));
     }
 
     // Counts the occurrences of v in the word starting at data up to position idx.
     // Cannot be called on v = 0. Call full_word_prefix_rank(data, word_pos, 0) instead.
-    uint32_t full_word_rank(const uint64_t* data, const size_type word_pos, const value_type v) const
+    static constexpr uint32_t full_word_rank(const uint64_t word, const value_type v) noexcept
     {
-        uint64_t const w = *(data + word_pos);
-        return bits::cnt(set_positions(w, v));
+
+        return bits::cnt(set_positions(word, v));
+    }
+
+    // Returns the word a the given word position.
+    static constexpr uint64_t extract_word(const uint64_t* data, const size_type word_position) noexcept
+    {
+        return *(data + word_position);
     }
 };
 
