@@ -256,7 +256,7 @@ public:
                 // Get the prefix ranks for the current word for each letter and store them in the respective block
                 for (size_t letter_rank = 0; letter_rank < effective_alphabet_size; ++letter_rank, ++block_it)
                 {
-                    buf_blocks[letter_rank] += this->full_word_prefix_rank(*text_it, letter_rank);
+                    buf_blocks[letter_rank] += base_t::full_word_prefix_rank(*text_it, letter_rank);
                     *block_it = buf_blocks[letter_rank];
                 }
             }
@@ -265,7 +265,7 @@ public:
             if (word_id < word_count)
             {
                 for (uint64_t letter = 0; letter < effective_alphabet_size; ++letter)
-                    buf_blocks[letter] += this->full_word_prefix_rank(*text_it, letter);
+                    buf_blocks[letter] += base_t::full_word_prefix_rank(*text_it, letter);
 
                 ++word_id;
             }
@@ -310,10 +310,10 @@ public:
      */
     size_type prefix_rank(const size_type position, const value_type v) const
     {
-        assert(position <= this->m_v->size());
-        assert(v <= this->sigma);
+        assert(position <= text_size);
+        assert(v <= sigma);
 
-        if (unlikely(v == this->sigma - 1))
+        if (unlikely(v == sigma - 1))
             return position;
 
         return prefix_rank_impl<false>(position, v);
@@ -400,9 +400,7 @@ private:
     template <bool compute_prefix_delta>
     size_type prefix_rank_impl(size_type const position, const value_type v) const
     {
-        assert(position <= this->m_v->size());
-        assert(v < this->sigma); // v cannot have rank sigma - 1
-        assert(v > 0); // v cannot have rank 0
+        assert(position <= text_size);
 
         superblock_entry const & entry = superblocks[to_superblock_position(position)];
         return entry.template superblock_rank<compute_prefix_delta>(v) +
