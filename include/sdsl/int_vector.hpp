@@ -1309,6 +1309,8 @@ public:
 		m_len	= it.m_len;
 	}
 
+	int_vector_const_iterator & operator=(const int_vector_const_iterator&) = default;
+
 	const_reference operator*() const
 	{
 		if (m_offset + m_len <= 64) {
