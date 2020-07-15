@@ -442,17 +442,19 @@ struct rank_support_int_v<alphabet_size, words_per_block, blocks_per_superblock>
     using size_type = typename base_t::size_type;
     //!\brief The offset used to jump to the correct block position.
     static constexpr size_t block_offset = effective_alphabet_size;
-    // static constexpr size_t bits_per_block_value = ceil_log2(values_per_superblock);
-    // static constexpr size_t block_values_per_word = 64 / bits_per_block_value;
-    // static constexpr size_t how many blocks do we need to store then?
-    // -> follows we can store 10 blocks in one word -> 5 blocks for one at the moment.
-    // How many do we need then? And we need to be able to access it later on.
-    // using bit_compressed_block = bit_compressed_word<uint32_t, bits_per_block_value>;
+    //!\brief How many bits needed to store the block ranks.
+    static constexpr size_t bits_per_block_value = ceil_log2(values_per_superblock);
+    //!\brief The smallest integer type needed to store the block ranks.
+    using block_value_type = std::conditional_t<bits_per_block_value <= 8,
+                                                uint8_t,
+                                                std::conditional_t<bits_per_block_value <= 16,
+                                                                   uint16_t,
+                                                                   uint32_t>>;
 
     //!\brief The array storing the super block values.
     std::array<uint64_t, (alphabet_size - 1)> superblocks;
     //!\brief The array storing the block values.
-    std::array<uint32_t, (blocks_per_superblock - 1) * (alphabet_size - 1)> blocks;
+    std::array<block_value_type, (blocks_per_superblock - 1) * (alphabet_size - 1)> blocks;
     //!\brief The array storing the bit compressed text.
     std::array<detail::bit_compressed_word<uint8_t, sigma_bits>, words_per_superblock> superblock_text;
 
