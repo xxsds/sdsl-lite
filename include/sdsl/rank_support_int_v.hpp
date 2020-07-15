@@ -584,13 +584,13 @@ private:
 
     //!\brief Maps a block position to its absolute position within the block array.
     static constexpr size_type absolute_block_position(size_t const block_position) noexcept
-    { // We don't care if it overflows as we protect against it later.
-        return (block_position - 1) * block_offset;
+    {
+        return (block_position + (block_position == 0) - 1) * block_offset;
     }
 
     //!\brief Maps a text position to the respective bit position in the bit vector.
     static constexpr size_type absolute_bit_position(size_t const position) noexcept
-    { // We don't care if it overflows as we protect against it later.
+    {
         return (position % values_per_superblock) * sigma_bits;
     }
 
