@@ -11,9 +11,11 @@
 
 #include <array>
 
+#include "io.hpp"
 #include "rank_support_int.hpp"
 
-namespace sdsl::detail {
+namespace sdsl{
+namespace detail {
 
 /*!\brief A bit compressed
  * \tparam value_t The represented value_type.
@@ -39,6 +41,9 @@ private:
     uint64_t word{};
 
 public:
+    //!\brief The size type needed for serialisation.
+    using size_type = size_t;
+
     //!\brief The default constructor.
     bit_compressed_word() = default;
     //!\brief The copy constructor.
@@ -75,7 +80,7 @@ public:
     {
         assert(index < max_size);
         uint64_t offset = index * bits_per_value;
-        return value_t{(word >> offset) & bit_mask};
+        return static_cast<value_t>((word >> offset) & bit_mask);
     }
 
     /*!\brief Assigns a range to the word.
@@ -98,8 +103,34 @@ public:
     {
         return word;
     }
+
+    size_type serialize(std::ostream& out, structure_tree_node* v = nullptr, const std::string name = "") const
+    {
+        structure_tree_node* child = structure_tree::add_child(v, name, sdsl::util::class_name(*this));
+        size_type written_bytes = sdsl::serialize(word, out, v, "compressed_word");
+        structure_tree::add_size(child, written_bytes);
+        return written_bytes;
+    }
+
+    void load(std::istream& in)
+    {
+        sdsl::load(word, in);
+    }
+
+    template <typename archive_t>
+    void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+    {
+        ar(CEREAL_NVP(word));
+    }
+
+    template <typename archive_t>
+    void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+    {
+        ar(CEREAL_NVP(word));
+    }
 };
-} // namespace sdsl::detail
+} // namespace detail
+} // namespace sdsl
 
 //! Namespace for the succinct data structure library.
 namespace sdsl {
@@ -175,7 +206,6 @@ public:
 
         // NOTE: number of elements is artificially increased by one because rank can be called on m_v[size()]
         uint64_t const word_count = (text_size + values_per_word - 1) / values_per_word;
-        uint64_t const block_count = (word_count + words_per_block - 1) / words_per_block;
         size_type const superblock_count = (word_count + words_per_superblock - 1) / words_per_superblock;
 
         // Buffers to keep track of the cumulative sums for the superblocks and blocks inside of a superblock.
@@ -306,47 +336,52 @@ public:
     //!\brief Returns the size of the original text.
     size_type size() const { return text_size; }
 
+    /*!\brief Returns the text value at the given position.
+     * \param[in] position The text position to get the value from.
+     */
+    value_type value_at(const size_type position) const
+    {
+        assert(position < text_size);
+        return superblocks[to_superblock_position(position)].value_at(position);
+    }
+
     //!\brief Serialises the rank support data structure.
     size_type serialize(std::ostream& out, structure_tree_node* v = nullptr, const std::string name = "") const
     {
         structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
-        size_type written_bytes = 0;
-        // written_bytes += m_block.serialize(out, child, "prefix_block_counts");
-        // written_bytes += m_superblock.serialize(out, child, "prefix_superblock_counts");
-        // structure_tree::add_size(child, written_bytes);
+        size_type written_bytes = sdsl::serialize(superblocks, out, v, "superblocks_vector");
+        structure_tree::add_size(child, written_bytes);
         return written_bytes;
     }
 
     //!\brief Loads the rank support data structure from the stream.
-    void load(std::istream& in, const int_vector<>* v = nullptr)
+    void load(std::istream& in, const int_vector<>* /*v*/)
     {
-        // this->m_v = v;
-        // m_block.load(in);
-        // m_superblock.load(in);
-        // this->init(v);
+        this->m_v = nullptr;
+        sdsl::load(superblocks, in);
     }
 
     //!\brief Serialisation via cereal.
     template <typename archive_t>
     void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
     {
-        // ar(CEREAL_NVP(m_block));
-        // ar(CEREAL_NVP(m_superblock));
+        (void) ar;
+        ar(CEREAL_NVP(superblocks));
     }
 
     //!\brief Serialisation via cereal.
     template <typename archive_t>
     void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
     {
-        // ar(CEREAL_NVP(m_block));
-        // ar(CEREAL_NVP(m_superblock));
+        ar(CEREAL_NVP(superblocks));
     }
 
-private:
     //!\brief Does nothing for the rank_support_int structure.
     void set_vector(const int_vector<>* /*other_text*/ ){} // TODO: Check where this interface is needed, since it is dangerous?
     // I would be able to reset the text without recomputing the rank support structure which is in general a
     // bad design.
+
+private:
 
     /*!\brief Determines the superblock position covering the given text position.
      * \param[in] position The given text position.
@@ -402,6 +437,7 @@ private:
 template <uint8_t alphabet_size, uint8_t words_per_block, uint8_t blocks_per_superblock>
 struct rank_support_int_v<alphabet_size, words_per_block, blocks_per_superblock>::superblock_entry
 {
+    using size_type = typename base_t::size_type;
     //!\brief The offset used to jump to the correct block position.
     static constexpr size_t block_offset = effective_alphabet_size;
     // static constexpr size_t bits_per_block_value = ceil_log2(values_per_superblock);
@@ -469,6 +505,71 @@ struct rank_support_int_v<alphabet_size, words_per_block, blocks_per_superblock>
         return (position % values_per_block != 0) * word_prefix_rank<compute_prefix_delta>(word, bit_pos, v);
     }
 
+    /*!\brief Extracts the value at the given position.
+     * \param position The position of the value to extract.
+     */
+    value_type value_at(size_type position) const noexcept
+    {
+        size_type bit_position = absolute_bit_position(position);
+        return superblock_text[absolute_word_position(bit_position)][position % values_per_word];
+    }
+
+    //TODO Write me!
+    size_type serialize(std::ostream& out, structure_tree_node* v = nullptr, const std::string name = "") const
+    {
+        structure_tree_node* child = structure_tree::add_child(v, name, sdsl::util::class_name(*this));
+        size_type written_bytes = 0;
+        written_bytes += sdsl::serialize(superblocks.size(), out, v, "prefix_superblock_counts");
+        for (const auto & x : superblocks)
+            written_bytes += sdsl::serialize(x, out, child, "[]");
+
+        written_bytes += sdsl::serialize(blocks.size(), out, v, "prefix_block_counts");
+        for (const auto & x : blocks)
+            written_bytes += sdsl::serialize(x, out, child, "[]");
+
+        written_bytes += sdsl::serialize(superblock_text.size(), out, v, "superblock_text");
+        for (const auto & x : superblock_text)
+            written_bytes += sdsl::serialize(x, out, child, "[]");
+
+        structure_tree::add_size(child, written_bytes);
+        return written_bytes;
+    }
+
+    void load(std::istream& in)
+    {
+        size_type array_size;
+        sdsl::load(array_size, in);
+        assert(array_size == superblocks.size());
+        for (size_type idx = 0; idx < array_size; ++idx)
+            sdsl::load(superblocks[idx], in);
+
+        sdsl::load(array_size, in);
+        assert(array_size == blocks.size());
+        for (size_type idx = 0; idx < array_size; ++idx)
+            sdsl::load(blocks[idx], in);
+
+        sdsl::load(array_size, in);
+        assert(array_size == superblock_text.size());
+        for (size_type idx = 0; idx < array_size; ++idx)
+            sdsl::load(superblock_text[idx], in);
+    }
+
+    template <typename archive_t>
+    void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+    {
+        ar(CEREAL_NVP(superblocks));
+        ar(CEREAL_NVP(blocks));
+        ar(CEREAL_NVP(superblock_text));
+    }
+
+    template <typename archive_t>
+    void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+    {
+        ar(CEREAL_NVP(superblocks));
+        ar(CEREAL_NVP(blocks));
+        ar(CEREAL_NVP(superblock_text));
+    }
+
 private:
 
     //!\brief Maps the given position to the block position inside of the superblock.
@@ -511,41 +612,6 @@ private:
     {
         return base_t::word_prefix_rank(word, bit_pos, v)[0];
     }
-
-    //TODO Write me!
-    // size_type serialize(std::ostream& out, structure_tree_node* v = nullptr, const std::string name = "") const
-    // {
-    //     structure_tree_node* child = structure_tree::add_child(v, name, sdsl::util::class_name(*this));
-    //     size_type written_bytes = 0;
-    //     written_bytes += blocks.serialize(out, child, "prefix_block_counts");
-    //     written_bytes += superblocks.serialize(out, child, "prefix_superblock_counts");
-    //     written_bytes += text_slice.serialize(out, child, "superblock_text_slice");
-    //     structure_tree::add_size(child, written_bytes);
-    //     return written_bytes;
-    // }
-
-    // void load(std::istream& in)
-    // {
-    //     blocks.load(in);
-    //     superblocks.load(in);
-    //     text_slice.load(in);
-    // }
-
-    // template <typename archive_t>
-    // void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
-    // {
-    //     ar(CEREAL_NVP(blocks));
-    //     ar(CEREAL_NVP(superblocks));
-    //     ar(CEREAL_NVP(text_slice));
-    // }
-
-    // template <typename archive_t>
-    // void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
-    // {
-    //     ar(CEREAL_NVP(blocks));
-    //     ar(CEREAL_NVP(superblocks));
-    //     ar(CEREAL_NVP(text_slice));
-    // }
 };
 
 } // end namespace sdsl
