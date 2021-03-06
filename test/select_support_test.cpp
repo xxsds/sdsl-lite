@@ -73,7 +73,7 @@ typedef Types<
 
 #endif
 
-TYPED_TEST_CASE(select_support_test, Implementations);
+TYPED_TEST_SUITE(select_support_test, Implementations, );
 
 //! Test the select method
 TYPED_TEST(select_support_test, select_method)

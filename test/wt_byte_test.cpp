@@ -54,7 +54,7 @@ typedef Types<
 
 #endif
 
-TYPED_TEST_CASE(wt_byte_test, Implementations);
+TYPED_TEST_SUITE(wt_byte_test, Implementations, );
 
 TYPED_TEST(wt_byte_test, create_and_store)
 {

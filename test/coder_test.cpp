@@ -49,7 +49,7 @@ typedef Types<
       >
       Implementations;
 
-TYPED_TEST_CASE(coder_test, Implementations);
+TYPED_TEST_SUITE(coder_test, Implementations, );
 
 TYPED_TEST(coder_test, sinlge_encode_decode)
 {

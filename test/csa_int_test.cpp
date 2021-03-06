@@ -47,7 +47,7 @@ typedef Types<
 
 #endif
 
-TYPED_TEST_CASE(csa_int_test, Implementations);
+TYPED_TEST_SUITE(csa_int_test, Implementations, );
 
 TYPED_TEST(csa_int_test, create_and_store)
 {

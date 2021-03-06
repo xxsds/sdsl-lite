@@ -56,7 +56,7 @@ typedef Types<
 
 #endif
 
-TYPED_TEST_CASE(wt_int_test, Implementations);
+TYPED_TEST_SUITE(wt_int_test, Implementations, );
 
 //! Test the parametrized constructor
 TYPED_TEST(wt_int_test, constructor)

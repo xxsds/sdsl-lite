@@ -30,7 +30,7 @@ typedef Types<
     csa_wt<wt_hutu<bit_vector_il<> >, 32, 32, sa_order_sa_sampling<>, isa_sampling<>, byte_alphabet>
 > Implementations;
 
-TYPED_TEST_CASE(search_bidirectional_test, Implementations);
+TYPED_TEST_SUITE(search_bidirectional_test, Implementations, );
 
 //! Compare bidirectional search and backward search
 TYPED_TEST(search_bidirectional_test, bidirectional_search)

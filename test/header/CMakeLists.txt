@@ -2,6 +2,7 @@
 # https://github.com/openmicroscopy/bioformats/blob/d3bb33eeda23e81f78fd25f658bfc14a4363805f/cpp/cmake/HeaderTest.cmake#L81-L113
 # and SeqAn3
 # https://github.com/seqan/seqan3/blob/c9719852dc2d42cd371bd5c65d3af93935f29f39/test/header/CMakeLists.txt
+add_gtest()
 add_library (sdsl_test_header INTERFACE)
 set (header_all_target "sdsl_header_test")
 
@@ -9,7 +10,7 @@ file(GLOB SDSL_HEADER_ALL ${CMAKE_CURRENT_BINARY_DIR}/../../include/sdsl/*.hpp)
 
 file (WRITE "${CMAKE_CURRENT_BINARY_DIR}/${header_all_target}.cpp" "int main() {}")
 add_executable (${header_all_target} ${CMAKE_CURRENT_BINARY_DIR}/${header_all_target}.cpp)
-target_link_libraries (${header_all_target} gtest)
+target_link_libraries (${header_all_target} "gtest_main" "gtest")
 target_link_libraries (${header_all_target} sdsl_test_header)
 add_test (NAME "header/${header_all_target}" COMMAND ${header_all_target})
 

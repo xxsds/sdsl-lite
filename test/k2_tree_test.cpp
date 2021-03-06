@@ -69,7 +69,7 @@ k2_tree<2, bit_vector>,
         k2_tree<4, bit_vector, rank_support_v<>>
         > Implementations;
 
-TYPED_TEST_CASE(k2_tree_test_k_2, k_2_implementations);
+TYPED_TEST_SUITE(k2_tree_test_k_2, k_2_implementations, );
 
 TYPED_TEST(k2_tree_test_k_2, build_from_matrix_test)
 {
@@ -191,7 +191,7 @@ TYPED_TEST(k2_tree_test_k_2, build_from_edges_array)
 }
 
 
-TYPED_TEST_CASE(k2_tree_test_k_3, k_3_implementations);
+TYPED_TEST_SUITE(k2_tree_test_k_3, k_3_implementations, );
 
 TYPED_TEST(k2_tree_test_k_3, build_from_matrix_test)
 {
@@ -332,7 +332,7 @@ TYPED_TEST(k2_tree_test_k_3, build_from_edges_array)
     k2_tree_test_nm::check_t_l(tree, {}, {0, 0, 0, 0, 0, 0, 0, 0, 1});
 }
 
-TYPED_TEST_CASE(k2_tree_test, Implementations);
+TYPED_TEST_SUITE(k2_tree_test, Implementations, );
 
 TYPED_TEST(k2_tree_test, edges_array_exhaustive)
 {

@@ -69,7 +69,7 @@ typedef Types<
 
 #endif
 
-TYPED_TEST_CASE(cst_int_test, Implementations);
+TYPED_TEST_SUITE(cst_int_test, Implementations, );
 
 
 TYPED_TEST(cst_int_test, create_and_store)

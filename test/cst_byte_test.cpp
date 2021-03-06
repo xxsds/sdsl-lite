@@ -61,7 +61,7 @@ typedef Types<
 // class cst_byte_test_sada : public ::testing::Test { };
 // typedef Types<cst_sada<>> sadaBPImpl;
 
-// TYPED_TEST_CASE(cst_byte_test_sada, sadaBPImpl);
+// TYPED_TEST_SUITE(cst_byte_test_sada, sadaBPImpl, );
 // TYPED_TEST(cst_byte_test_sada, create_and_store)
 // {
 //     TypeParam cst;
@@ -80,7 +80,7 @@ typedef Types<
 // }
 
 
-TYPED_TEST_CASE(cst_byte_test, Implementations);
+TYPED_TEST_SUITE(cst_byte_test, Implementations, );
 
 
 TYPED_TEST(cst_byte_test, create_and_store)

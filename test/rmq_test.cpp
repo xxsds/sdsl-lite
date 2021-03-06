@@ -28,7 +28,7 @@ typedef Types<
     sdsl::rmq_succinct_sada<>
 > Implementations;
 
-TYPED_TEST_CASE(rmq_test, Implementations);
+TYPED_TEST_SUITE(rmq_test, Implementations, );
 
 
 TYPED_TEST(rmq_test, construct_and_store)

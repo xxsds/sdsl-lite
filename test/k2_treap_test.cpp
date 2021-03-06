@@ -35,7 +35,7 @@ typedef Types<
     k2_treap<16, rrr_vector<63>>
 > Implementations;
 
-TYPED_TEST_CASE(k2_treap_test, Implementations);
+TYPED_TEST_SUITE(k2_treap_test, Implementations, );
 
 TYPED_TEST(k2_treap_test, create_and_store_test)
 {

@@ -3,7 +3,7 @@ set(generated_files "")
 
 ## Create targets to downloads file specified in download.config
 include(download_files.cmake)
-
+add_gtest()
 ## Generate targets for special inputs
 function(generate_target_for_special_inputs tc_name abs_tc_name)
     set(int_vec_regex "int-vec\\.[0-9]+\\.[0-9]+\\..+")
@@ -61,7 +61,7 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR}/../include
                     ${gtest_SOURCE_DIR}/include
 )
 
-link_libraries(gtest)
+link_libraries("gtest_main" "gtest")
 
 if(SDSL_CEREAL)
     # Include via -isystem suppresses warnings of external dependencies in cereal

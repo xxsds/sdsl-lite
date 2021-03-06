@@ -31,6 +31,7 @@ configure_file("${CMAKE_CURRENT_SOURCE_DIR}/Make.helper.cmake"
 enable_testing()
 
 # (8) main library target
+set(gtest_dir ${CMAKE_CURRENT_LIST_DIR}/external/googletest)
 add_subdirectory(external)
 add_subdirectory(include/sdsl)
 add_subdirectory(lib)
