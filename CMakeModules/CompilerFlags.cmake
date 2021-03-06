@@ -1,8 +1,3 @@
-
-set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_STANDARD_REQUIRED on)
-set(CMAKE_CXX_EXTENSIONS OFF)
-
 include(DetectCPUFeatures)
 include(FindCxaDemangle)
 
