@@ -16,9 +16,6 @@ struct interval {
     interval(size_t lb, size_t rb, size_t min_val, size_t min_idx):
         lb(lb), rb(rb), min_val(min_val), min_idx(min_idx) {};
 
-    interval(const interval& i):
-        lb(i.lb), rb(i.rb), min_val(i.min_val), min_idx(i.min_idx) {};
-
     bool operator>(const interval& i)const {
         if (min_val != i.min_val) {
             return min_val > i.min_val;

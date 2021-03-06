@@ -1296,13 +1296,6 @@ public:
 	{
 	}
 
-	int_vector_const_iterator(const int_vector_const_iterator& it)
-		: int_vector_iterator_base<t_int_vector>(it), m_word(it.m_word)
-	{
-		m_offset = it.m_offset;
-		m_len	= it.m_len;
-	}
-
 	int_vector_const_iterator(const int_vector_iterator<t_int_vector>& it) : m_word(it.m_word)
 	{
 		m_offset = it.m_offset;
