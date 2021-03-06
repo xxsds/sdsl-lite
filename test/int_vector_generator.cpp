@@ -7,12 +7,6 @@
 using namespace std;
 using namespace sdsl;
 
-ptrdiff_t myrandom(ptrdiff_t i)
-{
-    return rand()%i;
-}
-ptrdiff_t (*p_myrandom)(ptrdiff_t) = myrandom;
-
 int main(int argc, char* argv[])
 {
     if (argc < 5) {
@@ -39,9 +33,11 @@ int main(int argc, char* argv[])
         util::set_to_value(v, default_value);
     }
     if (argc > 5) {
+        std::random_device rd;
+        std::mt19937 g(rd());
         unsigned long seed = stoul(argv[5]);
         srand(seed);
-        random_shuffle(v.begin(), v.end(), p_myrandom);
+        shuffle(v.begin(), v.end(), g);
     }
     store_to_file(v, argv[1]);
 }
