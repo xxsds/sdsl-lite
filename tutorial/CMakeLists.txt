@@ -3,7 +3,7 @@ set(sdsl_tutorials "")
 file(GLOB tutorial_sources ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 
 include_directories(
-	${CMAKE_CURRENT_BINARY_DIR}/../include
+	${CMAKE_CURRENT_SOURCE_DIR}/../include
 )
 
 foreach(tutorial_source ${tutorial_sources}) 

@@ -68,10 +68,6 @@ if(SDSL_CEREAL)
 
 	file(GLOB_RECURSE hppFiles RELATIVE ${cereal_dir} "${cereal_dir}/*.(h|hpp)") # select all .hpp-files
 
-	foreach(hppFile ${hppFiles}) # copy each file
-		configure_file( "${cereal_dir}/${hppFile}" "${CMAKE_CURRENT_BINARY_DIR}/cereal/include/cereal/${hppFile}" COPYONLY )
-		install(FILES "${CMAKE_CURRENT_BINARY_DIR}/cereal/include/cereal/${hppFile}" DESTINATION external/cereal/include/cereal)
-	endforeach(hppFile)
 	MESSAGE(STATUS "Adding cereal - done")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DSDSL_HAS_CEREAL=1")
 endif(SDSL_CEREAL)
