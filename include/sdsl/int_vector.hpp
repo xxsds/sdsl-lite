@@ -731,9 +731,9 @@ public:
          *    - its elements are equal.
          */
 	template <class container>
-	bool operator==(const container& v) const noexcept
+	friend bool operator==(const int_vector<t_width>& lhs, const container& rhs) noexcept
 	{
-		return std::equal(begin(), end(), v.begin());
+		return std::equal(lhs.begin(), lhs.end(), rhs.begin());
 	}
 
 	//! Inequality operator for two int_vectors.
