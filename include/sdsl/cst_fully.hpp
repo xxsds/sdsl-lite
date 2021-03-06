@@ -55,15 +55,13 @@ public:
 			return 0;
 		} else {
 			using leaf_type			= typename t_cst::leaf_type;
-			using char_type			= typename t_cst::char_type;
 			using sampled_node_type = typename t_cst::sampled_node_type;
 			leaf_type v_l			= i - 1;
 			leaf_type v_r			= i;
 
 			size_type			   i;
 			sampled_node_type	  u;
-			std::vector<char_type> c(m_cst->delta, 0);
-			return m_cst->depth_lca(v_l, v_r, i, u, c);
+			return m_cst->depth_lca(v_l, v_r, i, u);
 		}
 	}
 
@@ -475,9 +473,7 @@ public:
 
 		size_type			   i;
 		sampled_node_type	  u;
-		std::vector<char_type> c;
-		c.reserve(delta);
-		return depth_lca(v.first, v.second, i, u, c);
+		return depth_lca(v.first, v.second, i, u);
 	}
 
 	//! Calculate the LCA of two nodes v and w.
@@ -565,6 +561,46 @@ public:
 			char_type c	= m_csa.F[l];
 			char_type comp = csa.char2comp[c];
 			res_label[i]   = c;
+
+			// break if LCA of lb and rb is root
+			if (l < m_csa.C[comp] || r >= m_csa.C[comp + 1]) {
+				break;
+			}
+
+			l = m_csa.psi[l];
+			r = m_csa.psi[r];
+		}
+
+		res_i = max_d_i;
+		res_u = max_d_node;
+
+		return max_d;
+	}
+
+	//!\overload
+	size_type depth_lca(leaf_type				l,
+						leaf_type				r,
+						size_type&				res_i,
+						sampled_node_type&		res_u) const
+	{
+		assert(l < r);
+
+		size_type		  max_d		 = 0;
+		size_type		  max_d_i	= 0;
+		sampled_node_type max_d_node = 0;
+
+		for (size_type i = 0; i < m_delta; i++) {
+			sampled_node_type node = sampled_lca(lsa_leaf(l), lsa_leaf(r));
+			size_type		  d	= i + depth(node);
+
+			if (d > max_d) {
+				max_d	  = d;
+				max_d_i	= i;
+				max_d_node = node;
+			}
+
+			char_type c	= m_csa.F[l];
+			char_type comp = csa.char2comp[c];
 
 			// break if LCA of lb and rb is root
 			if (l < m_csa.C[comp] || r >= m_csa.C[comp + 1]) {
