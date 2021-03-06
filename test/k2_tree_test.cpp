@@ -155,38 +155,33 @@ TYPED_TEST(k2_tree_test_k_2, build_from_edges_array)
 {
     typedef std::tuple<typename TypeParam::idx_type,
             typename TypeParam::idx_type> t_tuple;
-    vector<std::tuple<typename TypeParam::idx_type,
-           typename TypeParam::idx_type>> e;
+    vector<t_tuple> edge_vector;
 
-    t_tuple a{0, 0};
-    t_tuple b{0, 1};
-    t_tuple c{1, 0};
-    t_tuple d{1, 1};
-    e.push_back(t_tuple {1, 2});
-    TypeParam tree(e, 4);
+    edge_vector.emplace_back(1, 2);
+    TypeParam tree(edge_vector, 4);
 
     k2_tree_test_nm::check_t_l(tree, {0, 1, 0 ,0}, {0, 0, 1, 0});
 
-    tree = TypeParam(e, 3);
+    tree = TypeParam(edge_vector, 3);
     k2_tree_test_nm::check_t_l(tree, {0, 1, 0 ,0}, {0, 0, 1, 0});
 
-    e.push_back(t_tuple {1, 2});
-    tree = TypeParam(e, 3);
+    edge_vector.emplace_back(1, 2);
+    tree = TypeParam(edge_vector, 3);
     k2_tree_test_nm::check_t_l(tree, {0, 1, 0 ,0}, {0, 0, 1, 0});
 
-    e.clear();
-    e.push_back(t_tuple {0, 0});
-    tree = TypeParam(e, 1);
+    edge_vector.clear();
+    edge_vector.emplace_back(0, 0);
+    tree = TypeParam(edge_vector, 1);
     k2_tree_test_nm::check_t_l(tree, {}, {1, 0, 0, 0});
 
-    e.push_back(t_tuple {0, 1});
-    e.push_back(t_tuple {1, 0});
-    e.push_back(t_tuple {1, 1});
-    tree = TypeParam(e, 2);
+    edge_vector.emplace_back(0, 1);
+    edge_vector.emplace_back(1, 0);
+    edge_vector.emplace_back(1, 1);
+    tree = TypeParam(edge_vector, 2);
     k2_tree_test_nm::check_t_l(tree, {}, {1, 1, 1, 1});
 
-    e.push_back(t_tuple {2, 2});
-    tree = TypeParam(e, 3);
+    edge_vector.emplace_back(2, 2);
+    tree = TypeParam(edge_vector, 3);
     k2_tree_test_nm::check_t_l(tree, {1, 0, 0, 1}, {1, 1, 1, 1,  1, 0, 0, 0});
 }
 
