@@ -669,7 +669,7 @@ public:
 			if (temp != (size_type)-1) {
 				assert(temp * t_sml_blk >= l and temp * t_sml_blk <= r);
 				min_pos = temp;
-				assert(min_pos >= 0 and min_pos < m_sml_blocks);
+				assert(min_pos < m_sml_blocks);
 				pos_type = SMALL_BLOCK_POS;
 			}
 #if 0
