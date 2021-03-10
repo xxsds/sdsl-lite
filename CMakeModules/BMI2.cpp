@@ -1,5 +1,5 @@
 #include <stdint.h>
-#include <bmi2intrin.h>
+#include <x86intrin.h>
 
 int main()
 {
