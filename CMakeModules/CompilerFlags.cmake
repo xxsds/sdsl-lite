@@ -1,8 +1,3 @@
-
-set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_STANDARD_REQUIRED on)
-set(CMAKE_CXX_EXTENSIONS OFF)
-
 include(DetectCPUFeatures)
 include(FindCxaDemangle)
 
@@ -10,9 +5,18 @@ CheckAndAppendCompilerFlags(${CMAKE_BUILD_TYPE} "-Wall")
 CheckAndAppendCompilerFlags(${CMAKE_BUILD_TYPE} "-Werror")
 CheckAndAppendCompilerFlags(${CMAKE_BUILD_TYPE} "-Wextra")
 CheckAndAppendCompilerFlags(${CMAKE_BUILD_TYPE} "-pedantic")
-CheckAndAppendCompilerFlags("Release" "-ffast-math")
 CheckAndAppendCompilerFlags("Release" "-funroll-loops")
 CheckAndAppendCompilerFlags("Release" "-D__extern_always_inline=\"extern __always_inline\" ")
+
+# Clang <= 9 has trouble on ubuntu 20.04
+set(CMAKE_REQUIRED_FLAGS "-ffast-math")
+file(READ "${CMAKE_MODULE_PATH}/ffast_math.cpp" test_source_ffast_math)
+CHECK_CXX_SOURCE_RUNS("${test_source_ffast_math}" HAVE_FFAST_MATH)
+set(CMAKE_REQUIRED_FLAGS "")
+if (HAVE_FFAST_MATH)
+CheckAndAppendCompilerFlags("Release" "-ffast-math")
+endif ()
+
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
 	CheckAndAppendCompilerFlags("Release" "-no-inline-min-size -no-inline-max-size")
 endif ()

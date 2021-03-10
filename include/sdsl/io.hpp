@@ -135,7 +135,7 @@ serialize(const X& x, std::ostream& out, structure_tree_node* v = nullptr, std::
 }
 
 template <typename X>
-typename std::enable_if<std::is_pod<X>::value, uint64_t>::type
+typename std::enable_if<std::is_standard_layout<X>::value && std::is_trivial<X>::value, uint64_t>::type
 serialize(const X& x, std::ostream& out, structure_tree_node* v = nullptr, std::string name = "")
 {
 	return write_member(x, out, v, name);
@@ -159,7 +159,7 @@ typename std::enable_if<has_load<X>::value, void>::type load(X& x, std::istream&
 }
 
 template <typename X>
-typename std::enable_if<std::is_pod<X>::value, void>::type load(X& x, std::istream& in)
+typename std::enable_if<std::is_standard_layout<X>::value && std::is_trivial<X>::value, void>::type load(X& x, std::istream& in)
 {
 	read_member(x, in);
 }

@@ -25,10 +25,13 @@ class inv_perm_support_test : public ::testing::Test
 
         virtual void SetUp()
         {
+            std::random_device rd;
+            std::mt19937 g(rd());
+
             for (size_t z=0; z < (1ULL<<20); z=(z+1)*2) {
                 sdsl::int_vector<> iv(z);
                 sdsl::util::set_to_id(iv);
-                random_shuffle(iv.begin(), iv.end());
+                shuffle(iv.begin(), iv.end(), g);
                 perms.emplace_back(iv);
             }
             for (size_t i=0; i<perms.size(); ++i) {

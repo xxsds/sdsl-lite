@@ -62,7 +62,7 @@ typedef Types<
 typedef Types<bit_vector> Implementations_BV_Only;
 
 
-TYPED_TEST_CASE(bit_vector_test, Implementations);
+TYPED_TEST_SUITE(bit_vector_test, Implementations, );
 
 //! Test operator==
 TYPED_TEST(bit_vector_test, equality_operator)
@@ -144,7 +144,7 @@ TYPED_TEST(bit_vector_test, swap)
 
 TYPED_TEST(bit_vector_test, delete_) { sdsl::remove(temp_file); }
 
-TYPED_TEST_CASE(bit_vector_test_bv_only, Implementations_BV_Only);
+TYPED_TEST_SUITE(bit_vector_test_bv_only, Implementations_BV_Only, );
 
 #define LFSR_START 0x00000001	// linear-feedback shift register with
 #define LFSR_FEEDBACK 0x0110F65C // .. period 33554431 = 31*601*1801

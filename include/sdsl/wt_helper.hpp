@@ -66,8 +66,6 @@ struct pc_node {
 			uint64_t parent		 = undef,
 			uint64_t child_left  = undef,
 			uint64_t child_right = undef);
-
-	pc_node& operator=(const pc_node& v);
 };
 
 template <typename t_tree_strat_fat>
@@ -90,6 +88,8 @@ struct _node {
 		child[0] = child_left;
 		child[1] = child_right;
 	}
+
+	_node(const _node&) = default;
 
 	_node& operator=(const _node& v)
 	{
@@ -751,18 +751,6 @@ uint64_t freq, uint64_t sym, uint64_t parent, uint64_t child_left, uint64_t chil
 	child[0] = child_left;
 	child[1] = child_right;
 }
-
-inline
-pc_node& pc_node::operator=(const pc_node& v)
-{
-	freq	 = v.freq;
-	sym		 = v.sym;
-	parent   = v.parent;
-	child[0] = v.child[0];
-	child[1] = v.child[1];
-	return *this;
-}
-
 
 } // end namespace sdsl
 #endif

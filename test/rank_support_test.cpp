@@ -96,7 +96,7 @@ typedef Types<
 
 #endif
 
-TYPED_TEST_CASE(rank_support_test, Implementations);
+TYPED_TEST_SUITE(rank_support_test, Implementations, );
 
 //! Test the rank method
 TYPED_TEST(rank_support_test, rank_method)

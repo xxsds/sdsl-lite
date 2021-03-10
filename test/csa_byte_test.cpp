@@ -56,7 +56,7 @@ typedef Types<
 
 #endif
 
-TYPED_TEST_CASE(csa_byte_test, Implementations);
+TYPED_TEST_SUITE(csa_byte_test, Implementations, );
 
 TYPED_TEST(csa_byte_test, create_and_store_test)
 {

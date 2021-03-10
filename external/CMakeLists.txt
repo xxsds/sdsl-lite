@@ -3,17 +3,56 @@ if(NOT GIT_FOUND)
     message(WARNING "git not found. Cloning of submodules will not work.")
 endif()
 
-## Add gtest 
-set(gtest_dir ${CMAKE_CURRENT_LIST_DIR}/googletest)
-set(gtest_file ${gtest_dir}/CMakeLists.txt)
-if(NOT EXISTS ${gtest_file})
-    EXECUTE_PROCESS(COMMAND git submodule update --init external/googletest
-                    WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/..
-                    OUTPUT_QUIET
-            )
-endif(NOT EXISTS ${gtest_file})
+# Modified version from SeqAn3
+# https://github.com/seqan/seqan3/blob/fddd89708f8fa858521a9cf958900232c7e8ef89/test/cmake/seqan3_require_test.cmake
+macro (add_gtest)
+	set (SDSL_EXTERNAL_PROJECT_CMAKE_ARGS "")
+	list (APPEND SDSL_EXTERNAL_PROJECT_CMAKE_ARGS "-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}")
+	list (APPEND SDSL_EXTERNAL_PROJECT_CMAKE_ARGS "-DCMAKE_CXX_COMPILER_LAUNCHER=${CMAKE_CXX_COMPILER_LAUNCHER}")
+	list (APPEND SDSL_EXTERNAL_PROJECT_CMAKE_ARGS "-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}")
+	list (APPEND SDSL_EXTERNAL_PROJECT_CMAKE_ARGS "-DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}")
+	list (APPEND SDSL_EXTERNAL_PROJECT_CMAKE_ARGS "-DCMAKE_VERBOSE_MAKEFILE=${CMAKE_VERBOSE_MAKEFILE}")
 
-add_subdirectory(googletest EXCLUDE_FROM_ALL)
+	set (gtest_project_args ${SDSL_EXTERNAL_PROJECT_CMAKE_ARGS})
+	list (APPEND gtest_project_args "-DBUILD_GMOCK=0")
+
+	# force that libraries are installed to `lib/`, because GNUInstallDirs might install it into `lib64/`
+	list (APPEND gtest_project_args "-DCMAKE_INSTALL_LIBDIR=${PROJECT_BINARY_DIR}/lib/")
+
+	# google sets CMAKE_DEBUG_POSTFIX = "d"
+	set (gtest_main_path "${PROJECT_BINARY_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}gtest_main${CMAKE_STATIC_LIBRARY_SUFFIX}")
+	if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+		set (gtest_main_path "${PROJECT_BINARY_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}gtest_maind${CMAKE_STATIC_LIBRARY_SUFFIX}")
+	endif ()
+
+	set (gtest_path "${PROJECT_BINARY_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}gtest${CMAKE_STATIC_LIBRARY_SUFFIX}")
+	if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+		set (gtest_path "${PROJECT_BINARY_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}gtestd${CMAKE_STATIC_LIBRARY_SUFFIX}")
+	endif ()
+
+	include (ExternalProject)
+	ExternalProject_Add (
+		gtest_project
+		SOURCE_DIR "${gtest_dir}"
+		CMAKE_ARGS "${gtest_project_args}"
+		BUILD_BYPRODUCTS "${gtest_main_path}" "${gtest_path}"
+	)
+	unset (gtest_project_args)
+
+	add_library (gtest_main STATIC IMPORTED)
+	add_dependencies (gtest_main gtest_project)
+	set_target_properties (gtest_main PROPERTIES IMPORTED_LOCATION "${gtest_main_path}")
+
+	add_library (gtest STATIC IMPORTED)
+	add_dependencies (gtest gtest_main)
+	set_target_properties (gtest PROPERTIES IMPORTED_LOCATION "${gtest_path}")
+	set_property (TARGET gtest APPEND PROPERTY INTERFACE_LINK_LIBRARIES "pthread")
+
+	unset(gtest_main_path)
+	unset(gtest_path)
+
+	add_custom_target (gtest_build DEPENDS gtest_main gtest)
+endmacro()
 
 ## Add cereal
 if(SDSL_CEREAL)
@@ -29,10 +68,6 @@ if(SDSL_CEREAL)
 
 	file(GLOB_RECURSE hppFiles RELATIVE ${cereal_dir} "${cereal_dir}/*.(h|hpp)") # select all .hpp-files
 
-	foreach(hppFile ${hppFiles}) # copy each file
-		configure_file( "${cereal_dir}/${hppFile}" "${CMAKE_CURRENT_BINARY_DIR}/cereal/include/cereal/${hppFile}" COPYONLY )
-		install(FILES "${CMAKE_CURRENT_BINARY_DIR}/cereal/include/cereal/${hppFile}" DESTINATION external/cereal/include/cereal)
-	endforeach(hppFile)
 	MESSAGE(STATUS "Adding cereal - done")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DSDSL_HAS_CEREAL=1")
 endif(SDSL_CEREAL)

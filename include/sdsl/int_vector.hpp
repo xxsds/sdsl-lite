@@ -731,9 +731,9 @@ public:
          *    - its elements are equal.
          */
 	template <class container>
-	bool operator==(const container& v) const noexcept
+	friend bool operator==(const int_vector<t_width>& lhs, const container& rhs) noexcept
 	{
-		return std::equal(begin(), end(), v.begin());
+		return std::equal(lhs.begin(), lhs.end(), rhs.begin());
 	}
 
 	//! Inequality operator for two int_vectors.
@@ -1294,13 +1294,6 @@ public:
 		: int_vector_iterator_base<t_int_vector>(v, idx)
 		, m_word((v != nullptr) ? v->m_data + (idx >> 6) : nullptr)
 	{
-	}
-
-	int_vector_const_iterator(const int_vector_const_iterator& it)
-		: int_vector_iterator_base<t_int_vector>(it), m_word(it.m_word)
-	{
-		m_offset = it.m_offset;
-		m_len	= it.m_len;
 	}
 
 	int_vector_const_iterator(const int_vector_iterator<t_int_vector>& it) : m_word(it.m_word)

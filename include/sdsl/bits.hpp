@@ -456,6 +456,7 @@ struct bits_impl {
 
 	//! Reads a value from a bit position in an array.
 	SDSL_CONSTEXPR static uint64_t read_int(const uint64_t* word, uint8_t offset = 0, const uint8_t len = 64);
+	SDSL_CONSTEXPR static uint64_t read_int_bounded(const uint64_t* word, uint8_t offset = 0, const uint8_t len = 64);
 
 	//! Reads a value from a bit position in an array and moved the bit-pointer.
 	SDSL_CONSTEXPR static uint64_t
@@ -463,6 +464,7 @@ struct bits_impl {
 
 	//! Reads an unary decoded value from a bit position in an array.
 	SDSL_CONSTEXPR static uint64_t read_unary(const uint64_t* word, uint8_t offset = 0);
+	SDSL_CONSTEXPR static uint64_t read_unary_bounded(const uint64_t* word, uint8_t offset = 0);
 
 	//! Reads an unary decoded value from a bit position in an array and moves the bit-pointer.
 	SDSL_CONSTEXPR static uint64_t read_unary_and_move(const uint64_t*& word, uint8_t& offset);
@@ -788,6 +790,12 @@ SDSL_CONSTEXPR inline uint64_t bits_impl<T>::read_int(const uint64_t* word, uint
 }
 
 template <typename T>
+SDSL_CONSTEXPR inline uint64_t bits_impl<T>::read_int_bounded(const uint64_t* word, uint8_t offset, const uint8_t len)
+{
+	return ((*word) >> offset) & bits_impl<T>::lo_set[len];
+}
+
+template <typename T>
 SDSL_CONSTEXPR inline uint64_t
 bits_impl<T>::read_int_and_move(const uint64_t*& word, uint8_t& offset, const uint8_t len)
 {
@@ -820,6 +828,17 @@ SDSL_CONSTEXPR inline uint64_t bits_impl<T>::read_unary(const uint64_t* word, ui
 		return bits_impl<T>::lo(w) + (cnt << 6) - offset;
 	}
 	return 0;
+}
+
+template <typename T>
+SDSL_CONSTEXPR inline uint64_t bits_impl<T>::read_unary_bounded(const uint64_t* word, uint8_t offset)
+{
+	uint64_t w = *word >> offset;
+	if (w) {
+		return bits_impl<T>::lo(w);
+	} else {
+		return 0;
+	}
 }
 
 template <typename T>

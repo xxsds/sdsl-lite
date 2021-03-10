@@ -20,7 +20,7 @@ typedef Types<
     sd_vector<rrr_vector<63>>
 > Implementations;
 
-TYPED_TEST_CASE(sd_vector_test, Implementations);
+TYPED_TEST_SUITE(sd_vector_test, Implementations, );
 
 TYPED_TEST(sd_vector_test, iterator_constructor)
 {

@@ -3,7 +3,7 @@ set(generated_files "")
 
 ## Create targets to downloads file specified in download.config
 include(download_files.cmake)
-
+add_gtest()
 ## Generate targets for special inputs
 function(generate_target_for_special_inputs tc_name abs_tc_name)
     set(int_vec_regex "int-vec\\.[0-9]+\\.[0-9]+\\..+")
@@ -46,7 +46,7 @@ endfunction(generate_target_for_special_inputs)
 
 ## Get all headers of the library, include the headers into compile_test.cpp.
 ## Compiling the created target will check for obvious errors.
-file(GLOB SDSL_HEADER_ALL ${CMAKE_CURRENT_BINARY_DIR}/../include/sdsl/*.hpp)
+file(GLOB SDSL_HEADER_ALL ${CMAKE_CURRENT_SOURCE_DIR}/../include/sdsl/*.hpp)
 string(REGEX REPLACE "([^;]+)[;]" "#include \"\\1\"\\n" SDSL_INCLUDE_ALL "${SDSL_HEADER_ALL};")                                                        
 string(REGEX REPLACE "${CMAKE_CURRENT_BINARY_DIR}/\\.\\./include/" "" SDSL_INCLUDE_ALL "${SDSL_INCLUDE_ALL}")
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/compile_test.cpp.cmake"
@@ -57,15 +57,15 @@ configure_file("${CMAKE_CURRENT_SOURCE_DIR}/compile_test.cpp.cmake"
 file(GLOB test_sources ${CMAKE_CURRENT_SOURCE_DIR}/*_test.cpp)
 
 ## Add required directionaries
-include_directories(${CMAKE_CURRENT_BINARY_DIR}/../include
-                    ${gtest_SOURCE_DIR}/include
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../include
+                    ${gtest_dir}/googletest/include
 )
 
-link_libraries(gtest)
+link_libraries("gtest_main" "gtest")
 
 if(SDSL_CEREAL)
     # Include via -isystem suppresses warnings of external dependencies in cereal
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isystem${CMAKE_CURRENT_BINARY_DIR}/../external/cereal/include")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isystem${CMAKE_CURRENT_SOURCE_DIR}/../external/cereal/include")
 endif(SDSL_CEREAL)
 
 add_executable(int_vector_generator int_vector_generator.cpp)
