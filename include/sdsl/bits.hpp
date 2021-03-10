@@ -521,49 +521,62 @@ SDSL_CONSTEXPR inline uint64_t bits_impl<T>::cnt(uint64_t x)
 template <typename T>
 SDSL_CONSTEXPR inline uint32_t bits_impl<T>::cnt32(uint32_t x)
 {
+#ifdef __SSE4_2__
+	return __builtin_popcount(x);
+#else
 	x = x - ((x >> 1) & 0x55555555);
 	x = (x & 0x33333333) + ((x >> 2) & 0x33333333);
 	return (0x10101010 * x >> 28) + (0x01010101 * x >> 28);
+#endif
 }
 
 
+// We produce a 1 bit in the upper bit of each disjoint 2-bit group of
+// ones, and then count the 1 bits.
+//
+// Consider a 2-bit group at an even position that does not receive a
+// carry from the '+':
+//
+//   x ^  +  ^  &   carry
+//   00 01 10 11 00
+//   01 00 01 00 00
+//   10 11 00 01 00 x
+//   11 10 11 10 10
+//
+// We get an 1 bit if and only if we have a 2-bit group that is to be
+// counted, and a carry is produced if and only if the top bit is a 1
+// that could start another 2-bit group.
+//
+// For a 2-bit group that does receive a carry:
+//
+//     ^  +  ^  &   carry
+//   00 01 11 10 00
+//   01 00 10 11 01
+//   10 11 01 00 00 x
+//   11 10 00 01 01 x
+//
+// Also here we get the correct 1 bits and carries.
+//
 template <typename T>
 SDSL_CONSTEXPR inline uint32_t bits_impl<T>::cnt11(uint64_t x, uint64_t& c)
 {
-	// extract "11" 2bit blocks
-	uint64_t ex11 = (x & (x >> 1)) & 0x5555555555555555ULL, t{};
-	// extract "10" 2bit blocks
-	uint64_t ex10or01 = (ex11 | (ex11 << 1)) ^ x;
-
-	x = ex11 | ((t = (ex11 | (ex11 << 1)) + (((ex10or01 << 1) & 0x5555555555555555ULL) | c)) &
-				(ex10or01 & 0x5555555555555555ULL));
-	c = (ex10or01 >> 63) or (t < (ex11 | (ex11 << 1)));
-
-	x = (x & 0x3333333333333333ULL) + ((x >> 2) & 0x3333333333333333ULL);
-	x = (x + (x >> 4)) & 0x0F0F0F0F0F0F0F0FULL;
-	return (0x0101010101010101ULL * x >> 56);
+	uint64_t t1 = x ^ 0x5555555555555555ULL;
+	uint64_t t2 = t1 + 0x5555555555555555ULL + c;
+	c = t1 > t2;  // detect overflow in the sum
+	return cnt((t2 ^ 0x5555555555555555ULL) & x);
 }
 
 template <typename T>
 SDSL_CONSTEXPR inline uint32_t bits_impl<T>::cnt11(uint64_t x)
 {
-	// extract "11" 2bit blocks
-	uint64_t ex11 = (x & (x >> 1)) & 0x5555555555555555ULL;
-	// extract "10" 2bit blocks
-	uint64_t ex10or01 = (ex11 | (ex11 << 1)) ^ x;
-
-	x = ex11 | (((ex11 | (ex11 << 1)) + ((ex10or01 << 1) & 0x5555555555555555ULL)) &
-				(ex10or01 & 0x5555555555555555ULL));
-
-	x = (x & 0x3333333333333333ULL) + ((x >> 2) & 0x3333333333333333ULL);
-	x = (x + (x >> 4)) & 0x0F0F0F0F0F0F0F0FULL;
-	return (0x0101010101010101ULL * x >> 56);
+	return cnt((((x ^ 0x5555555555555555ULL) + 0x5555555555555555ULL)
+		    ^ 0x5555555555555555ULL) & x);
 }
 
 template <typename T>
 SDSL_CONSTEXPR inline uint32_t bits_impl<T>::cnt10(uint64_t x, uint64_t& c)
 {
-	uint32_t res = cnt((x ^ ((x << 1) | c)) & (~x));
+	uint32_t res = cnt(((x << 1) | c) & (~x));
 	c			 = (x >> 63);
 	return res;
 }
@@ -571,7 +584,7 @@ SDSL_CONSTEXPR inline uint32_t bits_impl<T>::cnt10(uint64_t x, uint64_t& c)
 template <typename T>
 SDSL_CONSTEXPR inline uint64_t bits_impl<T>::map10(uint64_t x, uint64_t c)
 {
-	return ((x ^ ((x << 1) | c)) & (~x));
+	return (((x << 1) | c) & (~x));
 }
 
 template <typename T>
@@ -709,25 +722,16 @@ SDSL_CONSTEXPR inline uint32_t bits_impl<T>::lo(uint64_t x)
 template <typename T>
 SDSL_CONSTEXPR inline uint32_t bits_impl<T>::hi11(uint64_t x)
 {
-	// extract "11" 2bit blocks
-	uint64_t ex11 = (x & (x >> 1)) & 0x5555555555555555ULL;
-	// extract "10" 2bit blocks
-	uint64_t ex10or01 = (ex11 | (ex11 << 1)) ^ x;
-	// extract "10" 2bit blocks
-	ex11 += (((ex11 | (ex11 << 1)) + ((ex10or01 << 1) & 0x5555555555555555ULL)) &
-			 ((ex10or01 & 0x5555555555555555ULL) | ex11));
-	return hi(ex11);
+	return hi((((x ^ 0x5555555555555555ULL) + 0x5555555555555555ULL)
+		   ^ 0x5555555555555555ULL) & x);
 }
 
 
 template <typename T>
 SDSL_CONSTEXPR inline uint32_t bits_impl<T>::sel11(uint64_t x, uint32_t i, uint32_t c)
 {
-	uint64_t ex11	 = (x & (x >> 1)) & 0x5555555555555555ULL;
-	uint64_t ex10or01 = (ex11 | (ex11 << 1)) ^ x;
-	ex11 += (((ex11 | (ex11 << 1)) + (((ex10or01 << 1) & 0x5555555555555555ULL) | c)) &
-			 ((ex10or01 & 0x5555555555555555ULL) | ex11));
-	return sel(ex11, i);
+	return sel((((x ^ 0x5555555555555555ULL) + 0x5555555555555555ULL + c)
+		    ^ 0x5555555555555555ULL) & x, i);
 }
 
 template <typename T>
