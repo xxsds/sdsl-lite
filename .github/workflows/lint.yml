@@ -1,0 +1,43 @@
+name: sdsl Linting
+
+on:
+  push:
+    branches:
+      # Push events to branches matching refs/heads/master
+      - 'master'
+
+env:
+  TZ: Europe/Berlin
+
+defaults:
+  run:
+    shell: bash -ex {0}
+
+jobs:
+  lint:
+    name: Linting
+    runs-on: ubuntu-20.04
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run clang-format
+        uses: DoozyX/clang-format-lint-action@v0.11
+        with:
+          source: '.'
+          exclude: './external'
+          extensions: 'h,hpp,hpp.cmake,cpp'
+          clangFormatVersion: 11
+          inplace: True
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v3
+        with:
+          commit-message: '[MISC] Format code'
+          committer: GitHub <noreply@github.com>
+          author: ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>
+          body: Auto-generated clang-format changes
+          signoff: false
+          branch: actions/clang-format
+          delete-branch: true
+          title: '[MISC] Format code'
+          reviewers: eseiler
+          draft: false

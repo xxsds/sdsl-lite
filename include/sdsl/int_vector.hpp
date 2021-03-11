@@ -197,10 +197,7 @@ struct int_vector_trait<16>
     typedef const uint16_t * const_iterator;
 
     static iterator begin(int_vector_type *, uint64_t * begin) noexcept { return (uint16_t *)begin; }
-    static iterator end(int_vector_type *, uint64_t * begin, int_vector_size_type size) noexcept
-    {
-        return ((uint16_t *)begin) + size;
-    }
+    static iterator end(int_vector_type *, uint64_t * begin, int_vector_size_type size) noexcept {return ((uint16_t *)begin) + size;}
     static const_iterator begin(const int_vector_type *, const uint64_t * begin) noexcept { return (uint16_t *)begin; }
     static const_iterator end(const int_vector_type *, const uint64_t * begin, int_vector_size_type size) noexcept
     {
