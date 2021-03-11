@@ -1,21 +1,22 @@
 #ifndef DOC_LIST_INDEX
 #define DOC_LIST_INDEX
 
-#include <sdsl/construct.hpp>
 #include <string>
 
-struct doc_list_tag {};
+#include <sdsl/construct.hpp>
 
-template<class t_index>
-void
-construct(t_index& idx, const std::string& file, sdsl::cache_config& config, uint8_t num_bytes, doc_list_tag)
+struct doc_list_tag
+{};
+
+template <class t_index>
+void construct(t_index & idx, const std::string & file, sdsl::cache_config & config, uint8_t num_bytes, doc_list_tag)
 {
     idx = t_index(file, config, num_bytes);
 }
 
-#include "doc_list_index_sada.hpp"
 #include "doc_list_index_greedy.hpp"
 #include "doc_list_index_qprobing.hpp"
+#include "doc_list_index_sada.hpp"
 #include "doc_list_index_sort.hpp"
 
 #endif

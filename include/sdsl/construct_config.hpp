@@ -4,19 +4,22 @@
 #ifndef INCLUDED_SDSL_CONSTRUCT_CONFIG
 #define INCLUDED_SDSL_CONSTRUCT_CONFIG
 
-#include "config.hpp"
+#include <sdsl/config.hpp>
 
-namespace sdsl {
+namespace sdsl
+{
 
-struct construct_config_data {
-	byte_sa_algo_type byte_algo_sa = LIBDIVSUFSORT;
+struct construct_config_data
+{
+    byte_sa_algo_type byte_algo_sa = LIBDIVSUFSORT;
 };
 
-extern inline construct_config_data& construct_config() {
+extern inline construct_config_data & construct_config()
+{
     static construct_config_data data;
     return data;
 }
 
-}
+} // namespace sdsl
 
 #endif

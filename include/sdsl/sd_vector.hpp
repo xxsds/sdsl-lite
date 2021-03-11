@@ -2,33 +2,34 @@
 // Please see the AUTHORS file for details.  Use of this source code is governed
 // by a BSD license that can be found in the LICENSE file.
 /*!\file sd_vector.hpp
-   \brief sd_vector.hpp contains the sdsl::sd_vector class, and
-          classes which support rank and select for sd_vector.
-   \author Simon Gog, Jouni Siren
-*/
+ * \brief sd_vector.hpp contains the sdsl::sd_vector class, and
+ * classes which support rank and select for sd_vector.
+ * \author Simon Gog, Jouni Siren
+ */
 #ifndef INCLUDED_SDSL_SD_VECTOR
 #define INCLUDED_SDSL_SD_VECTOR
 
-#include "int_vector.hpp"
-#include "select_support_mcl.hpp"
-#include "util.hpp"
-#include "iterators.hpp"
+#include <sdsl/int_vector.hpp>
+#include <sdsl/iterators.hpp>
+#include <sdsl/select_support_mcl.hpp>
+#include <sdsl/util.hpp>
 
 //! Namespace for the succinct data structure library
-namespace sdsl {
+namespace sdsl
+{
 
 // forward declaration needed for friend declaration
-template <uint8_t t_b			= 1,
-		  class t_hi_bit_vector = bit_vector,
-		  class t_select_1		= typename t_hi_bit_vector::select_1_type,
-		  class t_select_0		= typename t_hi_bit_vector::select_0_type>
+template <uint8_t t_b = 1,
+          class t_hi_bit_vector = bit_vector,
+          class t_select_1 = typename t_hi_bit_vector::select_1_type,
+          class t_select_0 = typename t_hi_bit_vector::select_0_type>
 class rank_support_sd; // in sd_vector
 
 // forward declaration needed for friend declaration
-template <uint8_t t_b			= 1,
-		  class t_hi_bit_vector = bit_vector,
-		  class t_select_1		= typename t_hi_bit_vector::select_1_type,
-		  class t_select_0		= typename t_hi_bit_vector::select_0_type>
+template <uint8_t t_b = 1,
+          class t_hi_bit_vector = bit_vector,
+          class t_select_1 = typename t_hi_bit_vector::select_1_type,
+          class t_select_0 = typename t_hi_bit_vector::select_0_type>
 class select_support_sd; // in sd_vector
 
 // forward declaration needed for friend declaration
@@ -36,54 +37,55 @@ template <typename, typename, typename>
 class sd_vector; // in sd_vector
 
 //! Class for in-place construction of sd_vector from a strictly increasing sequence
-/*! \par Building an sd_vector will clear the builder.
+/*!\par Building an sd_vector will clear the builder.
  */
-class sd_vector_builder {
-	template <typename, typename, typename>
-	friend class sd_vector;
+class sd_vector_builder
+{
+    template <typename, typename, typename>
+    friend class sd_vector;
 
-public:
-	typedef bit_vector::size_type size_type;
+  public:
+    typedef bit_vector::size_type size_type;
 
-private:
-	size_type m_size, m_capacity;
-	size_type m_wl;
-	size_type m_tail, m_items;
-	size_type m_last_high, m_highpos;
+  private:
+    size_type m_size, m_capacity;
+    size_type m_wl;
+    size_type m_tail, m_items;
+    size_type m_last_high, m_highpos;
 
-	int_vector<> m_low;
-	bit_vector   m_high;
+    int_vector<> m_low;
+    bit_vector m_high;
 
-public:
-	sd_vector_builder();
+  public:
+    sd_vector_builder();
 
-	//! Constructor
-	/*! \param n Vector size.
-         *  \param m The number of 1-bits.
-         */
-	sd_vector_builder(size_type n, size_type m);
+    //! Constructor
+    /*!\param n Vector size.
+     *  \param m The number of 1-bits.
+     */
+    sd_vector_builder(size_type n, size_type m);
 
-	inline size_type size() const { return m_size; }
-	inline size_type capacity() const { return m_capacity; }
-	inline size_type tail() const { return m_tail; }
-	inline size_type items() const { return m_items; }
+    inline size_type size() const { return m_size; }
+    inline size_type capacity() const { return m_capacity; }
+    inline size_type tail() const { return m_tail; }
+    inline size_type items() const { return m_items; }
 
-	//! Set a bit to 1.
-	/*! \param i The position of the bit.
-         *  \par The position must be strictly greater than for the previous call.
-         */
-	inline void set(size_type i)
-	{
-		assert(i >= m_tail && i < m_size);
-		assert(m_items < m_capacity);
+    //! Set a bit to 1.
+    /*!\param i The position of the bit.
+     *  \par The position must be strictly greater than for the previous call.
+     */
+    inline void set(size_type i)
+    {
+        assert(i >= m_tail && i < m_size);
+        assert(m_items < m_capacity);
 
-		size_type cur_high = i >> m_wl;
-		m_highpos += (cur_high - m_last_high);
-		m_last_high			= cur_high;
-		m_low[m_items++]	= i; // int_vector truncates the most significant logm bits
-		m_high[m_highpos++] = 1; // write 1 for the entry
-		m_tail				= i + 1;
-	}
+        size_type cur_high = i >> m_wl;
+        m_highpos += (cur_high - m_last_high);
+        m_last_high = cur_high;
+        m_low[m_items++] = i;    // int_vector truncates the most significant logm bits
+        m_high[m_highpos++] = 1; // write 1 for the entry
+        m_tail = i + 1;
+    }
 };
 
 //! A bit vector which compresses very sparse populated bit vectors by
@@ -107,744 +109,796 @@ public:
  *  \tparam t_select_0      Type of the select structure which is used to select zeros in HI.
  */
 template <class t_hi_bit_vector = bit_vector,
-		  class t_select_1		= typename t_hi_bit_vector::select_1_type,
-		  class t_select_0		= typename t_hi_bit_vector::select_0_type>
-class sd_vector {
-public:
-	typedef bit_vector::size_type					size_type;
-	typedef size_type								value_type;
-	typedef bit_vector::difference_type				difference_type;
-	typedef random_access_const_iterator<sd_vector> iterator;
-	typedef iterator								const_iterator;
-	typedef bv_tag									index_category;
-	typedef t_select_0								select_0_support_type;
-	typedef t_select_1								select_1_support_type;
+          class t_select_1 = typename t_hi_bit_vector::select_1_type,
+          class t_select_0 = typename t_hi_bit_vector::select_0_type>
+class sd_vector
+{
+  public:
+    typedef bit_vector::size_type size_type;
+    typedef size_type value_type;
+    typedef bit_vector::difference_type difference_type;
+    typedef random_access_const_iterator<sd_vector> iterator;
+    typedef iterator const_iterator;
+    typedef bv_tag index_category;
+    typedef t_select_0 select_0_support_type;
+    typedef t_select_1 select_1_support_type;
 
-	typedef rank_support_sd<0, t_hi_bit_vector, select_1_support_type, select_0_support_type>
-	rank_0_type;
-	typedef rank_support_sd<1, t_hi_bit_vector, select_1_support_type, select_0_support_type>
-	rank_1_type;
-	typedef select_support_sd<0, t_hi_bit_vector, select_1_support_type, select_0_support_type>
-	select_0_type;
-	typedef select_support_sd<1, t_hi_bit_vector, select_1_support_type, select_0_support_type>
-	select_1_type;
+    typedef rank_support_sd<0, t_hi_bit_vector, select_1_support_type, select_0_support_type> rank_0_type;
+    typedef rank_support_sd<1, t_hi_bit_vector, select_1_support_type, select_0_support_type> rank_1_type;
+    typedef select_support_sd<0, t_hi_bit_vector, select_1_support_type, select_0_support_type> select_0_type;
+    typedef select_support_sd<1, t_hi_bit_vector, select_1_support_type, select_0_support_type> select_1_type;
 
-	typedef t_hi_bit_vector hi_bit_vector_type;
+    typedef t_hi_bit_vector hi_bit_vector_type;
 
-private:
-	// we need this variables to represent the m ones of the original bit vector of size n
-	size_type m_size = 0; // length of the original bit vector
-	uint8_t   m_wl   = 0; // log n - log m, where n is the length of the original bit vector
-	// and m is the number of ones in the bit vector, wl is the abbreviation
-	// for ,,width (of) low (part)''
+  private:
+    // we need this variables to represent the m ones of the original bit vector of size n
+    size_type m_size = 0; // length of the original bit vector
+    uint8_t m_wl = 0;     // log n - log m, where n is the length of the original bit vector
+    // and m is the number of ones in the bit vector, wl is the abbreviation
+    // for ,,width (of) low (part)''
 
-	int_vector<> m_low; // vector for the least significant bits of the positions of the m ones
-	hi_bit_vector_type
-						  m_high; // bit vector that represents the most significant bit in permuted order
-	select_1_support_type m_high_1_select; // select support for the ones in m_high
-	select_0_support_type m_high_0_select; // select support for the zeros in m_high
+    int_vector<> m_low;                    // vector for the least significant bits of the positions of the m ones
+    hi_bit_vector_type m_high;             // bit vector that represents the most significant bit in permuted order
+    select_1_support_type m_high_1_select; // select support for the ones in m_high
+    select_0_support_type m_high_0_select; // select support for the zeros in m_high
 
-public:
-	const uint8_t&				 wl			   = m_wl;
-	const hi_bit_vector_type&	high		   = m_high;
-	const int_vector<>&			 low		   = m_low;
-	const select_1_support_type& high_1_select = m_high_1_select;
-	const select_0_support_type& high_0_select = m_high_0_select;
+  public:
+    const uint8_t & wl = m_wl;
+    const hi_bit_vector_type & high = m_high;
+    const int_vector<> & low = m_low;
+    const select_1_support_type & high_1_select = m_high_1_select;
+    const select_0_support_type & high_0_select = m_high_0_select;
 
-	sd_vector() {}
+    sd_vector() {}
 
-	sd_vector(const sd_vector& sd)
-		: m_size(sd.m_size)
-		, m_wl(sd.m_wl)
-		, m_low(sd.m_low)
-		, m_high(sd.m_high)
-		, m_high_1_select(sd.m_high_1_select)
-		, m_high_0_select(sd.m_high_0_select)
-	{
-		m_high_1_select.set_vector(&m_high);
-		m_high_0_select.set_vector(&m_high);
-	}
+    sd_vector(const sd_vector & sd)
+      : m_size(sd.m_size)
+      , m_wl(sd.m_wl)
+      , m_low(sd.m_low)
+      , m_high(sd.m_high)
+      , m_high_1_select(sd.m_high_1_select)
+      , m_high_0_select(sd.m_high_0_select)
+    {
+        m_high_1_select.set_vector(&m_high);
+        m_high_0_select.set_vector(&m_high);
+    }
 
-	sd_vector& operator=(const sd_vector& v)
-	{
-		if (this != &v) {
-			sd_vector tmp(v);
-			*this = std::move(tmp);
-		}
-		return *this;
-	}
+    sd_vector & operator=(const sd_vector & v)
+    {
+        if (this != &v)
+        {
+            sd_vector tmp(v);
+            *this = std::move(tmp);
+        }
+        return *this;
+    }
 
-	sd_vector& operator=(sd_vector&& v)
-	{
-		if (this != &v) {
-			m_size			= v.m_size;
-			m_wl			= v.m_wl;
-			m_low			= std::move(v.m_low);
-			m_high			= std::move(v.m_high);
-			m_high_1_select = std::move(v.m_high_1_select);
-			m_high_1_select.set_vector(&m_high);
-			m_high_0_select = std::move(v.m_high_0_select);
-			m_high_0_select.set_vector(&m_high);
-		}
-		return *this;
-	}
+    sd_vector & operator=(sd_vector && v)
+    {
+        if (this != &v)
+        {
+            m_size = v.m_size;
+            m_wl = v.m_wl;
+            m_low = std::move(v.m_low);
+            m_high = std::move(v.m_high);
+            m_high_1_select = std::move(v.m_high_1_select);
+            m_high_1_select.set_vector(&m_high);
+            m_high_0_select = std::move(v.m_high_0_select);
+            m_high_0_select.set_vector(&m_high);
+        }
+        return *this;
+    }
 
-	sd_vector(sd_vector&& sd) { *this = std::move(sd); }
+    sd_vector(sd_vector && sd) { *this = std::move(sd); }
 
-	sd_vector(const bit_vector& bv)
-	{
-		m_size		   = bv.size();
-		size_type m	= util::cnt_one_bits(bv);
-		uint8_t   logm = bits::hi(m) + 1;
-		uint8_t   logn = bits::hi(m_size) + 1;
-		if (logm == logn) {
-			--logm; // to ensure logn-logm > 0
-		}
-		m_wl				 = logn - logm;
-		m_low				 = int_vector<>(m, 0, m_wl);
-		bit_vector		high = bit_vector(m + (1ULL << logm), 0); //
-		const uint64_t* bvp  = bv.data();
-		for (size_type i = 0, mm = 0, last_high = 0, highpos = 0; i < (bv.size() + 63) / 64;
-			 ++i, ++bvp) {
-			size_type position = 64 * i;
-			uint64_t  w		   = *bvp;
-			while (w) { // process bit_vector word by word
-				uint8_t offset = bits::lo(w);
-				w >>= offset; // note:  w >>= (offset+1) can not be applied for offset=63!
-				position += offset;
-				if (position >=
-					bv.size()) // check that we have not reached the end of the bitvector
-					break;
-				// (1) handle high part
-				size_type cur_high = position >> m_wl;
-				highpos += (cur_high - last_high); // write cur_high-last_high 0s
-				last_high = cur_high;
-				// (2) handle low part
-				m_low[mm++]		= position; // int_vector truncates the most significant logm bits
-				high[highpos++] = 1;		// write 1 for the entry
-				position += 1;
-				w >>= 1;
-			}
-		}
-		m_high = std::move(high);
-		util::init_support(m_high_1_select, &m_high);
-		util::init_support(m_high_0_select, &m_high);
-	}
+    sd_vector(const bit_vector & bv)
+    {
+        m_size = bv.size();
+        size_type m = util::cnt_one_bits(bv);
+        uint8_t logm = bits::hi(m) + 1;
+        uint8_t logn = bits::hi(m_size) + 1;
+        if (logm == logn)
+        {
+            --logm; // to ensure logn-logm > 0
+        }
+        m_wl = logn - logm;
+        m_low = int_vector<>(m, 0, m_wl);
+        bit_vector high = bit_vector(m + (1ULL << logm), 0); //
+        const uint64_t * bvp = bv.data();
+        for (size_type i = 0, mm = 0, last_high = 0, highpos = 0; i < (bv.size() + 63) / 64; ++i, ++bvp)
+        {
+            size_type position = 64 * i;
+            uint64_t w = *bvp;
+            while (w)
+            { // process bit_vector word by word
+                uint8_t offset = bits::lo(w);
+                w >>= offset; // note:  w >>= (offset+1) can not be applied for offset=63!
+                position += offset;
+                if (position >= bv.size()) // check that we have not reached the end of the bitvector
+                    break;
+                // (1) handle high part
+                size_type cur_high = position >> m_wl;
+                highpos += (cur_high - last_high); // write cur_high-last_high 0s
+                last_high = cur_high;
+                // (2) handle low part
+                m_low[mm++] = position; // int_vector truncates the most significant logm bits
+                high[highpos++] = 1;    // write 1 for the entry
+                position += 1;
+                w >>= 1;
+            }
+        }
+        m_high = std::move(high);
+        util::init_support(m_high_1_select, &m_high);
+        util::init_support(m_high_0_select, &m_high);
+    }
 
-	template <class t_itr>
-	sd_vector(const t_itr begin, const t_itr end)
-	{
-		if (begin == end) {
-			return;
-		}
-		if (!is_sorted(begin, end)) {
-			throw std::runtime_error("sd_vector: source list is not sorted.");
-		}
-		size_type m  = std::distance(begin, end);
-		m_size		 = *(end - 1) + 1;
-		uint8_t logm = bits::hi(m) + 1;
-		uint8_t logn = bits::hi(m_size) + 1;
-		if (logm == logn) {
-			--logm; // to ensure logn-logm > 0
-		}
-		m_wl			= logn - logm;
-		m_low			= int_vector<>(m, 0, m_wl);
-		bit_vector high = bit_vector(m + (1ULL << logm), 0);
-		auto	   itr  = begin;
-		size_type  mm = 0, last_high = 0, highpos = 0;
-		while (itr != end) {
-			auto position = *itr;
-			// (1) handle high part
-			size_type cur_high = position >> m_wl;
-			highpos += (cur_high - last_high); // write cur_high-last_high 0s
-			last_high = cur_high;
-			// (2) handle low part
-			m_low[mm++]		= position; // int_vector truncates the most significant logm bits
-			high[highpos++] = 1;		// write 1 for the entry
-			++itr;
-		}
+    template <class t_itr>
+    sd_vector(const t_itr begin, const t_itr end)
+    {
+        if (begin == end) { return; }
+        if (!is_sorted(begin, end)) { throw std::runtime_error("sd_vector: source list is not sorted."); }
+        size_type m = std::distance(begin, end);
+        m_size = *(end - 1) + 1;
+        uint8_t logm = bits::hi(m) + 1;
+        uint8_t logn = bits::hi(m_size) + 1;
+        if (logm == logn)
+        {
+            --logm; // to ensure logn-logm > 0
+        }
+        m_wl = logn - logm;
+        m_low = int_vector<>(m, 0, m_wl);
+        bit_vector high = bit_vector(m + (1ULL << logm), 0);
+        auto itr = begin;
+        size_type mm = 0, last_high = 0, highpos = 0;
+        while (itr != end)
+        {
+            auto position = *itr;
+            // (1) handle high part
+            size_type cur_high = position >> m_wl;
+            highpos += (cur_high - last_high); // write cur_high-last_high 0s
+            last_high = cur_high;
+            // (2) handle low part
+            m_low[mm++] = position; // int_vector truncates the most significant logm bits
+            high[highpos++] = 1;    // write 1 for the entry
+            ++itr;
+        }
 
-		m_high = std::move(high);
-		util::init_support(m_high_1_select, &m_high);
-		util::init_support(m_high_0_select, &m_high);
-	}
+        m_high = std::move(high);
+        util::init_support(m_high_1_select, &m_high);
+        util::init_support(m_high_0_select, &m_high);
+    }
 
-	sd_vector(sd_vector_builder& builder)
-	{
-		if (builder.items() != builder.capacity()) {
-			throw std::runtime_error("sd_vector: builder is not at full capacity.");
-		}
+    sd_vector(sd_vector_builder & builder)
+    {
+        if (builder.items() != builder.capacity())
+        {
+            throw std::runtime_error("sd_vector: builder is not at full capacity.");
+        }
 
-		m_size = builder.m_size;
-		m_wl   = builder.m_wl;
-		m_low  = std::move(builder.m_low);
-		m_high = std::move(builder.m_high);
-		util::init_support(m_high_1_select, &(this->m_high));
-		util::init_support(m_high_0_select, &(this->m_high));
+        m_size = builder.m_size;
+        m_wl = builder.m_wl;
+        m_low = std::move(builder.m_low);
+        m_high = std::move(builder.m_high);
+        util::init_support(m_high_1_select, &(this->m_high));
+        util::init_support(m_high_0_select, &(this->m_high));
 
-		builder = sd_vector_builder();
-	}
+        builder = sd_vector_builder();
+    }
 
-	//! Accessing the i-th element of the original bit_vector
-	/*! \param i An index i with \f$ 0 \leq i < size()  \f$.
-        *   \return The i-th bit of the original bit_vector
-        *   \par Time complexity
-        *           \f$ \Order{t_{select0} + n/m} \f$, where m equals the number of zeros
-        *    \par Remark
-         *         The time complexity can be easily improved to
-        *            \f$\Order{t_{select0}+\log(n/m)}\f$
-        *        by using binary search in the second step.
-        */
-	value_type operator[](size_type i) const
-	{
-		size_type high_val = (i >> (m_wl));
-		size_type sel_high = m_high_0_select(high_val + 1);
-		size_type rank_low = sel_high - high_val;
-		if (0 == rank_low) return 0;
-		size_type val_low = i & bits::lo_set[m_wl]; // extract the low m_wl = log n -log m bits
-		--sel_high;
-		--rank_low;
-		while (m_high[sel_high] and m_low[rank_low] > val_low) {
-			if (sel_high > 0) {
-				--sel_high;
-				--rank_low;
-			} else
-				return 0;
-		}
-		return m_high[sel_high] and m_low[rank_low] == val_low;
-	}
+    //! Accessing the i-th element of the original bit_vector
+    /*!\param i An index i with \f$ 0 \leq i < size()  \f$.
+     *   \return The i-th bit of the original bit_vector
+     *   \par Time complexity
+     *           \f$ \Order{t_{select0} + n/m} \f$, where m equals the number of zeros
+     *    \par Remark
+     *         The time complexity can be easily improved to
+     *            \f$\Order{t_{select0}+\log(n/m)}\f$
+     *        by using binary search in the second step.
+     */
+    value_type operator[](size_type i) const
+    {
+        size_type high_val = (i >> (m_wl));
+        size_type sel_high = m_high_0_select(high_val + 1);
+        size_type rank_low = sel_high - high_val;
+        if (0 == rank_low) return 0;
+        size_type val_low = i & bits::lo_set[m_wl]; // extract the low m_wl = log n -log m bits
+        --sel_high;
+        --rank_low;
+        while (m_high[sel_high] and m_low[rank_low] > val_low)
+        {
+            if (sel_high > 0)
+            {
+                --sel_high;
+                --rank_low;
+            }
+            else
+                return 0;
+        }
+        return m_high[sel_high] and m_low[rank_low] == val_low;
+    }
 
-	//! Get the integer value of the binary string of length len starting at position idx.
-	/*! \param idx Starting index of the binary representation of the integer.
-         *  \param len Length of the binary representation of the integer. Default value is 64.
-         *  \returns The integer value of the binary string of length len starting at position idx.
-         *
-         *  \pre idx+len-1 in [0..size()-1]
-         *  \pre len in [1..64]
-         */
-	uint64_t get_int(size_type idx, const uint8_t len = 64) const
-	{
-		uint64_t i		  = idx + len - 1;
-		uint64_t high_val = (i >> (m_wl));
-		uint64_t sel_high = m_high_0_select(high_val + 1);
-		uint64_t rank_low = sel_high - high_val;
-		if (0 == rank_low) return 0;
-		size_type val_low = i & bits::lo_set[m_wl]; // extract the low m_wl = log n -log m bits
-		--sel_high;
-		--rank_low;
-		while (m_high[sel_high] and m_low[rank_low] > val_low) {
-			if (sel_high > 0) {
-				--sel_high;
-				--rank_low;
-			} else
-				return 0;
-		}
-		uint64_t res = 0;
-		while (true) {
-			while (!m_high[sel_high]) {
-				if (sel_high > 0 and (high_val << m_wl) >= idx) {
-					--sel_high;
-					--high_val;
-				} else {
-					return res;
-				}
-			}
-			while (m_high[sel_high]) {
-				uint64_t val = (high_val << m_wl) + m_low[rank_low];
-				if (val >= idx) {
-					res |= 1ULL << (val - idx);
-				} else {
-					return res;
-				}
-				if (sel_high > 0) {
-					--sel_high;
-					--rank_low;
-				} else {
-					return res;
-				}
-			}
-		}
-	}
+    //! Get the integer value of the binary string of length len starting at position idx.
+    /*!\param idx Starting index of the binary representation of the integer.
+     *  \param len Length of the binary representation of the integer. Default value is 64.
+     *  \returns The integer value of the binary string of length len starting at position idx.
+     *
+     *  \pre idx+len-1 in [0..size()-1]
+     *  \pre len in [1..64]
+     */
+    uint64_t get_int(size_type idx, const uint8_t len = 64) const
+    {
+        uint64_t i = idx + len - 1;
+        uint64_t high_val = (i >> (m_wl));
+        uint64_t sel_high = m_high_0_select(high_val + 1);
+        uint64_t rank_low = sel_high - high_val;
+        if (0 == rank_low) return 0;
+        size_type val_low = i & bits::lo_set[m_wl]; // extract the low m_wl = log n -log m bits
+        --sel_high;
+        --rank_low;
+        while (m_high[sel_high] and m_low[rank_low] > val_low)
+        {
+            if (sel_high > 0)
+            {
+                --sel_high;
+                --rank_low;
+            }
+            else
+                return 0;
+        }
+        uint64_t res = 0;
+        while (true)
+        {
+            while (!m_high[sel_high])
+            {
+                if (sel_high > 0 and (high_val << m_wl) >= idx)
+                {
+                    --sel_high;
+                    --high_val;
+                }
+                else
+                {
+                    return res;
+                }
+            }
+            while (m_high[sel_high])
+            {
+                uint64_t val = (high_val << m_wl) + m_low[rank_low];
+                if (val >= idx) { res |= 1ULL << (val - idx); }
+                else
+                {
+                    return res;
+                }
+                if (sel_high > 0)
+                {
+                    --sel_high;
+                    --rank_low;
+                }
+                else
+                {
+                    return res;
+                }
+            }
+        }
+    }
 
-	//! Returns the size of the original bit vector.
-	size_type size() const { return m_size; }
+    //! Returns the size of the original bit vector.
+    size_type size() const { return m_size; }
 
-	//! Serializes the data structure into the given ostream
-	size_type
-	serialize(std::ostream& out, structure_tree_node* v = nullptr, std::string name = "") const
-	{
-		structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
-		size_type			 written_bytes = 0;
-		written_bytes += write_member(m_size, out, child, "size");
-		written_bytes += write_member(m_wl, out, child, "wl");
-		written_bytes += m_low.serialize(out, child, "low");
-		written_bytes += m_high.serialize(out, child, "high");
-		written_bytes += m_high_1_select.serialize(out, child, "high_1_select");
-		written_bytes += m_high_0_select.serialize(out, child, "high_0_select");
-		structure_tree::add_size(child, written_bytes);
-		return written_bytes;
-	}
+    //! Serializes the data structure into the given ostream
+    size_type serialize(std::ostream & out, structure_tree_node * v = nullptr, std::string name = "") const
+    {
+        structure_tree_node * child = structure_tree::add_child(v, name, util::class_name(*this));
+        size_type written_bytes = 0;
+        written_bytes += write_member(m_size, out, child, "size");
+        written_bytes += write_member(m_wl, out, child, "wl");
+        written_bytes += m_low.serialize(out, child, "low");
+        written_bytes += m_high.serialize(out, child, "high");
+        written_bytes += m_high_1_select.serialize(out, child, "high_1_select");
+        written_bytes += m_high_0_select.serialize(out, child, "high_0_select");
+        structure_tree::add_size(child, written_bytes);
+        return written_bytes;
+    }
 
-	//! Loads the data structure from the given istream.
-	void load(std::istream& in)
-	{
-		read_member(m_size, in);
-		read_member(m_wl, in);
-		m_low.load(in);
-		m_high.load(in);
-		m_high_1_select.load(in, &m_high);
-		m_high_0_select.load(in, &m_high);
-	}
+    //! Loads the data structure from the given istream.
+    void load(std::istream & in)
+    {
+        read_member(m_size, in);
+        read_member(m_wl, in);
+        m_low.load(in);
+        m_high.load(in);
+        m_high_1_select.load(in, &m_high);
+        m_high_0_select.load(in, &m_high);
+    }
 
-	template <typename archive_t>
-	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
-	{
-		ar(CEREAL_NVP(m_size));
-		ar(CEREAL_NVP(m_wl));
-		ar(CEREAL_NVP(m_low));
-		ar(CEREAL_NVP(m_high));
-		ar(CEREAL_NVP(m_high_1_select));
-		ar(CEREAL_NVP(m_high_0_select));
-	}
+    template <typename archive_t>
+    void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+    {
+        ar(CEREAL_NVP(m_size));
+        ar(CEREAL_NVP(m_wl));
+        ar(CEREAL_NVP(m_low));
+        ar(CEREAL_NVP(m_high));
+        ar(CEREAL_NVP(m_high_1_select));
+        ar(CEREAL_NVP(m_high_0_select));
+    }
 
-	template <typename archive_t>
-	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
-	{
-		ar(CEREAL_NVP(m_size));
-		ar(CEREAL_NVP(m_wl));
-		ar(CEREAL_NVP(m_low));
-		ar(CEREAL_NVP(m_high));
-		ar(CEREAL_NVP(m_high_1_select));
-		m_high_1_select.set_vector(&m_high);
-		ar(CEREAL_NVP(m_high_0_select));
-		m_high_0_select.set_vector(&m_high);
-	}
+    template <typename archive_t>
+    void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+    {
+        ar(CEREAL_NVP(m_size));
+        ar(CEREAL_NVP(m_wl));
+        ar(CEREAL_NVP(m_low));
+        ar(CEREAL_NVP(m_high));
+        ar(CEREAL_NVP(m_high_1_select));
+        m_high_1_select.set_vector(&m_high);
+        ar(CEREAL_NVP(m_high_0_select));
+        m_high_0_select.set_vector(&m_high);
+    }
 
-	iterator begin() const { return iterator(this, 0); }
+    iterator begin() const { return iterator(this, 0); }
 
-	iterator end() const { return iterator(this, size()); }
+    iterator end() const { return iterator(this, size()); }
 
-	bool operator==(const sd_vector& v) const
-	{
-		return m_size == v.m_size && m_wl == v.m_wl && m_low == v.m_low && m_high == v.m_high;
-	}
+    bool operator==(const sd_vector & v) const
+    {
+        return m_size == v.m_size && m_wl == v.m_wl && m_low == v.m_low && m_high == v.m_high;
+    }
 
-	bool operator!=(const sd_vector& v) const { return !(*this == v); }
+    bool operator!=(const sd_vector & v) const { return !(*this == v); }
 };
 
 //! Specialized constructor that is a bit more space-efficient than the default.
 template <>
-sd_vector<>::sd_vector(sd_vector_builder& builder);
+sd_vector<>::sd_vector(sd_vector_builder & builder);
 
 template <uint8_t t_b>
-struct rank_support_sd_trait {
-	typedef bit_vector::size_type size_type;
-	static size_type adjust_rank(size_type r, size_type) { return r; }
+struct rank_support_sd_trait
+{
+    typedef bit_vector::size_type size_type;
+    static size_type adjust_rank(size_type r, size_type) { return r; }
 };
 
 template <>
-struct rank_support_sd_trait<0> {
-	typedef bit_vector::size_type size_type;
-	static size_type adjust_rank(size_type r, size_type n) { return n - r; }
+struct rank_support_sd_trait<0>
+{
+    typedef bit_vector::size_type size_type;
+    static size_type adjust_rank(size_type r, size_type n) { return n - r; }
 };
 
 //! Rank data structure for sd_vector
-/*! \tparam t_b             Bit pattern.
+/*!\tparam t_b             Bit pattern.
  *  \tparam t_hi_bit_vector Type of the bitvector used for the unary decoded differences of
  *                          the high part of the positions of the 1s.
  *  \tparam t_select_1      Type of the select structure which is used to select ones in HI.
  *  \tparam t_select_0      Type of the select structure which is used to select zeros in HI.
  */
 template <uint8_t t_b, class t_hi_bit_vector, class t_select_1, class t_select_0>
-class rank_support_sd {
-	static_assert(t_b == 1u or t_b == 0u, "rank_support_sd: bit pattern must be `0` or `1`");
+class rank_support_sd
+{
+    static_assert(t_b == 1u or t_b == 0u, "rank_support_sd: bit pattern must be `0` or `1`");
 
-public:
-	typedef bit_vector::size_type size_type;
-	typedef sd_vector<t_hi_bit_vector, t_select_1, t_select_0> bit_vector_type;
-	enum { bit_pat = t_b };
-	enum { bit_pat_len = (uint8_t)1 };
+  public:
+    typedef bit_vector::size_type size_type;
+    typedef sd_vector<t_hi_bit_vector, t_select_1, t_select_0> bit_vector_type;
+    enum
+    {
+        bit_pat = t_b
+    };
+    enum
+    {
+        bit_pat_len = (uint8_t)1
+    };
 
-private:
-	const bit_vector_type* m_v;
+  private:
+    const bit_vector_type * m_v;
 
-public:
-	explicit rank_support_sd(const bit_vector_type* v = nullptr) { set_vector(v); }
+  public:
+    explicit rank_support_sd(const bit_vector_type * v = nullptr) { set_vector(v); }
 
-	size_type rank(size_type i) const
-	{
-		assert(m_v != nullptr);
-		assert(i <= m_v->size());
-		// split problem in two parts:
-		// (1) find  >=
-		size_type high_val = (i >> (m_v->wl));
-		size_type sel_high = m_v->high_0_select(high_val + 1);
-		size_type rank_low = sel_high - high_val; //
-		if (0 == rank_low) return rank_support_sd_trait<t_b>::adjust_rank(0, i);
-		size_type val_low = i & bits::lo_set[m_v->wl];
-		// now since rank_low > 0 => sel_high > 0
-		do {
-			if (!sel_high) return rank_support_sd_trait<t_b>::adjust_rank(0, i);
-			--sel_high;
-			--rank_low;
-		} while (m_v->high[sel_high] and m_v->low[rank_low] >= val_low);
-		return rank_support_sd_trait<t_b>::adjust_rank(rank_low + 1, i);
-	}
+    size_type rank(size_type i) const
+    {
+        assert(m_v != nullptr);
+        assert(i <= m_v->size());
+        // split problem in two parts:
+        // (1) find  >=
+        size_type high_val = (i >> (m_v->wl));
+        size_type sel_high = m_v->high_0_select(high_val + 1);
+        size_type rank_low = sel_high - high_val; //
+        if (0 == rank_low) return rank_support_sd_trait<t_b>::adjust_rank(0, i);
+        size_type val_low = i & bits::lo_set[m_v->wl];
+        // now since rank_low > 0 => sel_high > 0
+        do {
+            if (!sel_high) return rank_support_sd_trait<t_b>::adjust_rank(0, i);
+            --sel_high;
+            --rank_low;
+        } while (m_v->high[sel_high] and m_v->low[rank_low] >= val_low);
+        return rank_support_sd_trait<t_b>::adjust_rank(rank_low + 1, i);
+    }
 
-	size_type operator()(size_type i) const { return rank(i); }
+    size_type operator()(size_type i) const { return rank(i); }
 
-	size_type size() const { return m_v->size(); }
+    size_type size() const { return m_v->size(); }
 
-	void set_vector(const bit_vector_type* v = nullptr) { m_v = v; }
+    void set_vector(const bit_vector_type * v = nullptr) { m_v = v; }
 
-	void load(std::istream&, const bit_vector_type* v = nullptr) { set_vector(v); }
+    void load(std::istream &, const bit_vector_type * v = nullptr) { set_vector(v); }
 
-	size_type
-	serialize(std::ostream& out, structure_tree_node* v = nullptr, std::string name = "") const
-	{
-		return serialize_empty_object(out, v, name, this);
-	}
+    size_type serialize(std::ostream & out, structure_tree_node * v = nullptr, std::string name = "") const
+    {
+        return serialize_empty_object(out, v, name, this);
+    }
 
-	template <typename archive_t>
-	void CEREAL_SAVE_FUNCTION_NAME(archive_t &) const {}
+    template <typename archive_t>
+    void CEREAL_SAVE_FUNCTION_NAME(archive_t &) const
+    {}
 
-	template <typename archive_t>
-	void CEREAL_LOAD_FUNCTION_NAME(archive_t &) {}
+    template <typename archive_t>
+    void CEREAL_LOAD_FUNCTION_NAME(archive_t &)
+    {}
 
-	bool operator==(const rank_support_sd& other) const noexcept
-	{
-		return *m_v == *other.m_v;
-	}
+    bool operator==(const rank_support_sd & other) const noexcept { return *m_v == *other.m_v; }
 
-	bool operator!=(const rank_support_sd& other) const noexcept
-	{
-		return !(*this == other);
-	}
+    bool operator!=(const rank_support_sd & other) const noexcept { return !(*this == other); }
 };
 
 template <uint8_t t_b, class t_sd_vec>
-struct select_support_sd_trait {
-	typedef bit_vector::size_type size_type;
-	static size_type select(size_type i, const t_sd_vec* v)
-	{
-		return v->low[i - 1] +							   // lower part of the number
-			   ((v->high_1_select(i) + 1 - i) << (v->wl)); // upper part
-		//^-number of 0 before the i-th 1-^    ^-shift by wl
-	}
+struct select_support_sd_trait
+{
+    typedef bit_vector::size_type size_type;
+    static size_type select(size_type i, const t_sd_vec * v)
+    {
+        return v->low[i - 1] +                             // lower part of the number
+               ((v->high_1_select(i) + 1 - i) << (v->wl)); // upper part
+                                                           //^-number of 0 before the i-th 1-^    ^-shift by wl
+    }
 };
 
 template <class t_sd_vec>
-struct select_support_sd_trait<0, t_sd_vec> {
-	typedef bit_vector::size_type size_type;
-	static size_type select(size_type i, const t_sd_vec* v)
-	{
-		auto ones = v->low.size();
-		assert(0 < i and i <= v->size() - ones);
-		size_type lb = 1, rb = ones + 1;
-		size_type r0  = 0;
-		size_type pos = (size_type)-1;
-		// rb exclusive
-		// invariant: rank0(select_1(rb)) >= i
-		while (lb < rb) {
-			auto mid   = lb + (rb - lb) / 2;
-			auto x	 = select_support_sd_trait<1, t_sd_vec>::select(mid, v);
-			auto rank0 = x + 1 - mid;
-			if (rank0 >= i) {
-				rb = mid;
-			} else {
-				r0  = rank0;
-				pos = x;
-				lb  = mid + 1;
-			}
-		}
-		return pos + i - r0;
-	}
+struct select_support_sd_trait<0, t_sd_vec>
+{
+    typedef bit_vector::size_type size_type;
+    static size_type select(size_type i, const t_sd_vec * v)
+    {
+        auto ones = v->low.size();
+        assert(0 < i and i <= v->size() - ones);
+        size_type lb = 1, rb = ones + 1;
+        size_type r0 = 0;
+        size_type pos = (size_type)-1;
+        // rb exclusive
+        // invariant: rank0(select_1(rb)) >= i
+        while (lb < rb)
+        {
+            auto mid = lb + (rb - lb) / 2;
+            auto x = select_support_sd_trait<1, t_sd_vec>::select(mid, v);
+            auto rank0 = x + 1 - mid;
+            if (rank0 >= i) { rb = mid; }
+            else
+            {
+                r0 = rank0;
+                pos = x;
+                lb = mid + 1;
+            }
+        }
+        return pos + i - r0;
+    }
 };
 
 //! Select data structure for sd_vector
-/*! \tparam t_b             Bit pattern.
+/*!\tparam t_b             Bit pattern.
  *  \tparam t_hi_bit_vector Type of the bitvector used for the unary decoded differences of
  *                          the high part of the positions of the 1s.
  *  \tparam t_select_1      Type of the select structure which is used to select ones in HI.
  *  \tparam t_select_0      Type of the select structure which is used to select zeros in HI.
  */
 template <uint8_t t_b, class t_hi_bit_vector, class t_select_1, class t_select_0>
-class select_support_sd {
-public:
-	typedef bit_vector::size_type size_type;
-	typedef sd_vector<t_hi_bit_vector, t_select_1, t_select_0> bit_vector_type;
-	enum { bit_pat = t_b };
-	enum { bit_pat_len = (uint8_t)1 };
+class select_support_sd
+{
+  public:
+    typedef bit_vector::size_type size_type;
+    typedef sd_vector<t_hi_bit_vector, t_select_1, t_select_0> bit_vector_type;
+    enum
+    {
+        bit_pat = t_b
+    };
+    enum
+    {
+        bit_pat_len = (uint8_t)1
+    };
 
-private:
-	const bit_vector_type* m_v;
+  private:
+    const bit_vector_type * m_v;
 
-public:
-	explicit select_support_sd(const bit_vector_type* v = nullptr) { set_vector(v); }
+  public:
+    explicit select_support_sd(const bit_vector_type * v = nullptr) { set_vector(v); }
 
-	//! Returns the position of the i-th occurrence in the bit vector.
-	size_type select(size_type i) const
-	{
-		return select_support_sd_trait<t_b, bit_vector_type>::select(i, m_v);
-	}
+    //! Returns the position of the i-th occurrence in the bit vector.
+    size_type select(size_type i) const { return select_support_sd_trait<t_b, bit_vector_type>::select(i, m_v); }
 
-	size_type operator()(size_type i) const { return select(i); }
+    size_type operator()(size_type i) const { return select(i); }
 
-	size_type size() const { return m_v->size(); }
+    size_type size() const { return m_v->size(); }
 
-	void set_vector(const bit_vector_type* v = nullptr) { m_v = v; }
+    void set_vector(const bit_vector_type * v = nullptr) { m_v = v; }
 
-	void load(std::istream&, const bit_vector_type* v = nullptr) { set_vector(v); }
+    void load(std::istream &, const bit_vector_type * v = nullptr) { set_vector(v); }
 
-	size_type
-	serialize(std::ostream& out, structure_tree_node* v = nullptr, std::string name = "") const
-	{
-		return serialize_empty_object(out, v, name, this);
-	}
+    size_type serialize(std::ostream & out, structure_tree_node * v = nullptr, std::string name = "") const
+    {
+        return serialize_empty_object(out, v, name, this);
+    }
 
-	template <typename archive_t>
-	void CEREAL_SAVE_FUNCTION_NAME(archive_t &) const {}
+    template <typename archive_t>
+    void CEREAL_SAVE_FUNCTION_NAME(archive_t &) const
+    {}
 
-	template <typename archive_t>
-	void CEREAL_LOAD_FUNCTION_NAME(archive_t &) {}
+    template <typename archive_t>
+    void CEREAL_LOAD_FUNCTION_NAME(archive_t &)
+    {}
 
-	bool operator==(const select_support_sd& other) const noexcept
-	{
-		return *m_v == *other.m_v;
-	}
+    bool operator==(const select_support_sd & other) const noexcept { return *m_v == *other.m_v; }
 
-	bool operator!=(const select_support_sd& other) const noexcept
-	{
-		return !(*this == other);
-	}
+    bool operator!=(const select_support_sd & other) const noexcept { return !(*this == other); }
 };
 
-
 //! Select_0 data structure for sd_vector
-/*! \tparam t_sd_vector sd_vector type
+/*!\tparam t_sd_vector sd_vector type
  *  \tparam t_rank_1    Rank support for high part of sd_vector
  */
 template <typename t_sd_vector = sd_vector<>>
-class select_0_support_sd {
-public:
-	typedef bit_vector::size_type size_type;
-	typedef t_sd_vector			  bit_vector_type;
-	using rank_1	= typename t_sd_vector::rank_1_type;
-	using sel0_type = typename t_sd_vector::select_0_type;
-	typedef bit_vector y_high_type;
-	enum { bit_pat = 0 };
-	enum { bit_pat_len = (uint8_t)1 };
+class select_0_support_sd
+{
+  public:
+    typedef bit_vector::size_type size_type;
+    typedef t_sd_vector bit_vector_type;
+    using rank_1 = typename t_sd_vector::rank_1_type;
+    using sel0_type = typename t_sd_vector::select_0_type;
+    typedef bit_vector y_high_type;
+    enum
+    {
+        bit_pat = 0
+    };
+    enum
+    {
+        bit_pat_len = (uint8_t)1
+    };
 
-private:
-	const bit_vector_type* m_v;
-	int_vector<>		   m_pointer;
-	int_vector<>		   m_rank1;
+  private:
+    const bit_vector_type * m_v;
+    int_vector<> m_pointer;
+    int_vector<> m_rank1;
 
-public:
-	explicit select_0_support_sd(const bit_vector_type* v = nullptr)
-	{
-		set_vector(v);
-		if (nullptr != m_v) {
-			size_type		rank_0 = 0; // rank0 in H
-			const size_type bs	 = 1ULL << (m_v->wl);
-			size_type		z	  = 0;
-			size_type		rank1  = 0;										 // rank1 in H
-			size_type		zeros  = m_v->size() - rank_1(m_v)(m_v->size()); // zeros in B
-			m_pointer = int_vector<>(zeros / (64 * bs) + 1, 0, bits::hi(m_v->high.size() / 64) + 1);
-			m_rank1   = int_vector<>(m_pointer.size(), 0, bits::hi(m_v->high.size()) + 1);
-			uint64_t w = 0;
-			for (size_type i = 0, sel0 = 1; i < m_v->high.size(); i += 64) {
-				size_type old_rank1 = rank1;
-				w					= m_v->high.get_int(i, 64);
-				rank1 += bits::cnt(w);
-				rank_0 = (i + 64) - rank1;
-				if (rank1 > 0 and (w >> 63) & 1) {
-					uint64_t pos =
-					rank_0 * bs + m_v->low[rank1 - 1]; // pos of last one (of previous block in B
-					z = pos + 1 - rank1;
-				} else {
-					z = rank_0 * bs - rank1;
-				}
-				while (sel0 <= z and sel0 <= zeros) {
-					m_pointer[(sel0 - 1) / (64 * bs)] = i / 64;
-					m_rank1[(sel0 - 1) / (64 * bs)]   = old_rank1;
-					sel0 += 64 * bs;
-				}
-			}
-		}
-	}
+  public:
+    explicit select_0_support_sd(const bit_vector_type * v = nullptr)
+    {
+        set_vector(v);
+        if (nullptr != m_v)
+        {
+            size_type rank_0 = 0; // rank0 in H
+            const size_type bs = 1ULL << (m_v->wl);
+            size_type z = 0;
+            size_type rank1 = 0;                                      // rank1 in H
+            size_type zeros = m_v->size() - rank_1(m_v)(m_v->size()); // zeros in B
+            m_pointer = int_vector<>(zeros / (64 * bs) + 1, 0, bits::hi(m_v->high.size() / 64) + 1);
+            m_rank1 = int_vector<>(m_pointer.size(), 0, bits::hi(m_v->high.size()) + 1);
+            uint64_t w = 0;
+            for (size_type i = 0, sel0 = 1; i < m_v->high.size(); i += 64)
+            {
+                size_type old_rank1 = rank1;
+                w = m_v->high.get_int(i, 64);
+                rank1 += bits::cnt(w);
+                rank_0 = (i + 64) - rank1;
+                if (rank1 > 0 and (w >> 63) & 1)
+                {
+                    uint64_t pos = rank_0 * bs + m_v->low[rank1 - 1]; // pos of last one (of previous block in B
+                    z = pos + 1 - rank1;
+                }
+                else
+                {
+                    z = rank_0 * bs - rank1;
+                }
+                while (sel0 <= z and sel0 <= zeros)
+                {
+                    m_pointer[(sel0 - 1) / (64 * bs)] = i / 64;
+                    m_rank1[(sel0 - 1) / (64 * bs)] = old_rank1;
+                    sel0 += 64 * bs;
+                }
+            }
+        }
+    }
 
-	//! Returns the position of the i-th occurrence in the bit vector.
-	size_type select(size_type i) const
-	{
-		const size_type bs	= 1ULL << (m_v->wl);
-		size_type		j	 = m_pointer[(i - 1) / (64 * bs)] * 64; // index into m_high
-		size_type		rank1 = m_rank1[(i - 1) / (64 * bs)];		 // rank_1(j*bs*64) in B
-		size_type		pos   = 0;
-		// size_type		rank0 = 0;
+    //! Returns the position of the i-th occurrence in the bit vector.
+    size_type select(size_type i) const
+    {
+        const size_type bs = 1ULL << (m_v->wl);
+        size_type j = m_pointer[(i - 1) / (64 * bs)] * 64; // index into m_high
+        size_type rank1 = m_rank1[(i - 1) / (64 * bs)];    // rank_1(j*bs*64) in B
+        size_type pos = 0;
+        // size_type		rank0 = 0;
 
-		if (rank1 > 0 and (m_v->high[j - 1]) & 1) {
-			pos   = (j - rank1) * bs + m_v->low[rank1 - 1]; // starting position of current block
-			// rank0 = pos + 1 - rank1;
-		} else {
-			pos   = (j - rank1) * bs; // starting position of current block
-			// rank0 = pos - rank1;
-		}
-		uint64_t w = m_v->high.get_int(j, 64);
-		do {
-			uint64_t _rank1 = rank1 + bits::cnt(w);
-			uint64_t _rank0 = 0;
-			if (_rank1 > 0 and (w >> 63) & 1) {
-				pos	= (j + 64 - _rank1) * bs + m_v->low[_rank1 - 1];
-				_rank0 = pos + 1 - _rank1;
-			} else {
-				pos	= (j + 64 - _rank1) * bs;
-				_rank0 = pos - _rank1;
-			}
-			if (_rank0 < i) {
-				j += 64;
-				w	 = m_v->high.get_int(j, 64);
-				rank1 = _rank1;
-			} else {
-				break;
-			}
-		} while (true);
-		// invariant i >zeros
-		do {
-			uint64_t _rank1 = rank1 + bits::lt_cnt[w & 0xFFULL];
-			uint64_t _rank0 = 0;
-			if (_rank1 > 0 and (w >> 7) & 1) {
-				pos	= (j + 8 - _rank1) * bs + m_v->low[_rank1 - 1];
-				_rank0 = pos + 1 - _rank1;
-			} else {
-				pos	= (j + 8 - _rank1) * bs;
-				_rank0 = pos - _rank1;
-			}
-			if (_rank0 < i) {
-				j += 8;
-				w >>= 8;
-				rank1 = _rank1;
-			} else {
-				break;
-			}
-		} while (true);
+        if (rank1 > 0 and (m_v->high[j - 1]) & 1)
+        {
+            pos = (j - rank1) * bs + m_v->low[rank1 - 1]; // starting position of current block
+                                                          // rank0 = pos + 1 - rank1;
+        }
+        else
+        {
+            pos = (j - rank1) * bs; // starting position of current block
+                                    // rank0 = pos - rank1;
+        }
+        uint64_t w = m_v->high.get_int(j, 64);
+        do {
+            uint64_t _rank1 = rank1 + bits::cnt(w);
+            uint64_t _rank0 = 0;
+            if (_rank1 > 0 and (w >> 63) & 1)
+            {
+                pos = (j + 64 - _rank1) * bs + m_v->low[_rank1 - 1];
+                _rank0 = pos + 1 - _rank1;
+            }
+            else
+            {
+                pos = (j + 64 - _rank1) * bs;
+                _rank0 = pos - _rank1;
+            }
+            if (_rank0 < i)
+            {
+                j += 64;
+                w = m_v->high.get_int(j, 64);
+                rank1 = _rank1;
+            }
+            else
+            {
+                break;
+            }
+        } while (true);
+        // invariant i >zeros
+        do {
+            uint64_t _rank1 = rank1 + bits::lt_cnt[w & 0xFFULL];
+            uint64_t _rank0 = 0;
+            if (_rank1 > 0 and (w >> 7) & 1)
+            {
+                pos = (j + 8 - _rank1) * bs + m_v->low[_rank1 - 1];
+                _rank0 = pos + 1 - _rank1;
+            }
+            else
+            {
+                pos = (j + 8 - _rank1) * bs;
+                _rank0 = pos - _rank1;
+            }
+            if (_rank0 < i)
+            {
+                j += 8;
+                w >>= 8;
+                rank1 = _rank1;
+            }
+            else
+            {
+                break;
+            }
+        } while (true);
 
-		do {
-			bool b = w & 1ULL;
-			w >>= 1; // zeros are shifted in
-			++j;
-			if (0 == b) {
-				pos				= (j - rank1) * bs;
-				size_type zeros = pos - rank1;
-				if (zeros >= i) {
-					pos = pos - (zeros - i) - 1;
-					break;
-				}
-			} else {
-				pos				  = (j - 1 - rank1) * bs;
-				size_type one_pos = pos + m_v->low[rank1];
-				++rank1;
-				size_type zeros = one_pos + 1 - rank1;
-				if (zeros >= i) {
-					pos = one_pos - (zeros - i) - 1;
-					break;
-				}
-			}
-			if (j % 64 == 0) {
-				w = m_v->high.get_int(j, 64);
-			}
-		} while (true);
-		return pos;
-	}
+        do {
+            bool b = w & 1ULL;
+            w >>= 1; // zeros are shifted in
+            ++j;
+            if (0 == b)
+            {
+                pos = (j - rank1) * bs;
+                size_type zeros = pos - rank1;
+                if (zeros >= i)
+                {
+                    pos = pos - (zeros - i) - 1;
+                    break;
+                }
+            }
+            else
+            {
+                pos = (j - 1 - rank1) * bs;
+                size_type one_pos = pos + m_v->low[rank1];
+                ++rank1;
+                size_type zeros = one_pos + 1 - rank1;
+                if (zeros >= i)
+                {
+                    pos = one_pos - (zeros - i) - 1;
+                    break;
+                }
+            }
+            if (j % 64 == 0) { w = m_v->high.get_int(j, 64); }
+        } while (true);
+        return pos;
+    }
 
-	size_type operator()(size_type i) const { return select(i); }
+    size_type operator()(size_type i) const { return select(i); }
 
-	size_type size() const { return m_v->size(); }
+    size_type size() const { return m_v->size(); }
 
-	void set_vector(const bit_vector_type* v = nullptr) { m_v = v; }
+    void set_vector(const bit_vector_type * v = nullptr) { m_v = v; }
 
-	void load(std::istream& in, const bit_vector_type* v = nullptr)
-	{
-		m_pointer.load(in);
-		m_rank1.load(in);
-		set_vector(v);
-	}
+    void load(std::istream & in, const bit_vector_type * v = nullptr)
+    {
+        m_pointer.load(in);
+        m_rank1.load(in);
+        set_vector(v);
+    }
 
-	size_type
-	serialize(std::ostream& out, structure_tree_node* v = nullptr, std::string name = "") const
-	{
-		structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
-		size_type			 written_bytes = 0;
-		written_bytes += m_pointer.serialize(out, child, "pointer");
-		written_bytes += m_rank1.serialize(out, child, "rank1");
-		structure_tree::add_size(child, written_bytes);
-		return written_bytes;
-	}
+    size_type serialize(std::ostream & out, structure_tree_node * v = nullptr, std::string name = "") const
+    {
+        structure_tree_node * child = structure_tree::add_child(v, name, util::class_name(*this));
+        size_type written_bytes = 0;
+        written_bytes += m_pointer.serialize(out, child, "pointer");
+        written_bytes += m_rank1.serialize(out, child, "rank1");
+        structure_tree::add_size(child, written_bytes);
+        return written_bytes;
+    }
 
-	template <typename archive_t>
-	void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
-	{
-		ar(CEREAL_NVP(m_pointer));
-		ar(CEREAL_NVP(m_rank1));
-	}
+    template <typename archive_t>
+    void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
+    {
+        ar(CEREAL_NVP(m_pointer));
+        ar(CEREAL_NVP(m_rank1));
+    }
 
-	template <typename archive_t>
-	void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
-	{
-		ar(CEREAL_NVP(m_pointer));
-		ar(CEREAL_NVP(m_rank1));
-	}
+    template <typename archive_t>
+    void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
+    {
+        ar(CEREAL_NVP(m_pointer));
+        ar(CEREAL_NVP(m_rank1));
+    }
 
-	bool operator==(const select_0_support_sd& other) const noexcept
-	{
-		return (m_pointer == other.m_pointer) && (m_rank1 == other.m_rank1);
-	}
+    bool operator==(const select_0_support_sd & other) const noexcept
+    {
+        return (m_pointer == other.m_pointer) && (m_rank1 == other.m_rank1);
+    }
 
-	bool operator!=(const select_0_support_sd& other) const noexcept
-	{
-		return !(*this == other);
-	}
+    bool operator!=(const select_0_support_sd & other) const noexcept { return !(*this == other); }
 };
 
 inline sd_vector_builder::sd_vector_builder()
-	: m_size(0), m_capacity(0), m_wl(0), m_tail(0), m_items(0), m_last_high(0), m_highpos(0)
-{
-}
+  : m_size(0)
+  , m_capacity(0)
+  , m_wl(0)
+  , m_tail(0)
+  , m_items(0)
+  , m_last_high(0)
+  , m_highpos(0)
+{}
 
 inline sd_vector_builder::sd_vector_builder(size_type n, size_type m)
-	: m_size(n), m_capacity(m), m_wl(0), m_tail(0), m_items(0), m_last_high(0), m_highpos(0)
+  : m_size(n)
+  , m_capacity(m)
+  , m_wl(0)
+  , m_tail(0)
+  , m_items(0)
+  , m_last_high(0)
+  , m_highpos(0)
 {
-	if (m_capacity > m_size) {
-		throw std::runtime_error(
-		"sd_vector_builder: requested capacity is larger than vector size.");
-	}
+    if (m_capacity > m_size)
+    {
+        throw std::runtime_error("sd_vector_builder: requested capacity is larger than vector size.");
+    }
 
-	size_type logm = bits::hi(m_capacity) + 1, logn = bits::hi(m_size) + 1;
-	if (logm == logn) {
-		logm--; // to ensure logn-logm > 0
-	}
-	m_wl   = logn - logm;
-	m_low  = int_vector<>(m_capacity, 0, m_wl);
-	m_high = bit_vector(m_capacity + (1ULL << logm), 0);
+    size_type logm = bits::hi(m_capacity) + 1, logn = bits::hi(m_size) + 1;
+    if (logm == logn)
+    {
+        logm--; // to ensure logn-logm > 0
+    }
+    m_wl = logn - logm;
+    m_low = int_vector<>(m_capacity, 0, m_wl);
+    m_high = bit_vector(m_capacity + (1ULL << logm), 0);
 }
-
 
 template <>
-inline sd_vector<>::sd_vector(sd_vector_builder& builder)
+inline sd_vector<>::sd_vector(sd_vector_builder & builder)
 {
-	if (builder.items() != builder.capacity()) {
-		throw std::runtime_error("sd_vector: the builder is not full.");
-	}
+    if (builder.items() != builder.capacity()) { throw std::runtime_error("sd_vector: the builder is not full."); }
 
-	m_size = builder.m_size;
-	m_wl   = builder.m_wl;
-	m_low  = std::move(builder.m_low);
-	m_high = std::move(builder.m_high);
-	util::init_support(m_high_1_select, &m_high);
-	util::init_support(m_high_0_select, &m_high);
+    m_size = builder.m_size;
+    m_wl = builder.m_wl;
+    m_low = std::move(builder.m_low);
+    m_high = std::move(builder.m_high);
+    util::init_support(m_high_1_select, &m_high);
+    util::init_support(m_high_0_select, &m_high);
 
-	builder = sd_vector_builder();
+    builder = sd_vector_builder();
 }
 
-} // end namespace
+} // namespace sdsl
 #endif

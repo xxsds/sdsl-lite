@@ -1,9 +1,11 @@
-#include "sdsl/nn_dict_dynamic.hpp"
-#include "sdsl/nearest_neighbour_dictionary.hpp"
-#include "sdsl/util.hpp"
-#include "gtest/gtest.h"
-#include <string>
 #include <random>
+#include <string>
+
+#include <sdsl/nearest_neighbour_dictionary.hpp>
+#include <sdsl/nn_dict_dynamic.hpp>
+#include <sdsl/util.hpp>
+
+#include <gtest/gtest.h>
 
 namespace
 {
@@ -13,31 +15,33 @@ std::string temp_dir;
 // The fixture for testing class nn_dict_dynamic.
 class nn_dict_dynamic_test : public ::testing::Test
 {
-    protected:
+  protected:
+    nn_dict_dynamic_test() {}
 
-        nn_dict_dynamic_test() {}
+    virtual ~nn_dict_dynamic_test() {}
 
-        virtual ~nn_dict_dynamic_test() {}
+    virtual void SetUp() {}
 
-        virtual void SetUp() {}
-
-        virtual void TearDown() {}
+    virtual void TearDown() {}
 };
 
-void compare_bv_and_nndd(const sdsl::bit_vector& bv, const sdsl::nn_dict_dynamic& nndd)
+void compare_bv_and_nndd(const sdsl::bit_vector & bv, const sdsl::nn_dict_dynamic & nndd)
 {
     sdsl::nearest_neighbour_dictionary<32> exp(bv);
     uint64_t first_one = exp.select(1);
     uint64_t last_one = exp.select(exp.rank(exp.size()));
-    for (uint64_t i=0; i<first_one; ++i) {
+    for (uint64_t i = 0; i < first_one; ++i)
+    {
         ASSERT_EQ(exp.size(), nndd.prev(i));
         ASSERT_EQ(exp.next(i), nndd.next(i));
     }
-    for (uint64_t i=first_one; i<=last_one; ++i) {
+    for (uint64_t i = first_one; i <= last_one; ++i)
+    {
         ASSERT_EQ(exp.prev(i), nndd.prev(i));
         ASSERT_EQ(exp.next(i), nndd.next(i));
     }
-    for (uint64_t i=last_one+1; i<exp.size(); ++i) {
+    for (uint64_t i = last_one + 1; i < exp.size(); ++i)
+    {
         ASSERT_EQ(exp.prev(i), nndd.prev(i));
         ASSERT_EQ(exp.size(), nndd.next(i));
     }
@@ -53,14 +57,18 @@ TEST_F(nn_dict_dynamic_test, constructors)
 
     // Fill nndd
     std::mt19937_64 rng;
-    std::uniform_int_distribution<uint64_t> distribution(0, testsize-1);
+    std::uniform_int_distribution<uint64_t> distribution(0, testsize - 1);
     auto dice = bind(distribution, rng);
-    for (uint64_t i=0; i<testsize/4; ++i) {
+    for (uint64_t i = 0; i < testsize / 4; ++i)
+    {
         uint64_t value = dice();
-        if (bv[value]) {
+        if (bv[value])
+        {
             bv[value] = 0;
             nndd[value] = 0;
-        } else {
+        }
+        else
+        {
             bv[value] = 1;
             nndd[value] = 1;
         }
@@ -93,24 +101,29 @@ TEST_F(nn_dict_dynamic_test, next_and_prev)
     uint64_t testsize = 100000;
     sdsl::bit_vector bv(testsize, 0);
     sdsl::nn_dict_dynamic nndd(testsize);
-    for (uint64_t ones=1; ones<testsize; ones *= 2) {
+    for (uint64_t ones = 1; ones < testsize; ones *= 2)
+    {
         std::mt19937_64 rng(ones);
-        std::uniform_int_distribution<uint64_t> distribution(0, testsize-1);
+        std::uniform_int_distribution<uint64_t> distribution(0, testsize - 1);
         auto dice = bind(distribution, rng);
-        for (uint64_t i=0; i<ones; ++i) {
+        for (uint64_t i = 0; i < ones; ++i)
+        {
             uint64_t value = dice();
-            if (bv[value]) {
+            if (bv[value])
+            {
                 bv[value] = 0;
                 nndd[value] = 0;
-            } else {
+            }
+            else
+            {
                 bv[value] = 1;
                 nndd[value] = 1;
             }
         }
-        bv[testsize/4] = 1;
-        nndd[testsize/4] = 1;
-        bv[3*testsize/4] = 1;
-        nndd[3*testsize/4] = 1;
+        bv[testsize / 4] = 1;
+        nndd[testsize / 4] = 1;
+        bv[3 * testsize / 4] = 1;
+        nndd[3 * testsize / 4] = 1;
         compare_bv_and_nndd(bv, nndd);
     }
 }
@@ -118,20 +131,24 @@ TEST_F(nn_dict_dynamic_test, next_and_prev)
 //! Test Serialize and Load
 TEST_F(nn_dict_dynamic_test, serialize_and_load)
 {
-    std::string file_name = temp_dir+"/nn_dict_dynamic";
+    std::string file_name = temp_dir + "/nn_dict_dynamic";
     uint64_t testsize = 100000;
     sdsl::bit_vector bv(testsize, 0);
     {
         std::mt19937_64 rng;
-        std::uniform_int_distribution<uint64_t> distribution(0, testsize-1);
+        std::uniform_int_distribution<uint64_t> distribution(0, testsize - 1);
         auto dice = bind(distribution, rng);
         sdsl::nn_dict_dynamic nndd(testsize);
-        for (uint64_t i=0; i<testsize/4; ++i) {
+        for (uint64_t i = 0; i < testsize / 4; ++i)
+        {
             uint64_t value = dice();
-            if (bv[value]) {
+            if (bv[value])
+            {
                 bv[value] = 0;
                 nndd[value] = 0;
-            } else {
+            }
+            else
+            {
                 bv[value] = 1;
                 nndd[value] = 1;
             }
@@ -150,62 +167,67 @@ TEST_F(nn_dict_dynamic_test, serialize_and_load)
 template <typename in_archive_t, typename out_archive_t>
 void do_serialisation(sdsl::nn_dict_dynamic const & l, std::string const & temp_file)
 {
-	{
-		std::ofstream os{temp_file, std::ios::binary};
-		out_archive_t oarchive{os};
-		oarchive(l);
-	}
+    {
+        std::ofstream os{ temp_file, std::ios::binary };
+        out_archive_t oarchive{ os };
+        oarchive(l);
+    }
 
-	{
-		sdsl::nn_dict_dynamic in_l(0);
-		std::ifstream is{temp_file, std::ios::binary};
-		in_archive_t iarchive{is};
-		iarchive(in_l);
-		EXPECT_EQ(l, in_l);
-	}
+    {
+        sdsl::nn_dict_dynamic in_l(0);
+        std::ifstream is{ temp_file, std::ios::binary };
+        in_archive_t iarchive{ is };
+        iarchive(in_l);
+        EXPECT_EQ(l, in_l);
+    }
 }
 
 TEST_F(nn_dict_dynamic_test, cereal)
 {
-	if (temp_dir != "@/")
-	{
-		std::string file_name = temp_dir+"/nn_dict_dynamic";
-		uint64_t testsize = 100000;
-		sdsl::nn_dict_dynamic nndd(testsize);
-		sdsl::bit_vector bv(testsize, 0);
-		{
-		    std::mt19937_64 rng;
-		    std::uniform_int_distribution<uint64_t> distribution(0, testsize-1);
-		    auto dice = bind(distribution, rng);
-		    for (uint64_t i=0; i<testsize/4; ++i) {
-			uint64_t value = dice();
-			if (bv[value]) {
-			    bv[value] = 0;
-			    nndd[value] = 0;
-			} else {
-			    bv[value] = 1;
-			    nndd[value] = 1;
-			}
-		    }
-		    sdsl::store_to_file(nndd, file_name);
-		}
+    if (temp_dir != "@/")
+    {
+        std::string file_name = temp_dir + "/nn_dict_dynamic";
+        uint64_t testsize = 100000;
+        sdsl::nn_dict_dynamic nndd(testsize);
+        sdsl::bit_vector bv(testsize, 0);
+        {
+            std::mt19937_64 rng;
+            std::uniform_int_distribution<uint64_t> distribution(0, testsize - 1);
+            auto dice = bind(distribution, rng);
+            for (uint64_t i = 0; i < testsize / 4; ++i)
+            {
+                uint64_t value = dice();
+                if (bv[value])
+                {
+                    bv[value] = 0;
+                    nndd[value] = 0;
+                }
+                else
+                {
+                    bv[value] = 1;
+                    nndd[value] = 1;
+                }
+            }
+            sdsl::store_to_file(nndd, file_name);
+        }
 
-		do_serialisation<cereal::BinaryInputArchive,         cereal::BinaryOutputArchive>        (nndd, file_name);
-		do_serialisation<cereal::PortableBinaryInputArchive, cereal::PortableBinaryOutputArchive>(nndd, file_name);
-		do_serialisation<cereal::JSONInputArchive,           cereal::JSONOutputArchive>          (nndd, file_name);
-		do_serialisation<cereal::XMLInputArchive,            cereal::XMLOutputArchive>           (nndd, file_name);
+        do_serialisation<cereal::BinaryInputArchive, cereal::BinaryOutputArchive>(nndd, file_name);
+        do_serialisation<cereal::PortableBinaryInputArchive, cereal::PortableBinaryOutputArchive>(nndd, file_name);
+        do_serialisation<cereal::JSONInputArchive, cereal::JSONOutputArchive>(nndd, file_name);
+        do_serialisation<cereal::XMLInputArchive, cereal::XMLOutputArchive>(nndd, file_name);
 
-		sdsl::remove(file_name);
-	}
+        sdsl::remove(file_name);
+    }
 }
 #endif // SDSL_HAS_CEREAL
 
-}  // namespace
+} // namespace
 
-int main(int argc, char** argv)
+int main(int argc, char ** argv)
 {
     ::testing::InitGoogleTest(&argc, argv);
-    if (argc < 2) {
+    if (argc < 2)
+    {
         // LCOV_EXCL_START
         std::cout << "Usage: " << argv[0] << " tmp_dir" << std::endl;
         return 1;

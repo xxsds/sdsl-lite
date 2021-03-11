@@ -1,10 +1,10 @@
 // Copyright (c) 2016, the SDSL Project Authors.  All rights reserved.
 // Please see the AUTHORS file for details.  Use of this source code is governed
 // by a BSD license that can be found in the LICENSE file.
-/*! \file suffix_trees.hpp
-    \brief suffix_trees.hpp contains generic classes for different suffix tree classes.
-	\author Simon Gog
-*/
+/*!\file suffix_trees.hpp
+ * \brief suffix_trees.hpp contains generic classes for different suffix tree classes.
+ * \author Simon Gog
+ */
 #ifndef INCLUDED_SDSL_SUFFIX_TREES
 #define INCLUDED_SDSL_SUFFIX_TREES
 
@@ -20,8 +20,8 @@
  *    - ..
  */
 
-#include "cst_sct3.hpp"
-#include "cst_sada.hpp"
-#include "cst_fully.hpp"
+#include <sdsl/cst_fully.hpp>
+#include <sdsl/cst_sada.hpp>
+#include <sdsl/cst_sct3.hpp>
 
 #endif

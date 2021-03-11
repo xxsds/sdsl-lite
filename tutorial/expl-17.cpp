@@ -1,5 +1,6 @@
-#include <sdsl/suffix_arrays.hpp>
 #include <iostream>
+
+#include <sdsl/suffix_arrays.hpp>
 
 using namespace std;
 using namespace sdsl;
@@ -11,5 +12,5 @@ int main()
     cout << "csa.size(): " << csa.size() << endl;
     cout << "csa.sigma : " << csa.sigma << endl;
     cout << csa << endl;
-    cout << extract(csa, 0, csa.size()-1) << endl;
+    cout << extract(csa, 0, csa.size() - 1) << endl;
 }

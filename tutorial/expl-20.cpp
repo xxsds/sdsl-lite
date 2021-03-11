@@ -1,5 +1,6 @@
-#include <sdsl/suffix_arrays.hpp>
 #include <iostream>
+
+#include <sdsl/suffix_arrays.hpp>
 
 using namespace sdsl;
 using namespace std;
