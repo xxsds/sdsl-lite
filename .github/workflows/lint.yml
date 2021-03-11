@@ -18,6 +18,7 @@ jobs:
     name: Linting
     runs-on: ubuntu-20.04
     timeout-minutes: 240
+    if: github.repository_owner == 'xxsds'
     steps:
       - uses: actions/checkout@v2
       - name: Run clang-format
@@ -39,5 +40,5 @@ jobs:
           branch: actions/clang-format
           delete-branch: true
           title: '[MISC] Format code'
-          reviewers: eseiler
+          reviewers: ${{ github.actor }}
           draft: false
