@@ -1,5 +1,6 @@
-#include <sdsl/suffix_trees.hpp>
 #include <iostream>
+
+#include <sdsl/suffix_trees.hpp>
 
 using namespace sdsl;
 using namespace std;

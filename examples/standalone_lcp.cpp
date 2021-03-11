@@ -1,13 +1,15 @@
 #include <iostream>
+
 #include <sdsl/lcp.hpp>
 #include <sdsl/suffix_arrays.hpp>
 
 using namespace std;
 using namespace sdsl;
 
-int main(int argc, char* argv[])
+int main(int argc, char * argv[])
 {
-    if (argc < 2) {
+    if (argc < 2)
+    {
         cout << "Usage: " << argv[0] << " file" << endl;
         return 1;
     }
@@ -21,7 +23,8 @@ int main(int argc, char* argv[])
     lcp_wt<> lcp;
     construct(lcp, file, 1);
 
-    if (csa.size() < 1000) {
+    if (csa.size() < 1000)
+    {
         cout << csa << endl;
         cout << "-------" << endl;
         cout << lcp << endl;

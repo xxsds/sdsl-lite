@@ -5,9 +5,9 @@
 #ifndef SDSL_INCLUDED_VECTORS
 #define SDSL_INCLUDED_VECTORS
 
-#include "int_vector.hpp"
-#include "enc_vector.hpp"
-#include "vlc_vector.hpp"
-#include "dac_vector.hpp"
+#include <sdsl/dac_vector.hpp>
+#include <sdsl/enc_vector.hpp>
+#include <sdsl/int_vector.hpp>
+#include <sdsl/vlc_vector.hpp>
 
 #endif

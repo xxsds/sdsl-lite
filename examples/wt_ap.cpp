@@ -3,11 +3,9 @@
 using namespace sdsl;
 using namespace std;
 
-int main(int argc, char* argv[])
+int main(int argc, char * argv[])
 {
-    if (argc < 2) {
-        return 1;
-    }
+    if (argc < 2) { return 1; }
     wt_ap<> wt;
     memory_monitor::start();
     construct(wt, argv[1], 1);
@@ -19,6 +17,6 @@ int main(int argc, char* argv[])
     }
     {
         std::ofstream out("wt-space.html");
-        write_structure<HTML_FORMAT>(wt,out);
+        write_structure<HTML_FORMAT>(wt, out);
     }
 }

@@ -1,4 +1,4 @@
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 @SDSL_INCLUDE_ALL@
 
 namespace

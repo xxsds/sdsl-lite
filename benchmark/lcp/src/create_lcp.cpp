@@ -1,9 +1,10 @@
-#include <sdsl/sdsl_concepts.hpp>
-#include <sdsl/int_vector.hpp>
+#include <chrono>
+#include <string>
+
 #include <sdsl/construct.hpp>
 #include <sdsl/construct_lcp.hpp>
-#include <string>
-#include <chrono>
+#include <sdsl/int_vector.hpp>
+#include <sdsl/sdsl_concepts.hpp>
 
 using namespace sdsl;
 using namespace std;
@@ -27,8 +28,8 @@ int main()
     LCP_TYPE(config);
     auto stop = high_resolution_clock::now();
     memory_monitor::stop();
-    cout << "# " SX(LCPID) "_TIME = " << duration_cast<milliseconds>(stop-start).count()/(double)1000 << endl;
-    cout << "# " SX(LCPID) "_MMPEAK = "<< memory_monitor::peak() << endl;
+    cout << "# " SX(LCPID) "_TIME = " << duration_cast<milliseconds>(stop - start).count() / (double)1000 << endl;
+    cout << "# " SX(LCPID) "_MMPEAK = " << memory_monitor::peak() << endl;
 
     return 0;
 }

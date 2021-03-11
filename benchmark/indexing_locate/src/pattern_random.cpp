@@ -1,7 +1,8 @@
-#include <sdsl/suffix_arrays.hpp>
+#include <cstdio>
 #include <iostream>
 #include <string>
-#include <cstdio>
+
+#include <sdsl/suffix_arrays.hpp>
 
 using namespace sdsl;
 using namespace std;
@@ -13,10 +14,11 @@ uint64_t my_rand64()
     return v[0];
 }
 
-int main(int argc, char** argv)
+int main(int argc, char ** argv)
 {
-    if (argc < 7) {
-        printf("Usage ./%s input_file tmp_dir pat_len min_cum_occ pat_file occ_file\n",argv[0]);
+    if (argc < 7)
+    {
+        printf("Usage ./%s input_file tmp_dir pat_len min_cum_occ pat_file occ_file\n", argv[0]);
         printf(" (1) Build an index for the text T stored in input_file.\n");
         printf("     Temporary files are stored in tmp_dir.\n");
         printf(" (2) Set cum_occ=0\n");
@@ -36,32 +38,31 @@ int main(int argc, char** argv)
     string file = util::basename(argv[1]);
     ofstream out(argv[5]);
     ofstream occ_out(argv[6]);
-//(1)
+    //(1)
     csa_wt<> csa;
     cache_config cconfig(false, argv[2], file);
     construct(csa, argv[1], cconfig, 1);
-    if (pat_len>=csa.size()) {
+    if (pat_len >= csa.size())
+    {
         std::cout << "pat_len=" << pat_len << " too long." << std::endl;
         return 1;
     }
-// (2)
+    // (2)
     uint64_t cum_sum = 0;
     uint64_t number = 0;
     do {
-// (3)
-        uint64_t start_idx = my_rand64()%(csa.size()-pat_len);
-        auto pat = extract(csa, start_idx, start_idx+pat_len-1);
+        // (3)
+        uint64_t start_idx = my_rand64() % (csa.size() - pat_len);
+        auto pat = extract(csa, start_idx, start_idx + pat_len - 1);
         pattern.push_back(pat);
-// (4)
+        // (4)
         uint64_t x = count(csa, pat.begin(), pat.end());
-        occ_out<<x<<std::endl;
+        occ_out << x << std::endl;
         cum_sum += x;
         ++number;
     } while (cum_sum < min_cum_occ);
-// (5)
-    out<<"# number="<<number<<" length="<<pat_len<<" file="<<argv[1];
-    out<<" forbidden="<<std::endl;
-    for (size_t i=0; i<pattern.size(); ++i) {
-        out<<pattern[i];
-    }
+    // (5)
+    out << "# number=" << number << " length=" << pat_len << " file=" << argv[1];
+    out << " forbidden=" << std::endl;
+    for (size_t i = 0; i < pattern.size(); ++i) { out << pattern[i]; }
 }

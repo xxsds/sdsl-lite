@@ -1,6 +1,7 @@
-#include <sdsl/suffix_arrays.hpp>
-#include <iostream>
 #include <fstream>
+#include <iostream>
+
+#include <sdsl/suffix_arrays.hpp>
 
 using namespace sdsl;
 using namespace std;
@@ -12,7 +13,7 @@ int main()
     // write only one object to std::cout
     write_structure<HTML_FORMAT>(csa, cout);
     wt_int<> wt;
-    construct_im(wt, int_vector<>(1000,3));
+    construct_im(wt, int_vector<>(1000, 3));
     // write multiple objects into one file
     {
         ofstream out("write_structure.html");
