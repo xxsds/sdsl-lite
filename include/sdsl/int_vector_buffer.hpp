@@ -159,7 +159,7 @@ class int_vector_buffer
             else
             {
                 uint8_t width = 0;
-                int_vector<t_width>::read_header(size, width, m_ifile);
+                int_vector<0>::read_header(size, width, m_ifile);
                 m_buffer.width(width);
             }
             assert(m_ifile.good());
