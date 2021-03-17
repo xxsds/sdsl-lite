@@ -5,7 +5,7 @@
 #define SDSL_INT_VECTOR_MAPPER
 
 #include <cstdio>
-#include <inttypes.h>
+#include <cinttypes>
 #include <ios>
 
 #include <sdsl/int_vector.hpp>
