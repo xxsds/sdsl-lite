@@ -9,6 +9,7 @@
 #define INCLUDED_SDSL_INT_VECTOR
 
 #include <cassert>
+#include <cinttypes>
 #include <cstddef>
 #include <cstdlib>
 #include <cstring> // for memcpy
