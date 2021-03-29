@@ -533,23 +533,19 @@ void util::expand_width(t_int_vec & v, uint8_t new_width)
 template <class t_int_vec>
 void util::_set_zero_bits(t_int_vec & v)
 {
-    uint64_t * data = v.data();
-    if (v.empty()) return;
-    // TODO: replace by memset() but take care of size_t in the argument!
-    *data = 0ULL;
-    for (typename t_int_vec::size_type i = 1; i < ((v.bit_size() + 63) >> 6); ++i) { *(++data) = 0ULL; }
+    std::for_each(v.data(), v.data() + ((v.bit_size() + 63) >> 6), [] (uint64_t & value)
+    {
+        value = 0ULL;
+    });
 }
 
 template <class t_int_vec>
 void util::_set_one_bits(t_int_vec & v)
 {
-    uint64_t * data = v.data();
-    if (v.empty()) return;
-    *data = 0xFFFFFFFFFFFFFFFFULL;
-    for (typename t_int_vec::size_type i = 1; i < ((v.bit_size() + 63) >> 6); ++i)
+    std::for_each(v.data(), v.data() + ((v.bit_size() + 63) >> 6), [] (uint64_t & value)
     {
-        *(++data) = 0xFFFFFFFFFFFFFFFFULL;
-    }
+        value = -1ULL;
+    });
 }
 
 inline void util::cyclic_shifts(uint64_t * vec, uint8_t & n, uint64_t k, uint8_t int_width)
