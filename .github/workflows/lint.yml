@@ -1,4 +1,4 @@
-name: sdsl Linting
+name: SDSL Linting
 
 on:
   push:
