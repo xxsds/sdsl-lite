@@ -1,0 +1,152 @@
+name: SDSL CI on macOS
+
+on:
+  push:
+    branches:
+      # Push events to branches matching refs/heads/master
+      - 'master'
+  pull_request:
+
+env:
+  CMAKE_VERSION: 3.12.4
+  TZ: Europe/Berlin
+
+defaults:
+  run:
+    shell: bash -ex {0}
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: macos-10.15
+    timeout-minutes: 120
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - name: "clang12"
+            cxx: "clang++-12"
+            cc: "clang-12"
+            build_type: Release
+            build_threads: 3
+            test_threads: 3
+            cxx_flags: "-std=c++20"
+
+          - name: "ASAN clang12"
+            cxx: "clang++-12"
+            cc: "clang-12"
+            build_type: Debug
+            build_threads: 3
+            test_threads: 3
+            cxx_flags: "-std=c++20 -fsanitize=address"
+            ctest_exclude: "faust|moby"
+            ctest_include: "-im"
+
+          - name: "cereal clang12"
+            cxx: "clang++-12"
+            cc: "clang-12"
+            build_type: Release
+            build_threads: 3
+            test_threads: 3
+            cxx_flags: "-std=c++20"
+            has_cereal: "1"
+
+          - name: "clang11"
+            cxx: "clang++-11"
+            cc: "clang-11"
+            build_type: Release
+            build_threads: 3
+            test_threads: 3
+            cxx_flags: "-std=c++20"
+
+          - name: "clang9"
+            cxx: "clang++-9"
+            cc: "clang-9"
+            build_type: Release
+            build_threads: 3
+            test_threads: 3
+            cxx_flags: "-std=c++2a"
+
+    steps:
+      - name: Checkout SDSL
+        uses: actions/checkout@v2
+        with:
+          path: sdsl
+          fetch-depth: 2
+          submodules: true
+
+      - name: Checkout SeqAn3
+        uses: actions/checkout@v2
+        with:
+          repository: seqan/seqan3
+          ref: 79d2ba35359f7efd795853262280630a0aa9fd7e
+          path: seqan3
+          fetch-depth: 2
+          submodules: false
+
+      - name: Configure Homebrew
+        uses: Homebrew/actions/setup-homebrew@master
+
+      - name: Install CMake
+        run: bash ./seqan3/.github/workflows/scripts/install_cmake.sh
+
+      - name: Install ccache
+        run: bash ./seqan3/.github/workflows/scripts/install_via_brew.sh ccache
+
+      - name: Install compiler ${{ matrix.cxx }}
+        env:
+          CXX: ${{ matrix.cxx }}
+        run: |
+          bash ./seqan3/.github/workflows/scripts/install_via_brew.sh llvm ${CXX/clang++-/}
+          install_prefix=$(brew --prefix llvm@${CXX/clang++-/})/bin
+          ln -s ${install_prefix}/clang++ ${install_prefix}/"${{ matrix.cxx }}" || true
+          echo "${install_prefix}/" >> $GITHUB_PATH
+
+      - name: Load ccache
+        uses: actions/cache@v2
+        with:
+          path: .ccache
+          key: ${{ runner.os }}-${{ matrix.name }}-ccache-${{ github.ref }}-${{ github.run_number }}
+          # Restoring: From current branch, otherwise from base branch, otherwise from any branch.
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.name }}-ccache-${{ github.ref }}
+            ${{ runner.os }}-${{ matrix.name }}-ccache-${{ github.base_ref }}
+            ${{ runner.os }}-${{ matrix.name }}-ccache-
+
+      - name: Tool versions
+        run: |
+          env cmake --version
+          env ${{ matrix.cxx }} --version
+
+      - name: Configure tests
+        env:
+          CXX: ${{ matrix.cxx }}
+          CC: ${{ matrix.cc }}
+        run: |
+          mkdir sdsl-build
+          cd sdsl-build
+          cmake ../sdsl -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_FLAGS="-pedantic -Wall -Wextra -Werror ${{ matrix.cxx_flags }}" -DSDSL_CEREAL=${{ matrix.has_cereal }} -DSDSL_HEADER_TEST=${{ matrix.header_test }}
+          make -j${{ matrix.build_threads }} gtest_build
+
+      - name: Build tests
+        env:
+          CCACHE_BASEDIR: ${{ github.workspace }}
+          CCACHE_DIR: ${{ github.workspace }}/.ccache
+          CCACHE_COMPRESS: true
+          CCACHE_COMPRESSLEVEL: 6
+          CCACHE_MAXSIZE: 1G
+          CCACHE_IGNOREHEADERS: ${{ github.workspace }}/sdsl/include/sdsl/structure_tree.hpp
+        run: |
+          ccache -p || true
+          cd sdsl-build
+          if [[ "${{ matrix.header_test }}" == "ON" ]]; then
+            make sdsl_header_test -k -j${{ matrix.build_threads }}
+          else
+            make sdsl_test_targets sdsl_examples sdsl_tutorials -k -j${{ matrix.build_threads }}
+          fi
+          ccache -s || true
+
+      - name: Run tests
+        run: |
+          cd sdsl-build
+          ctest . -j${{ matrix.test_threads }} --output-on-failure -E "${{ matrix.ctest_exclude }}" -R "${{ matrix.ctest_include }}"
