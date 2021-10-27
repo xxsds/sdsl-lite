@@ -22,12 +22,12 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Run clang-format
-        uses: DoozyX/clang-format-lint-action@v0.11
+        uses: DoozyX/clang-format-lint-action@v0.13
         with:
           source: '.'
           exclude: './external'
           extensions: 'h,hpp,hpp.cmake,cpp'
-          clangFormatVersion: 11
+          clangFormatVersion: 12
           inplace: True
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v3

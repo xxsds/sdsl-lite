@@ -842,13 +842,13 @@ void do_serialisation(TypeParam const & l)
         oarchive(l);
     }
 
+    TypeParam in_l{};
     {
-        TypeParam in_l{};
         std::ifstream is{ temp_file, std::ios::binary };
         in_archive_t iarchive{ is };
         iarchive(in_l);
-        EXPECT_EQ(l, in_l);
     }
+    EXPECT_EQ(l, in_l);
 }
 
 TYPED_TEST(wt_int_test, cereal)
