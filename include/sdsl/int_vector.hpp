@@ -14,6 +14,7 @@
 #include <cstdlib>
 #include <cstring> // for memcpy
 #include <ctime>   // for rand initialization
+#include <initializer_list>
 #include <ios>
 #include <iosfwd>   // forward declaration of ostream
 #include <iostream> // for cerr
@@ -22,6 +23,7 @@
 #include <ostream>
 #include <stdexcept> // for exceptions
 #include <string>
+#include <type_traits>
 #include <typeinfo>
 #include <vector>
 
@@ -34,9 +36,6 @@
 #include <sdsl/structure_tree.hpp>
 #include <sdsl/uintx_t.hpp>
 #include <sdsl/util.hpp>
-
-#include <initializer_list>
-#include <type_traits>
 
 //! Namespace for the succinct data structure library.
 namespace sdsl

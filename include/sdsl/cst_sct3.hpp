@@ -16,6 +16,7 @@
 #include <iterator>
 #include <ostream>
 #include <stack> // for the calculation of the balanced parentheses sequence
+#include <type_traits>
 
 #include <sdsl/bp_support.hpp>
 #include <sdsl/construct.hpp>
@@ -30,8 +31,6 @@
 #include <sdsl/suffix_tree_algorithm.hpp>
 #include <sdsl/suffix_tree_helper.hpp>
 #include <sdsl/util.hpp>
-
-#include <type_traits>
 
 namespace sdsl
 {
