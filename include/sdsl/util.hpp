@@ -25,25 +25,22 @@
 #include <stdint.h>  // for uint64_t uint32_t declaration
 #include <string.h>  // for strlen and strdup
 #include <string>
+#include <type_traits>
 #include <typeinfo> // for typeid
+#include <typeinfo>
+#include <vector>
 
 #include <sdsl/bits.hpp>
 #include <sdsl/config.hpp> // for constants
 #include <sdsl/ram_fs.hpp>
 #include <sdsl/sfstream.hpp>
 
+#include <sys/stat.h>  // for file_size
+#include <sys/types.h> // for file_size
+
 // macros to transform a defined name to a string
 #define SDSL_STR(x) #x
 #define SDSL_XSTR(s) SDSL_STR(s)
-
-#include <iomanip>
-#include <string>
-#include <typeinfo>
-#include <vector>
-
-#include <sys/stat.h>  // for file_size
-#include <sys/types.h> // for file_size
-#include <type_traits>
 
 #ifndef MSVC_COMPILER
 #include <cxxabi.h>

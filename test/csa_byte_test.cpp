@@ -1,11 +1,11 @@
 #include <string>
+#include <type_traits>
 #include <vector>
 
 #include <sdsl/coder.hpp>
 #include <sdsl/suffix_arrays.hpp>
 
 #include "common.hpp"
-#include <type_traits>
 
 #include <gtest/gtest.h>
 
