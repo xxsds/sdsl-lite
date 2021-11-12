@@ -29,7 +29,7 @@ using testing::Types;
 
 typedef Types<wt_epr<4>> Implementations;
 
-TYPED_TEST_CASE(wt_byte_epr_test, Implementations);
+TYPED_TEST_SUITE(wt_byte_epr_test, Implementations, );
 
 TYPED_TEST(wt_byte_epr_test, create_and_store)
 {
