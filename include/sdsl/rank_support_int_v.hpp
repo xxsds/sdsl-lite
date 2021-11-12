@@ -363,6 +363,18 @@ class rank_support_int_v : public rank_support_int<alphabet_size>
         read_member(text_size, in);
     }
 
+    //! Equality operator.
+    friend bool operator==(rank_support_int_v const & lhs, rank_support_int_v const & rhs) noexcept
+    {
+        return (lhs.superblocks == rhs.superblocks) && (lhs.text_size == rhs.text_size);
+    }
+
+    //! Inequality operator.
+    friend bool operator!=(rank_support_int_v const & lhs, rank_support_int_v const & rhs) noexcept
+    {
+        return !(lhs == rhs);
+    }
+
     //!\brief Saves to the archive.
     template <typename archive_t>
     void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
@@ -548,6 +560,19 @@ struct rank_support_int_v<alphabet_size, words_per_block, blocks_per_superblock>
         sdsl::load(array_size, in);
         assert(array_size == superblock_text.size());
         for (size_type idx = 0; idx < array_size; ++idx) sdsl::load(superblock_text[idx], in);
+    }
+
+    //! Equality operator.
+    friend bool operator==(superblock_entry const & lhs, superblock_entry const & rhs) noexcept
+    {
+        return (lhs.superblocks == rhs.superblocks) && (lhs.blocks == rhs.blocks) &&
+               (lhs.superblock_text == rhs.superblock_text);
+    }
+
+    //! Inequality operator.
+    friend bool operator!=(superblock_entry const & lhs, superblock_entry const & rhs) noexcept
+    {
+        return !(lhs == rhs);
     }
 
     //!\brief Saves to the archive.

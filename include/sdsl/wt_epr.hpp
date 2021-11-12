@@ -356,6 +356,16 @@ class wt_epr
         m_bv_rank.load(in, &m_bv);
     }
 
+    //! Equality operator.
+    friend bool operator==(wt_epr const & lhs, wt_epr const & rhs) noexcept
+    {
+        return (lhs.m_size == rhs.m_size) && (lhs.m_sigma == rhs.m_sigma) && (lhs.m_bv == rhs.m_bv) &&
+               (lhs.m_bv_rank == rhs.m_bv_rank);
+    }
+
+    //! Inequality operator.
+    friend bool operator!=(wt_epr const & lhs, wt_epr const & rhs) noexcept { return !(lhs == rhs); }
+
     template <typename archive_t>
     void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
     {
