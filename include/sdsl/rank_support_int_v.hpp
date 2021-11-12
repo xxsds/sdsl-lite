@@ -107,7 +107,7 @@ class bit_compressed_word
     size_type serialize(std::ostream & out, structure_tree_node * v = nullptr, const std::string name = "") const
     {
         structure_tree_node * child = structure_tree::add_child(v, name, sdsl::util::class_name(*this));
-        size_type written_bytes = sdsl::serialize(word, out, v, "compressed_word");
+        size_type written_bytes = sdsl::serialize(word, out, child, "compressed_word");
         structure_tree::add_size(child, written_bytes);
         return written_bytes;
     }
@@ -349,7 +349,8 @@ class rank_support_int_v : public rank_support_int<alphabet_size>
     size_type serialize(std::ostream & out, structure_tree_node * v = nullptr, const std::string name = "") const
     {
         structure_tree_node * child = structure_tree::add_child(v, name, util::class_name(*this));
-        size_type written_bytes = sdsl::serialize(superblocks, out, v, "superblocks_vector");
+        size_type written_bytes = sdsl::serialize(superblocks, out, child, "superblocks_vector");
+        written_bytes += write_member(text_size, out, child, "text_size");
         structure_tree::add_size(child, written_bytes);
         return written_bytes;
     }
@@ -517,13 +518,13 @@ struct rank_support_int_v<alphabet_size, words_per_block, blocks_per_superblock>
     {
         structure_tree_node * child = structure_tree::add_child(v, name, sdsl::util::class_name(*this));
         size_type written_bytes = 0;
-        written_bytes += sdsl::serialize(superblocks.size(), out, v, "prefix_superblock_counts");
+        written_bytes += sdsl::serialize(superblocks.size(), out, child, "prefix_superblock_counts");
         for (const auto & x : superblocks) written_bytes += sdsl::serialize(x, out, child, "[]");
 
-        written_bytes += sdsl::serialize(blocks.size(), out, v, "prefix_block_counts");
+        written_bytes += sdsl::serialize(blocks.size(), out, child, "prefix_block_counts");
         for (const auto & x : blocks) written_bytes += sdsl::serialize(x, out, child, "[]");
 
-        written_bytes += sdsl::serialize(superblock_text.size(), out, v, "superblock_text");
+        written_bytes += sdsl::serialize(superblock_text.size(), out, child, "superblock_text");
         for (const auto & x : superblock_text) written_bytes += sdsl::serialize(x, out, child, "[]");
 
         structure_tree::add_size(child, written_bytes);

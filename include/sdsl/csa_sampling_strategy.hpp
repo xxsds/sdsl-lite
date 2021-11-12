@@ -1007,7 +1007,7 @@ class _fuzzy_isa_sampling_support
     {
         structure_tree_node * child = structure_tree::add_child(v, name, util::class_name(*this));
         size_type written_bytes = 0;
-        written_bytes += m_select_marked_sa.serialize(out, v, "select_marked_sa");
+        written_bytes += m_select_marked_sa.serialize(out, child, "select_marked_sa");
         structure_tree::add_size(child, written_bytes);
         return written_bytes;
     }
