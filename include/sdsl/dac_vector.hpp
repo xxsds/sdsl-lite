@@ -172,8 +172,8 @@ class dac_vector
 
     bool operator==(const dac_vector & v) const
     {
-        return m_max_level && v.m_max_level && m_data == v.m_data && m_overflow == v.m_overflow &&
-               m_overflow_rank == v.m_overflow_rank && m_level_pointer_and_rank == v.m_level_pointer_and_rank;
+        return (m_max_level == v.m_max_level) && (m_data == v.m_data) && (m_overflow == v.m_overflow) &&
+               (m_overflow_rank == v.m_overflow_rank) && (m_level_pointer_and_rank == v.m_level_pointer_and_rank);
     }
 
     bool operator!=(const dac_vector & v) const { return !(*this == v); }

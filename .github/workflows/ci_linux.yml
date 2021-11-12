@@ -118,7 +118,6 @@ jobs:
             test_threads: 2
             cxx_flags: "-std=c++20"
             has_cereal: "1"
-            ctest_exclude: "-E 'k2-treap-test_k2-0.1.0.0'"
 
           - name: "clang11"
             cxx: "clang++-11"
