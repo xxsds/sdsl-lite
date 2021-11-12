@@ -19,11 +19,26 @@ typedef int_vector<>::size_type size_type;
 
 string temp_file;
 string temp_dir;
-int_vector<8> text;
 
 template <class T>
 class wt_byte_epr_test : public ::testing::Test
-{};
+{
+  protected:
+    // Needs to be a member instead of a global since the static sdsl::memory_manager might call its destructor
+    // before the vector.
+    static int_vector<8> text;
+};
+
+template <class T>
+int_vector<8> wt_byte_epr_test<T>::text{ []() {
+    int_vector<8> result;
+    result.resize(std::rand() % 10000);
+    for (uint32_t i = 0; i < result.size(); ++i)
+    {
+        result[i] = (std::rand() % 3) + 1; // no 0s allowed. produces 1, 2 or 3.
+    }
+    return result;
+}() };
 
 using testing::Types;
 
@@ -35,14 +50,7 @@ TYPED_TEST(wt_byte_epr_test, create_and_store)
 {
     static_assert(sdsl::util::is_regular<TypeParam>::value, "Type is not regular");
 
-    text.resize(std::rand() % 10000);
-
-    for (uint32_t i = 0; i < text.size(); ++i)
-    {
-        text[i] = (std::rand() % 3) + 1; // no 0s allowed. produces 1, 2 or 3.
-    }
-
-    TypeParam wt(text.begin(), text.end());
+    TypeParam wt(this->text.begin(), this->text.end());
 
     ASSERT_TRUE(store_to_file(wt, temp_file));
 }
@@ -52,14 +60,14 @@ TYPED_TEST(wt_byte_epr_test, sigma)
 {
     TypeParam wt;
     ASSERT_TRUE(load_from_file(wt, temp_file));
-    ASSERT_EQ(text.size(), wt.size());
+    ASSERT_EQ(this->text.size(), wt.size());
     bit_vector occur(256, 0);
     uint16_t sigma = 0;
-    for (size_type j = 0; j < text.size(); ++j)
+    for (size_type j = 0; j < this->text.size(); ++j)
     {
-        if (!occur[(unsigned char)text[j]])
+        if (!occur[(unsigned char)this->text[j]])
         {
-            occur[(unsigned char)text[j]] = 1;
+            occur[(unsigned char)this->text[j]] = 1;
             ++sigma;
         }
     }
@@ -78,25 +86,25 @@ TYPED_TEST(wt_byte_epr_test, access_copy_move_and_swap)
 {
     TypeParam wt;
     ASSERT_TRUE(load_from_file(wt, temp_file));
-    compare_wt(text, wt);
+    compare_wt(this->text, wt);
 
     // Copy-constructor
     TypeParam wt2(wt);
-    compare_wt(text, wt2);
+    compare_wt(this->text, wt2);
 
     // Move-constructor
     TypeParam wt3(std::move(wt2));
-    compare_wt(text, wt3);
+    compare_wt(this->text, wt3);
 
     // Copy-Assign
     TypeParam wt4;
     wt4 = wt3;
-    compare_wt(text, wt4);
+    compare_wt(this->text, wt4);
 
     // Move-Assign
     TypeParam wt5;
     wt5 = std::move(wt4);
-    compare_wt(text, wt5);
+    compare_wt(this->text, wt5);
 }
 
 //! Test rank methods
@@ -105,15 +113,15 @@ TYPED_TEST(wt_byte_epr_test, rank)
     TypeParam wt;
     ASSERT_TRUE(load_from_file(wt, temp_file));
 
-    ASSERT_EQ(text.size(), wt.size());
+    ASSERT_EQ(this->text.size(), wt.size());
 
     // Test rank(i, c) for each character c and position i
     unsigned cnt_prefix_rank[4] = { 0 };
-    for (unsigned i = 0; i < text.size() + 1; ++i)
+    for (unsigned i = 0; i < this->text.size() + 1; ++i)
     {
         for (unsigned v = 0; v < wt.sigma; ++v)
         {
-            if (i > 0 && text[i - 1] <= v) ++cnt_prefix_rank[v];
+            if (i > 0 && this->text[i - 1] <= v) ++cnt_prefix_rank[v];
 
             // auto const rank = rb(i, v);
             if (v > 0)
