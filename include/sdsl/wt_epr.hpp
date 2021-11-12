@@ -38,8 +38,9 @@ class wt_epr
     typedef typename t_tree_strat::template type<wt_epr> tree_strat_type;
     typedef int_vector<>::size_type size_type;
     typedef int_vector<>::value_type value_type;
-    // typedef random_access_const_iterator<wt_pc> const_iterator;
-    // typedef const_iterator iterator;
+    typedef random_access_const_iterator<wt_epr> const_iterator;
+    typedef const_iterator iterator;
+    typedef typename int_vector<>::difference_type difference_type;
     typedef wt_tag index_category;
     typedef byte_alphabet_tag /*typename tree_strat_type::alphabet_category*/ alphabet_category;
     enum
@@ -329,10 +330,10 @@ class wt_epr
     }
 
     //! Returns a const_iterator to the first element.
-    // const_iterator begin() const { return const_iterator(this, 0); }
-    //
-    // //! Returns a const_iterator to the element after the last element.
-    // const_iterator end() const { return const_iterator(this, size()); }
+    const_iterator begin() const { return const_iterator(this, 0); }
+
+    //! Returns a const_iterator to the element after the last element.
+    const_iterator end() const { return const_iterator(this, size()); }
 
     //! Serializes the data structure into the given ostream
     size_type serialize(std::ostream & out, structure_tree_node * v = nullptr, std::string name = "") const
