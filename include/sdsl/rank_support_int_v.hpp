@@ -91,7 +91,7 @@ class bit_compressed_word
     template <typename it_t>
     constexpr void assign(it_t it, it_t end) noexcept
     {
-        assert(std::distance(it, end) <= max_size);
+        assert(static_cast<uint64_t>(std::distance(it, end)) <= max_size);
 
         for (size_t index = 0; it != end; ++it, ++index)
         {
