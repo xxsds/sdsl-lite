@@ -19,6 +19,7 @@
 #include <cereal/archives/xml.hpp>
 #include <cereal/cereal.hpp>
 #include <cereal/details/traits.hpp>
+#include <cereal/types/array.hpp>
 #include <cereal/types/memory.hpp>
 #include <cereal/types/vector.hpp>
 #endif

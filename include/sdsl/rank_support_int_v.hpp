@@ -360,14 +360,15 @@ class rank_support_int_v : public rank_support_int<alphabet_size>
     {
         this->m_v = nullptr;
         sdsl::load(superblocks, in);
+        read_member(text_size, in);
     }
 
     //!\brief Saves to the archive.
     template <typename archive_t>
     void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
     {
-        (void)ar;
         ar(CEREAL_NVP(superblocks));
+        ar(CEREAL_NVP(text_size));
     }
 
     //!\brief Loads from the archive.
@@ -375,6 +376,7 @@ class rank_support_int_v : public rank_support_int<alphabet_size>
     void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
     {
         ar(CEREAL_NVP(superblocks));
+        ar(CEREAL_NVP(text_size));
     }
 
     //!\brief Does nothing for the rank_support_int structure.
