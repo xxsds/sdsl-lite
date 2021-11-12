@@ -58,6 +58,7 @@ jobs:
             build_threads: 2
             test_threads: 2
             cxx_flags: "-std=c++20"
+            has_cereal: "1"
 
           - name: "gcc10"
             cxx: "g++-10"
