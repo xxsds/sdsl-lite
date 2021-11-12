@@ -1,24 +1,26 @@
 // Copyright (c) 2016, the SDSL Project Authors.  All rights reserved.
 // Please see the AUTHORS file for details.  Use of this source code is governed
 // by a BSD license that can be found in the LICENSE file.
-/*! \file wt_epr.hpp
-    \brief wt_epr.hpp contains a class for the EPR dictionary of byte sequences.
-           The EPR-dictionary can be interpreted as a specialized wavelet tree of height 0.
-    \author Christopher Pockrandt
-*/
+/*!\file wt_epr.hpp
+ * \brief wt_epr.hpp contains a class for the EPR dictionary of byte sequences.
+ *        The EPR-dictionary can be interpreted as a specialized wavelet tree of height 0.
+ * \author Christopher Pockrandt
+ */
 #ifndef INCLUDED_SDSL_WT_EPR
 #define INCLUDED_SDSL_WT_EPR
 
-#include "int_vector.hpp"
-#include "rank_support_int.hpp"
-#include "wt_helper.hpp"
-#include <vector>
-#include <utility>
 #include <tuple>
 #include <type_traits>
+#include <utility>
+#include <vector>
+
+#include <sdsl/int_vector.hpp>
+#include <sdsl/rank_support_int.hpp>
+#include <sdsl/wt_helper.hpp>
 
 //! Namespace for the succinct data structure library.
-namespace sdsl {
+namespace sdsl
+{
 
 //! An EPR-dictionary based wavelet.
 /*!
@@ -29,12 +31,10 @@ namespace sdsl {
  *
  *  @ingroup wt
  */
-template <uint8_t alphabet_size,
-          class rank_type    = rank_support_int_v<alphabet_size>,
-          class t_tree_strat = byte_tree<>
-          >
-class wt_epr {
-public:
+template <uint8_t alphabet_size, class rank_type = rank_support_int_v<alphabet_size>, class t_tree_strat = byte_tree<>>
+class wt_epr
+{
+  public:
     typedef typename t_tree_strat::template type<wt_epr> tree_strat_type;
     typedef int_vector<>::size_type size_type;
     typedef int_vector<>::value_type value_type;
@@ -42,33 +42,34 @@ public:
     // typedef const_iterator iterator;
     typedef wt_tag index_category;
     typedef byte_alphabet_tag /*typename tree_strat_type::alphabet_category*/ alphabet_category;
-    enum { lex_ordered = true };
+    enum
+    {
+        lex_ordered = true
+    };
 
-private:
+  private:
     //!\brief Check if underlying rank support structure stores the text implicitly.
     static constexpr bool has_inblock_text = std::is_same<rank_type, rank_support_int_v<alphabet_size>>::value;
 
-    size_type  m_size  = 0; // original text size
-    size_type  m_sigma = 0; // alphabet size
-    int_vector<>    m_bv; // bit vector to store the wavelet tree
-    rank_type  m_bv_rank; // rank support for the wavelet tree bit vector
+    size_type m_size = 0;  // original text size
+    size_type m_sigma = 0; // alphabet size
+    int_vector<> m_bv;     // bit vector to store the wavelet tree
+    rank_type m_bv_rank;   // rank support for the wavelet tree bit vector
 
     // Overload for the special epr rank structure.
     template <bool has_inblock_text_>
-    auto construct_init_rank_select(int_vector<> intermediate_bitvector)
-        -> std::enable_if_t<has_inblock_text_, void>
+    auto construct_init_rank_select(int_vector<> intermediate_bitvector) -> std::enable_if_t<has_inblock_text_, void>
     {
         // The text is stored inside of the rank structure so we do not store it here.
-        m_bv_rank = rank_type{&intermediate_bitvector}; // Create the rank support structure.
+        m_bv_rank = rank_type{ &intermediate_bitvector }; // Create the rank support structure.
     }
 
     // Overload for the other rank support structures.
     template <bool has_inblock_text_>
-    auto construct_init_rank_select(int_vector<> intermediate_bitvector)
-        -> std::enable_if_t<!has_inblock_text_, void>
+    auto construct_init_rank_select(int_vector<> intermediate_bitvector) -> std::enable_if_t<!has_inblock_text_, void>
     {
         m_bv = std::move(intermediate_bitvector);
-        m_bv_rank = rank_type{&m_bv}; // Create the rank support structure.
+        m_bv_rank = rank_type{ &m_bv }; // Create the rank support structure.
     }
 
     // Extract the text value from the given position.
@@ -88,9 +89,9 @@ private:
         return m_bv[position];
     }
 
-public:
-    const size_type& sigma = m_sigma;
-    const int_vector<>& bv = m_bv;
+  public:
+    const size_type & sigma = m_sigma;
+    const int_vector<> & bv = m_bv;
 
     // Default constructor
     wt_epr() = default;
@@ -103,7 +104,8 @@ public:
      *      \f$ \Order{n\log|\Sigma|}\f$, where \f$n=size\f$
      */
     template <typename t_it>
-    wt_epr(t_it begin, t_it end) : m_size(std::distance(begin, end))
+    wt_epr(t_it begin, t_it end)
+      : m_size(std::distance(begin, end))
     {
         if (0 == m_size) return;
         // O(n + |\Sigma|\log|\Sigma|) algorithm for calculating node sizes
@@ -118,8 +120,8 @@ public:
 
         // The text cannot have an alphabet larger than the required alphabet_size.
         if (m_sigma > alphabet_size)
-            throw std::domain_error{"The given text uses an alphabet that is larger than the explicitly given "
-                                    "alphabet size."};
+            throw std::domain_error{ "The given text uses an alphabet that is larger than the explicitly given "
+                                     "alphabet size." };
 
         // 4. Generate wavelet tree bit sequence m_bv
         int_vector<> intermediate_bitvector{};
@@ -133,44 +135,47 @@ public:
     }
 
     template <typename t_it>
-    wt_epr(t_it begin, t_it end, std::string) : wt_epr(begin, end)
+    wt_epr(t_it begin, t_it end, std::string)
+      : wt_epr(begin, end)
     {}
 
     //! Copy constructor
-    wt_epr(const wt_epr& wt)
-        : m_size(wt.m_size)
-        , m_sigma(wt.m_sigma)
-        , m_bv(wt.m_bv)
-        , m_bv_rank(wt.m_bv_rank)
+    wt_epr(const wt_epr & wt)
+      : m_size(wt.m_size)
+      , m_sigma(wt.m_sigma)
+      , m_bv(wt.m_bv)
+      , m_bv_rank(wt.m_bv_rank)
     {
         m_bv_rank.set_vector(&m_bv);
     }
 
-    wt_epr(wt_epr&& wt)
-        : m_size(wt.m_size)
-        , m_sigma(wt.m_sigma)
-        , m_bv(std::move(wt.m_bv))
-        , m_bv_rank(std::move(wt.m_bv_rank))
+    wt_epr(wt_epr && wt)
+      : m_size(wt.m_size)
+      , m_sigma(wt.m_sigma)
+      , m_bv(std::move(wt.m_bv))
+      , m_bv_rank(std::move(wt.m_bv_rank))
     {
         m_bv_rank.set_vector(&m_bv);
     }
 
     //! Assignment operator
-    wt_epr& operator=(const wt_epr& wt)
+    wt_epr & operator=(const wt_epr & wt)
     {
-        if (this != &wt) {
-            wt_epr tmp(wt); // re-use copy-constructor
+        if (this != &wt)
+        {
+            wt_epr tmp(wt);         // re-use copy-constructor
             *this = std::move(tmp); // re-use move-assignment
         }
         return *this;
     }
 
     //! Move assignment operator
-    wt_epr& operator=(wt_epr&& wt)
+    wt_epr & operator=(wt_epr && wt)
     {
-        if (this != &wt) {
+        if (this != &wt)
+        {
             m_size = wt.m_size;
-            m_sigma   = wt.m_sigma;
+            m_sigma = wt.m_sigma;
             m_bv = std::move(wt.m_bv);
             m_bv_rank = std::move(wt.m_bv_rank);
             m_bv_rank.set_vector(&m_bv);
@@ -293,12 +298,12 @@ public:
         size_type greater = j - i - m_bv_rank.prefix_rank(j, c) + prefix_i_c;
         if (c > 0)
         {
-            prefix_i_c_1 = m_bv_rank.prefix_rank(i, c-1);
-            smaller = m_bv_rank.prefix_rank(j, c-1) - prefix_i_c_1;
+            prefix_i_c_1 = m_bv_rank.prefix_rank(i, c - 1);
+            smaller = m_bv_rank.prefix_rank(j, c - 1) - prefix_i_c_1;
         }
         size_type rank = prefix_i_c - prefix_i_c_1;
 
-        return t_ret_type{rank, smaller, greater};
+        return t_ret_type{ rank, smaller, greater };
     }
 
     //! How many symbols are lexicographic smaller than c in [0..i-1].
@@ -319,9 +324,8 @@ public:
         assert(i <= size());
         // TODO: write a function returning a pair for (i, c) and (i, c-1) and benchmark!
         size_type prefix_count_smaller = 0;
-        if (c > 0)
-            prefix_count_smaller = m_bv_rank.prefix_rank(i, c - 1);
-        return t_ret_type{m_bv_rank.prefix_rank(i, c) - prefix_count_smaller, prefix_count_smaller};
+        if (c > 0) prefix_count_smaller = m_bv_rank.prefix_rank(i, c - 1);
+        return t_ret_type{ m_bv_rank.prefix_rank(i, c) - prefix_count_smaller, prefix_count_smaller };
     }
 
     //! Returns a const_iterator to the first element.
@@ -331,10 +335,9 @@ public:
     // const_iterator end() const { return const_iterator(this, size()); }
 
     //! Serializes the data structure into the given ostream
-    size_type
-    serialize(std::ostream& out, structure_tree_node* v = nullptr, std::string name = "") const
+    size_type serialize(std::ostream & out, structure_tree_node * v = nullptr, std::string name = "") const
     {
-        structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
+        structure_tree_node * child = structure_tree::add_child(v, name, util::class_name(*this));
         size_type written_bytes = 0;
         written_bytes += write_member(m_size, out, child, "size");
         written_bytes += write_member(m_sigma, out, child, "sigma");
@@ -345,7 +348,7 @@ public:
     }
 
     //! Loads the data structure from the given istream.
-    void load(std::istream& in)
+    void load(std::istream & in)
     {
         read_member(m_size, in);
         read_member(m_sigma, in);
@@ -371,8 +374,7 @@ public:
         ar(CEREAL_NVP(m_bv_rank));
         m_bv_rank.set_vector(&m_bv);
     }
-
 };
-}
+} // namespace sdsl
 
 #endif
