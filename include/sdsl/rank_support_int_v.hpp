@@ -417,6 +417,9 @@ class rank_support_int_v : public rank_support_int<alphabet_size>
     {
         assert(position <= text_size);
 
+        if (unlikely(text_size == 0)) // TODO: Maybe there could be some logic in the constructor for this case?
+            return 0;
+
         superblock_entry const & entry = superblocks[to_superblock_position(position)];
         return entry.template superblock_rank<compute_prefix_delta>(v) +
                entry.template block_rank<compute_prefix_delta>(position, v) +
