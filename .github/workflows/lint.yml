@@ -1,4 +1,4 @@
-name: SDSL Linting
+name: Linting
 
 on:
   push:
@@ -17,7 +17,7 @@ jobs:
   lint:
     name: Linting
     runs-on: ubuntu-20.04
-    timeout-minutes: 240
+    timeout-minutes: 30
     if: github.repository_owner == 'xxsds'
     steps:
       - uses: actions/checkout@v2

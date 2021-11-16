@@ -3,9 +3,9 @@
 [![linux status][1]][2]
 [![macos status][3]][4]
 
-[1]: https://img.shields.io/github/workflow/status/xxsds/sdsl-lite/SDSL%20CI%20on%20Linux/master?style=flat&logo=github&label=Linux%20CI "Open GitHub actions page"
+[1]: https://img.shields.io/github/workflow/status/xxsds/sdsl-lite/CI%20on%20Linux/master?style=flat&logo=github&label=Linux%20CI "Open GitHub actions page"
 [2]: https://github.com/xxsds/sdsl-lite/actions?query=branch%3Amaster
-[3]: https://img.shields.io/github/workflow/status/xxsds/sdsl-lite/SDSL%20CI%20on%20macOS/master?style=flat&logo=github&label=macOS%20CI "Open GitHub actions page"
+[3]: https://img.shields.io/github/workflow/status/xxsds/sdsl-lite/CI%20on%20macOS/master?style=flat&logo=github&label=macOS%20CI "Open GitHub actions page"
 [4]: https://github.com/xxsds/sdsl-lite/actions?query=branch%3Amaster
 
 ## Main differences to [v2](https://github.com/simongog/sdsl-lite)

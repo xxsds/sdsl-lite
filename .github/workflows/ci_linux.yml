@@ -1,4 +1,4 @@
-name: SDSL CI on Linux
+name: CI on Linux
 
 on:
   push:
@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-20.04
     timeout-minutes: 120
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         include:
           - name: "gcc11"
@@ -156,7 +156,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           repository: seqan/seqan3
-          ref: 79d2ba35359f7efd795853262280630a0aa9fd7e
+          ref: 9bd2f5b695f02bd701d456ca3e7ad7453545456d
           path: seqan3
           fetch-depth: 2
           submodules: false
@@ -211,7 +211,7 @@ jobs:
           CCACHE_DIR: ${{ github.workspace }}/.ccache
           CCACHE_COMPRESS: true
           CCACHE_COMPRESSLEVEL: 6
-          CCACHE_MAXSIZE: 1G
+          CCACHE_MAXSIZE: 100M
           CCACHE_IGNOREHEADERS: ${{ github.workspace }}/sdsl/include/sdsl/structure_tree.hpp
         run: |
           ccache -p || true
