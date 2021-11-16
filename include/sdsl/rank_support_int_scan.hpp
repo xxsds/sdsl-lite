@@ -11,18 +11,17 @@
 
 #include <sdsl/rank_support_int.hpp>
 
-//! Namespace for the succinct data structure library.
 namespace sdsl
 {
 
-//! A class supporting rank queries in linear time.
-/*! \par Space complexity
+/*!\brief A class supporting rank queries in linear time.
+ * \ingroup rank_support_group
+ * \tparam alphabet_size Size of the alphabet used in the underlying sdsl::int_vector.
+ *
+ * \par Space complexity
  *       Constant.
  *  \par Time complexity
  *       Linear in the size of the supported vector.
- *
- *  \tparam alphabet_size Size of the alphabet used in the underlying sdsl::int_vector.
- * @ingroup rank_support_group
  */
 
 template <uint8_t alphabet_size>
@@ -59,10 +58,10 @@ class rank_support_int_scan : public rank_support_int<alphabet_size>
     void set_vector(const int_vector<> * v = nullptr) { this->m_v = v; }
 };
 
-//! Counts the occurrences of v in the prefix [0..idx-1]
-/*! \param idx Argument for the length of the prefix v[0..idx-1].
- *  \param v Argument which value to count.
- *  \sa prefix_rank
+/*!\brief Counts the occurrences of v in the prefix [0..idx-1]
+ * \param idx Argument for the length of the prefix v[0..idx-1].
+ * \param v Argument which value to count.
+ * \sa prefix_rank
  */
 template <uint8_t alphabet_size>
 inline typename rank_support_int_scan<alphabet_size>::size_type rank_support_int_scan<alphabet_size>::rank(
@@ -87,10 +86,10 @@ inline typename rank_support_int_scan<alphabet_size>::size_type rank_support_int
     return result + base_t::word_rank(base_t::extract_word(p, idx), idx * this->sigma_bits, v);
 }
 
-//! Counts the occurrences of elements smaller or equal to v in the prefix [0..idx-1]
-/*! \param idx Argument for the length of the prefix v[0..idx-1].
- *  \param v Argument which value (including smaller values) to count.
- *  \sa rank
+/*!\brief Counts the occurrences of elements smaller or equal to v in the prefix [0..idx-1]
+ * \param idx Argument for the length of the prefix v[0..idx-1].
+ * \param v Argument which value (including smaller values) to count.
+ * \sa rank
  */
 template <uint8_t alphabet_size>
 inline typename rank_support_int_scan<alphabet_size>::size_type rank_support_int_scan<alphabet_size>::prefix_rank(

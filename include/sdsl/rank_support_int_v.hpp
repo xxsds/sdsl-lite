@@ -19,7 +19,7 @@ namespace sdsl
 namespace detail
 {
 
-/*!\brief A bit compressed
+/*!\brief A bit compressed word
  * \tparam value_t The represented value_type.
  * \tparam bits_per_value How many bits are used to store one value. Must be less than 64.
  *
@@ -565,14 +565,14 @@ struct rank_support_int_v<alphabet_size, words_per_block, blocks_per_superblock>
         for (size_type idx = 0; idx < array_size; ++idx) sdsl::load(superblock_text[idx], in);
     }
 
-    //! Equality operator.
+    //!\brief Equality operator.
     friend bool operator==(superblock_entry const & lhs, superblock_entry const & rhs) noexcept
     {
         return (lhs.superblocks == rhs.superblocks) && (lhs.blocks == rhs.blocks) &&
                (lhs.superblock_text == rhs.superblock_text);
     }
 
-    //! Inequality operator.
+    //!\brief Inequality operator.
     friend bool operator!=(superblock_entry const & lhs, superblock_entry const & rhs) noexcept
     {
         return !(lhs == rhs);
