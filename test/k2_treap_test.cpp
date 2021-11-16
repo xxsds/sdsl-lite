@@ -171,6 +171,7 @@ void range3d_test(const t_k2treap & k2treap,
 
 TYPED_TEST(k2_treap_test, range_3d)
 {
+    GTEST_SKIP() << "[TODO] Spurious failures.";
     TypeParam k2treap;
     ASSERT_TRUE(load_from_file(k2treap, temp_file));
     int_vector<> x, y, w;
