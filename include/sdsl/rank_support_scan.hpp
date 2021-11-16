@@ -10,19 +10,18 @@
 
 #include <sdsl/rank_support.hpp>
 
-//! Namespace for the succinct data structure library.
 namespace sdsl
 {
 
-//! A class supporting rank queries in linear time.
-/*!\par Space complexity
+/*!\brief A class supporting rank queries in linear time.
+ * \ingroup rank_support_group
+ * \tparam t_b       Bit pattern which should be supported. Either `0`,`1`,`10`,`01`.
+ * \tparam t_pat_len Length of the bit pattern.
+ *
+ * \par Space complexity
  *       Constant.
  *  \par Time complexity
  *       Linear in the size of the supported vector.
- *
- *  \tparam t_b       Bit pattern which should be supported. Either `0`,`1`,`10`,`01`.
- *  \tparam t_pat_len Length of the bit pattern.
- * @ingroup rank_support_group
  */
 template <uint8_t t_b = 1, uint8_t t_pat_len = 1>
 class rank_support_scan : public rank_support
@@ -66,10 +65,10 @@ class rank_support_scan : public rank_support
     void CEREAL_LOAD_FUNCTION_NAME(archive_t &)
     {}
 
-    //! Equality operator.
+    //!\brief Equality operator.
     bool operator==(rank_support_scan const & other) const noexcept { return (*m_v == *other.m_v); }
 
-    //! Inequality operator.
+    //!\brief Inequality operator.
     bool operator!=(rank_support_scan const & other) const noexcept { return !(*this == other); }
 };
 

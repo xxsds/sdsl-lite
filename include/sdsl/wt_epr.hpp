@@ -22,14 +22,11 @@
 namespace sdsl
 {
 
-//! An EPR-dictionary based wavelet.
-/*!
+/*!\brief An EPR-dictionary based wavelet
+ * \ingroup wt
  * \tparam alphabet_size Size of the alphabet.
  * \tparam t_rank        Rank support for pattern `1` on the bitvector.
- * \tparam t_tree_strat  Tree strategy determines alphabet and the tree
- *                       class used to navigate the WT.
- *
- *  @ingroup wt
+ * \tparam t_tree_strat  Tree strategy determines alphabet and the tree class used to navigate the WT.
  */
 template <uint8_t alphabet_size, class rank_type = rank_support_int_v<alphabet_size>, class t_tree_strat = byte_tree<>>
 class wt_epr
@@ -52,12 +49,12 @@ class wt_epr
     //!\brief Check if underlying rank support structure stores the text implicitly.
     static constexpr bool has_inblock_text = std::is_same<rank_type, rank_support_int_v<alphabet_size>>::value;
 
-    size_type m_size = 0;  // original text size
-    size_type m_sigma = 0; // alphabet size
-    int_vector<> m_bv;     // bit vector to store the wavelet tree
-    rank_type m_bv_rank;   // rank support for the wavelet tree bit vector
+    size_type m_size = 0;  //!< original text size
+    size_type m_sigma = 0; //!< alphabet size
+    int_vector<> m_bv;     //!< bit vector to store the wavelet tree
+    rank_type m_bv_rank;   //!< rank support for the wavelet tree bit vector
 
-    // Overload for the special epr rank structure.
+    //!\brief Overload for the special epr rank structure.
     template <bool has_inblock_text_>
     auto construct_init_rank_select(int_vector<> intermediate_bitvector) -> std::enable_if_t<has_inblock_text_, void>
     {
@@ -65,7 +62,7 @@ class wt_epr
         m_bv_rank = rank_type{ &intermediate_bitvector }; // Create the rank support structure.
     }
 
-    // Overload for the other rank support structures.
+    //!\brief Overload for the other rank support structures.
     template <bool has_inblock_text_>
     auto construct_init_rank_select(int_vector<> intermediate_bitvector) -> std::enable_if_t<!has_inblock_text_, void>
     {
@@ -73,16 +70,15 @@ class wt_epr
         m_bv_rank = rank_type{ &m_bv }; // Create the rank support structure.
     }
 
-    // Extract the text value from the given position.
-    // Overload for the special epr rank structure.
+    //!\brief Overload for the special epr rank structure. Extract the text value from the given position.
     template <bool has_inblock_text_>
     auto value_at(size_type const position) const -> std::enable_if_t<has_inblock_text_, value_type>
-    { // In the special epr rank implementation the text is stored in the superblocks.
+    { // In the special epr rank implementation, the text is stored in the superblocks.
         assert(position < size());
         return m_bv_rank.value_at(position); // Extract the value from the rank support structure.
     }
 
-    // Overload for the other rank support structures.
+    //!\brief Overload for the other rank support structures.
     template <bool has_inblock_text_>
     auto value_at(size_type const position) const -> std::enable_if_t<!has_inblock_text_, value_type>
     {
@@ -94,11 +90,10 @@ class wt_epr
     const size_type & sigma = m_sigma;
     const int_vector<> & bv = m_bv;
 
-    // Default constructor
+    //!\brief Default constructor.
     wt_epr() = default;
 
-    //! Construct the EPR-dictionary from a sequence defined by two interators
-    /*!
+    /*!\brief Construct the EPR-dictionary from a sequence defined by two interators
      * \param begin Iterator to the start of the input.
      * \param end   Iterator one past the end of the input.
      * \par Time complexity
@@ -140,7 +135,7 @@ class wt_epr
       : wt_epr(begin, end)
     {}
 
-    //! Copy constructor
+    //!\brief Copy constructor
     wt_epr(const wt_epr & wt)
       : m_size(wt.m_size)
       , m_sigma(wt.m_sigma)
@@ -159,7 +154,7 @@ class wt_epr
         m_bv_rank.set_vector(&m_bv);
     }
 
-    //! Assignment operator
+    //!\brief Assignment operator
     wt_epr & operator=(const wt_epr & wt)
     {
         if (this != &wt)
@@ -170,7 +165,7 @@ class wt_epr
         return *this;
     }
 
-    //! Move assignment operator
+    //!\brief Move assignment operator
     wt_epr & operator=(wt_epr && wt)
     {
         if (this != &wt)
@@ -184,14 +179,13 @@ class wt_epr
         return *this;
     }
 
-    //! Returns the size of the original vector.
+    //!\brief Returns the size of the original vector.
     size_type size() const { return m_size; }
 
-    //! Returns whether the wavelet tree contains no data.
+    //!\brief Returns whether the wavelet tree contains no data.
     bool empty() const { return m_size == 0; }
 
-    //! Recovers the i-th symbol of the original vector.
-    /*!
+    /*!\brief Recovers the i-th symbol of the original vector.
      * \param i Index in the original vector.
      * \return The i-th symbol of the original vector.
      * \par Time complexity
@@ -206,8 +200,7 @@ class wt_epr
         return value_at<has_inblock_text>(i);
     };
 
-    //! Calculates how many symbols c are in the prefix [0..i-1].
-    /*!
+    /*!\brief Calculates how many symbols c are in the prefix [0..i-1].
      * \param i Exclusive right bound of the range.
      * \param c Symbol c.
      * \return Number of occurrences of symbol c in the prefix [0..i-1].
@@ -223,8 +216,7 @@ class wt_epr
         return m_bv_rank.rank(i, c);
     };
 
-    //! Calculates how many times symbol wt[i] occurs in the prefix [0..i-1].
-    /*!
+    /*!\brief Calculates how many times symbol wt[i] occurs in the prefix [0..i-1].
      * \param i The index of the symbol.
      * \return  Pair (rank(wt[i],i),wt[i])
      * \par Time complexity
@@ -241,8 +233,7 @@ class wt_epr
     }
 
     // TODO: implement (if necessary?)
-    //! For each symbol c in wt[i..j-1] get rank(i,c) and rank(j,c).
-    /*!
+    /*!\brief For each symbol c in wt[i..j-1] get rank(i,c) and rank(j,c).
      * \param i        The start index (inclusive) of the interval.
      * \param j        The end index (exclusive) of the interval.
      * \param k        Reference for number of different symbols in [i..j-1].
@@ -269,8 +260,7 @@ class wt_epr
     //        std::vector<size_type>&  rank_c_j) const
     // { }
 
-    //! How many symbols are lexicographic smaller/greater than c in [i..j-1].
-    /*!
+    /*!\brief How many symbols are lexicographic smaller/greater than c in [i..j-1].
      * \param i       Start index (inclusive) of the interval.
      * \param j       End index (exclusive) of the interval.
      * \param c       Symbol c.
@@ -307,8 +297,7 @@ class wt_epr
         return t_ret_type{ rank, smaller, greater };
     }
 
-    //! How many symbols are lexicographic smaller than c in [0..i-1].
-    /*!
+    /*\brief How many symbols are lexicographic smaller than c in [0..i-1].
      * \param i Exclusive right bound of the range.
      * \param c Symbol c.
      * \return A tuple containing:
@@ -329,13 +318,13 @@ class wt_epr
         return t_ret_type{ m_bv_rank.prefix_rank(i, c) - prefix_count_smaller, prefix_count_smaller };
     }
 
-    //! Returns a const_iterator to the first element.
+    //!\brief Returns a const_iterator to the first element.
     const_iterator begin() const { return const_iterator(this, 0); }
 
-    //! Returns a const_iterator to the element after the last element.
+    //!\brief Returns a const_iterator to the element after the last element.
     const_iterator end() const { return const_iterator(this, size()); }
 
-    //! Serializes the data structure into the given ostream
+    //!\brief Serializes the data structure into the given ostream
     size_type serialize(std::ostream & out, structure_tree_node * v = nullptr, std::string name = "") const
     {
         structure_tree_node * child = structure_tree::add_child(v, name, util::class_name(*this));
@@ -348,7 +337,7 @@ class wt_epr
         return written_bytes;
     }
 
-    //! Loads the data structure from the given istream.
+    //!\brief Loads the data structure from the given istream.
     void load(std::istream & in)
     {
         read_member(m_size, in);
@@ -357,14 +346,14 @@ class wt_epr
         m_bv_rank.load(in, &m_bv);
     }
 
-    //! Equality operator.
+    //!\brief Equality operator.
     friend bool operator==(wt_epr const & lhs, wt_epr const & rhs) noexcept
     {
         return (lhs.m_size == rhs.m_size) && (lhs.m_sigma == rhs.m_sigma) && (lhs.m_bv == rhs.m_bv) &&
                (lhs.m_bv_rank == rhs.m_bv_rank);
     }
 
-    //! Inequality operator.
+    //!\brief Inequality operator.
     friend bool operator!=(wt_epr const & lhs, wt_epr const & rhs) noexcept { return !(lhs == rhs); }
 
     template <typename archive_t>
