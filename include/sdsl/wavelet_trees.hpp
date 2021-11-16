@@ -21,6 +21,7 @@
 #include <sdsl/wt_algorithm.hpp>
 #include <sdsl/wt_ap.hpp>
 #include <sdsl/wt_blcd.hpp>
+#include <sdsl/wt_epr.hpp>
 #include <sdsl/wt_gmr.hpp>
 #include <sdsl/wt_huff.hpp>
 #include <sdsl/wt_hutu.hpp>

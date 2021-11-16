@@ -1301,6 +1301,8 @@ class int_vector_const_iterator : public int_vector_iterator_base<t_int_vector>
         m_len = it.m_len;
     }
 
+    int_vector_const_iterator & operator=(const int_vector_const_iterator &) = default;
+
     const_reference operator*() const
     {
         if (m_offset + m_len <= 64) { return ((*m_word) >> m_offset) & bits::lo_set[m_len]; }
