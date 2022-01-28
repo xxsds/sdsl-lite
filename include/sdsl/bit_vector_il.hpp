@@ -9,10 +9,21 @@
 #ifndef SDSL_BIT_VECTOR_IL
 #define SDSL_BIT_VECTOR_IL
 
+#include <algorithm>
+#include <assert.h>
+#include <iosfwd>
 #include <queue>
+#include <stdint.h>
+#include <string>
+#include <type_traits>
 
+#include <sdsl/bits.hpp>
+#include <sdsl/cereal.hpp>
 #include <sdsl/int_vector.hpp>
+#include <sdsl/io.hpp>
 #include <sdsl/iterators.hpp>
+#include <sdsl/sdsl_concepts.hpp>
+#include <sdsl/structure_tree.hpp>
 #include <sdsl/util.hpp>
 
 //! Namespace for the succinct data structure library
@@ -21,7 +32,6 @@ namespace sdsl
 
 template <uint8_t t_b = 1, uint32_t t_bs = 512> // forward declaration needed for friend declaration
 class rank_support_il;                          // in bit_vector_il
-
 template <uint8_t t_b = 1, uint32_t t_bs = 512> // forward declaration needed for friend declaration
 class select_support_il;                        // in bit_vector_il
 

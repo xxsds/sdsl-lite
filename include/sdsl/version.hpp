@@ -8,6 +8,7 @@
 #ifndef INCLUDED_SDSL_VERSION
 #define INCLUDED_SDSL_VERSION
 
+#include <stdint.h>
 #include <string>
 
 //!\brief The major version as MACRO.

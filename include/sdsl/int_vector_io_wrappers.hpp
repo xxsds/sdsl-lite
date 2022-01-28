@@ -19,9 +19,12 @@
 #define INCLUDE_SDSL_INT_VECTOR_IO_WRAPPERS
 
 #include <iostream>
+#include <stdint.h>
+#include <string>
 
-#include <sdsl/coder.hpp>
+#include <sdsl/coder_elias_delta.hpp>
 #include <sdsl/int_vector.hpp>
+#include <sdsl/structure_tree.hpp>
 #include <sdsl/util.hpp>
 
 namespace sdsl

@@ -8,9 +8,14 @@
 #ifndef INCLUDED_SDSL_BP_SUPPORT_ALGORITHM
 #define INCLUDED_SDSL_BP_SUPPORT_ALGORITHM
 
+#include <algorithm>
+#include <assert.h>
+#include <cstdint>
 #include <map>   // for calculate_pioneers_bitmap method
 #include <stack> // for calculate_pioneers_bitmap method
+#include <utility>
 
+#include <sdsl/bits.hpp>
 #include <sdsl/int_vector.hpp> // for bit_vector
 #include <sdsl/sorted_stack_support.hpp>
 

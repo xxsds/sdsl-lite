@@ -6,7 +6,7 @@ add_gtest()
 add_library (sdsl_test_header INTERFACE)
 set (header_all_target "sdsl_header_test")
 
-file(GLOB SDSL_HEADER_ALL ${CMAKE_CURRENT_BINARY_DIR}/../../include/sdsl/*.hpp)
+file(GLOB SDSL_HEADER_ALL ${CMAKE_CURRENT_LIST_DIR}/../../include/sdsl/*.hpp)
 
 file (WRITE "${CMAKE_CURRENT_BINARY_DIR}/${header_all_target}.cpp" "int main() {}")
 add_executable (${header_all_target} ${CMAKE_CURRENT_BINARY_DIR}/${header_all_target}.cpp)
@@ -14,8 +14,8 @@ target_link_libraries (${header_all_target} "gtest_main" "gtest")
 target_link_libraries (${header_all_target} sdsl_test_header)
 add_test (NAME "header/${header_all_target}" COMMAND ${header_all_target})
 
-include_directories(${CMAKE_CURRENT_BINARY_DIR}/../../include
-                    ${gtest_SOURCE_DIR}/include
+include_directories(${CMAKE_CURRENT_LIST_DIR}/../../include
+                    ${gtest_dir}/googletest/include
 )
 
 foreach (header ${SDSL_HEADER_ALL})

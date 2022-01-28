@@ -4,15 +4,22 @@
 #ifndef INCLUDED_SDSL_WT_HELPER
 #define INCLUDED_SDSL_WT_HELPER
 
-#include <algorithm>
 #include <array>
 #include <deque>
-#include <limits>
-#include <queue>
+#include <istream>
+#include <stddef.h>
+#include <stdexcept>
+#include <stdint.h>
+#include <string>
 #include <utility>
 #include <vector>
 
+#include <sdsl/cereal.hpp>
 #include <sdsl/int_vector.hpp>
+#include <sdsl/io.hpp>
+#include <sdsl/sdsl_concepts.hpp>
+#include <sdsl/structure_tree.hpp>
+#include <sdsl/util.hpp>
 
 namespace sdsl
 {

@@ -7,7 +7,17 @@
 #ifndef INCLUDED_SDSL_SORTED_STACK_SUPPORT
 #define INCLUDED_SDSL_SORTED_STACK_SUPPORT
 
+#include <assert.h>
+#include <iosfwd>
+#include <stdint.h>
+#include <string>
+
+#include <sdsl/bits.hpp>
+#include <sdsl/cereal.hpp>
 #include <sdsl/int_vector.hpp>
+#include <sdsl/io.hpp>
+#include <sdsl/structure_tree.hpp>
+#include <sdsl/util.hpp>
 
 namespace sdsl
 {

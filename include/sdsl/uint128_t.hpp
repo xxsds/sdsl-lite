@@ -9,8 +9,7 @@
 #define INCLUDED_SDSL_UINT128
 
 #include <iostream>
-
-#include <sdsl/bits.hpp>
+#include <stdint.h>
 
 namespace sdsl
 {

@@ -8,16 +8,20 @@
 #ifndef INCLUDED_SDSL_RMQ_SUCCINCT_SADA
 #define INCLUDED_SDSL_RMQ_SUCCINCT_SADA
 
+#include <assert.h>
+#include <iosfwd>
 #include <stack>
-#include <utility> // for pair
+#include <stdint.h>
+#include <string>
 
 #include <sdsl/bp_support_sada.hpp>
+#include <sdsl/cereal.hpp>
 #include <sdsl/int_vector.hpp>
-#include <sdsl/rank_support.hpp>
+#include <sdsl/rank_support_v5.hpp>
 #include <sdsl/rmq_succinct_sct.hpp>
-#include <sdsl/rmq_support.hpp>
-#include <sdsl/select_support.hpp>
-#include <sdsl/suffix_tree_helper.hpp>
+#include <sdsl/select_support_mcl.hpp>
+#include <sdsl/select_support_scan.hpp>
+#include <sdsl/structure_tree.hpp>
 #include <sdsl/util.hpp>
 
 //! Namespace for the succinct data structure library.

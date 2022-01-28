@@ -9,20 +9,30 @@
 #define INCLUDED_SDSL_CONSTRUCT_LCP
 
 #include <algorithm>
+#include <assert.h>
 #include <iostream>
-#include <stdexcept>
+#include <memory>
+#include <queue>
+#include <stdint.h>
+#include <string>
+#include <utility>
+#include <vector>
 
+#include <sdsl/bits.hpp>
 #include <sdsl/config.hpp>
-#include <sdsl/construct_bwt.hpp>
 #include <sdsl/construct_isa.hpp>
 #include <sdsl/construct_lcp_helper.hpp>
 #include <sdsl/int_vector.hpp>
-#include <sdsl/rank_support.hpp>
-#include <sdsl/select_support.hpp>
-#include <sdsl/sfstream.hpp>
+#include <sdsl/int_vector_buffer.hpp>
+#include <sdsl/io.hpp>
+#include <sdsl/memory_tracking.hpp>
+#include <sdsl/rank_support_v.hpp>
+#include <sdsl/select_support_scan.hpp>
 #include <sdsl/util.hpp>
 #include <sdsl/wt_algorithm.hpp>
 #include <sdsl/wt_huff.hpp>
+
+#include <ext/alloc_traits.h>
 
 //#define STUDY_INFORMATIONS
 

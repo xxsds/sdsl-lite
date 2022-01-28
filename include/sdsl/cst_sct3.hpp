@@ -8,27 +8,28 @@
 #ifndef INCLUDED_SDSL_CST_SCT3
 #define INCLUDED_SDSL_CST_SCT3
 
-#include <algorithm>
 #include <cassert>
-#include <cstring> // for strlen
-#include <iomanip>
 #include <iostream>
-#include <iterator>
-#include <ostream>
-#include <stack> // for the calculation of the balanced parentheses sequence
-#include <type_traits>
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
 
-#include <sdsl/bp_support.hpp>
-#include <sdsl/construct.hpp>
-#include <sdsl/csa_wt.hpp> // for std initialization of cst_sct3
+#include <sdsl/bits.hpp>
+#include <sdsl/bp_support_sada.hpp>
+#include <sdsl/cereal.hpp>
+#include <sdsl/config.hpp>
+#include <sdsl/csa_wt.hpp>
 #include <sdsl/cst_iterators.hpp>
 #include <sdsl/int_vector.hpp>
-#include <sdsl/iterators.hpp>
+#include <sdsl/int_vector_buffer.hpp>
+#include <sdsl/io.hpp>
 #include <sdsl/lcp.hpp>
-#include <sdsl/rank_support.hpp>
+#include <sdsl/lcp_dac.hpp>
+#include <sdsl/memory_tracking.hpp>
+#include <sdsl/rank_support_v5.hpp>
 #include <sdsl/sdsl_concepts.hpp>
-#include <sdsl/select_support.hpp>
-#include <sdsl/suffix_tree_algorithm.hpp>
+#include <sdsl/select_support_scan.hpp>
+#include <sdsl/structure_tree.hpp>
 #include <sdsl/suffix_tree_helper.hpp>
 #include <sdsl/util.hpp>
 

@@ -8,9 +8,15 @@
 #ifndef INCLUDED_SDSL_SUFFIX_TREE_ALGORITHM
 #define INCLUDED_SDSL_SUFFIX_TREE_ALGORITHM
 
-#include <iterator>
+#include <math.h>
+#include <set>
+#include <stddef.h>
+#include <type_traits>
+#include <utility>
 
-#include <sdsl/suffix_array_algorithm.hpp>
+#include <sdsl/config.hpp>
+#include <sdsl/int_vector.hpp>
+#include <sdsl/sdsl_concepts.hpp>
 
 namespace sdsl
 {

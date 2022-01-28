@@ -15,8 +15,7 @@
 #endif
 #endif
 
-#include <algorithm> // for next permutation
-#include <iostream>
+#include <stdint.h>
 
 #include <sdsl/bits.hpp>
 #include <sdsl/uint128_t.hpp>

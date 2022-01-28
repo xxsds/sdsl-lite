@@ -8,18 +8,20 @@
 #ifndef INCLUDED_SDSL_BP_SUPPORT_G
 #define INCLUDED_SDSL_BP_SUPPORT_G
 
-#include <map>
-#include <set>
-#include <stack>
-#include <stdexcept>
-#include <utility>
+#include <assert.h>
+#include <iosfwd>
+#include <stdint.h>
+#include <string>
 
 #include <sdsl/bp_support_algorithm.hpp>
+#include <sdsl/cereal.hpp>
 #include <sdsl/int_vector.hpp>
+#include <sdsl/io.hpp>
 #include <sdsl/nearest_neighbour_dictionary.hpp>
-#include <sdsl/rank_support.hpp>
-#include <sdsl/rmq_support.hpp>
-#include <sdsl/select_support.hpp>
+#include <sdsl/rank_support_v5.hpp>
+#include <sdsl/rmq_support_sparse_table.hpp>
+#include <sdsl/select_support_mcl.hpp>
+#include <sdsl/structure_tree.hpp>
 #include <sdsl/util.hpp>
 
 namespace sdsl

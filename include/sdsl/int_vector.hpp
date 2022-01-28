@@ -8,33 +8,27 @@
 #ifndef INCLUDED_SDSL_INT_VECTOR
 #define INCLUDED_SDSL_INT_VECTOR
 
+#include <algorithm>
 #include <cassert>
 #include <cinttypes>
+#include <cmath>
 #include <cstddef>
-#include <cstdlib>
 #include <cstring> // for memcpy
-#include <ctime>   // for rand initialization
 #include <initializer_list>
-#include <ios>
-#include <iosfwd>   // forward declaration of ostream
 #include <iostream> // for cerr
-#include <istream>
 #include <iterator>
-#include <ostream>
-#include <stdexcept> // for exceptions
+#include <new>
 #include <string>
 #include <type_traits>
-#include <typeinfo>
-#include <vector>
+#include <utility>
 
 #include <sdsl/bits.hpp>
+#include <sdsl/cereal.hpp>
 #include <sdsl/config.hpp>
 #include <sdsl/io.hpp>
 #include <sdsl/memory_management.hpp>
-#include <sdsl/ram_fs.hpp>
-#include <sdsl/sfstream.hpp>
+#include <sdsl/sdsl_concepts.hpp>
 #include <sdsl/structure_tree.hpp>
-#include <sdsl/uintx_t.hpp>
 #include <sdsl/util.hpp>
 
 //! Namespace for the succinct data structure library.
@@ -46,47 +40,32 @@ typedef uint64_t std_size_type_for_int_vector;
 template <uint8_t t_width = 0>
 class int_vector;
 
-template <class int_vector_type>
-class mm_item;
-
 //! bit_vector is a specialization of the int_vector.
 typedef int_vector<1> bit_vector;
 
 template <class t_int_vector>
-class int_vector_reference;
-
-template <class t_int_vector>
-class int_vector_iterator_base;
-
+class int_vector_const_iterator;
 template <class t_int_vector>
 class int_vector_iterator;
-
 template <class t_int_vector>
-class int_vector_const_iterator;
-
-template <uint8_t t_width, std::ios_base::openmode t_mode>
-class int_vector_mapper;
-
-template <uint8_t b, uint8_t t_patter_len> // forward declaration
+class int_vector_iterator_base;
+template <class t_int_vector>
+class int_vector_reference;
+template <uint8_t t_b, uint8_t t_pat_len>
 class rank_support_v;
-
-class rank_support;
-
-class select_support;
-
 template <uint8_t t_bit_pattern, uint8_t t_pattern_len>
 class select_support_mcl;
 
 namespace coder
 {
 template <typename T>
-class fibonacci;
+class elias_delta; // IWYU pragma: keep
 template <typename T>
-class elias_delta;
+class elias_gamma; // IWYU pragma: keep
 template <typename T>
-class elias_gamma;
+class fibonacci; // IWYU pragma: keep
 template <uint8_t t_width>
-class comma;
+class comma; // IWYU pragma: keep
 } // namespace coder
 
 template <uint8_t t_width>
@@ -1911,8 +1890,5 @@ int_vector<t_width>::CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
 }
 
 } // end namespace sdsl
-
-#include <sdsl/int_vector_buffer.hpp>
-#include <sdsl/int_vector_mapper.hpp>
 
 #endif

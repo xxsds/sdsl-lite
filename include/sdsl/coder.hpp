@@ -8,11 +8,8 @@
 #ifndef SDSL_CODER
 #define SDSL_CODER
 
-#include <sdsl/coder_comma.hpp>
-#include <sdsl/coder_elias_delta.hpp>
-#include <sdsl/coder_elias_gamma.hpp>
-#include <sdsl/coder_fibonacci.hpp>
-#include <sdsl/int_vector.hpp>
+#include <assert.h>
+#include <stdint.h>
 
 namespace sdsl
 {

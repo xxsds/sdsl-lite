@@ -10,18 +10,35 @@
 
 #include <algorithm>
 #include <cctype>
+#include <functional>
 #include <iostream>
+#include <map>
+#include <memory>
+#include <stdexcept>
+#include <stdint.h>
+#include <string.h>
 #include <string>
+#include <type_traits>
+#include <typeinfo>
+#include <unordered_map>
+#include <utility>
 #include <vector>
 
-#include <sdsl/cereal.hpp>
+#include <sdsl/bits.hpp>
+#include <sdsl/config.hpp>
 #include <sdsl/platform.hpp>
 #include <sdsl/sdsl_concepts.hpp>
+#include <sdsl/sfstream.hpp>
 #include <sdsl/structure_tree.hpp>
 #include <sdsl/util.hpp>
 
+#include <ext/alloc_traits.h>
+#include <sys/types.h>
+
 namespace sdsl
 {
+template <uint8_t>
+class int_vector;
 
 int remove(const std::string &);
 

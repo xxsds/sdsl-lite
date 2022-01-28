@@ -4,11 +4,19 @@
 #ifndef INCLUDED_SDSL_CONSTRUCT_LCP_HELPER
 #define INCLUDED_SDSL_CONSTRUCT_LCP_HELPER
 
+#include <istream>
 #include <list>
 #include <queue>
+#include <stdint.h>
+#include <string.h>
+#include <string>
 #include <vector>
 
+#include <sdsl/bits.hpp>
 #include <sdsl/int_vector.hpp>
+#include <sdsl/int_vector_buffer.hpp>
+#include <sdsl/ram_fs.hpp>
+#include <sdsl/util.hpp>
 
 namespace sdsl
 {

@@ -10,15 +10,22 @@
 #define INCLUDED_SDSL_RRR_VECTOR_15
 
 #include <algorithm> // for next_permutation
+#include <assert.h>
 #include <iostream>
+#include <stdint.h>
+#include <string>
+#include <utility>
 #include <vector>
 
+#include <sdsl/bits.hpp>
+#include <sdsl/cereal.hpp>
 #include <sdsl/int_vector.hpp>
+#include <sdsl/io.hpp>
 #include <sdsl/iterators.hpp>
-#include <sdsl/rrr_helper.hpp> // for binomial helper class
 #include <sdsl/rrr_vector.hpp>
+#include <sdsl/sdsl_concepts.hpp>
+#include <sdsl/structure_tree.hpp>
 #include <sdsl/util.hpp>
-
 //! Namespace for the succinct data structure library
 namespace sdsl
 {

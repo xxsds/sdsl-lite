@@ -8,7 +8,7 @@
 #ifndef INCLUDED_SDSL_CONCEPTS
 #define INCLUDED_SDSL_CONCEPTS
 
-#include <sdsl/uintx_t.hpp> // for uint8_t
+#include <stdint.h>
 
 namespace sdsl
 {

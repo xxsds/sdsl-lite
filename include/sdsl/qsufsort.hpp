@@ -26,7 +26,18 @@
 #define DBG_OUT                                                                                                        \
     if (0) std::cout
 
+#include <algorithm>
+#include <assert.h>
+#include <iostream>
+#include <memory>
+#include <stdexcept>
+#include <stdint.h>
+#include <typeinfo>
+
+#include <sdsl/bits.hpp>
 #include <sdsl/int_vector.hpp>
+#include <sdsl/io.hpp>
+#include <sdsl/util.hpp>
 
 namespace sdsl
 {

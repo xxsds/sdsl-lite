@@ -10,12 +10,30 @@
 
 #include <algorithm>
 #include <chrono>
+#include <cstdlib>
+#include <ctype.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <iostream>
+#include <map>
+#include <memory>
+#include <new>
+#include <sstream> // IWYU pragma: keep
+#include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <string.h>
+#include <string>
+#include <system_error>
+#include <unistd.h>
+#include <utility>
+#include <vector>
 
-#include <sdsl/bits.hpp>
 #include <sdsl/config.hpp>
 #include <sdsl/memory_tracking.hpp>
 #include <sdsl/ram_fs.hpp>
-#include <sdsl/uintx_t.hpp>
+
+#include <sys/mman.h> // IWYU pragma: keep
 
 namespace sdsl
 {

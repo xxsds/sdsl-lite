@@ -9,6 +9,8 @@
 #define INCLUDED_SDSL_UINT256
 
 #include <iostream>
+#include <stdint.h>
+#include <utility>
 
 #include <sdsl/bits.hpp>
 #include <sdsl/uint128_t.hpp>

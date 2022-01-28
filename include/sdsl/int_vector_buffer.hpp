@@ -10,12 +10,14 @@
 
 #include <cassert>
 #include <fstream>
-#include <iostream>
-#include <stdio.h>
+#include <iterator>
+#include <stdint.h>
 #include <string>
 
 #include <sdsl/int_vector.hpp>
-#include <sdsl/iterators.hpp>
+#include <sdsl/ram_fs.hpp>
+#include <sdsl/sfstream.hpp>
+#include <sdsl/util.hpp>
 
 namespace sdsl
 {
@@ -25,6 +27,7 @@ class int_vector_buffer
 {
   public:
     class iterator;
+
     typedef typename int_vector<t_width>::difference_type difference_type;
     typedef typename int_vector<t_width>::value_type value_type;
 
@@ -370,7 +373,7 @@ class int_vector_buffer
         }
 
         //! Assignment operator
-        reference & operator=(reference & x) { return *this = (uint64_t)(x); };
+        reference & operator=(const reference & x) { return *this = (uint64_t)(x); };
 
         reference(reference const &) = default;
 

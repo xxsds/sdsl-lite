@@ -8,20 +8,38 @@
 #ifndef INCLUDED_SDSL_CST_FULLY
 #define INCLUDED_SDSL_CST_FULLY
 
-#include <sdsl/bit_vectors.hpp>
-#include <sdsl/bp_support.hpp>
-#include <sdsl/construct.hpp>
+#include <assert.h>
+#include <iosfwd>
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
+#include <tuple>
+#include <utility>
+#include <vector>
+
+#include <sdsl/bits.hpp>
+#include <sdsl/bp_support_sada.hpp>
+#include <sdsl/cereal.hpp>
+#include <sdsl/csa_wt.hpp>
 #include <sdsl/cst_iterators.hpp>
 #include <sdsl/cst_sada.hpp>
+#include <sdsl/dac_vector.hpp>
+#include <sdsl/int_vector.hpp>
+#include <sdsl/io.hpp>
+#include <sdsl/iterators.hpp>
+#include <sdsl/lcp_dac.hpp>
+#include <sdsl/memory_tracking.hpp>
+#include <sdsl/sd_vector.hpp>
 #include <sdsl/sdsl_concepts.hpp>
-#include <sdsl/suffix_arrays.hpp>
-#include <sdsl/suffix_tree_algorithm.hpp>
+#include <sdsl/structure_tree.hpp>
+#include <sdsl/suffix_array_algorithm.hpp>
 #include <sdsl/suffix_tree_helper.hpp>
 #include <sdsl/util.hpp>
-#include <sdsl/vectors.hpp>
+#include <sdsl/wt_pc.hpp>
 
 namespace sdsl
 {
+struct cache_config;
 
 template <typename t_cst>
 class lcp_fully

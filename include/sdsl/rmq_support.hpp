@@ -40,8 +40,4 @@ struct min_max_trait<RandomAccessContainer, false>
     }
 };
 
-#include <sdsl/rmq_succinct_sada.hpp>
-#include <sdsl/rmq_succinct_sct.hpp>
-#include <sdsl/rmq_support_sparse_table.hpp>
-
 #endif

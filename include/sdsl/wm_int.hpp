@@ -10,17 +10,29 @@
 #define INCLUDED_SDSL_WM_INT
 
 #include <algorithm> // for std::swap
-#include <map>       // for mapping a symbol to its lexicographical index
-#include <queue>
-#include <set> // for calculating the alphabet size
-#include <stdexcept>
+#include <array>
+#include <assert.h>
+#include <cstdint>
+#include <functional>
+#include <iterator>
+#include <ostream>
+#include <stddef.h>
+#include <string>
+#include <tuple>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
+#include <sdsl/bits.hpp>
+#include <sdsl/cereal.hpp>
 #include <sdsl/int_vector.hpp>
-#include <sdsl/rank_support_v.hpp>
+#include <sdsl/int_vector_buffer.hpp>
+#include <sdsl/io.hpp>
+#include <sdsl/iterators.hpp>
+#include <sdsl/ram_fs.hpp>
 #include <sdsl/sdsl_concepts.hpp>
-#include <sdsl/select_support_mcl.hpp>
+#include <sdsl/sfstream.hpp>
+#include <sdsl/structure_tree.hpp>
 #include <sdsl/util.hpp>
 #include <sdsl/wt_helper.hpp>
 
@@ -341,7 +353,6 @@ class wm_int
         assert(i < size());
         value_type c = 0;
         size_type b = 0; // start position of the interval
-        uint64_t mask = (1ULL) << (m_max_level - 1);
         for (uint32_t k = 0; k < m_max_level; ++k)
         {
             size_type rank_b = m_tree_rank(b);
@@ -359,7 +370,6 @@ class wm_int
                 i = i - ones;
                 b = (k + 1) * m_size + (b - k * m_size - ones_p);
             }
-            mask >>= 1;
         }
         return std::make_pair(i, c);
     }

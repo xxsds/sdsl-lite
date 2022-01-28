@@ -8,29 +8,30 @@
 #ifndef INCLUDED_SDSL_CSA_WT
 #define INCLUDED_SDSL_CSA_WT
 
-#include <algorithm> // for std::swap
 #include <cassert>
-#include <cstring> // for strlen
-#include <iomanip>
 #include <iostream>
-#include <iterator>
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
+#include <type_traits>
 
+#include <sdsl/cereal.hpp>
+#include <sdsl/config.hpp>
 #include <sdsl/csa_alphabet_strategy.hpp>
 #include <sdsl/csa_sampling_strategy.hpp>
-#include <sdsl/fast_cache.hpp>
+#include <sdsl/int_vector.hpp>
+#include <sdsl/int_vector_buffer.hpp>
+#include <sdsl/io.hpp>
 #include <sdsl/iterators.hpp>
+#include <sdsl/memory_tracking.hpp>
+#include <sdsl/sdsl_concepts.hpp>
+#include <sdsl/structure_tree.hpp>
 #include <sdsl/suffix_array_helper.hpp>
 #include <sdsl/util.hpp>
-#include <sdsl/wavelet_trees.hpp>
+#include <sdsl/wt_huff.hpp>
 
 namespace sdsl
 {
-
-template <class t_csa>
-class psi_of_csa_wt; // forward declaration of PSI-array class
-
-template <class t_csa>
-class bwt_of_csa_wt; // forward declaration of BWT-array class
 
 //! A class for the Compressed Suffix Array (CSA) based on a Wavelet Tree (WT) of the Burrow Wheeler Transform of the
 //! original text.

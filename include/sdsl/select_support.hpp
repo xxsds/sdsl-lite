@@ -12,12 +12,20 @@
  * This group contains data structures which support an sdsl::bit_vector with the select method.
  */
 
+#include <iosfwd>
+#include <stdint.h>
+#include <string>
+
+#include <sdsl/bits.hpp>
 #include <sdsl/int_vector.hpp>
 #include <sdsl/rank_support.hpp>
+#include <sdsl/util.hpp>
 
 //! Namespace for the succinct data structure library.
 namespace sdsl
 {
+class structure_tree_node;
+
 //! The base class of classes supporting select queries for a sdsl::bit_vector in constant time.
 /*! Abstract base class for classes supporting select queries.
  */
@@ -297,8 +305,5 @@ struct select_support_trait<11, 2>
 };
 
 } // end namespace sdsl
-
-#include <sdsl/select_support_mcl.hpp>
-#include <sdsl/select_support_scan.hpp>
 
 #endif

@@ -8,13 +8,16 @@
 #ifndef INCLUDED_SDSL_RAM_FS
 #define INCLUDED_SDSL_RAM_FS
 
+#include <cstdio>
+#include <iterator>
 #include <map>
 #include <mutex>
 #include <string>
+#include <type_traits>
+#include <utility>
 #include <vector>
 
 #include <sdsl/memory_tracking.hpp>
-#include <sdsl/uintx_t.hpp>
 
 namespace sdsl
 {

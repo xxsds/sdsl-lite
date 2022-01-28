@@ -5,9 +5,8 @@
 #define SDSL_CONFIG
 
 #include <map>
+#include <stdint.h>
 #include <string>
-
-#include <sdsl/uintx_t.hpp>
 
 #ifndef MSVC_COMPILER
 #define SDSL_UNUSED __attribute__((unused))

@@ -33,14 +33,24 @@
  *   since there is code which will perform a binary search on array `C`.
  */
 
+#include <assert.h>
+#include <iosfwd>
+#include <map>
+#include <stdint.h>
 #include <string>
+#include <utility>
+#include <vector>
 
+#include <sdsl/bits.hpp>
+#include <sdsl/cereal.hpp>
 #include <sdsl/config.hpp>
 #include <sdsl/int_vector.hpp>
-#include <sdsl/rank_support.hpp>
+#include <sdsl/int_vector_buffer.hpp>
+#include <sdsl/io.hpp>
 #include <sdsl/sd_vector.hpp>
 #include <sdsl/sdsl_concepts.hpp>
-#include <sdsl/select_support.hpp>
+#include <sdsl/structure_tree.hpp>
+#include <sdsl/util.hpp>
 
 namespace sdsl
 {
@@ -48,13 +58,6 @@ namespace sdsl
 // forward declarations
 
 class byte_alphabet;
-
-template <class bit_vector_type = bit_vector,
-          class rank_support_type = rank_support_scan<>,
-          class select_support_type = select_support_scan<>,
-          class C_array_type = int_vector<>>
-class succinct_byte_alphabet;
-
 template <class bit_vector_type = sd_vector<>,
           class rank_support_type = typename bit_vector_type::rank_1_type,
           class select_support_type = typename bit_vector_type::select_1_type,
@@ -306,6 +309,7 @@ class succinct_byte_alphabet
   public:
     class char2comp_wrapper;
     class comp2char_wrapper;
+
     friend class char2comp_wrapper;
     friend class comp2char_wrapper;
 
@@ -737,6 +741,7 @@ class int_alphabet
   public:
     class char2comp_wrapper;
     class comp2char_wrapper;
+
     friend class char2comp_wrapper;
     friend class comp2char_wrapper;
 

@@ -8,7 +8,10 @@
 #ifndef SDSL_CODER_ELIAS_GAMMA
 #define SDSL_CODER_ELIAS_GAMMA
 
-#include <sdsl/int_vector.hpp>
+#include <assert.h>
+#include <stdint.h>
+
+#include <sdsl/bits.hpp>
 
 namespace sdsl
 {

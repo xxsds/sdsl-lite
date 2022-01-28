@@ -9,13 +9,29 @@
 #ifndef INCLUDED_SDSL_WT_PC
 #define INCLUDED_SDSL_WT_PC
 
+#include <algorithm>
+#include <array>
+#include <assert.h>
+#include <cstdint>
+#include <functional>
+#include <iosfwd>
+#include <iterator>
+#include <stddef.h>
+#include <string>
 #include <tuple>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
-#include <sdsl/bit_vectors.hpp>
-#include <sdsl/rank_support.hpp>
-#include <sdsl/select_support.hpp>
+#include <sdsl/bits.hpp>
+#include <sdsl/cereal.hpp>
+#include <sdsl/int_vector.hpp>
+#include <sdsl/io.hpp>
+#include <sdsl/iterators.hpp>
+#include <sdsl/rank_support_v.hpp>
+#include <sdsl/sdsl_concepts.hpp>
+#include <sdsl/structure_tree.hpp>
+#include <sdsl/util.hpp>
 #include <sdsl/wt_helper.hpp>
 
 //! Namespace for the succinct data structure library.

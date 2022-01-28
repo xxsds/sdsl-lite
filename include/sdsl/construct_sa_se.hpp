@@ -4,15 +4,25 @@
 #ifndef SDSL_CONSTRUCT_SA_SE
 #define SDSL_CONSTRUCT_SA_SE
 
-#include <cmath>
+#include <assert.h>
+#include <cstdint>
 #include <fstream>
-#include <iostream>
+#include <memory>
+#include <stddef.h>
 #include <string>
+#include <utility>
+#include <vector>
 
+#include <sdsl/bits.hpp>
 #include <sdsl/int_vector.hpp>
+#include <sdsl/int_vector_buffer.hpp>
 #include <sdsl/io.hpp>
-#include <sdsl/rank_support.hpp>
-#include <sdsl/select_support.hpp>
+#include <sdsl/memory_tracking.hpp>
+#include <sdsl/ram_fs.hpp>
+#include <sdsl/select_support_mcl.hpp>
+#include <sdsl/util.hpp>
+
+#include <ext/alloc_traits.h>
 
 namespace sdsl
 {

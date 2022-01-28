@@ -9,14 +9,29 @@
 #define INCLUDED_SDSL_K2_TREAP
 
 #include <algorithm>
-#include <climits>
+#include <complex>
+#include <ios>
+#include <limits>
+#include <stddef.h>
+#include <stdexcept>
+#include <stdint.h>
+#include <string>
 #include <tuple>
+#include <utility>
 #include <vector>
 
 #include <sdsl/bits.hpp>
-#include <sdsl/k2_treap_algorithm.hpp>
+#include <sdsl/cereal.hpp>
+#include <sdsl/dac_vector.hpp>
+#include <sdsl/int_vector.hpp>
+#include <sdsl/int_vector_buffer.hpp>
+#include <sdsl/io.hpp>
 #include <sdsl/k2_treap_helper.hpp>
-#include <sdsl/vectors.hpp>
+#include <sdsl/ram_fs.hpp>
+#include <sdsl/structure_tree.hpp>
+#include <sdsl/util.hpp>
+
+#include <ext/alloc_traits.h>
 
 //! Namespace for the succinct data structure library.
 namespace sdsl

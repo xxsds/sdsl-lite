@@ -9,6 +9,7 @@
 #define INCLUDED_SDSL_ITERATORS
 
 #include <iterator>
+#include <type_traits>
 
 #include <sdsl/int_vector.hpp>
 

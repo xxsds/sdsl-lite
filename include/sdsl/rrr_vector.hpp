@@ -9,13 +9,21 @@
 #ifndef INCLUDED_SDSL_RRR_VECTOR
 #define INCLUDED_SDSL_RRR_VECTOR
 
-#include <algorithm> // for next_permutation
+#include <algorithm>
+#include <assert.h>
 #include <iostream>
-#include <vector>
+#include <stdint.h>
+#include <string>
 
+#include <sdsl/bits.hpp>
+#include <sdsl/cereal.hpp>
+#include <sdsl/config.hpp>
 #include <sdsl/int_vector.hpp>
+#include <sdsl/io.hpp>
 #include <sdsl/iterators.hpp>
-#include <sdsl/rrr_helper.hpp> // for binomial helper class
+#include <sdsl/rrr_helper.hpp>
+#include <sdsl/sdsl_concepts.hpp>
+#include <sdsl/structure_tree.hpp>
 #include <sdsl/util.hpp>
 
 //! Namespace for the succinct data structure library
@@ -25,7 +33,6 @@ namespace sdsl
 // forward declaration needed for friend declaration
 template <uint8_t t_b = 1, uint16_t t_bs = 15, class t_rac = int_vector<>, uint16_t t_k = 32>
 class rank_support_rrr; // in rrr_vector
-
 // forward declaration needed for friend declaration
 template <uint8_t t_b = 1, uint16_t t_bs = 15, class t_rac = int_vector<>, uint16_t t_k = 32>
 class select_support_rrr; // in rrr_vector
@@ -697,6 +704,5 @@ class select_support_rrr
 };
 
 } // end namespace sdsl
-#include <sdsl/rrr_vector_15.hpp> // include specialization
 
 #endif

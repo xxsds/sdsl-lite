@@ -8,7 +8,16 @@
 #ifndef INCLUDED_SDSL_WT_BLCD
 #define INCLUDED_SDSL_WT_BLCD
 
+#include <cstdint>
+#include <memory>
+#include <utility>
+#include <vector>
+
+#include <sdsl/int_vector.hpp>
+#include <sdsl/wt_helper.hpp>
 #include <sdsl/wt_pc.hpp>
+
+#include <ext/alloc_traits.h>
 
 //! Namespace for the succinct data structure library.
 namespace sdsl
