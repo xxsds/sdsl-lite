@@ -35,13 +35,19 @@
 #define INCLUDED_SDSL_HYB_VECTOR
 
 #include <algorithm>
+#include <assert.h>
 #include <cstdlib>
 #include <iostream>
-#include <vector>
+#include <stdint.h>
+#include <stdio.h>
+#include <string>
 
+#include <sdsl/bits.hpp>
+#include <sdsl/cereal.hpp>
 #include <sdsl/int_vector.hpp>
 #include <sdsl/io.hpp>
 #include <sdsl/iterators.hpp>
+#include <sdsl/structure_tree.hpp>
 #include <sdsl/util.hpp>
 
 namespace sdsl

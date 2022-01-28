@@ -8,18 +8,24 @@
 #ifndef INCLUDED_SDSL_LCP_WT
 #define INCLUDED_SDSL_LCP_WT
 
-#include <algorithm> // for lower_bound
-#include <cassert>
-#include <cstring> // for strlen
-#include <iomanip>
 #include <iostream>
-#include <iterator>
-#include <stdexcept>
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
 #include <utility> // for pair
 #include <vector>
 
+#include <sdsl/bits.hpp>
+#include <sdsl/cereal.hpp>
+#include <sdsl/config.hpp>
 #include <sdsl/int_vector.hpp>
+#include <sdsl/int_vector_buffer.hpp>
+#include <sdsl/io.hpp>
 #include <sdsl/iterators.hpp>
+#include <sdsl/ram_fs.hpp>
+#include <sdsl/sdsl_concepts.hpp>
+#include <sdsl/select_support_scan.hpp>
+#include <sdsl/structure_tree.hpp>
 #include <sdsl/util.hpp>
 #include <sdsl/wt_huff.hpp>
 

@@ -12,11 +12,17 @@
  * This group contains data structures which support an sdsl::bit_vector with the rank method.
  */
 
+#include <iosfwd>
+#include <stdint.h>
+#include <string>
+
+#include <sdsl/bits.hpp>
 #include <sdsl/int_vector.hpp>
 
 //! Namespace for the succinct data structure library.
 namespace sdsl
 {
+class structure_tree_node;
 
 //! The base class of classes supporting rank_queries for a sdsl::bit_vector in constant time.
 /*!
@@ -227,10 +233,6 @@ struct rank_support_trait<11, 2>
     static uint64_t init_carry() { return 0; }
 };
 
-} // end namespace sdsl
+} // namespace sdsl
 
-#include <sdsl/rank_support_scan.hpp>
-#include <sdsl/rank_support_v.hpp>
-#include <sdsl/rank_support_v5.hpp>
-
-#endif // end file
+#endif

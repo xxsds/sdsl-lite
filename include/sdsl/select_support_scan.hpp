@@ -8,13 +8,21 @@
 #ifndef INCLUDED_SDSL_SELECT_SUPPORT_SCAN
 #define INCLUDED_SDSL_SELECT_SUPPORT_SCAN
 
+#include <assert.h>
+#include <iosfwd>
+#include <stdint.h>
+#include <string>
+
+#include <sdsl/cereal.hpp>
+#include <sdsl/config.hpp>
 #include <sdsl/int_vector.hpp>
+#include <sdsl/io.hpp>
 #include <sdsl/select_support.hpp>
-#include <sdsl/util.hpp>
 
 //! Namespace for the succinct data structure library.
 namespace sdsl
 {
+class structure_tree_node;
 
 //! A class supporting linear time select queries.
 /*!\par Space complexity

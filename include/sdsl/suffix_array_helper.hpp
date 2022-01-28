@@ -9,10 +9,9 @@
 #define INCLUDED_SDSL_SUFFIX_ARRAY_HELPER
 
 #include <cassert>
-#include <cstdlib>
-#include <stdint.h>
 
 #include <sdsl/iterators.hpp>
+#include <sdsl/sdsl_concepts.hpp>
 
 namespace sdsl
 {

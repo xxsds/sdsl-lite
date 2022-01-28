@@ -9,9 +9,30 @@
 #ifndef INCLUDED_SDSL_WT_AP
 #define INCLUDED_SDSL_WT_AP
 
-#include <sdsl/bit_vectors.hpp>
+#include <algorithm>
+#include <assert.h>
+#include <iosfwd>
+#include <iterator>
+#include <memory>
+#include <stdint.h>
+#include <string>
+#include <tuple>
+#include <type_traits>
+#include <utility>
+#include <vector>
+
+#include <sdsl/bits.hpp>
+#include <sdsl/cereal.hpp>
 #include <sdsl/int_vector.hpp>
-#include <sdsl/vectors.hpp>
+#include <sdsl/int_vector_buffer.hpp>
+#include <sdsl/io.hpp>
+#include <sdsl/iterators.hpp>
+#include <sdsl/memory_tracking.hpp>
+#include <sdsl/ram_fs.hpp>
+#include <sdsl/rank_support_v5.hpp>
+#include <sdsl/sdsl_concepts.hpp>
+#include <sdsl/structure_tree.hpp>
+#include <sdsl/util.hpp>
 #include <sdsl/wm_int.hpp>
 #include <sdsl/wt_huff.hpp>
 

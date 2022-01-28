@@ -8,16 +8,16 @@
 #ifndef INCLUDED_SDSL_SUFFIX_ARRAYS
 #define INCLUDED_SDSL_SUFFIX_ARRAYS
 
-#include <sdsl/sdsl_concepts.hpp>
-
 /** \defgroup csa Compressed Suffix Arrays (CSA) */
 
-#include <sdsl/construct.hpp>
-#include <sdsl/csa_bitcompressed.hpp>
+#include <stdint.h>
+
+#include <sdsl/csa_alphabet_strategy.hpp>
 #include <sdsl/csa_sada.hpp>
+#include <sdsl/csa_sampling_strategy.hpp>
 #include <sdsl/csa_wt.hpp>
-#include <sdsl/suffix_array_algorithm.hpp>
-#include <sdsl/wavelet_trees.hpp>
+#include <sdsl/enc_vector.hpp>
+#include <sdsl/wt_int.hpp>
 
 namespace sdsl
 {

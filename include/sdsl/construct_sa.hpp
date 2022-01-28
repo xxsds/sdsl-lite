@@ -9,11 +9,20 @@
 #ifndef INCLUDED_SDSL_CONSTRUCT_SA
 #define INCLUDED_SDSL_CONSTRUCT_SA
 
+#include <iostream>
+#include <stdexcept>
+#include <stdint.h>
+#include <string>
+
+#include <sdsl/bits.hpp>
 #include <sdsl/config.hpp>
 #include <sdsl/construct_config.hpp>
 #include <sdsl/construct_sa_se.hpp>
 #include <sdsl/divsufsort.hpp>
 #include <sdsl/int_vector.hpp>
+#include <sdsl/int_vector_buffer.hpp>
+#include <sdsl/int_vector_mapper.hpp>
+#include <sdsl/io.hpp>
 #include <sdsl/qsufsort.hpp>
 
 namespace sdsl

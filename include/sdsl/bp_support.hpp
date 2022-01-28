@@ -21,8 +21,4 @@
  *   - rr_enclose
  */
 
-#include <sdsl/bp_support_g.hpp>
-#include <sdsl/bp_support_gg.hpp>
-#include <sdsl/bp_support_sada.hpp>
-
 #endif

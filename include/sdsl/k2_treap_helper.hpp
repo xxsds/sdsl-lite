@@ -8,16 +8,10 @@
 #ifndef INCLUDED_SDSL_K2_TREAP_HELPER
 #define INCLUDED_SDSL_K2_TREAP_HELPER
 
-#include <algorithm>
-#include <array>
 #include <complex>
-#include <iterator>
-#include <queue>
-#include <tuple>
-#include <vector>
+#include <cstdint>
 
 #include <sdsl/bits.hpp>
-#include <sdsl/vectors.hpp>
 
 //! Namespace for the succinct data structure library.
 namespace sdsl

@@ -8,10 +8,18 @@
 #ifndef INCLUDED_SDSL_SUFFIX_ARRAY_ALGORITHM
 #define INCLUDED_SDSL_SUFFIX_ARRAY_ALGORITHM
 
+#include <array>
+#include <assert.h>
 #include <iterator>
+#include <stdint.h>
+#include <type_traits>
 
+#include <sdsl/config.hpp>
 #include <sdsl/csa_wt.hpp>
+#include <sdsl/int_vector.hpp>
+#include <sdsl/sdsl_concepts.hpp>
 #include <sdsl/suffix_array_helper.hpp>
+#include <sdsl/wt_pc.hpp>
 
 namespace sdsl
 {

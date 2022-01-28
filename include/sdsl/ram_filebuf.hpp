@@ -4,9 +4,13 @@
 #ifndef INCLUDED_SDSL_RAM_FSTREAMBUF
 #define INCLUDED_SDSL_RAM_FSTREAMBUF
 
+#include <algorithm>
 #include <fstream>
+#include <limits>
+#include <string>
 #include <vector>
 
+#include <sdsl/memory_tracking.hpp>
 #include <sdsl/ram_fs.hpp>
 
 namespace sdsl

@@ -8,15 +8,9 @@
 #ifndef INCLUDED_SDSL_BITS
 #define INCLUDED_SDSL_BITS
 
-#include <cassert>
-#include <iostream> // for cerr
+#include <immintrin.h> // IWYU pragma: keep
+#include <stddef.h>
 #include <stdint.h> // for uint64_t uint32_t declaration
-#ifdef __SSE4_2__
-#include <xmmintrin.h>
-#endif
-#ifdef __BMI2__
-#include <x86intrin.h>
-#endif
 
 #ifdef WIN32
 #include <iso646.h>

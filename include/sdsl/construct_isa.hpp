@@ -9,11 +9,12 @@
 #define INCLUDED_SDSL_CONSTRUCT_ISA
 
 #include <iostream>
-#include <list>
-#include <stdexcept>
+#include <memory>
 
+#include <sdsl/config.hpp>
 #include <sdsl/int_vector.hpp>
-#include <sdsl/util.hpp>
+#include <sdsl/int_vector_buffer.hpp>
+#include <sdsl/io.hpp>
 
 namespace sdsl
 {

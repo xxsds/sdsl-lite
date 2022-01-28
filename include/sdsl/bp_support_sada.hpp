@@ -9,21 +9,24 @@
 #ifndef INCLUDED_SDSL_BP_SUPPORT_SADA
 #define INCLUDED_SDSL_BP_SUPPORT_SADA
 
-#include <map>
-#include <set>
-#include <stack>
-#include <stdexcept>
-#include <utility>
+#include <assert.h>
+#include <stdint.h>
 
 #include <sdsl/bp_support_algorithm.hpp>
-#include <sdsl/fast_cache.hpp>
 #include <sdsl/int_vector.hpp>
-#include <sdsl/rank_support.hpp>
-#include <sdsl/select_support.hpp>
+#include <sdsl/rank_support_v5.hpp>
+#include <sdsl/select_support_mcl.hpp>
 #ifndef NDEBUG
 #include <algorithm>
 #endif
 #include <iostream>
+#include <string>
+
+#include <sdsl/bits.hpp>
+#include <sdsl/cereal.hpp>
+#include <sdsl/io.hpp>
+#include <sdsl/structure_tree.hpp>
+#include <sdsl/util.hpp>
 
 namespace sdsl
 {

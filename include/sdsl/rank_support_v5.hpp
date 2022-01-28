@@ -8,14 +8,20 @@
 #ifndef INCLUDED_SDSL_RANK_SUPPORT_VFIVE
 #define INCLUDED_SDSL_RANK_SUPPORT_VFIVE
 
+#include <assert.h>
+#include <iosfwd>
+#include <stdint.h>
+#include <string>
+
+#include <sdsl/cereal.hpp>
+#include <sdsl/int_vector.hpp>
 #include <sdsl/rank_support.hpp>
+#include <sdsl/structure_tree.hpp>
+#include <sdsl/util.hpp>
 
 //! Namespace for the succinct data structure library.
 namespace sdsl
 {
-
-template <uint8_t, uint8_t>
-struct rank_support_trait;
 
 //! A class supporting rank queries in constant time.
 /*!\par Space complexity

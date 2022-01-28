@@ -9,6 +9,13 @@
 #ifndef INCLUDED_SDSL_WT_HUFF
 #define INCLUDED_SDSL_WT_HUFF
 
+#include <functional>
+#include <queue>
+#include <utility>
+#include <vector>
+
+#include <sdsl/int_vector.hpp>
+#include <sdsl/wt_helper.hpp>
 #include <sdsl/wt_pc.hpp>
 
 //! Namespace for the succinct data structure library.

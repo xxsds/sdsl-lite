@@ -9,9 +9,14 @@
 #define INCLUDED_SDSL_K2_TREE_HELPER
 
 #include <cmath>
-#include <iostream>
+#include <deque>
+#include <stdint.h>
+#include <utility>
+#include <vector>
 
-#include <sdsl/bit_vectors.hpp>
+#include <sdsl/int_vector.hpp>
+
+#include <ext/alloc_traits.h>
 
 //! Namespace for the succinct data structure library.
 namespace sdsl

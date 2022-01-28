@@ -8,13 +8,18 @@
 #ifndef INCLUDED_SDSL_NEAREST_NEIGHBOUR_DICTIONARY
 #define INCLUDED_SDSL_NEAREST_NEIGHBOUR_DICTIONARY
 
-#include <stdexcept>
+#include <assert.h>
+#include <iosfwd>
+#include <stdint.h>
 #include <string>
 
+#include <sdsl/bits.hpp>
+#include <sdsl/cereal.hpp>
 #include <sdsl/int_vector.hpp>
-#include <sdsl/rank_support.hpp>
+#include <sdsl/io.hpp>
+#include <sdsl/rank_support_v.hpp>
+#include <sdsl/structure_tree.hpp>
 #include <sdsl/util.hpp>
-#include <sdsl/wm_int.hpp>
 
 //! Namespace for the succinct data structure library.
 namespace sdsl

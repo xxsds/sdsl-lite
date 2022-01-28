@@ -9,16 +9,15 @@
 #define INCLUDED_SDSL_LCP
 
 #include <istream>
+#include <type_traits>
+#include <utility>
 
-#include <sdsl/construct_isa.hpp>
-#include <sdsl/csa_alphabet_strategy.hpp>
-#include <sdsl/int_vector.hpp>
 #include <sdsl/sdsl_concepts.hpp>
-#include <sdsl/select_support_mcl.hpp>
 
 //! Namespace for the succinct data structure library.
 namespace sdsl
 {
+struct cache_config;
 
 // construct lcp arrays
 template <class t_lcp, class t_cst>
@@ -186,15 +185,6 @@ void set_lcp_pointer(t_lcp & lcp, const t_cst & cst, lcp_tree_and_lf_compressed_
 
 } // end namespace sdsl
 
-// clang-format off
-#include <sdsl/lcp_bitcompressed.hpp> // type (a)
-#include <sdsl/lcp_byte.hpp>          // type (a)
-#include <sdsl/lcp_dac.hpp>           // type (a)
-#include <sdsl/lcp_support_sada.hpp>  // type (b)
-#include <sdsl/lcp_support_tree.hpp>  // type (c)
-#include <sdsl/lcp_support_tree2.hpp> // type (c)
-#include <sdsl/lcp_vlc.hpp>           // type (a)
-#include <sdsl/lcp_wt.hpp>            // type (a)
 // clang-format on
 
 #endif

@@ -9,13 +9,15 @@
 #define INCLUDED_SDSL_CONSTRUCT_BWT
 
 #include <iostream>
-#include <list>
-#include <stdexcept>
+#include <stdint.h>
+#include <string>
 
-#include <sdsl/config.hpp> // for cache_config
+#include <sdsl/config.hpp>
 #include <sdsl/int_vector.hpp>
-#include <sdsl/sfstream.hpp>
-#include <sdsl/util.hpp>
+#include <sdsl/int_vector_buffer.hpp>
+#include <sdsl/int_vector_mapper.hpp>
+#include <sdsl/io.hpp>
+#include <sdsl/ram_fs.hpp>
 
 namespace sdsl
 {

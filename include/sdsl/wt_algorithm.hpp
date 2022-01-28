@@ -4,9 +4,18 @@
 #ifndef INCLUDED_SDSL_WT_ALGORITHM
 #define INCLUDED_SDSL_WT_ALGORITHM
 
-#include <algorithm>
+#include <array>
+#include <assert.h>
+#include <cstdint>
+#include <iterator>
+#include <numeric>
+#include <stack>
+#include <tuple>
+#include <type_traits>
 #include <utility>
+#include <vector>
 
+#include <sdsl/bits.hpp>
 #include <sdsl/wt_helper.hpp>
 
 namespace sdsl
@@ -14,10 +23,8 @@ namespace sdsl
 
 template <typename t_wt>
 struct has_interval_symbols;
-
 template <typename t_wt, bool t_has_interval_symbols>
 struct _interval_symbols_wt;
-
 template <typename, typename T>
 struct has_expand;
 

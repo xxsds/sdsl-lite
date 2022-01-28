@@ -9,10 +9,18 @@
 #ifndef INCLUDED_SDSL_INV_PERM_SUPPORT
 #define INCLUDED_SDSL_INV_PERM_SUPPORT
 
-#include <sdsl/bit_vectors.hpp>
+#include <algorithm>
+#include <iosfwd>
+#include <stdint.h>
+#include <string>
+#include <utility>
+
+#include <sdsl/bits.hpp>
+#include <sdsl/cereal.hpp>
 #include <sdsl/int_vector.hpp>
 #include <sdsl/iterators.hpp>
-#include <sdsl/rank_support.hpp>
+#include <sdsl/structure_tree.hpp>
+#include <sdsl/util.hpp>
 
 namespace sdsl
 {

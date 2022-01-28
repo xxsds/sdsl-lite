@@ -5,11 +5,24 @@
 #define INCLUDED_SDSL_SUPPORT_TREE2
 
 #include <iostream>
+#include <stdint.h>
 #include <string>
 
-#include <sdsl/lcp.hpp>
-#include <sdsl/rank_support_v.hpp>
+#include <sdsl/bits.hpp>
+#include <sdsl/cereal.hpp>
+#include <sdsl/config.hpp>
+#include <sdsl/csa_alphabet_strategy.hpp>
+#include <sdsl/int_vector.hpp>
+#include <sdsl/int_vector_buffer.hpp>
+#include <sdsl/io.hpp>
+#include <sdsl/iterators.hpp>
+#include <sdsl/ram_fs.hpp>
+#include <sdsl/rank_support_v5.hpp>
+#include <sdsl/sdsl_concepts.hpp>
+#include <sdsl/select_support_scan.hpp>
+#include <sdsl/sfstream.hpp>
 #include <sdsl/sorted_multi_stack_support.hpp>
+#include <sdsl/structure_tree.hpp>
 #include <sdsl/util.hpp>
 #include <sdsl/wt_huff.hpp>
 

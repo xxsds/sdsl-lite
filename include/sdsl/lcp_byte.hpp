@@ -8,17 +8,23 @@
 #ifndef INCLUDED_SDSL_LCP_BYTE
 #define INCLUDED_SDSL_LCP_BYTE
 
-#include <algorithm> // for lower_bound
-#include <cassert>
-#include <iomanip>
 #include <iostream>
-#include <iterator>
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
 #include <utility> // for pair
 #include <vector>
 
+#include <sdsl/bits.hpp>
+#include <sdsl/cereal.hpp>
+#include <sdsl/config.hpp>
 #include <sdsl/int_vector.hpp>
+#include <sdsl/int_vector_buffer.hpp>
+#include <sdsl/io.hpp>
 #include <sdsl/iterators.hpp>
-#include <sdsl/lcp.hpp>
+#include <sdsl/sdsl_concepts.hpp>
+#include <sdsl/structure_tree.hpp>
+#include <sdsl/util.hpp>
 
 namespace sdsl
 {

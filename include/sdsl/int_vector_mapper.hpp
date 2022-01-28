@@ -6,10 +6,21 @@
 
 #include <cinttypes>
 #include <cstdio>
-#include <ios>
+#include <iostream>
+#include <stdexcept>
+#include <stdlib.h>
+#include <string.h>
+#include <string>
+#include <unistd.h>
 
+#include <sdsl/bits.hpp>
+#include <sdsl/config.hpp>
 #include <sdsl/int_vector.hpp>
+#include <sdsl/io.hpp>
 #include <sdsl/memory_management.hpp>
+#include <sdsl/ram_fs.hpp>
+#include <sdsl/sfstream.hpp>
+#include <sdsl/util.hpp>
 
 namespace sdsl
 {

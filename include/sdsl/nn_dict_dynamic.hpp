@@ -9,7 +9,16 @@
 #ifndef INCLUDED_NN_DICT_DYNAMIC
 #define INCLUDED_NN_DICT_DYNAMIC
 
+#include <iosfwd>
+#include <stdint.h>
+#include <string>
+#include <utility>
+
+#include <sdsl/bits.hpp>
+#include <sdsl/cereal.hpp>
 #include <sdsl/int_vector.hpp>
+#include <sdsl/io.hpp>
+#include <sdsl/structure_tree.hpp>
 #include <sdsl/util.hpp>
 
 namespace sdsl
@@ -380,6 +389,8 @@ class nn_dict_dynamic
         }
 
         reference & operator=(const reference & x) { return *this = bool(x); }
+
+        reference(const reference &) = default;
 
         //! Cast the reference to a bool
         operator bool() const

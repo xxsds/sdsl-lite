@@ -8,27 +8,25 @@
 #ifndef INCLUDED_SDSL_MEMORY_TRACKING
 #define INCLUDED_SDSL_MEMORY_TRACKING
 
-#include <sdsl/bits.hpp>
+#include <stdint.h>
+
 #include <sdsl/config.hpp>
-#include <sdsl/uintx_t.hpp>
 //#include <sdsl/ram_fs.hpp>
 
+#include <algorithm>
 #include <atomic>
 #include <chrono>
-#include <cstddef>
 #include <cstdlib>
-#include <cstring>
-#include <fcntl.h>
 #include <fstream>
-#include <iostream>
+#include <limits>
 #include <map>
+#include <memory>
 #include <mutex>
-#include <set>
-#include <sstream>
+#include <new>
 #include <stack>
+#include <string>
+#include <utility>
 #include <vector>
-
-#include <sdsl/config.hpp>
 
 #ifdef _WIN32
 #ifndef NOMINMAX
@@ -38,9 +36,7 @@
 #include <io.h>
 #include <windows.h>
 #else
-#include <unistd.h> // for getpid, file_size, clock_gettime
 
-#include <sys/mman.h>
 #endif
 
 namespace sdsl

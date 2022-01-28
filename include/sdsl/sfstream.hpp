@@ -9,7 +9,6 @@
 #define INCLUDED_SDSL_SFSTREAM
 
 #include <fstream>
-#include <sstream>
 #include <string>
 
 #include <sdsl/ram_filebuf.hpp>

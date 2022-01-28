@@ -8,7 +8,10 @@
 #ifndef SDSL_CODER_FIBONACCI_INCLUDED
 #define SDSL_CODER_FIBONACCI_INCLUDED
 
-#include <sdsl/int_vector.hpp>
+#include <stdint.h>
+
+#include <sdsl/bits.hpp>
+#include <sdsl/config.hpp>
 
 namespace sdsl
 {

@@ -9,15 +9,12 @@
 #define INCLUDED_SDSL_UTIL
 
 #include <algorithm>
-#include <atomic>
 #include <cassert>
 #include <chrono>
 #include <cstdlib>
-#include <ctime>      // for rand initialization
-#include <functional> // for class_to_hash
+#include <errno.h>
 #include <iomanip>
-#include <iosfwd> // forward declaration of ostream
-#include <mutex>
+#include <map>
 #include <numeric>
 #include <random>
 #include <sstream>   // for to_string method
@@ -27,20 +24,19 @@
 #include <string>
 #include <type_traits>
 #include <typeinfo> // for typeid
-#include <typeinfo>
-#include <vector>
+#include <utility>
 
 #include <sdsl/bits.hpp>
 #include <sdsl/config.hpp> // for constants
 #include <sdsl/ram_fs.hpp>
-#include <sdsl/sfstream.hpp>
 
-#include <sys/stat.h>  // for file_size
-#include <sys/types.h> // for file_size
+#include <sys/stat.h> // for file_size
 
 // macros to transform a defined name to a string
 #define SDSL_STR(x) #x
 #define SDSL_XSTR(s) SDSL_STR(s)
+
+#include <vector>
 
 #ifndef MSVC_COMPILER
 #include <cxxabi.h>
@@ -49,9 +45,6 @@
 #ifndef _WIN32
 #include <libgen.h> // for basename
 #include <unistd.h> // for getpid, file_size, clock_gettime
-
-#include <sys/resource.h> // for struct rusage
-#include <sys/time.h>     // for struct timeval
 #else
 #include <iso646.h>
 #include <process.h>
@@ -60,9 +53,6 @@
 //! Namespace for the succinct data structure library.
 namespace sdsl
 {
-
-template <uint8_t>
-class int_vector; // forward declaration
 
 //! A namespace for helper functions
 namespace util

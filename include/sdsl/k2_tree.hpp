@@ -8,15 +8,27 @@
 #ifndef INCLUDED_SDSL_K2_TREE
 #define INCLUDED_SDSL_K2_TREE
 
+#include <algorithm>
+#include <assert.h>
+#include <cmath>
+#include <cstdint>
 #include <deque>
+#include <iosfwd>
+#include <memory>
 #include <queue>
 #include <stdexcept>
+#include <string>
 #include <tuple>
+#include <type_traits>
+#include <vector>
 
-#include <sdsl/bit_vectors.hpp>
+#include <sdsl/cereal.hpp>
+#include <sdsl/int_vector.hpp>
 #include <sdsl/int_vector_buffer.hpp>
 #include <sdsl/io.hpp>
 #include <sdsl/k2_tree_helper.hpp>
+#include <sdsl/structure_tree.hpp>
+#include <sdsl/util.hpp>
 
 //! Namespace for the succint data structure library
 namespace sdsl

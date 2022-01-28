@@ -9,9 +9,22 @@
 #ifndef INCLUDED_SDSL_SD_VECTOR
 #define INCLUDED_SDSL_SD_VECTOR
 
+#include <assert.h>
+#include <iosfwd>
+#include <iterator>
+#include <stdexcept>
+#include <stdint.h>
+#include <string>
+#include <utility>
+
+#include <sdsl/bits.hpp>
+#include <sdsl/cereal.hpp>
 #include <sdsl/int_vector.hpp>
+#include <sdsl/io.hpp>
 #include <sdsl/iterators.hpp>
+#include <sdsl/sdsl_concepts.hpp>
 #include <sdsl/select_support_mcl.hpp>
+#include <sdsl/structure_tree.hpp>
 #include <sdsl/util.hpp>
 
 //! Namespace for the succinct data structure library
@@ -24,17 +37,12 @@ template <uint8_t t_b = 1,
           class t_select_1 = typename t_hi_bit_vector::select_1_type,
           class t_select_0 = typename t_hi_bit_vector::select_0_type>
 class rank_support_sd; // in sd_vector
-
 // forward declaration needed for friend declaration
 template <uint8_t t_b = 1,
           class t_hi_bit_vector = bit_vector,
           class t_select_1 = typename t_hi_bit_vector::select_1_type,
           class t_select_0 = typename t_hi_bit_vector::select_0_type>
 class select_support_sd; // in sd_vector
-
-// forward declaration needed for friend declaration
-template <typename, typename, typename>
-class sd_vector; // in sd_vector
 
 //! Class for in-place construction of sd_vector from a strictly increasing sequence
 /*!\par Building an sd_vector will clear the builder.

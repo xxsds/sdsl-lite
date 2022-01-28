@@ -10,7 +10,8 @@
 
 #include <algorithm>
 #include <array>
-#include <math.h>
+#include <stddef.h>
+#include <stdint.h>
 
 #include <sdsl/bits.hpp>
 #include <sdsl/config.hpp>

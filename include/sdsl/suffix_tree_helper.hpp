@@ -5,13 +5,16 @@
 #define INCLUDED_SDSL_SUFFIX_TREE_HELPER
 
 #include <cassert>
-#include <cstdlib>
+#include <iterator>
 #include <stack>
 #include <stdint.h>
+#include <type_traits>
 
-#include <sdsl/iterators.hpp>
+#include <sdsl/int_vector.hpp>
+#include <sdsl/int_vector_buffer.hpp>
 #include <sdsl/sorted_multi_stack_support.hpp>
 #include <sdsl/sorted_stack_support.hpp>
+#include <sdsl/util.hpp>
 
 namespace sdsl
 {

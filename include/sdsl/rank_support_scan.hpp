@@ -8,10 +8,19 @@
 #ifndef INCLUDED_SDSL_RANK_SUPPORT_SCAN
 #define INCLUDED_SDSL_RANK_SUPPORT_SCAN
 
+#include <assert.h>
+#include <iosfwd>
+#include <stdint.h>
+#include <string>
+
+#include <sdsl/cereal.hpp>
+#include <sdsl/int_vector.hpp>
+#include <sdsl/io.hpp>
 #include <sdsl/rank_support.hpp>
 
 namespace sdsl
 {
+class structure_tree_node;
 
 /*!\brief A class supporting rank queries in linear time.
  * \ingroup rank_support_group

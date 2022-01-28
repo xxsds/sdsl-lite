@@ -8,8 +8,15 @@
 #ifndef INCLUDED_SDSL_RMQ_SUCCINCT_SCT
 #define INCLUDED_SDSL_RMQ_SUCCINCT_SCT
 
+#include <assert.h>
+#include <iosfwd>
+#include <string>
+
 #include <sdsl/bp_support_sada.hpp>
+#include <sdsl/cereal.hpp>
 #include <sdsl/int_vector.hpp>
+#include <sdsl/rank_support_v5.hpp>
+#include <sdsl/structure_tree.hpp>
 #include <sdsl/suffix_tree_helper.hpp>
 #include <sdsl/util.hpp>
 

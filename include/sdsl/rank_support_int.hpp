@@ -13,8 +13,20 @@
  * This group contains data structures which support an sdsl::int_vector with the rank method.
  */
 
+#include <array>
+#include <assert.h>
+#include <iosfwd>
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
+
+#include <sdsl/bits.hpp>
 #include <sdsl/int_vector.hpp>
-#include <sdsl/uint128_t.hpp>
+
+namespace sdsl
+{
+class structure_tree_node;
+} // namespace sdsl
 
 // TODO: benchmark the use of compiler hints for branch prediction
 #define likely(x) __builtin_expect((x), 1)
@@ -221,8 +233,5 @@ template <uint8_t alphabet_size>
 const std::array<uint64_t, alphabet_size> rank_support_int<alphabet_size>::masks = generate_mask_array();
 
 } // end namespace sdsl
-
-#include <sdsl/rank_support_int_scan.hpp>
-#include <sdsl/rank_support_int_v.hpp>
 
 #endif // end file

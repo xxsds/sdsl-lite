@@ -37,13 +37,33 @@
  * [1] P.Ferragina, J. Siren, R. Venturini: Distribution-Aware Compressed Full-Text Indexes, ESA 2011
  */
 
+#include <iosfwd>
 #include <set>
+#include <stdint.h>
+#include <string>
 #include <tuple>
+#include <type_traits>
+#include <utility>
 
+#include <sdsl/bits.hpp>
+#include <sdsl/cereal.hpp>
+#include <sdsl/config.hpp>
+#include <sdsl/construct.hpp>
+#include <sdsl/construct_isa.hpp>
 #include <sdsl/csa_alphabet_strategy.hpp>
 #include <sdsl/int_vector.hpp>
+#include <sdsl/int_vector_buffer.hpp>
 #include <sdsl/inv_perm_support.hpp>
-#include <sdsl/wavelet_trees.hpp>
+#include <sdsl/io.hpp>
+#include <sdsl/memory_tracking.hpp>
+#include <sdsl/ram_fs.hpp>
+#include <sdsl/rank_support_v.hpp>
+#include <sdsl/rrr_vector.hpp>
+#include <sdsl/sd_vector.hpp>
+#include <sdsl/sdsl_concepts.hpp>
+#include <sdsl/structure_tree.hpp>
+#include <sdsl/util.hpp>
+#include <sdsl/wt_int.hpp>
 
 namespace sdsl
 {
