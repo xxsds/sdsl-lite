@@ -127,6 +127,7 @@ inline std::string create_html_header(const char * file_name)
     jsonheader << "<html>\n"
                << "   <head>\n"
                << "    <meta http-equiv=\"Content-Type\" content=\"text/html;charset=utf-8\">\n"
+               << "    <title>" << file_name << "</title>\n"
                << "    <script src=\"https://github.com/xxsds/sdsl-lite/blob/v3.0.0/external/d3/d3.min.js\"></script>\n"
                << "    <script src=\"https://d3js.org/d3.v2.js\"></script>\n"
                << "    <style type=\"text/css\">\n"
