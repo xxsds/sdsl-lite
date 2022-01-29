@@ -28,9 +28,6 @@ include(CompilerFlags)
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/Make.helper.cmake"
 		       "${CMAKE_CURRENT_SOURCE_DIR}/Make.helper" @ONLY)
 
-configure_file("${CMAKE_CURRENT_SOURCE_DIR}/include/sdsl/structure_tree.hpp.cmake"
-           "${CMAKE_CURRENT_SOURCE_DIR}/include/sdsl/structure_tree.hpp" @ONLY)
-
 enable_testing()
 
 # (8) main library target
