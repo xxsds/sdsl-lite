@@ -1,6 +1,10 @@
 #include <string>
 
-#include <sdsl/bit_vectors.hpp> // for rrr_vector
+#include <sdsl/bit_vector_il.hpp>
+#include <sdsl/hyb_vector.hpp>
+#include <sdsl/int_vector.hpp>
+#include <sdsl/rrr_vector.hpp>
+#include <sdsl/sd_vector.hpp>
 
 #include "common.hpp"
 

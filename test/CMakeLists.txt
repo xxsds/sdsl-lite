@@ -54,7 +54,7 @@ endfunction (generate_target_for_special_inputs)
 
 # Get all headers of the library, include the headers into compile_test.cpp. Compiling the created target will check for
 # obvious errors.
-file (GLOB SDSL_HEADER_ALL ${CMAKE_CURRENT_SOURCE_DIR}/../include/sdsl/*.hpp)
+file (GLOB SDSL_HEADER_ALL ${sdsl_include_directory}/*.hpp)
 string (REGEX REPLACE "([^;]+)[;]" "#include \"\\1\"\\n" SDSL_INCLUDE_ALL "${SDSL_HEADER_ALL};")
 string (REGEX REPLACE "${CMAKE_CURRENT_BINARY_DIR}/\\.\\./include/" "" SDSL_INCLUDE_ALL "${SDSL_INCLUDE_ALL}")
 configure_file (
@@ -66,7 +66,7 @@ configure_file (
 file (GLOB test_sources ${CMAKE_CURRENT_SOURCE_DIR}/*_test.cpp)
 
 # Add required directionaries
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../include ${gtest_dir}/googletest/include)
+include_directories (${sdsl_include_directory} ${gtest_dir}/googletest/include)
 
 link_libraries ("gtest_main" "gtest")
 

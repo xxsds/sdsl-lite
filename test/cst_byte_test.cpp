@@ -4,7 +4,9 @@
 #include <string>
 #include <vector>
 
-#include <sdsl/suffix_trees.hpp>
+#include <sdsl/cst_fully.hpp>
+#include <sdsl/cst_sada.hpp>
+#include <sdsl/cst_sct3.hpp>
 
 #include "common.hpp"
 #include "cst_helper.hpp"

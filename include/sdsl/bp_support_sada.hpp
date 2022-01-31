@@ -14,6 +14,7 @@
 
 #include <sdsl/bp_support_algorithm.hpp>
 #include <sdsl/int_vector.hpp>
+#include <sdsl/rank_support_v.hpp>
 #include <sdsl/rank_support_v5.hpp>
 #include <sdsl/select_support_mcl.hpp>
 #ifndef NDEBUG

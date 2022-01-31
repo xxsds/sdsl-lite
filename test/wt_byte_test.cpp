@@ -3,7 +3,17 @@
 #include <string>
 #include <vector>
 
-#include <sdsl/wavelet_trees.hpp>
+#include <sdsl/bit_vector_il.hpp>
+#include <sdsl/construct.hpp>
+#include <sdsl/rank_support_v.hpp>
+#include <sdsl/rank_support_v5.hpp>
+#include <sdsl/rrr_vector.hpp>
+#include <sdsl/wt_algorithm.hpp>
+#include <sdsl/wt_blcd.hpp>
+#include <sdsl/wt_gmr.hpp>
+#include <sdsl/wt_huff.hpp>
+#include <sdsl/wt_hutu.hpp>
+#include <sdsl/wt_rlmn.hpp>
 
 #include "common.hpp"
 

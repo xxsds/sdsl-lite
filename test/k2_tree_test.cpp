@@ -2,7 +2,10 @@
 #include <tuple>
 #include <vector>
 
+#include <sdsl/int_vector.hpp>
 #include <sdsl/k2_tree.hpp>
+#include <sdsl/rank_support_v.hpp>
+#include <sdsl/rrr_vector.hpp>
 
 #include <gtest/gtest.h>
 

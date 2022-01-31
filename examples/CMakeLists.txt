@@ -2,7 +2,7 @@ set (sdsl_examples "")
 
 file (GLOB example_sources ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../include)
+include_directories (${sdsl_include_directory})
 
 foreach (example_source ${example_sources})
     get_filename_component (example_name ${example_source} NAME_WE)

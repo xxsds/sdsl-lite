@@ -1,4 +1,4 @@
-#include <sdsl/bit_vectors.hpp>
+#include <sdsl/rrr_vector.hpp>
 #include <sdsl/sd_vector.hpp>
 
 #include <gtest/gtest.h>

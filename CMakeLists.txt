@@ -38,7 +38,8 @@ set (gtest_dir ${CMAKE_CURRENT_LIST_DIR}/external/googletest)
 add_subdirectory (external)
 add_subdirectory (lib)
 
-file (GLOB HEADERS "${CMAKE_CURRENT_SOURCE_DIR}/include/sdsl/*.hpp")
+set (sdsl_include_directory "${CMAKE_CURRENT_SOURCE_DIR}/include")
+file (GLOB HEADERS "${sdsl_include_directory}/sdsl/*.hpp")
 add_custom_target (sdsl SOURCES ${HEADERS})
 
 # (9) test targets
