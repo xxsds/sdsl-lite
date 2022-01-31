@@ -30,19 +30,11 @@ install (FILES "${CMAKE_CURRENT_BINARY_DIR}/sdsl-lite.pc" DESTINATION "lib/pkgco
 
 find_program (
     CLANG_FORMAT
-    NAMES clang-format-4.0
-          clang-format-3.9
-          clang-format-3.8
-          clang-format-3.7
-          clang-format-3.6
-          clang-format-3.5
-          clang-format-3.4
-          clang-format
-)
+    NAMES clang-format-13)
 if (CLANG_FORMAT)
-    message (STATUS "${Green}clang-format found: ${CLANG_FORMAT}${ColourReset}")
+    message (STATUS "${Green}clang-format-13 found: ${CLANG_FORMAT}${ColourReset}")
 else ()
-    message (STATUS "${Yellow}clang-format NOT found!${ColourReset}")
+    message (STATUS "${Yellow}clang-format-13 NOT found!${ColourReset}")
 endif (CLANG_FORMAT)
 
 configure_file ("${CMAKE_CURRENT_SOURCE_DIR}/pre-commit.cmake" "${CMAKE_CURRENT_SOURCE_DIR}/pre-commit" @ONLY)
