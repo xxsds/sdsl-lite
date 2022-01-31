@@ -111,7 +111,7 @@ format:
   _help_autosort:
   - If true, the parsers may infer whether or not an argument
   - list is sortable (without annotation).
-  autosort: false
+  autosort: true
   _help_require_valid_layout:
   - By default, if cmake-format cannot successfully fit
   - everything into the desired linewidth it will apply the

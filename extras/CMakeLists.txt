@@ -28,9 +28,7 @@ add_custom_target (
 configure_file ("${CMAKE_CURRENT_SOURCE_DIR}/../sdsl-lite.pc.cmake" "${CMAKE_CURRENT_BINARY_DIR}/sdsl-lite.pc" @ONLY)
 install (FILES "${CMAKE_CURRENT_BINARY_DIR}/sdsl-lite.pc" DESTINATION "lib/pkgconfig")
 
-find_program (
-    CLANG_FORMAT
-    NAMES clang-format-13)
+find_program (CLANG_FORMAT NAMES clang-format-13)
 if (CLANG_FORMAT)
     message (STATUS "${Green}clang-format-13 found: ${CLANG_FORMAT}${ColourReset}")
 else ()
