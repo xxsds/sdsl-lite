@@ -3,8 +3,12 @@
 #include <string>
 #include <vector>
 
-#include <sdsl/lcp.hpp>
-#include <sdsl/suffix_trees.hpp>
+#include <sdsl/csa_bitcompressed.hpp>
+#include <sdsl/csa_sada.hpp>
+#include <sdsl/csa_wt.hpp>
+#include <sdsl/cst_fully.hpp>
+#include <sdsl/cst_sada.hpp>
+#include <sdsl/cst_sct3.hpp>
 
 #include "common.hpp"
 #include "cst_helper.hpp"

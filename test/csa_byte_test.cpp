@@ -2,8 +2,12 @@
 #include <type_traits>
 #include <vector>
 
-#include <sdsl/coder.hpp>
-#include <sdsl/suffix_arrays.hpp>
+#include <sdsl/coder_elias_gamma.hpp>
+#include <sdsl/coder_fibonacci.hpp>
+#include <sdsl/csa_bitcompressed.hpp>
+#include <sdsl/csa_sada.hpp>
+#include <sdsl/csa_wt.hpp>
+#include <sdsl/suffix_array_algorithm.hpp>
 
 #include "common.hpp"
 

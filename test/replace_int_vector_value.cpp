@@ -1,7 +1,7 @@
 #include <cstdlib>
 #include <string>
 
-#include <sdsl/int_vector.hpp>
+#include <sdsl/int_vector_buffer.hpp>
 
 using namespace std;
 using namespace sdsl;

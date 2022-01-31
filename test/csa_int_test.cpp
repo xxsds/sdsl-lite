@@ -3,7 +3,11 @@
 #include <string>
 #include <vector>
 
-#include <sdsl/suffix_arrays.hpp>
+#include <sdsl/csa_bitcompressed.hpp>
+#include <sdsl/csa_sada.hpp>
+#include <sdsl/csa_wt.hpp>
+#include <sdsl/enc_vector.hpp>
+#include <sdsl/suffix_array_algorithm.hpp>
 
 #include "common.hpp"
 

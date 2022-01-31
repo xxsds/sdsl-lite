@@ -32,7 +32,7 @@
 
 namespace sdsl
 {
-template <uint8_t>
+template <uint8_t = 0u>
 class int_vector;
 
 int remove(const std::string &);

@@ -14,11 +14,11 @@ function(generate_target_for_special_inputs tc_name abs_tc_name)
         if ("${tc_name}" MATCHES "${int_vec_regex}")
             string(REPLACE "int-vec." "" tc_suf ${tc_name})
             string(REPLACE "." ";" tc_param ${tc_suf})  #  insert semicolons to get a list :)
-        else() 
+        else()
             string(REPLACE "bit-vec." "" tc_param ${tc_name})
         endif()
         add_custom_command(OUTPUT ${abs_tc_name}
-                           COMMAND $<TARGET_FILE:bit_vector_generator> ${abs_tc_name} ${tc_param} 
+                           COMMAND $<TARGET_FILE:bit_vector_generator> ${abs_tc_name} ${tc_param}
                            DEPENDS bit_vector_generator
                            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
                            COMMENT "Generating test case ${tc_name}."
@@ -31,9 +31,9 @@ function(generate_target_for_special_inputs tc_name abs_tc_name)
         string(REPLACE "int-vec-sa." "" tc_suf ${tc_name})
         string(REPLACE "." ";" tc_param ${tc_suf}) #  insert semicolons to get a list :)
         add_custom_command(OUTPUT ${abs_tc_name}
-                           COMMAND $<TARGET_FILE:int_vector_generator> ${abs_tc_name}  ${tc_param} 
+                           COMMAND $<TARGET_FILE:int_vector_generator> ${abs_tc_name}  ${tc_param}
                            COMMAND $<TARGET_FILE:replace_int_vector_value> ${abs_tc_name} 0 1
-                           DEPENDS int_vector_generator replace_int_vector_value 
+                           DEPENDS int_vector_generator replace_int_vector_value
                            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
                            COMMENT "Generating test case ${tc_name}."
                            VERBATIM
@@ -42,12 +42,10 @@ function(generate_target_for_special_inputs tc_name abs_tc_name)
     endif()
 endfunction(generate_target_for_special_inputs)
 
-
-
 ## Get all headers of the library, include the headers into compile_test.cpp.
 ## Compiling the created target will check for obvious errors.
-file(GLOB SDSL_HEADER_ALL ${CMAKE_CURRENT_SOURCE_DIR}/../include/sdsl/*.hpp)
-string(REGEX REPLACE "([^;]+)[;]" "#include \"\\1\"\\n" SDSL_INCLUDE_ALL "${SDSL_HEADER_ALL};")                                                        
+file(GLOB SDSL_HEADER_ALL ${sdsl_include_directory}/*.hpp)
+string(REGEX REPLACE "([^;]+)[;]" "#include \"\\1\"\\n" SDSL_INCLUDE_ALL "${SDSL_HEADER_ALL};")
 string(REGEX REPLACE "${CMAKE_CURRENT_BINARY_DIR}/\\.\\./include/" "" SDSL_INCLUDE_ALL "${SDSL_INCLUDE_ALL}")
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/compile_test.cpp.cmake"
                "${CMAKE_CURRENT_SOURCE_DIR}/compile_test.cpp" @ONLY)
@@ -57,9 +55,8 @@ configure_file("${CMAKE_CURRENT_SOURCE_DIR}/compile_test.cpp.cmake"
 file(GLOB test_sources ${CMAKE_CURRENT_SOURCE_DIR}/*_test.cpp)
 
 ## Add required directionaries
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../include
-                    ${gtest_dir}/googletest/include
-)
+include_directories(${sdsl_include_directory})
+include_directories(SYSTEM ${gtest_dir}/googletest/include)
 
 link_libraries("gtest_main" "gtest")
 
@@ -105,14 +102,14 @@ foreach(test_source ${test_sources})
                 WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
                 COMMAND $<TARGET_FILE:${test_name_we}> ${tmp_dir}
             )
-# (2) Handle tests with .config file        
+# (2) Handle tests with .config file
         else()
             set(test_targets "")
             file(STRINGS ${config_file} config_lines REGEX "^[^#].+")
             set(config_line_cnt 0)
             foreach(config_line ${config_lines})
                 math(EXPR config_line_cnt ${config_line_cnt}+1)
-# (2.1) Handle tests with one file per line in the .config file 
+# (2.1) Handle tests with one file per line in the .config file
 #       This is true if there is no semi-colon in the line (checked in the next line)
                 if("${config_line}" MATCHES "^[^;]+$")
                     get_filename_component(test_case_name ${config_line} NAME)
@@ -122,10 +119,10 @@ foreach(test_source ${test_sources})
 
                     set(test_target ${test_name}_${test_case_name})
                     add_custom_target(${test_target}
-                        COMMAND $<TARGET_FILE:${test_name_we}> ${abs_test_case_name} 
+                        COMMAND $<TARGET_FILE:${test_name_we}> ${abs_test_case_name}
                                                                ${tmp_dir}
                         DEPENDS ${abs_test_case_name} ${test_name_we}
-                        WORKING_DIRECTORY ${CMAKE_BINARY_DIR} 
+                        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
                         COMMENT "Execute ${test_name} on ${test_case_name}."
                     )
                     add_test(NAME ${test_target}
@@ -133,10 +130,10 @@ foreach(test_source ${test_sources})
                         COMMAND $<TARGET_FILE:${test_name_we}> ${abs_test_case_name}
                                                                ${tmp_dir}
                     )
-# (2.1) Handle tests with multiple files per line in the .config file 
-                else() 
+# (2.1) Handle tests with multiple files per line in the .config file
+                else()
 #               Handle Cs[a|t]IntTest
-                    if ("${test_name_we}" MATCHES "cs[a|t]_int_test") 
+                    if ("${test_name_we}" MATCHES "cs[a|t]_int_test")
                         list(GET config_line 0 test_case_name)
                         set(abs_test_case_name ${CMAKE_CURRENT_LIST_DIR}/test_cases/${test_case_name})
 
@@ -150,7 +147,7 @@ foreach(test_source ${test_sources})
                                                                    ${tmp_dir}
                             DEPENDS ${abs_test_case_name} ${test_name_we}
                             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-                            COMMENT "Execute ${test_name} on ${test_case_name}."        
+                            COMMENT "Execute ${test_name} on ${test_case_name}."
                         )
 
                         add_test(NAME ${test_target}
@@ -160,7 +157,7 @@ foreach(test_source ${test_sources})
                                                                    ${tmp_dir}
                         )
                         list(APPEND test_targets ${test_target})
-#               Handle K2TreapTest    
+#               Handle K2TreapTest
                     elseif("${test_name_we}" MATCHES "k2_treap_test")
                         set(concat_config "")
                         foreach(item ${config_line})
@@ -184,11 +181,11 @@ foreach(test_source ${test_sources})
                                         DEPENDS int_vector_generator
                                         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
                                         COMMENT "Generating test case ${test_case_name}."
-                                        VERBATIM        
+                                        VERBATIM
                                 )
                                 set(generated_files ${generated_files} ${local_abs_test_case_name})
                             endforeach(i)
-                            add_custom_target(${test_case_name} 
+                            add_custom_target(${test_case_name}
                                     DEPENDS ${abs_test_case_name_list})
                         endif()
                         set(test_target ${test_name}_${test_case_name})
@@ -206,7 +203,7 @@ foreach(test_source ${test_sources})
                 endif()
             endforeach(config_line)
 
-            add_custom_target(${test_name} DEPENDS ${test_targets}) 
+            add_custom_target(${test_name} DEPENDS ${test_targets})
         endif()
     endforeach(d)
 endforeach(test_source)

@@ -11,6 +11,12 @@
 #include <immintrin.h> // IWYU pragma: keep
 #include <stddef.h>
 #include <stdint.h> // for uint64_t uint32_t declaration
+#ifdef __SSE4_2__
+#include <xmmintrin.h> // IWYU pragma: keep
+#endif
+#ifdef __BMI2__
+#include <x86intrin.h> // IWYU pragma: keep
+#endif
 
 #ifdef WIN32
 #include <iso646.h>
@@ -620,21 +626,21 @@ constexpr uint32_t bits_impl<T>::_sel(uint64_t x, uint32_t i)
             else
                 return 8 + lt_sel[(((x >> 8) & 0xFFULL) + i - ((s & 0xFFULL) << 8)) & 0x7FFULL]; // byte 1;
         else                                                                                     // byte >1
-                                                          if (b & 0x0000000000800000ULL)         // byte <=2
-            return 16 + lt_sel[(((x >> 16) & 0xFFULL) + i - (s & 0xFF00ULL)) & 0x7FFULL];        // byte 2;
-        else
-            return 24 + lt_sel[(((x >> 24) & 0xFFULL) + i - ((s >> 8) & 0xFF00ULL)) & 0x7FFULL];  // byte 3;
-    else                                                                                          //  byte > 3
-                                                      if (b & 0x0000800000000000ULL)              // byte <=5
-        if (b & 0x0000008000000000ULL)                                                            // byte <=4
-            return 32 + lt_sel[(((x >> 32) & 0xFFULL) + i - ((s >> 16) & 0xFF00ULL)) & 0x7FFULL]; // byte 4;
-        else
-            return 40 + lt_sel[(((x >> 40) & 0xFFULL) + i - ((s >> 24) & 0xFF00ULL)) & 0x7FFULL]; // byte 5;
-    else                                                                                          // byte >5
-                                                      if (b & 0x0080000000000000ULL)              // byte<=6
-        return 48 + lt_sel[(((x >> 48) & 0xFFULL) + i - ((s >> 32) & 0xFF00ULL)) & 0x7FFULL];     // byte 6;
-    else
-        return 56 + lt_sel[(((x >> 56) & 0xFFULL) + i - ((s >> 40) & 0xFF00ULL)) & 0x7FFULL]; // byte 7;
+            if (b & 0x0000000000800000ULL)                                                       // byte <=2
+                return 16 + lt_sel[(((x >> 16) & 0xFFULL) + i - (s & 0xFF00ULL)) & 0x7FFULL];    // byte 2;
+            else
+                return 24 + lt_sel[(((x >> 24) & 0xFFULL) + i - ((s >> 8) & 0xFF00ULL)) & 0x7FFULL];  // byte 3;
+    else                                                                                              //  byte > 3
+        if (b & 0x0000800000000000ULL)                                                                // byte <=5
+            if (b & 0x0000008000000000ULL)                                                            // byte <=4
+                return 32 + lt_sel[(((x >> 32) & 0xFFULL) + i - ((s >> 16) & 0xFF00ULL)) & 0x7FFULL]; // byte 4;
+            else
+                return 40 + lt_sel[(((x >> 40) & 0xFFULL) + i - ((s >> 24) & 0xFF00ULL)) & 0x7FFULL]; // byte 5;
+        else                                                                                          // byte >5
+            if (b & 0x0080000000000000ULL)                                                            // byte<=6
+                return 48 + lt_sel[(((x >> 48) & 0xFFULL) + i - ((s >> 32) & 0xFF00ULL)) & 0x7FFULL]; // byte 6;
+            else
+                return 56 + lt_sel[(((x >> 56) & 0xFFULL) + i - ((s >> 40) & 0xFF00ULL)) & 0x7FFULL]; // byte 7;
     return 0;
 }
 

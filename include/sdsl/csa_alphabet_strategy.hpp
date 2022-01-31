@@ -47,8 +47,10 @@
 #include <sdsl/int_vector.hpp>
 #include <sdsl/int_vector_buffer.hpp>
 #include <sdsl/io.hpp>
+#include <sdsl/rank_support_scan.hpp>
 #include <sdsl/sd_vector.hpp>
 #include <sdsl/sdsl_concepts.hpp>
+#include <sdsl/select_support_scan.hpp>
 #include <sdsl/structure_tree.hpp>
 #include <sdsl/util.hpp>
 
@@ -57,12 +59,19 @@ namespace sdsl
 
 // forward declarations
 
-class byte_alphabet;
+class byte_alphabet; // IWYU pragma: keep
+
+template <class bit_vector_type = bit_vector,
+          class rank_support_type = rank_support_scan<>,
+          class select_support_type = select_support_scan<>,
+          class C_array_type = int_vector<>>
+class succinct_byte_alphabet; // IWYU pragma: keep
+
 template <class bit_vector_type = sd_vector<>,
           class rank_support_type = typename bit_vector_type::rank_1_type,
           class select_support_type = typename bit_vector_type::select_1_type,
           class C_array_type = int_vector<>>
-class int_alphabet;
+class int_alphabet; // IWYU pragma: keep
 
 template <uint8_t int_width>
 constexpr const char * key_text()

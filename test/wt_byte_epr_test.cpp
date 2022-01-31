@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 
-#include <sdsl/wavelet_trees.hpp>
+#include <sdsl/wt_epr.hpp>
 
 #include "common.hpp"
 

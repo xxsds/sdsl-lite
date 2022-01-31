@@ -37,7 +37,7 @@ namespace sdsl
 
 typedef uint64_t std_size_type_for_int_vector;
 
-template <uint8_t t_width = 0>
+template <uint8_t t_width>
 class int_vector;
 
 //! bit_vector is a specialization of the int_vector.
@@ -51,20 +51,20 @@ template <class t_int_vector>
 class int_vector_iterator_base;
 template <class t_int_vector>
 class int_vector_reference;
-template <uint8_t t_b, uint8_t t_pat_len>
+template <uint8_t, uint8_t>
 class rank_support_v;
-template <uint8_t t_bit_pattern, uint8_t t_pattern_len>
+template <uint8_t, uint8_t>
 class select_support_mcl;
 
 namespace coder
 {
-template <typename T>
+template <typename>
 class elias_delta; // IWYU pragma: keep
-template <typename T>
+template <typename>
 class elias_gamma; // IWYU pragma: keep
-template <typename T>
+template <typename>
 class fibonacci; // IWYU pragma: keep
-template <uint8_t t_width>
+template <uint8_t>
 class comma; // IWYU pragma: keep
 } // namespace coder
 
