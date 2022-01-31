@@ -13,7 +13,8 @@ target_link_libraries (${header_all_target} "gtest_main" "gtest")
 target_link_libraries (${header_all_target} sdsl_test_header)
 add_test (NAME "header/${header_all_target}" COMMAND ${header_all_target})
 
-include_directories (${sdsl_include_directory} ${gtest_dir}/googletest/include)
+include_directories (SYSTEM ${gtest_dir}/googletest/include)
+include_directories (${sdsl_include_directory})
 
 foreach (header ${SDSL_HEADER_ALL})
     foreach (repeat 1 2)
@@ -23,8 +24,8 @@ foreach (header ${SDSL_HEADER_ALL})
         set (header_target "${header_all_target}--${header_target_name}")
 
         string (REPLACE "-" "__" header_test_name_safe "${header_all_target}, ${header_target}")
-        file (WRITE "${header_target_source}\n" "#include <${header}>\n" "#include <${header}>\n"
-                                                "#include <gtest/gtest.h>\n" "TEST(${header_test_name_safe}) {}"
+        file (WRITE "${header_target_source}" "#include <${header}>\n" "#include <${header}>\n"
+                                              "#include <gtest/gtest.h>\n" "TEST(${header_test_name_safe}) {}"
         )
         add_library (${header_target} OBJECT "${header_target_source}")
         link_libraries (gtest)
