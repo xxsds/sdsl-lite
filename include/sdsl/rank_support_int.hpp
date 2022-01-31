@@ -20,8 +20,8 @@
 #include <stdint.h>
 #include <string>
 
-#include "sdsl/bits.hpp"
-#include "sdsl/int_vector.hpp"
+#include <sdsl/bits.hpp>
+#include <sdsl/int_vector.hpp>
 
 namespace sdsl
 {

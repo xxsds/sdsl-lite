@@ -33,27 +33,27 @@
  *   since there is code which will perform a binary search on array `C`.
  */
 
+#include <algorithm>
 #include <assert.h>
-#include <stdint.h>
 #include <iosfwd>
 #include <map>
+#include <stdint.h>
 #include <string>
 #include <utility>
 #include <vector>
-#include <algorithm>
 
-#include "sdsl/bits.hpp"
-#include "sdsl/cereal.hpp"
-#include "sdsl/config.hpp"
-#include "sdsl/int_vector.hpp"
-#include "sdsl/int_vector_buffer.hpp"
-#include "sdsl/io.hpp"
-#include "sdsl/rank_support_scan.hpp"
-#include "sdsl/sd_vector.hpp"
-#include "sdsl/sdsl_concepts.hpp"
-#include "sdsl/select_support_scan.hpp"
-#include "sdsl/structure_tree.hpp"
-#include "sdsl/util.hpp"
+#include <sdsl/bits.hpp>
+#include <sdsl/cereal.hpp>
+#include <sdsl/config.hpp>
+#include <sdsl/int_vector.hpp>
+#include <sdsl/int_vector_buffer.hpp>
+#include <sdsl/io.hpp>
+#include <sdsl/rank_support_scan.hpp>
+#include <sdsl/sd_vector.hpp>
+#include <sdsl/sdsl_concepts.hpp>
+#include <sdsl/select_support_scan.hpp>
+#include <sdsl/structure_tree.hpp>
+#include <sdsl/util.hpp>
 
 namespace sdsl
 {

@@ -10,7 +10,6 @@
 
 #include <string.h>
 // IWYU pragma: no_include <ext/alloc_traits.h>
-#include <sys/types.h>
 #include <algorithm>
 #include <cctype>
 #include <cstdint>
@@ -26,13 +25,15 @@
 #include <utility>
 #include <vector>
 
-#include "sdsl/bits.hpp"
-#include "sdsl/config.hpp"
-#include "sdsl/platform.hpp"
-#include "sdsl/sdsl_concepts.hpp"
-#include "sdsl/sfstream.hpp"
-#include "sdsl/structure_tree.hpp"
-#include "sdsl/util.hpp"
+#include <sdsl/bits.hpp>
+#include <sdsl/config.hpp>
+#include <sdsl/platform.hpp>
+#include <sdsl/sdsl_concepts.hpp>
+#include <sdsl/sfstream.hpp>
+#include <sdsl/structure_tree.hpp>
+#include <sdsl/util.hpp>
+
+#include <sys/types.h>
 
 namespace sdsl
 {

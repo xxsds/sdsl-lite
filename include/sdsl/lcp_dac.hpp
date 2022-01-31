@@ -10,9 +10,9 @@
 
 #include <stdint.h>
 
-#include "sdsl/dac_vector.hpp"
-#include "sdsl/lcp_vlc.hpp"
-#include "sdsl/rank_support_v5.hpp"
+#include <sdsl/dac_vector.hpp>
+#include <sdsl/lcp_vlc.hpp>
+#include <sdsl/rank_support_v5.hpp>
 
 namespace sdsl
 {

@@ -8,19 +8,19 @@
 #ifndef INCLUDED_SDSL_SELECT_SUPPORT_MCL
 #define INCLUDED_SDSL_SELECT_SUPPORT_MCL
 
-#include <assert.h>
-#include <stdint.h>
 #include <algorithm>
+#include <assert.h>
 #include <iostream>
+#include <stdint.h>
 #include <string>
 #include <utility>
 
-#include "sdsl/bits.hpp"
-#include "sdsl/cereal.hpp"
-#include "sdsl/int_vector.hpp"
-#include "sdsl/select_support.hpp"
-#include "sdsl/structure_tree.hpp"
-#include "sdsl/util.hpp"
+#include <sdsl/bits.hpp>
+#include <sdsl/cereal.hpp>
+#include <sdsl/int_vector.hpp>
+#include <sdsl/select_support.hpp>
+#include <sdsl/structure_tree.hpp>
+#include <sdsl/util.hpp>
 
 //! Namespace for the succinct data structure library.
 namespace sdsl

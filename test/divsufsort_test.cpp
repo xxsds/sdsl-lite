@@ -1,4 +1,3 @@
-#include <gtest/gtest.h>// IWYU pragma: keep
 #include <algorithm>
 #include <chrono>
 #include <cstdint>
@@ -7,13 +6,14 @@
 #include <random>
 #include <vector>
 
-#include "sdsl/divsufsort.hpp"
-#include "sdsl/int_vector.hpp"
+#include <sdsl/divsufsort.hpp>
+#include <sdsl/int_vector.hpp>
+
+#include <gtest/gtest.h> // IWYU pragma: keep
 // IWYU pragma: no_include "gtest/gtest_pred_impl.h"
 // IWYU pragma: no_include <gtest/gtest-message.h>
 // IWYU pragma: no_include <gtest/gtest-test-part.h>
 // IWYU pragma: no_include <gtest/gtest-typed-test.h>
-
 
 namespace
 {

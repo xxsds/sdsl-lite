@@ -12,12 +12,12 @@
 #include <stdint.h>
 #include <string>
 
-#include "sdsl/config.hpp"
-#include "sdsl/int_vector.hpp"
-#include "sdsl/int_vector_buffer.hpp"
-#include "sdsl/int_vector_mapper.hpp"
-#include "sdsl/io.hpp"
-#include "sdsl/ram_fs.hpp"
+#include <sdsl/config.hpp>
+#include <sdsl/int_vector.hpp>
+#include <sdsl/int_vector_buffer.hpp>
+#include <sdsl/int_vector_mapper.hpp>
+#include <sdsl/io.hpp>
+#include <sdsl/ram_fs.hpp>
 
 namespace sdsl
 {

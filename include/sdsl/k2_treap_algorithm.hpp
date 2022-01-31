@@ -8,7 +8,6 @@
 #ifndef INCLUDED_SDSL_K2_TREAP_ALGORITHM
 #define INCLUDED_SDSL_K2_TREAP_ALGORITHM
 
-#include <sdsl/k2_treap.hpp>
 #include <array>
 #include <complex>
 #include <cstdint>
@@ -19,10 +18,11 @@
 #include <utility>
 #include <vector>
 
-#include "sdsl/config.hpp"
-#include "sdsl/int_vector_buffer.hpp"
-#include "sdsl/k2_treap_helper.hpp"
-#include "sdsl/ram_fs.hpp"
+#include <sdsl/config.hpp>
+#include <sdsl/int_vector_buffer.hpp>
+#include <sdsl/k2_treap.hpp>
+#include <sdsl/k2_treap_helper.hpp>
+#include <sdsl/ram_fs.hpp>
 
 //! Namespace for the succinct data structure library.
 namespace sdsl
@@ -332,7 +332,6 @@ uint64_t __count(const t_k2_treap & treap, typename t_k2_treap::node_type v)
     for (auto node : nodes) res += __count(treap, node);
     return res;
 }
-
 
 //! Specialized version of method ,,construct'' for k2_treaps.
 template <uint8_t t_k, typename t_bv, typename t_rank, typename t_max_vec>

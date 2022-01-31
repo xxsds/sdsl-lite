@@ -22,14 +22,14 @@
 #include <type_traits>
 #include <utility>
 
-#include "sdsl/bits.hpp"
-#include "sdsl/cereal.hpp"
-#include "sdsl/config.hpp"
-#include "sdsl/io.hpp"
-#include "sdsl/memory_management.hpp"
-#include "sdsl/sdsl_concepts.hpp"
-#include "sdsl/structure_tree.hpp"
-#include "sdsl/util.hpp"
+#include <sdsl/bits.hpp>
+#include <sdsl/cereal.hpp>
+#include <sdsl/config.hpp>
+#include <sdsl/io.hpp>
+#include <sdsl/memory_management.hpp>
+#include <sdsl/sdsl_concepts.hpp>
+#include <sdsl/structure_tree.hpp>
+#include <sdsl/util.hpp>
 
 //! Namespace for the succinct data structure library.
 namespace sdsl
@@ -1280,7 +1280,7 @@ class int_vector_const_iterator : public int_vector_iterator_base<t_int_vector>
         m_len = it.m_len;
     }
 
-    int_vector_const_iterator (const int_vector_const_iterator &) = default;
+    int_vector_const_iterator(const int_vector_const_iterator &) = default;
 
     int_vector_const_iterator & operator=(const int_vector_const_iterator &) = default;
 

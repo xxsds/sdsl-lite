@@ -1,8 +1,3 @@
-#include <gtest/gtest.h>// IWYU pragma: keep
-#include <sdsl/cereal.hpp>
-#include <sdsl/int_vector.hpp>
-#include <sdsl/io.hpp>
-#include <sdsl/ram_fs.hpp>
 #include <cstdint>
 #include <functional>
 #include <iostream>
@@ -11,14 +6,19 @@
 #include <type_traits>
 #include <utility>
 
-#include "sdsl/nearest_neighbour_dictionary.hpp"
-#include "sdsl/nn_dict_dynamic.hpp"
-#include "sdsl/util.hpp"
+#include <sdsl/cereal.hpp>
+#include <sdsl/int_vector.hpp>
+#include <sdsl/io.hpp>
+#include <sdsl/nearest_neighbour_dictionary.hpp>
+#include <sdsl/nn_dict_dynamic.hpp>
+#include <sdsl/ram_fs.hpp>
+#include <sdsl/util.hpp>
+
+#include <gtest/gtest.h> // IWYU pragma: keep
 // IWYU pragma: no_include "gtest/gtest_pred_impl.h"
 // IWYU pragma: no_include <gtest/gtest-message.h>
 // IWYU pragma: no_include <gtest/gtest-test-part.h>
 // IWYU pragma: no_include <gtest/gtest-typed-test.h>
-
 
 namespace
 {

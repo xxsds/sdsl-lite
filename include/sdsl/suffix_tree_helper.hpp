@@ -4,18 +4,18 @@
 #ifndef INCLUDED_SDSL_SUFFIX_TREE_HELPER
 #define INCLUDED_SDSL_SUFFIX_TREE_HELPER
 
-#include <stdint.h>
 #include <cassert>
 #include <iterator>
 #include <stack>
+#include <stdint.h>
 #include <type_traits>
 #include <utility>
 
-#include "sdsl/int_vector.hpp"
-#include "sdsl/int_vector_buffer.hpp"
-#include "sdsl/sorted_multi_stack_support.hpp"
-#include "sdsl/sorted_stack_support.hpp"
-#include "sdsl/util.hpp"
+#include <sdsl/int_vector.hpp>
+#include <sdsl/int_vector_buffer.hpp>
+#include <sdsl/sorted_multi_stack_support.hpp>
+#include <sdsl/sorted_stack_support.hpp>
+#include <sdsl/util.hpp>
 
 namespace sdsl
 {

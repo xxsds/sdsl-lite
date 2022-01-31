@@ -1,14 +1,14 @@
-#include <stdint.h>
-#include <sdsl/bits.hpp>
-#include <sdsl/io.hpp>
-#include <sdsl/util.hpp>
 #include <algorithm>
 #include <cstdlib>
 #include <iostream>
-#include <string>
 #include <random>
+#include <stdint.h>
+#include <string>
 
-#include "sdsl/int_vector.hpp"
+#include <sdsl/bits.hpp>
+#include <sdsl/int_vector.hpp>
+#include <sdsl/io.hpp>
+#include <sdsl/util.hpp>
 
 using namespace std;
 using namespace sdsl;

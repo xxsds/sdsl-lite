@@ -1,25 +1,26 @@
-#include <gtest/gtest.h>// IWYU pragma: keep
+#include <iostream>
+#include <stdint.h>
+#include <string>
+
 #include <sdsl/bits.hpp>
 #include <sdsl/config.hpp>
 #include <sdsl/construct.hpp>
 #include <sdsl/construct_config.hpp>
+#include <sdsl/construct_sa.hpp>
 #include <sdsl/int_vector.hpp>
 #include <sdsl/int_vector_buffer.hpp>
 #include <sdsl/io.hpp>
 #include <sdsl/memory_tracking.hpp>
 #include <sdsl/ram_fs.hpp>
 #include <sdsl/util.hpp>
-#include <stdint.h>
-#include <iostream>
-#include <string>
 
 #include "common.hpp"
-#include "sdsl/construct_sa.hpp"
+
+#include <gtest/gtest.h> // IWYU pragma: keep
 // IWYU pragma: no_include "gtest/gtest_pred_impl.h"
 // IWYU pragma: no_include <gtest/gtest-message.h>
 // IWYU pragma: no_include <gtest/gtest-test-part.h>
 // IWYU pragma: no_include <gtest/gtest-typed-test.h>
-
 
 using namespace sdsl;
 using namespace std;

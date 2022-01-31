@@ -1,27 +1,27 @@
-#include <gtest/gtest.h>// IWYU pragma: keep
-#include <sdsl/bits.hpp>
-#include <sdsl/construct.hpp>
-#include <sdsl/csa_sampling_strategy.hpp>
-#include <sdsl/int_vector.hpp>
-#include <sdsl/io.hpp>
-#include <sdsl/ram_fs.hpp>
-#include <sdsl/util.hpp>
 #include <cstdint>
 #include <iostream>
 #include <random>
 #include <string>
 
-#include "sdsl/bit_vector_il.hpp"
-#include "sdsl/csa_alphabet_strategy.hpp"
-#include "sdsl/csa_wt.hpp"
-#include "sdsl/suffix_array_algorithm.hpp"
-#include "sdsl/wt_blcd.hpp"
-#include "sdsl/wt_hutu.hpp"
+#include <sdsl/bit_vector_il.hpp>
+#include <sdsl/bits.hpp>
+#include <sdsl/construct.hpp>
+#include <sdsl/csa_alphabet_strategy.hpp>
+#include <sdsl/csa_sampling_strategy.hpp>
+#include <sdsl/csa_wt.hpp>
+#include <sdsl/int_vector.hpp>
+#include <sdsl/io.hpp>
+#include <sdsl/ram_fs.hpp>
+#include <sdsl/suffix_array_algorithm.hpp>
+#include <sdsl/util.hpp>
+#include <sdsl/wt_blcd.hpp>
+#include <sdsl/wt_hutu.hpp>
+
+#include <gtest/gtest.h> // IWYU pragma: keep
 // IWYU pragma: no_include "gtest/gtest_pred_impl.h"
 // IWYU pragma: no_include <gtest/gtest-message.h>
 // IWYU pragma: no_include <gtest/gtest-test-part.h>
 // IWYU pragma: no_include <gtest/gtest-typed-test.h>
-
 
 namespace
 {

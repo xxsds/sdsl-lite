@@ -1,10 +1,10 @@
-#include <stdint.h>
-#include <sdsl/bits.hpp>
 #include <cstdlib>
-#include <string>
 #include <iostream>
+#include <stdint.h>
+#include <string>
 
-#include "sdsl/int_vector_buffer.hpp"
+#include <sdsl/bits.hpp>
+#include <sdsl/int_vector_buffer.hpp>
 
 using namespace std;
 using namespace sdsl;

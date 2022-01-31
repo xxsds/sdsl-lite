@@ -10,8 +10,8 @@
 #include <string>
 #include <vector>
 
-#include "sdsl/memory_tracking.hpp"
-#include "sdsl/ram_fs.hpp"
+#include <sdsl/memory_tracking.hpp>
+#include <sdsl/ram_fs.hpp>
 
 namespace sdsl
 {

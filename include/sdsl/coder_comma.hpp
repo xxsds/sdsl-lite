@@ -13,8 +13,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "sdsl/bits.hpp"
-#include "sdsl/config.hpp"
+#include <sdsl/bits.hpp>
+#include <sdsl/config.hpp>
 
 namespace sdsl
 {

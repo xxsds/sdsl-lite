@@ -12,7 +12,7 @@
 #include <type_traits>
 #include <utility>
 
-#include "sdsl/sdsl_concepts.hpp"
+#include <sdsl/sdsl_concepts.hpp>
 
 //! Namespace for the succinct data structure library.
 namespace sdsl

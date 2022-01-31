@@ -15,12 +15,12 @@
 #include <string>
 #include <utility>
 
-#include "sdsl/bits.hpp"
-#include "sdsl/cereal.hpp"
-#include "sdsl/int_vector.hpp"
-#include "sdsl/iterators.hpp"
-#include "sdsl/structure_tree.hpp"
-#include "sdsl/util.hpp"
+#include <sdsl/bits.hpp>
+#include <sdsl/cereal.hpp>
+#include <sdsl/int_vector.hpp>
+#include <sdsl/iterators.hpp>
+#include <sdsl/structure_tree.hpp>
+#include <sdsl/util.hpp>
 
 namespace sdsl
 {

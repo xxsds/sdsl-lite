@@ -10,26 +10,26 @@
 #define INCLUDED_SDSL_WT_RLMN
 
 #include <assert.h>
-#include <stdint.h>
 #include <initializer_list>
 #include <iostream>
 #include <iterator>
 #include <map>
+#include <stdint.h>
 #include <string>
 #include <utility> // for pair
 
-#include "sdsl/bits.hpp"
-#include "sdsl/cereal.hpp"
-#include "sdsl/int_vector.hpp"
-#include "sdsl/int_vector_buffer.hpp"
-#include "sdsl/io.hpp"
-#include "sdsl/iterators.hpp"
-#include "sdsl/ram_fs.hpp"
-#include "sdsl/sd_vector.hpp" // for standard initialisation of template parameters
-#include "sdsl/sdsl_concepts.hpp"
-#include "sdsl/structure_tree.hpp"
-#include "sdsl/util.hpp"
-#include "sdsl/wt_huff.hpp"
+#include <sdsl/bits.hpp>
+#include <sdsl/cereal.hpp>
+#include <sdsl/int_vector.hpp>
+#include <sdsl/int_vector_buffer.hpp>
+#include <sdsl/io.hpp>
+#include <sdsl/iterators.hpp>
+#include <sdsl/ram_fs.hpp>
+#include <sdsl/sd_vector.hpp> // for standard initialisation of template parameters
+#include <sdsl/sdsl_concepts.hpp>
+#include <sdsl/structure_tree.hpp>
+#include <sdsl/util.hpp>
+#include <sdsl/wt_huff.hpp>
 
 //! Namespace for the succinct data structure library.
 namespace sdsl

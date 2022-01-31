@@ -3,7 +3,7 @@
 
 #include <string>
 
-#include "sdsl/io.hpp"
+#include <sdsl/io.hpp>
 
 int init_2_arg_test(int argc,
                     char ** argv,

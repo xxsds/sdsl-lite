@@ -8,16 +8,16 @@
 #ifndef INCLUDED_SDSL_STRUCTURE_TREE
 #define INCLUDED_SDSL_STRUCTURE_TREE
 
-#include <stddef.h>
-#include <stdint.h>
 #include <iostream> // IWYU pragma: keep
 #include <memory>
 #include <sstream> // IWYU pragma: keep
+#include <stddef.h>
+#include <stdint.h>
 #include <string>
 #include <unordered_map>
 #include <utility>
 
-#include "sdsl/config.hpp"
+#include <sdsl/config.hpp>
 
 //! Namespace for the succinct data structure library
 namespace sdsl

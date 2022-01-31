@@ -1,37 +1,39 @@
-#include <gtest/gtest.h>// IWYU pragma: keep
+#include <algorithm>
+#include <iosfwd>
+#include <iterator>
 #include <libgen.h>
+#include <map>
+#include <stdint.h>
+#include <string>
+#include <tuple>
+#include <type_traits>
+#include <utility>
+
 #include <sdsl/bits.hpp>
 #include <sdsl/cereal.hpp>
 #include <sdsl/config.hpp>
 #include <sdsl/construct.hpp>
+#include <sdsl/csa_bitcompressed.hpp>
+#include <sdsl/csa_sada.hpp>
+#include <sdsl/csa_wt.hpp>
 #include <sdsl/int_vector.hpp>
 #include <sdsl/io.hpp>
 #include <sdsl/ram_fs.hpp>
+#include <sdsl/suffix_array_algorithm.hpp>
 #include <sdsl/util.hpp>
-#include <stdint.h>
-#include <algorithm>
-#include <iosfwd>
-#include <iterator>
-#include <map>
-#include <string>
-#include <type_traits>
-#include <utility>
-#include <tuple>
 
 #include "common.hpp"
-#include "sdsl/csa_bitcompressed.hpp"
-#include "sdsl/csa_sada.hpp"
-#include "sdsl/csa_wt.hpp"
-#include "sdsl/suffix_array_algorithm.hpp"
 
-namespace sdsl {
+#include <gtest/gtest.h> // IWYU pragma: keep
+
+namespace sdsl
+{
 class plain_byte_alphabet;
-}  // namespace sdsl
+} // namespace sdsl
 // IWYU pragma: no_include "gtest/gtest_pred_impl.h"
 // IWYU pragma: no_include <gtest/gtest-message.h>
 // IWYU pragma: no_include <gtest/gtest-test-part.h>
 // IWYU pragma: no_include <gtest/gtest-typed-test.h>
-
 
 namespace
 {

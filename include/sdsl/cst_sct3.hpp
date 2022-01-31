@@ -8,33 +8,33 @@
 #ifndef INCLUDED_SDSL_CST_SCT3
 #define INCLUDED_SDSL_CST_SCT3
 
-#include <sdsl/wt_pc.hpp>
-#include <stddef.h>
-#include <stdint.h>
 #include <cassert>
 #include <iostream>
+#include <stddef.h>
+#include <stdint.h>
 #include <string>
 #include <type_traits>
 #include <utility>
 
-#include "sdsl/bits.hpp"
-#include "sdsl/bp_support_sada.hpp"
-#include "sdsl/cereal.hpp"
-#include "sdsl/config.hpp"
-#include "sdsl/csa_wt.hpp"
-#include "sdsl/cst_iterators.hpp"
-#include "sdsl/int_vector.hpp"
-#include "sdsl/int_vector_buffer.hpp"
-#include "sdsl/io.hpp"
-#include "sdsl/lcp.hpp"
-#include "sdsl/lcp_dac.hpp"
-#include "sdsl/memory_tracking.hpp"
-#include "sdsl/rank_support_v5.hpp"
-#include "sdsl/sdsl_concepts.hpp"
-#include "sdsl/select_support_scan.hpp"
-#include "sdsl/structure_tree.hpp"
-#include "sdsl/suffix_tree_helper.hpp"
-#include "sdsl/util.hpp"
+#include <sdsl/bits.hpp>
+#include <sdsl/bp_support_sada.hpp>
+#include <sdsl/cereal.hpp>
+#include <sdsl/config.hpp>
+#include <sdsl/csa_wt.hpp>
+#include <sdsl/cst_iterators.hpp>
+#include <sdsl/int_vector.hpp>
+#include <sdsl/int_vector_buffer.hpp>
+#include <sdsl/io.hpp>
+#include <sdsl/lcp.hpp>
+#include <sdsl/lcp_dac.hpp>
+#include <sdsl/memory_tracking.hpp>
+#include <sdsl/rank_support_v5.hpp>
+#include <sdsl/sdsl_concepts.hpp>
+#include <sdsl/select_support_scan.hpp>
+#include <sdsl/structure_tree.hpp>
+#include <sdsl/suffix_tree_helper.hpp>
+#include <sdsl/util.hpp>
+#include <sdsl/wt_pc.hpp>
 
 namespace sdsl
 {

@@ -8,24 +8,24 @@
 #ifndef SDSL_DAC_VECTOR
 #define SDSL_DAC_VECTOR
 
+#include <algorithm>
 #include <assert.h>
+#include <iosfwd>
 #include <stddef.h>
 #include <stdint.h>
-#include <algorithm>
-#include <iosfwd>
 #include <string>
 #include <utility>
 
-#include "sdsl/bits.hpp"
-#include "sdsl/cereal.hpp"
-#include "sdsl/int_vector.hpp"
-#include "sdsl/int_vector_buffer.hpp"
-#include "sdsl/io.hpp"
-#include "sdsl/iterators.hpp"
-#include "sdsl/rank_support_v5.hpp"
-#include "sdsl/sdsl_concepts.hpp"
-#include "sdsl/structure_tree.hpp"
-#include "sdsl/util.hpp"
+#include <sdsl/bits.hpp>
+#include <sdsl/cereal.hpp>
+#include <sdsl/int_vector.hpp>
+#include <sdsl/int_vector_buffer.hpp>
+#include <sdsl/io.hpp>
+#include <sdsl/iterators.hpp>
+#include <sdsl/rank_support_v5.hpp>
+#include <sdsl/sdsl_concepts.hpp>
+#include <sdsl/structure_tree.hpp>
+#include <sdsl/util.hpp>
 
 //! Namespace for the succinct data structure library.
 namespace sdsl

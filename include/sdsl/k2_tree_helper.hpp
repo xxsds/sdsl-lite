@@ -14,7 +14,7 @@
 #include <utility>
 #include <vector>
 
-#include "sdsl/int_vector.hpp"
+#include <sdsl/int_vector.hpp>
 
 // IWYU pragma: no_include <ext/alloc_traits.h>
 

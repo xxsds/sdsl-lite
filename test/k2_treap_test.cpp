@@ -1,31 +1,32 @@
-#include <gtest/gtest.h>// IWYU pragma: keep
-#include <libgen.h>
-#include <sdsl/cereal.hpp>
-#include <sdsl/config.hpp>
-#include <sdsl/io.hpp>
-#include <sdsl/ram_fs.hpp>
-#include <sdsl/util.hpp>
 #include <algorithm> // for std::min. std::sort
 #include <complex>
 #include <cstddef>
 #include <cstdint>
 #include <functional>
+#include <libgen.h>
 #include <random>
 #include <string>
 #include <tuple>
 #include <vector>
 
+#include <sdsl/cereal.hpp>
+#include <sdsl/config.hpp>
+#include <sdsl/int_vector.hpp>
+#include <sdsl/io.hpp>
+#include <sdsl/k2_treap.hpp>
+#include <sdsl/k2_treap_algorithm.hpp>
+#include <sdsl/ram_fs.hpp>
+#include <sdsl/rank_support_v.hpp> // IWYU pragma: keep
+#include <sdsl/rrr_vector.hpp>
+#include <sdsl/util.hpp>
+
 #include "common.hpp"
-#include "sdsl/int_vector.hpp"
-#include "sdsl/k2_treap.hpp"
-#include "sdsl/k2_treap_algorithm.hpp"
-#include "sdsl/rank_support_v.hpp" // IWYU pragma: keep
-#include "sdsl/rrr_vector.hpp"
+
+#include <gtest/gtest.h> // IWYU pragma: keep
 // IWYU pragma: no_include "gtest/gtest_pred_impl.h"
 // IWYU pragma: no_include <gtest/gtest-message.h>
 // IWYU pragma: no_include <gtest/gtest-test-part.h>
 // IWYU pragma: no_include <gtest/gtest-typed-test.h>
-
 
 namespace
 {

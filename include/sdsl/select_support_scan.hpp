@@ -13,11 +13,11 @@
 #include <stdint.h>
 #include <string>
 
-#include "sdsl/cereal.hpp"
-#include "sdsl/config.hpp"
-#include "sdsl/int_vector.hpp"
-#include "sdsl/io.hpp"
-#include "sdsl/select_support.hpp"
+#include <sdsl/cereal.hpp>
+#include <sdsl/config.hpp>
+#include <sdsl/int_vector.hpp>
+#include <sdsl/io.hpp>
+#include <sdsl/select_support.hpp>
 
 //! Namespace for the succinct data structure library.
 namespace sdsl

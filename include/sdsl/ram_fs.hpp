@@ -17,7 +17,7 @@
 #include <utility>
 #include <vector>
 
-#include "sdsl/memory_tracking.hpp"
+#include <sdsl/memory_tracking.hpp>
 
 namespace sdsl
 {

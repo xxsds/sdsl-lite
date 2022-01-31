@@ -27,11 +27,11 @@
 #ifndef INCLUDED_SDSL_DIVSUFSORT
 #define INCLUDED_SDSL_DIVSUFSORT
 
+#include <algorithm>
 #include <assert.h>
+#include <cstdint>
 #include <stdio.h>
 #include <stdlib.h>
-#include <algorithm>
-#include <cstdint>
 #include <utility>
 
 #ifdef _OPENMP

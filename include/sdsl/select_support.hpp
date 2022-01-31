@@ -16,10 +16,10 @@
 #include <stdint.h>
 #include <string>
 
-#include "sdsl/bits.hpp"
-#include "sdsl/int_vector.hpp"
-#include "sdsl/rank_support.hpp"
-#include "sdsl/util.hpp"
+#include <sdsl/bits.hpp>
+#include <sdsl/int_vector.hpp>
+#include <sdsl/rank_support.hpp>
+#include <sdsl/util.hpp>
 
 //! Namespace for the succinct data structure library.
 namespace sdsl

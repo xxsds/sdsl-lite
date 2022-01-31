@@ -1,24 +1,24 @@
-#include <gtest/gtest.h>// IWYU pragma: keep
+#include <cstdlib>
+#include <iostream>
+#include <stdint.h>
+#include <string>
+#include <time.h>
+#include <tuple>
+#include <utility>
+
 #include <sdsl/bits.hpp>
 #include <sdsl/cereal.hpp>
 #include <sdsl/int_vector.hpp>
 #include <sdsl/io.hpp>
 #include <sdsl/ram_fs.hpp>
 #include <sdsl/util.hpp>
-#include <stdint.h>
-#include <time.h>
-#include <cstdlib>
-#include <iostream>
-#include <string>
-#include <tuple>
-#include <utility>
+#include <sdsl/wt_epr.hpp>
 
-#include "sdsl/wt_epr.hpp"
+#include <gtest/gtest.h> // IWYU pragma: keep
 // IWYU pragma: no_include "gtest/gtest_pred_impl.h"
 // IWYU pragma: no_include <gtest/gtest-message.h>
 // IWYU pragma: no_include <gtest/gtest-test-part.h>
 // IWYU pragma: no_include <gtest/gtest-typed-test.h>
-
 
 namespace
 {

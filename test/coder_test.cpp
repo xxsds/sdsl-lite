@@ -1,22 +1,22 @@
-#include <gtest/gtest.h>// IWYU pragma: keep
-#include <sdsl/bits.hpp>
-#include <stddef.h>
 #include <cstdint>
 #include <functional>
 #include <memory>
 #include <random>
+#include <stddef.h>
 
-#include "sdsl/coder_comma.hpp"
-#include "sdsl/coder_elias_delta.hpp"
-#include "sdsl/coder_elias_gamma.hpp"
-#include "sdsl/coder_fibonacci.hpp"
-#include "sdsl/int_vector.hpp"
-#include "sdsl/util.hpp"
+#include <sdsl/bits.hpp>
+#include <sdsl/coder_comma.hpp>
+#include <sdsl/coder_elias_delta.hpp>
+#include <sdsl/coder_elias_gamma.hpp>
+#include <sdsl/coder_fibonacci.hpp>
+#include <sdsl/int_vector.hpp>
+#include <sdsl/util.hpp>
+
+#include <gtest/gtest.h> // IWYU pragma: keep
 // IWYU pragma: no_include "gtest/gtest_pred_impl.h"
 // IWYU pragma: no_include <gtest/gtest-message.h>
 // IWYU pragma: no_include <gtest/gtest-test-part.h>
 // IWYU pragma: no_include <gtest/gtest-typed-test.h>
-
 
 namespace
 {

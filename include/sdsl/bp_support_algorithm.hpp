@@ -15,9 +15,9 @@
 #include <stack> // for calculate_pioneers_bitmap method
 #include <utility>
 
-#include "sdsl/bits.hpp"
-#include "sdsl/int_vector.hpp" // for bit_vector
-#include "sdsl/sorted_stack_support.hpp"
+#include <sdsl/bits.hpp>
+#include <sdsl/int_vector.hpp> // for bit_vector
+#include <sdsl/sorted_stack_support.hpp>
 
 namespace sdsl
 {

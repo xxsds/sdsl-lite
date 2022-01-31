@@ -12,10 +12,10 @@
 #include <assert.h>
 #include <stdint.h>
 
-#include "sdsl/bp_support_algorithm.hpp"
-#include "sdsl/int_vector.hpp"
-#include "sdsl/rank_support_v5.hpp"
-#include "sdsl/select_support_mcl.hpp"
+#include <sdsl/bp_support_algorithm.hpp>
+#include <sdsl/int_vector.hpp>
+#include <sdsl/rank_support_v5.hpp>
+#include <sdsl/select_support_mcl.hpp>
 #ifndef NDEBUG
 #include <algorithm>
 #endif
@@ -23,11 +23,11 @@
 #include <string>
 #include <utility>
 
-#include "sdsl/bits.hpp"
-#include "sdsl/cereal.hpp"
-#include "sdsl/io.hpp"
-#include "sdsl/structure_tree.hpp"
-#include "sdsl/util.hpp"
+#include <sdsl/bits.hpp>
+#include <sdsl/cereal.hpp>
+#include <sdsl/io.hpp>
+#include <sdsl/structure_tree.hpp>
+#include <sdsl/util.hpp>
 
 namespace sdsl
 {

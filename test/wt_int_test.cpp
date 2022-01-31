@@ -1,16 +1,3 @@
-#include <ext/alloc_traits.h>
-#include <gtest/gtest.h>// IWYU pragma: keep
-#include <sdsl/cereal.hpp>
-#include <sdsl/config.hpp>
-#include <sdsl/int_vector.hpp>
-#include <sdsl/int_vector_buffer.hpp>
-#include <sdsl/io.hpp>
-#include <sdsl/ram_fs.hpp>
-#include <sdsl/rank_support_v5.hpp>
-#include <sdsl/util.hpp>
-#include <sdsl/wm_int.hpp>
-#include <sdsl/wt_algorithm.hpp>
-#include <sdsl/wt_helper.hpp>
 #include <algorithm>
 #include <array>
 #include <cstddef>
@@ -29,25 +16,42 @@
 #include <utility>
 #include <vector>
 
-#include "common.hpp"
-#include "sdsl/construct.hpp"
-#include "sdsl/wt_ap.hpp"
-#include "sdsl/wt_blcd.hpp"
-#include "sdsl/wt_gmr.hpp"
-#include "sdsl/wt_huff.hpp"
-#include "sdsl/wt_hutu.hpp"
-#include "sdsl/wt_int.hpp"
-#include "sdsl/wt_rlmn.hpp"
+#include <sdsl/cereal.hpp>
+#include <sdsl/config.hpp>
+#include <sdsl/construct.hpp>
+#include <sdsl/int_vector.hpp>
+#include <sdsl/int_vector_buffer.hpp>
+#include <sdsl/io.hpp>
+#include <sdsl/ram_fs.hpp>
+#include <sdsl/rank_support_v5.hpp>
+#include <sdsl/util.hpp>
+#include <sdsl/wm_int.hpp>
+#include <sdsl/wt_algorithm.hpp>
+#include <sdsl/wt_ap.hpp>
+#include <sdsl/wt_blcd.hpp>
+#include <sdsl/wt_gmr.hpp>
+#include <sdsl/wt_helper.hpp>
+#include <sdsl/wt_huff.hpp>
+#include <sdsl/wt_hutu.hpp>
+#include <sdsl/wt_int.hpp>
+#include <sdsl/wt_rlmn.hpp>
 
-namespace sdsl {
-template <uint8_t, uint8_t> class rank_support_v;
-template <uint8_t, uint8_t> class select_support_mcl;
-}  // namespace sdsl
+#include "common.hpp"
+#include <ext/alloc_traits.h>
+
+#include <gtest/gtest.h> // IWYU pragma: keep
+
+namespace sdsl
+{
+template <uint8_t, uint8_t>
+class rank_support_v;
+template <uint8_t, uint8_t>
+class select_support_mcl;
+} // namespace sdsl
 // IWYU pragma: no_include "gtest/gtest_pred_impl.h"
 // IWYU pragma: no_include <gtest/gtest-message.h>
 // IWYU pragma: no_include <gtest/gtest-test-part.h>
 // IWYU pragma: no_include <gtest/gtest-typed-test.h>
-
 
 namespace
 {
