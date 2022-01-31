@@ -4,9 +4,9 @@
 #include <string>
 #include <vector>
 
-#include <sdsl/int_vector.hpp>
-#include <sdsl/select_support_mcl.hpp>
-#include <sdsl/util.hpp>
+#include "sdsl/int_vector.hpp"
+#include "sdsl/select_support_mcl.hpp"
+#include "sdsl/util.hpp"
 
 #include <gtest/gtest.h>
 

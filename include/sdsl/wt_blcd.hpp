@@ -13,9 +13,9 @@
 #include <utility>
 #include <vector>
 
-#include <sdsl/int_vector.hpp>
-#include <sdsl/wt_helper.hpp>
-#include <sdsl/wt_pc.hpp>
+#include "sdsl/int_vector.hpp"
+#include "sdsl/wt_helper.hpp"
+#include "sdsl/wt_pc.hpp"
 
 #include <ext/alloc_traits.h>
 

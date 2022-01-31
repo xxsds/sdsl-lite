@@ -3,9 +3,9 @@
 #include <string>
 #include <vector>
 
-#include <sdsl/inv_perm_support.hpp>
-#include <sdsl/rank_support_v.hpp>
-#include <sdsl/util.hpp>
+#include "sdsl/inv_perm_support.hpp"
+#include "sdsl/rank_support_v.hpp"
+#include "sdsl/util.hpp"
 
 #include <gtest/gtest.h>
 

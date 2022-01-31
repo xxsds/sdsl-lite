@@ -9,7 +9,7 @@
 #ifndef INCLUDED_SDSL_RANK_SUPPORT_INT_SCAN
 #define INCLUDED_SDSL_RANK_SUPPORT_INT_SCAN
 
-#include <sdsl/rank_support_int.hpp>
+#include "sdsl/rank_support_int.hpp"
 
 namespace sdsl
 {

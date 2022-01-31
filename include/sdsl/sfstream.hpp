@@ -11,8 +11,8 @@
 #include <fstream>
 #include <string>
 
-#include <sdsl/ram_filebuf.hpp>
-#include <sdsl/ram_fs.hpp>
+#include "sdsl/ram_filebuf.hpp"
+#include "sdsl/ram_fs.hpp"
 
 namespace sdsl
 {

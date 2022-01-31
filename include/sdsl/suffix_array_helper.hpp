@@ -10,8 +10,8 @@
 
 #include <cassert>
 
-#include <sdsl/iterators.hpp>
-#include <sdsl/sdsl_concepts.hpp>
+#include "sdsl/iterators.hpp"
+#include "sdsl/sdsl_concepts.hpp"
 
 namespace sdsl
 {

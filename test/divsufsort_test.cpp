@@ -1,8 +1,8 @@
 #include <algorithm>
 #include <cstdint>
 
-#include <sdsl/divsufsort.hpp>
-#include <sdsl/int_vector.hpp>
+#include "sdsl/divsufsort.hpp"
+#include "sdsl/int_vector.hpp"
 
 #include <gtest/gtest.h>
 

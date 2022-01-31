@@ -1,12 +1,12 @@
 #include <string>
 
-#include <sdsl/bit_vector_il.hpp>
-#include <sdsl/hyb_vector.hpp>
-#include <sdsl/rank_support_scan.hpp>
-#include <sdsl/rank_support_v.hpp>
-#include <sdsl/rank_support_v5.hpp>
-#include <sdsl/rrr_vector.hpp>
-#include <sdsl/sd_vector.hpp>
+#include "sdsl/bit_vector_il.hpp"
+#include "sdsl/hyb_vector.hpp"
+#include "sdsl/rank_support_scan.hpp"
+#include "sdsl/rank_support_v.hpp"
+#include "sdsl/rank_support_v5.hpp"
+#include "sdsl/rrr_vector.hpp"
+#include "sdsl/sd_vector.hpp"
 
 #include "common.hpp"
 

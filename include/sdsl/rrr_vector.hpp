@@ -15,16 +15,16 @@
 #include <stdint.h>
 #include <string>
 
-#include <sdsl/bits.hpp>
-#include <sdsl/cereal.hpp>
-#include <sdsl/config.hpp>
-#include <sdsl/int_vector.hpp>
-#include <sdsl/io.hpp>
-#include <sdsl/iterators.hpp>
-#include <sdsl/rrr_helper.hpp>
-#include <sdsl/sdsl_concepts.hpp>
-#include <sdsl/structure_tree.hpp>
-#include <sdsl/util.hpp>
+#include "sdsl/bits.hpp"
+#include "sdsl/cereal.hpp"
+#include "sdsl/config.hpp"
+#include "sdsl/int_vector.hpp"
+#include "sdsl/io.hpp"
+#include "sdsl/iterators.hpp"
+#include "sdsl/rrr_helper.hpp"
+#include "sdsl/sdsl_concepts.hpp"
+#include "sdsl/structure_tree.hpp"
+#include "sdsl/util.hpp"
 
 //! Namespace for the succinct data structure library
 namespace sdsl

@@ -11,7 +11,7 @@
 #include <complex>
 #include <cstdint>
 
-#include <sdsl/bits.hpp>
+#include "sdsl/bits.hpp"
 
 //! Namespace for the succinct data structure library.
 namespace sdsl

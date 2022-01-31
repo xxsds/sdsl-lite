@@ -15,8 +15,8 @@
 #include <utility>
 #include <vector>
 
-#include <sdsl/bits.hpp>
-#include <sdsl/wt_helper.hpp>
+#include "sdsl/bits.hpp"
+#include "sdsl/wt_helper.hpp"
 
 namespace sdsl
 {

@@ -12,13 +12,13 @@
 #include <iosfwd>
 #include <string>
 
-#include <sdsl/bp_support_sada.hpp>
-#include <sdsl/cereal.hpp>
-#include <sdsl/int_vector.hpp>
-#include <sdsl/rank_support_v5.hpp>
-#include <sdsl/structure_tree.hpp>
-#include <sdsl/suffix_tree_helper.hpp>
-#include <sdsl/util.hpp>
+#include "sdsl/bp_support_sada.hpp"
+#include "sdsl/cereal.hpp"
+#include "sdsl/int_vector.hpp"
+#include "sdsl/rank_support_v5.hpp"
+#include "sdsl/structure_tree.hpp"
+#include "sdsl/suffix_tree_helper.hpp"
+#include "sdsl/util.hpp"
 
 //! Namespace for the succinct data structure library.
 namespace sdsl

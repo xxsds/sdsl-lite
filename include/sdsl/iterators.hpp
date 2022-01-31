@@ -11,7 +11,7 @@
 #include <iterator>
 #include <type_traits>
 
-#include <sdsl/int_vector.hpp>
+#include "sdsl/int_vector.hpp"
 
 namespace sdsl
 {

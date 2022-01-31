@@ -3,8 +3,8 @@
 #include <string>
 #include <vector>
 
-#include <sdsl/int_vector_mapper.hpp>
-#include <sdsl/util.hpp>
+#include "sdsl/int_vector_mapper.hpp"
+#include "sdsl/util.hpp"
 
 #include <gtest/gtest.h>
 

@@ -1,9 +1,9 @@
 #include <random>
 #include <string>
 
-#include <sdsl/nearest_neighbour_dictionary.hpp>
-#include <sdsl/nn_dict_dynamic.hpp>
-#include <sdsl/util.hpp>
+#include "sdsl/nearest_neighbour_dictionary.hpp"
+#include "sdsl/nn_dict_dynamic.hpp"
+#include "sdsl/util.hpp"
 
 #include <gtest/gtest.h>
 

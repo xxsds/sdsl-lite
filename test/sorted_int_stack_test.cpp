@@ -1,8 +1,8 @@
 #include <random>
 #include <string>
 
-#include <sdsl/sorted_int_stack.hpp>
-#include <sdsl/util.hpp>
+#include "sdsl/sorted_int_stack.hpp"
+#include "sdsl/util.hpp"
 
 #include <gtest/gtest.h>
 

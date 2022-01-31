@@ -18,10 +18,10 @@
 #include <utility>
 #include <vector>
 
-#include <sdsl/config.hpp>
-#include <sdsl/int_vector_buffer.hpp>
-#include <sdsl/k2_treap_helper.hpp>
-#include <sdsl/ram_fs.hpp>
+#include "sdsl/config.hpp"
+#include "sdsl/int_vector_buffer.hpp"
+#include "sdsl/k2_treap_helper.hpp"
+#include "sdsl/ram_fs.hpp"
 
 //! Namespace for the succinct data structure library.
 namespace sdsl

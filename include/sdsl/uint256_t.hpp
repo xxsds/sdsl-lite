@@ -12,8 +12,8 @@
 #include <stdint.h>
 #include <utility>
 
-#include <sdsl/bits.hpp>
-#include <sdsl/uint128_t.hpp>
+#include "sdsl/bits.hpp"
+#include "sdsl/uint128_t.hpp"
 
 namespace sdsl
 {

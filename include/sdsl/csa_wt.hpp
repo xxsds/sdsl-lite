@@ -15,20 +15,20 @@
 #include <string>
 #include <type_traits>
 
-#include <sdsl/cereal.hpp>
-#include <sdsl/config.hpp>
-#include <sdsl/csa_alphabet_strategy.hpp>
-#include <sdsl/csa_sampling_strategy.hpp>
-#include <sdsl/int_vector.hpp>
-#include <sdsl/int_vector_buffer.hpp>
-#include <sdsl/io.hpp>
-#include <sdsl/iterators.hpp>
-#include <sdsl/memory_tracking.hpp>
-#include <sdsl/sdsl_concepts.hpp>
-#include <sdsl/structure_tree.hpp>
-#include <sdsl/suffix_array_helper.hpp>
-#include <sdsl/util.hpp>
-#include <sdsl/wt_huff.hpp>
+#include "sdsl/cereal.hpp"
+#include "sdsl/config.hpp"
+#include "sdsl/csa_alphabet_strategy.hpp"
+#include "sdsl/csa_sampling_strategy.hpp"
+#include "sdsl/int_vector.hpp"
+#include "sdsl/int_vector_buffer.hpp"
+#include "sdsl/io.hpp"
+#include "sdsl/iterators.hpp"
+#include "sdsl/memory_tracking.hpp"
+#include "sdsl/sdsl_concepts.hpp"
+#include "sdsl/structure_tree.hpp"
+#include "sdsl/suffix_array_helper.hpp"
+#include "sdsl/util.hpp"
+#include "sdsl/wt_huff.hpp"
 
 namespace sdsl
 {

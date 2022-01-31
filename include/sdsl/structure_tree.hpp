@@ -10,12 +10,12 @@
 
 #include <iostream>
 #include <memory>
-#include <sstream>
+#include <sstream> // IWYU pragma: keep
 #include <string>
 #include <unordered_map>
 
-#include <sdsl/config.hpp>
-#include <sdsl/uintx_t.hpp>
+#include "sdsl/config.hpp"
+#include "sdsl/uintx_t.hpp"
 
 //! Namespace for the succinct data structure library
 namespace sdsl

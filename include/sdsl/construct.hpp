@@ -15,18 +15,18 @@
 #include <string>
 #include <type_traits>
 
-#include <sdsl/config.hpp>
-#include <sdsl/construct_bwt.hpp>
-#include <sdsl/construct_lcp.hpp>
-#include <sdsl/construct_sa.hpp>
-#include <sdsl/int_vector.hpp>
-#include <sdsl/int_vector_buffer.hpp>
-#include <sdsl/int_vector_mapper.hpp>
-#include <sdsl/io.hpp>
-#include <sdsl/memory_tracking.hpp>
-#include <sdsl/ram_fs.hpp>
-#include <sdsl/sdsl_concepts.hpp>
-#include <sdsl/util.hpp>
+#include "sdsl/config.hpp"
+#include "sdsl/construct_bwt.hpp"
+#include "sdsl/construct_lcp.hpp"
+#include "sdsl/construct_sa.hpp"
+#include "sdsl/int_vector.hpp"
+#include "sdsl/int_vector_buffer.hpp"
+#include "sdsl/int_vector_mapper.hpp"
+#include "sdsl/io.hpp"
+#include "sdsl/memory_tracking.hpp"
+#include "sdsl/ram_fs.hpp"
+#include "sdsl/sdsl_concepts.hpp"
+#include "sdsl/util.hpp"
 
 namespace sdsl
 {

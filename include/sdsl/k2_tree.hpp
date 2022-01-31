@@ -22,13 +22,13 @@
 #include <type_traits>
 #include <vector>
 
-#include <sdsl/cereal.hpp>
-#include <sdsl/int_vector.hpp>
-#include <sdsl/int_vector_buffer.hpp>
-#include <sdsl/io.hpp>
-#include <sdsl/k2_tree_helper.hpp>
-#include <sdsl/structure_tree.hpp>
-#include <sdsl/util.hpp>
+#include "sdsl/cereal.hpp"
+#include "sdsl/int_vector.hpp"
+#include "sdsl/int_vector_buffer.hpp"
+#include "sdsl/io.hpp"
+#include "sdsl/k2_tree_helper.hpp"
+#include "sdsl/structure_tree.hpp"
+#include "sdsl/util.hpp"
 
 //! Namespace for the succint data structure library
 namespace sdsl

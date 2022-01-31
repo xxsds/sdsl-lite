@@ -24,13 +24,13 @@
 #include <utility>
 #include <vector>
 
-#include <sdsl/bits.hpp>
-#include <sdsl/config.hpp>
-#include <sdsl/platform.hpp>
-#include <sdsl/sdsl_concepts.hpp>
-#include <sdsl/sfstream.hpp>
-#include <sdsl/structure_tree.hpp>
-#include <sdsl/util.hpp>
+#include "sdsl/bits.hpp"
+#include "sdsl/config.hpp"
+#include "sdsl/platform.hpp"
+#include "sdsl/sdsl_concepts.hpp"
+#include "sdsl/sfstream.hpp"
+#include "sdsl/structure_tree.hpp"
+#include "sdsl/util.hpp"
 
 #include <ext/alloc_traits.h>
 #include <sys/types.h>
@@ -38,7 +38,7 @@
 namespace sdsl
 {
 template <uint8_t = 0u>
-class int_vector;
+class int_vector; // IWYU pragma: keep
 
 int remove(const std::string &);
 

@@ -26,9 +26,9 @@
 #include <typeinfo> // for typeid
 #include <utility>
 
-#include <sdsl/bits.hpp>
-#include <sdsl/config.hpp> // for constants
-#include <sdsl/ram_fs.hpp>
+#include "sdsl/bits.hpp"
+#include "sdsl/config.hpp" // for constants
+#include "sdsl/ram_fs.hpp"
 
 #include <sys/stat.h> // for file_size
 

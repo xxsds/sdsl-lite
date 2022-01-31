@@ -4,7 +4,7 @@
 #ifndef INCLUDED_SDSL_CONSTRUCT_CONFIG
 #define INCLUDED_SDSL_CONSTRUCT_CONFIG
 
-#include <sdsl/config.hpp>
+#include "sdsl/config.hpp"
 
 namespace sdsl
 {

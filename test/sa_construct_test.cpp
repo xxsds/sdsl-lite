@@ -2,9 +2,9 @@
 #include <string>
 #include <vector>
 
-#include <sdsl/construct_sa.hpp>
-#include <sdsl/construct_sa_se.hpp>
-#include <sdsl/suffix_arrays.hpp>
+#include "sdsl/construct_sa.hpp"
+#include "sdsl/construct_sa_se.hpp"
+#include "sdsl/suffix_arrays.hpp"
 
 #include "common.hpp"
 

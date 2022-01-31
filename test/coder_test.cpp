@@ -1,11 +1,11 @@
 #include <random>
 
-#include <sdsl/coder_comma.hpp>
-#include <sdsl/coder_elias_delta.hpp>
-#include <sdsl/coder_elias_gamma.hpp>
-#include <sdsl/coder_fibonacci.hpp>
-#include <sdsl/int_vector.hpp>
-#include <sdsl/util.hpp>
+#include "sdsl/coder_comma.hpp"
+#include "sdsl/coder_elias_delta.hpp"
+#include "sdsl/coder_elias_gamma.hpp"
+#include "sdsl/coder_fibonacci.hpp"
+#include "sdsl/int_vector.hpp"
+#include "sdsl/util.hpp"
 
 #include <gtest/gtest.h>
 

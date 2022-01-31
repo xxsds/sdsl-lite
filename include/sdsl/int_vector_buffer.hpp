@@ -14,10 +14,10 @@
 #include <stdint.h>
 #include <string>
 
-#include <sdsl/int_vector.hpp>
-#include <sdsl/ram_fs.hpp>
-#include <sdsl/sfstream.hpp>
-#include <sdsl/util.hpp>
+#include "sdsl/int_vector.hpp"
+#include "sdsl/ram_fs.hpp"
+#include "sdsl/sfstream.hpp"
+#include "sdsl/util.hpp"
 
 namespace sdsl
 {

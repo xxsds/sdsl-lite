@@ -11,7 +11,7 @@
 #include <assert.h>
 #include <stdint.h>
 
-#include <sdsl/bits.hpp>
+#include "sdsl/bits.hpp"
 
 namespace sdsl
 {

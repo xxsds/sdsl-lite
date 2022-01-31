@@ -2,8 +2,8 @@
 #include <string>
 #include <vector>
 
-#include <sdsl/construct.hpp>
-#include <sdsl/suffix_arrays.hpp>
+#include "sdsl/construct.hpp"
+#include "sdsl/suffix_arrays.hpp"
 
 #include "common.hpp"
 

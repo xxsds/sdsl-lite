@@ -2,12 +2,12 @@
 #include <string>
 #include <vector>
 
-#include <sdsl/bit_vector_il.hpp>
-#include <sdsl/csa_alphabet_strategy.hpp>
-#include <sdsl/csa_wt.hpp>
-#include <sdsl/suffix_array_algorithm.hpp>
-#include <sdsl/wt_blcd.hpp>
-#include <sdsl/wt_hutu.hpp>
+#include "sdsl/bit_vector_il.hpp"
+#include "sdsl/csa_alphabet_strategy.hpp"
+#include "sdsl/csa_wt.hpp"
+#include "sdsl/suffix_array_algorithm.hpp"
+#include "sdsl/wt_blcd.hpp"
+#include "sdsl/wt_hutu.hpp"
 
 #include <gtest/gtest.h>
 

@@ -12,12 +12,12 @@
 
 #include <stdint.h>
 
-#include <sdsl/csa_alphabet_strategy.hpp>
-#include <sdsl/csa_sada.hpp>
-#include <sdsl/csa_sampling_strategy.hpp>
-#include <sdsl/csa_wt.hpp>
-#include <sdsl/enc_vector.hpp>
-#include <sdsl/wt_int.hpp>
+#include "sdsl/csa_alphabet_strategy.hpp"
+#include "sdsl/csa_sada.hpp"
+#include "sdsl/csa_sampling_strategy.hpp"
+#include "sdsl/csa_wt.hpp"
+#include "sdsl/enc_vector.hpp"
+#include "sdsl/wt_int.hpp"
 
 namespace sdsl
 {

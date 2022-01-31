@@ -12,10 +12,10 @@
 #include <string>
 #include <utility>
 
-#include <sdsl/cereal.hpp>
-#include <sdsl/int_vector.hpp>
-#include <sdsl/structure_tree.hpp>
-#include <sdsl/util.hpp>
+#include "sdsl/cereal.hpp"
+#include "sdsl/int_vector.hpp"
+#include "sdsl/structure_tree.hpp"
+#include "sdsl/util.hpp"
 
 //! Namespace for the succinct data structure library.
 namespace sdsl

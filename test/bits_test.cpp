@@ -1,9 +1,9 @@
 #include <string>
 #include <vector>
 
-#include <sdsl/bits.hpp>
-#include <sdsl/int_vector.hpp>
-#include <sdsl/util.hpp>
+#include "sdsl/bits.hpp"
+#include "sdsl/int_vector.hpp"
+#include "sdsl/util.hpp"
 
 #include <gtest/gtest.h>
 

@@ -17,25 +17,25 @@
 #include <utility>
 #include <vector>
 
-#include <sdsl/bits.hpp>
-#include <sdsl/bp_support_sada.hpp>
-#include <sdsl/cereal.hpp>
-#include <sdsl/csa_wt.hpp>
-#include <sdsl/cst_iterators.hpp>
-#include <sdsl/cst_sada.hpp>
-#include <sdsl/dac_vector.hpp>
-#include <sdsl/int_vector.hpp>
-#include <sdsl/io.hpp>
-#include <sdsl/iterators.hpp>
-#include <sdsl/lcp_dac.hpp>
-#include <sdsl/memory_tracking.hpp>
-#include <sdsl/sd_vector.hpp>
-#include <sdsl/sdsl_concepts.hpp>
-#include <sdsl/structure_tree.hpp>
-#include <sdsl/suffix_array_algorithm.hpp>
-#include <sdsl/suffix_tree_helper.hpp>
-#include <sdsl/util.hpp>
-#include <sdsl/wt_pc.hpp>
+#include "sdsl/bits.hpp"
+#include "sdsl/bp_support_sada.hpp"
+#include "sdsl/cereal.hpp"
+#include "sdsl/csa_wt.hpp"
+#include "sdsl/cst_iterators.hpp"
+#include "sdsl/cst_sada.hpp"
+#include "sdsl/dac_vector.hpp"
+#include "sdsl/int_vector.hpp"
+#include "sdsl/io.hpp"
+#include "sdsl/iterators.hpp"
+#include "sdsl/lcp_dac.hpp"
+#include "sdsl/memory_tracking.hpp"
+#include "sdsl/sd_vector.hpp"
+#include "sdsl/sdsl_concepts.hpp"
+#include "sdsl/structure_tree.hpp"
+#include "sdsl/suffix_array_algorithm.hpp"
+#include "sdsl/suffix_tree_helper.hpp"
+#include "sdsl/util.hpp"
+#include "sdsl/wt_pc.hpp"
 
 namespace sdsl
 {

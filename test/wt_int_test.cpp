@@ -4,14 +4,14 @@
 #include <string>
 #include <vector>
 
-#include <sdsl/construct.hpp>
-#include <sdsl/wt_ap.hpp>
-#include <sdsl/wt_blcd.hpp>
-#include <sdsl/wt_gmr.hpp>
-#include <sdsl/wt_huff.hpp>
-#include <sdsl/wt_hutu.hpp>
-#include <sdsl/wt_int.hpp>
-#include <sdsl/wt_rlmn.hpp>
+#include "sdsl/construct.hpp"
+#include "sdsl/wt_ap.hpp"
+#include "sdsl/wt_blcd.hpp"
+#include "sdsl/wt_gmr.hpp"
+#include "sdsl/wt_huff.hpp"
+#include "sdsl/wt_hutu.hpp"
+#include "sdsl/wt_int.hpp"
+#include "sdsl/wt_rlmn.hpp"
 
 #include "common.hpp"
 

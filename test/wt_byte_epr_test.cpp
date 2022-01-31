@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 
-#include <sdsl/wt_epr.hpp>
+#include "sdsl/wt_epr.hpp"
 
 #include "common.hpp"
 

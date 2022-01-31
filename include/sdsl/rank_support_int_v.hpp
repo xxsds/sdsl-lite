@@ -20,13 +20,13 @@
 #include <type_traits>
 #include <vector>
 
-#include <sdsl/bits.hpp>
-#include <sdsl/cereal.hpp>
-#include <sdsl/int_vector.hpp>
-#include <sdsl/io.hpp>
-#include <sdsl/rank_support_int.hpp>
-#include <sdsl/structure_tree.hpp>
-#include <sdsl/util.hpp>
+#include "sdsl/bits.hpp"
+#include "sdsl/cereal.hpp"
+#include "sdsl/int_vector.hpp"
+#include "sdsl/io.hpp"
+#include "sdsl/rank_support_int.hpp"
+#include "sdsl/structure_tree.hpp"
+#include "sdsl/util.hpp"
 
 namespace sdsl
 {

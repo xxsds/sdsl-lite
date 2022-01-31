@@ -10,11 +10,11 @@
 #include <stdint.h>
 #include <type_traits>
 
-#include <sdsl/int_vector.hpp>
-#include <sdsl/int_vector_buffer.hpp>
-#include <sdsl/sorted_multi_stack_support.hpp>
-#include <sdsl/sorted_stack_support.hpp>
-#include <sdsl/util.hpp>
+#include "sdsl/int_vector.hpp"
+#include "sdsl/int_vector_buffer.hpp"
+#include "sdsl/sorted_multi_stack_support.hpp"
+#include "sdsl/sorted_stack_support.hpp"
+#include "sdsl/util.hpp"
 
 namespace sdsl
 {

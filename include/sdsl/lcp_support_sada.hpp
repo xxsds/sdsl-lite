@@ -12,17 +12,17 @@
 #include <stddef.h>
 #include <string>
 
-#include <sdsl/cereal.hpp>
-#include <sdsl/config.hpp>
-#include <sdsl/construct_isa.hpp>
-#include <sdsl/csa_sada.hpp> // for default template initialization
-#include <sdsl/int_vector.hpp>
-#include <sdsl/int_vector_buffer.hpp>
-#include <sdsl/io.hpp>
-#include <sdsl/iterators.hpp>
-#include <sdsl/sdsl_concepts.hpp>
-#include <sdsl/structure_tree.hpp>
-#include <sdsl/util.hpp>
+#include "sdsl/cereal.hpp"
+#include "sdsl/config.hpp"
+#include "sdsl/construct_isa.hpp"
+#include "sdsl/csa_sada.hpp" // for default template initialization
+#include "sdsl/int_vector.hpp"
+#include "sdsl/int_vector_buffer.hpp"
+#include "sdsl/io.hpp"
+#include "sdsl/iterators.hpp"
+#include "sdsl/sdsl_concepts.hpp"
+#include "sdsl/structure_tree.hpp"
+#include "sdsl/util.hpp"
 
 namespace sdsl
 {

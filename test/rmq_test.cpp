@@ -2,8 +2,8 @@
 #include <string>
 #include <vector>
 
-#include <sdsl/rmq_succinct_sada.hpp>
-#include <sdsl/rmq_succinct_sct.hpp>
+#include "sdsl/rmq_succinct_sada.hpp"
+#include "sdsl/rmq_succinct_sct.hpp"
 
 #include "common.hpp"
 
