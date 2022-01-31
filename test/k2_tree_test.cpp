@@ -1,13 +1,21 @@
+#include <gtest/gtest.h>// IWYU pragma: keep
+#include <sdsl/bits.hpp>
+#include <sdsl/cereal.hpp>
 #include <sstream>
 #include <tuple>
+#include <variant>
 #include <vector>
 
 #include "sdsl/int_vector.hpp"
 #include "sdsl/k2_tree.hpp"
-#include "sdsl/rank_support_v.hpp"
+#include "sdsl/rank_support_v.hpp" // IWYU pragma: keep
 #include "sdsl/rrr_vector.hpp"
 
-#include <gtest/gtest.h>
+// IWYU pragma: no_include "gtest/gtest_pred_impl.h"
+// IWYU pragma: no_include <gtest/gtest-message.h>
+// IWYU pragma: no_include <gtest/gtest-test-part.h>
+// IWYU pragma: no_include <gtest/gtest-typed-test.h>
+
 
 namespace
 {

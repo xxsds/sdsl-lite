@@ -1,19 +1,43 @@
-#include <cstdlib> // for rand()
+#include <libgen.h>
+#include <sdsl/cereal.hpp>
+#include <sdsl/config.hpp>
+#include <sdsl/construct.hpp>
+#include <sdsl/csa_alphabet_strategy.hpp>
+#include <sdsl/csa_sampling_strategy.hpp>
+#include <sdsl/enc_vector.hpp>
+#include <sdsl/int_vector.hpp>
+#include <sdsl/io.hpp>
+#include <sdsl/ram_fs.hpp>
+#include <sdsl/suffix_tree_helper.hpp>
+#include <sdsl/util.hpp>
+#include <sdsl/wt_int.hpp>
+#include <chrono>
+#include <cstdint>
+#include <functional>
+#include <map>
+#include <ostream>
 #include <random>
+#include <set>
 #include <string>
-#include <vector>
+#include <type_traits>
+#include <utility>
+#include <algorithm>
+#include <tuple>
 
+#include "common.hpp"
+#include "cst_helper.hpp"
+#include <gtest/gtest.h>// IWYU pragma: keep
 #include "sdsl/csa_bitcompressed.hpp"
 #include "sdsl/csa_sada.hpp"
 #include "sdsl/csa_wt.hpp"
 #include "sdsl/cst_fully.hpp"
 #include "sdsl/cst_sada.hpp"
 #include "sdsl/cst_sct3.hpp"
+// IWYU pragma: no_include "gtest/gtest_pred_impl.h"
+// IWYU pragma: no_include <gtest/gtest-message.h>
+// IWYU pragma: no_include <gtest/gtest-test-part.h>
+// IWYU pragma: no_include <gtest/gtest-typed-test.h>
 
-#include "common.hpp"
-#include "cst_helper.hpp"
-
-#include <gtest/gtest.h>
 
 using namespace sdsl;
 using namespace std;

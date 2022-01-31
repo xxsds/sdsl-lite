@@ -8,10 +8,11 @@
 #ifndef INCLUDED_SDSL_CSA_UNCOMPRESSED
 #define INCLUDED_SDSL_CSA_UNCOMPRESSED
 
-#include <iostream>
 #include <stddef.h>
 #include <stdint.h>
+#include <iostream>
 #include <string>
+#include <utility>
 
 #include "sdsl/cereal.hpp"
 #include "sdsl/config.hpp"

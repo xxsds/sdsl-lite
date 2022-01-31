@@ -10,11 +10,12 @@
 #define INCLUDED_SDSL_WT_EPR
 
 #include <assert.h>
+#include <stdint.h>
+#include <algorithm>
 #include <cmath>
 #include <iosfwd>
 #include <iterator>
 #include <stdexcept>
-#include <stdint.h>
 #include <string>
 #include <tuple>
 #include <type_traits>

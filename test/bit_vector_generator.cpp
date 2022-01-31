@@ -1,6 +1,11 @@
+#include <sdsl/bits.hpp>
+#include <sdsl/io.hpp>
 #include <cstdlib>
 #include <random>
 #include <string>
+#include <cstdint>
+#include <functional>
+#include <iostream>
 
 #include "sdsl/int_vector.hpp"
 

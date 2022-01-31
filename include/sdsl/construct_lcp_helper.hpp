@@ -4,13 +4,15 @@
 #ifndef INCLUDED_SDSL_CONSTRUCT_LCP_HELPER
 #define INCLUDED_SDSL_CONSTRUCT_LCP_HELPER
 
+#include <string.h>
+#include <sdsl/wt_algorithm.hpp>
+#include <cstdint>
 #include <istream>
 #include <list>
 #include <queue>
-#include <stdint.h>
-#include <string.h>
 #include <string>
 #include <vector>
+#include <algorithm>
 
 #include "sdsl/bits.hpp"
 #include "sdsl/int_vector.hpp"

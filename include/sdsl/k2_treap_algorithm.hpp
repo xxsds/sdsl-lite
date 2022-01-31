@@ -8,6 +8,7 @@
 #ifndef INCLUDED_SDSL_K2_TREAP_ALGORITHM
 #define INCLUDED_SDSL_K2_TREAP_ALGORITHM
 
+#include <sdsl/k2_treap.hpp>
 #include <array>
 #include <complex>
 #include <cstdint>
@@ -332,9 +333,6 @@ uint64_t __count(const t_k2_treap & treap, typename t_k2_treap::node_type v)
     return res;
 }
 
-// forward declaration
-template <uint8_t t_k, typename t_bv, typename t_rank, typename t_max_vec>
-class k2_treap;
 
 //! Specialized version of method ,,construct'' for k2_treaps.
 template <uint8_t t_k, typename t_bv, typename t_rank, typename t_max_vec>

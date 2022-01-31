@@ -1,5 +1,8 @@
+#include <stdint.h>
+#include <sdsl/bits.hpp>
 #include <cstdlib>
 #include <string>
+#include <iostream>
 
 #include "sdsl/int_vector_buffer.hpp"
 

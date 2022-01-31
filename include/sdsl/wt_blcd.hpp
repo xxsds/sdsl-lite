@@ -8,7 +8,9 @@
 #ifndef INCLUDED_SDSL_WT_BLCD
 #define INCLUDED_SDSL_WT_BLCD
 
+#include <algorithm>
 #include <cstdint>
+#include <iterator>
 #include <memory>
 #include <utility>
 #include <vector>
@@ -17,7 +19,7 @@
 #include "sdsl/wt_helper.hpp"
 #include "sdsl/wt_pc.hpp"
 
-#include <ext/alloc_traits.h>
+// IWYU pragma: no_include <ext/alloc_traits.h>
 
 //! Namespace for the succinct data structure library.
 namespace sdsl

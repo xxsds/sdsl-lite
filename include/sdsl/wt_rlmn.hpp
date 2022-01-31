@@ -10,10 +10,11 @@
 #define INCLUDED_SDSL_WT_RLMN
 
 #include <assert.h>
+#include <stdint.h>
+#include <initializer_list>
 #include <iostream>
 #include <iterator>
 #include <map>
-#include <stdint.h>
 #include <string>
 #include <utility> // for pair
 

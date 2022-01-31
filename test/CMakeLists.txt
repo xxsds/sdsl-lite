@@ -66,7 +66,7 @@ configure_file (
 file (GLOB test_sources ${CMAKE_CURRENT_SOURCE_DIR}/*_test.cpp)
 
 # Add required directionaries
-include_directories (${sdsl_include_directory} ${gtest_dir}/googletest/include)
+include_directories (SYSTEM ${sdsl_include_directory} ${gtest_dir}/googletest/include)
 
 link_libraries ("gtest_main" "gtest")
 

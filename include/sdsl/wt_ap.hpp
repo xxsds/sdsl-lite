@@ -9,12 +9,15 @@
 #ifndef INCLUDED_SDSL_WT_AP
 #define INCLUDED_SDSL_WT_AP
 
-#include <algorithm>
 #include <assert.h>
+#include <sdsl/construct.hpp>
+#include <sdsl/rank_support_v.hpp>
+#include <sdsl/select_support_mcl.hpp>
+#include <stdint.h>
+#include <algorithm>
 #include <iosfwd>
 #include <iterator>
 #include <memory>
-#include <stdint.h>
 #include <string>
 #include <tuple>
 #include <type_traits>

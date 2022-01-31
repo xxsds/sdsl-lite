@@ -1,12 +1,26 @@
+#include <gtest/gtest.h>// IWYU pragma: keep
+#include <sdsl/int_vector.hpp>
+#include <sdsl/io.hpp>
+#include <sdsl/ram_fs.hpp>
+#include <sdsl/sfstream.hpp>
+#include <stddef.h>
 #include <algorithm>
+#include <cstdint>
+#include <functional>
+#include <iostream>
+#include <iterator>
 #include <random>
 #include <string>
+#include <type_traits>
 #include <vector>
 
 #include "sdsl/int_vector_mapper.hpp"
 #include "sdsl/util.hpp"
+// IWYU pragma: no_include "gtest/gtest_pred_impl.h"
+// IWYU pragma: no_include <gtest/gtest-message.h>
+// IWYU pragma: no_include <gtest/gtest-test-part.h>
+// IWYU pragma: no_include <gtest/gtest-typed-test.h>
 
-#include <gtest/gtest.h>
 
 namespace
 {

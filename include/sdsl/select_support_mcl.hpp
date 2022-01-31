@@ -8,11 +8,12 @@
 #ifndef INCLUDED_SDSL_SELECT_SUPPORT_MCL
 #define INCLUDED_SDSL_SELECT_SUPPORT_MCL
 
-#include <algorithm>
 #include <assert.h>
-#include <iostream>
 #include <stdint.h>
+#include <algorithm>
+#include <iostream>
 #include <string>
+#include <utility>
 
 #include "sdsl/bits.hpp"
 #include "sdsl/cereal.hpp"

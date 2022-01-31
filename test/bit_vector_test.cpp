@@ -1,14 +1,28 @@
+#include <gtest/gtest.h>// IWYU pragma: keep
+#include <sdsl/bits.hpp>
+#include <sdsl/cereal.hpp>
+#include <sdsl/io.hpp>
+#include <sdsl/ram_fs.hpp>
+#include <sdsl/util.hpp>
+#include <stddef.h>
+#include <cstdint>
+#include <functional>
+#include <ostream>
+#include <random>
 #include <string>
+#include <utility>
 
+#include "common.hpp"
 #include "sdsl/bit_vector_il.hpp"
 #include "sdsl/hyb_vector.hpp"
 #include "sdsl/int_vector.hpp"
 #include "sdsl/rrr_vector.hpp"
 #include "sdsl/sd_vector.hpp"
+// IWYU pragma: no_include "gtest/gtest_pred_impl.h"
+// IWYU pragma: no_include <gtest/gtest-message.h>
+// IWYU pragma: no_include <gtest/gtest-test-part.h>
+// IWYU pragma: no_include <gtest/gtest-typed-test.h>
 
-#include "common.hpp"
-
-#include <gtest/gtest.h>
 
 namespace
 {

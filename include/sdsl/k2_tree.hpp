@@ -8,8 +8,8 @@
 #ifndef INCLUDED_SDSL_K2_TREE
 #define INCLUDED_SDSL_K2_TREE
 
-#include <algorithm>
 #include <assert.h>
+#include <algorithm>
 #include <cmath>
 #include <cstdint>
 #include <deque>
@@ -20,6 +20,7 @@
 #include <string>
 #include <tuple>
 #include <type_traits>
+#include <utility>
 #include <vector>
 
 #include "sdsl/cereal.hpp"

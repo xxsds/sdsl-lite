@@ -8,12 +8,13 @@
 #ifndef INCLUDED_SDSL_CSA_WT
 #define INCLUDED_SDSL_CSA_WT
 
-#include <cassert>
-#include <iostream>
 #include <stddef.h>
 #include <stdint.h>
+#include <cassert>
+#include <iostream>
 #include <string>
 #include <type_traits>
+#include <utility>
 
 #include "sdsl/cereal.hpp"
 #include "sdsl/config.hpp"

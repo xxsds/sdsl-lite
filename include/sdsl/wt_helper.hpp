@@ -4,15 +4,17 @@
 #ifndef INCLUDED_SDSL_WT_HELPER
 #define INCLUDED_SDSL_WT_HELPER
 
+#include <stddef.h>
+#include <algorithm>
 #include <array>
 #include <deque>
 #include <istream>
-#include <stddef.h>
 #include <stdexcept>
-#include <stdint.h>
 #include <string>
 #include <utility>
 #include <vector>
+#include <cstdint>
+#include <iterator>
 
 #include "sdsl/cereal.hpp"
 #include "sdsl/int_vector.hpp"

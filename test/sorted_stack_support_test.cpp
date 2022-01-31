@@ -1,10 +1,23 @@
+#include <gtest/gtest.h>// IWYU pragma: keep
+#include <sdsl/cereal.hpp>
+#include <sdsl/io.hpp>
+#include <sdsl/ram_fs.hpp>
+#include <algorithm>
+#include <cstdint>
+#include <functional>
+#include <iostream>
 #include <random>
+#include <stack>
 #include <string>
+#include <type_traits>
+#include <utility>
 
 #include "sdsl/sorted_stack_support.hpp"
-#include "sdsl/util.hpp"
+// IWYU pragma: no_include "gtest/gtest_pred_impl.h"
+// IWYU pragma: no_include <gtest/gtest-message.h>
+// IWYU pragma: no_include <gtest/gtest-test-part.h>
+// IWYU pragma: no_include <gtest/gtest-typed-test.h>
 
-#include <gtest/gtest.h>
 
 namespace
 {

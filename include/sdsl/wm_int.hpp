@@ -9,19 +9,19 @@
 #ifndef INCLUDED_SDSL_WM_INT
 #define INCLUDED_SDSL_WM_INT
 
+#include <assert.h>
+#include <stddef.h>
 #include <algorithm> // for std::swap
 #include <array>
-#include <assert.h>
 #include <cstdint>
 #include <functional>
 #include <iterator>
 #include <ostream>
-#include <stddef.h>
 #include <string>
-#include <tuple>
 #include <type_traits>
 #include <utility>
 #include <vector>
+#include <variant>
 
 #include "sdsl/bits.hpp"
 #include "sdsl/cereal.hpp"

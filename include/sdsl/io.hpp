@@ -8,15 +8,17 @@
 #ifndef INCLUDED_SDSL_IO
 #define INCLUDED_SDSL_IO
 
+#include <string.h>
+// IWYU pragma: no_include <ext/alloc_traits.h>
+#include <sys/types.h>
 #include <algorithm>
 #include <cctype>
+#include <cstdint>
 #include <functional>
 #include <iostream>
 #include <map>
 #include <memory>
 #include <stdexcept>
-#include <stdint.h>
-#include <string.h>
 #include <string>
 #include <type_traits>
 #include <typeinfo>
@@ -31,9 +33,6 @@
 #include "sdsl/sfstream.hpp"
 #include "sdsl/structure_tree.hpp"
 #include "sdsl/util.hpp"
-
-#include <ext/alloc_traits.h>
-#include <sys/types.h>
 
 namespace sdsl
 {

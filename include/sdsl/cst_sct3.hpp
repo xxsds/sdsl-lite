@@ -8,11 +8,14 @@
 #ifndef INCLUDED_SDSL_CST_SCT3
 #define INCLUDED_SDSL_CST_SCT3
 
-#include <cassert>
-#include <iostream>
+#include <sdsl/wt_pc.hpp>
 #include <stddef.h>
 #include <stdint.h>
+#include <cassert>
+#include <iostream>
 #include <string>
+#include <type_traits>
+#include <utility>
 
 #include "sdsl/bits.hpp"
 #include "sdsl/bp_support_sada.hpp"

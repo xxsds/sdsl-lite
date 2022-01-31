@@ -8,9 +8,10 @@
 #ifndef INCLUDED_SDSL_LCP_SUPPORT_SADA
 #define INCLUDED_SDSL_LCP_SUPPORT_SADA
 
-#include <iosfwd>
 #include <stddef.h>
+#include <iosfwd>
 #include <string>
+#include <utility>
 
 #include "sdsl/cereal.hpp"
 #include "sdsl/config.hpp"

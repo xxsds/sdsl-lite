@@ -9,11 +9,12 @@
 #ifndef INCLUDED_SDSL_RRR_VECTOR
 #define INCLUDED_SDSL_RRR_VECTOR
 
-#include <algorithm>
 #include <assert.h>
-#include <iostream>
 #include <stdint.h>
+#include <algorithm>
+#include <iostream>
 #include <string>
+#include <utility>
 
 #include "sdsl/bits.hpp"
 #include "sdsl/cereal.hpp"

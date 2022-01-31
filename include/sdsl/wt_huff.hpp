@@ -13,6 +13,8 @@
 #include <queue>
 #include <utility>
 #include <vector>
+#include <algorithm>
+#include <iterator>
 
 #include "sdsl/int_vector.hpp"
 #include "sdsl/wt_helper.hpp"

@@ -16,7 +16,7 @@
 
 #include "sdsl/int_vector.hpp"
 
-#include <ext/alloc_traits.h>
+// IWYU pragma: no_include <ext/alloc_traits.h>
 
 //! Namespace for the succinct data structure library.
 namespace sdsl

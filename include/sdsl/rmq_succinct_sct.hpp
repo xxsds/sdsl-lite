@@ -11,6 +11,7 @@
 #include <assert.h>
 #include <iosfwd>
 #include <string>
+#include <utility>
 
 #include "sdsl/bp_support_sada.hpp"
 #include "sdsl/cereal.hpp"

@@ -32,7 +32,7 @@
 #include "sdsl/wt_algorithm.hpp"
 #include "sdsl/wt_huff.hpp"
 
-#include <ext/alloc_traits.h>
+// IWYU pragma: no_include <ext/alloc_traits.h>
 
 //#define STUDY_INFORMATIONS
 

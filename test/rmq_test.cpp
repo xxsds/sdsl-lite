@@ -1,13 +1,26 @@
+#include <gtest/gtest.h>// IWYU pragma: keep
+#include <sdsl/bits.hpp>
+#include <sdsl/cereal.hpp>
+#include <sdsl/int_vector.hpp>
+#include <sdsl/io.hpp>
+#include <sdsl/ram_fs.hpp>
+#include <sdsl/util.hpp>
+#include <stdint.h>
+#include <ostream>
 #include <stack>
 #include <string>
+#include <utility>
 #include <vector>
-
-#include "sdsl/rmq_succinct_sada.hpp"
-#include "sdsl/rmq_succinct_sct.hpp"
+#include <algorithm>
 
 #include "common.hpp"
+#include "sdsl/rmq_succinct_sada.hpp"
+#include "sdsl/rmq_succinct_sct.hpp"
+// IWYU pragma: no_include "gtest/gtest_pred_impl.h"
+// IWYU pragma: no_include <gtest/gtest-message.h>
+// IWYU pragma: no_include <gtest/gtest-test-part.h>
+// IWYU pragma: no_include <gtest/gtest-typed-test.h>
 
-#include <gtest/gtest.h>
 
 using namespace std;
 using namespace sdsl;

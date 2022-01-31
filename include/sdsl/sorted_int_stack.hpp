@@ -9,10 +9,9 @@
 #ifndef INCLUDED_SDSL_SORTED_INT_STACK
 #define INCLUDED_SDSL_SORTED_INT_STACK
 
-#include <algorithm>
 #include <assert.h>
-#include <iosfwd>
 #include <stdint.h>
+#include <iosfwd>
 #include <string>
 #include <vector>
 

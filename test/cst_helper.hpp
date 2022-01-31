@@ -15,7 +15,12 @@ std::ostream & operator<<(std::ostream & os, const std::pair<T, T> & v)
     return os;
 }
 
-#include <gtest/gtest.h>
+#include <gtest/gtest.h>// IWYU pragma: keep
+// IWYU pragma: no_include "gtest/gtest_pred_impl.h"
+// IWYU pragma: no_include <gtest/gtest-message.h>
+// IWYU pragma: no_include <gtest/gtest-test-part.h>
+// IWYU pragma: no_include <gtest/gtest-typed-test.h>
+
 
 template <class Cst>
 std::string format_node(const Cst & cst, const typename Cst::node_type & v)

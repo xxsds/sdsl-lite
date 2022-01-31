@@ -8,11 +8,12 @@
 #ifndef INCLUDED_SDSL_CST_SADA
 #define INCLUDED_SDSL_CST_SADA
 
+#include <stddef.h>
 #include <cassert>
 #include <iostream>
-#include <stddef.h>
 #include <string>
 #include <type_traits>
+#include <utility>
 
 #include "sdsl/bp_support_sada.hpp"
 #include "sdsl/cereal.hpp"

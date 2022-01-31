@@ -1280,6 +1280,8 @@ class int_vector_const_iterator : public int_vector_iterator_base<t_int_vector>
         m_len = it.m_len;
     }
 
+    int_vector_const_iterator (const int_vector_const_iterator &) = default;
+
     int_vector_const_iterator & operator=(const int_vector_const_iterator &) = default;
 
     const_reference operator*() const

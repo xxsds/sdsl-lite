@@ -34,12 +34,13 @@
  */
 
 #include <assert.h>
+#include <stdint.h>
 #include <iosfwd>
 #include <map>
-#include <stdint.h>
 #include <string>
 #include <utility>
 #include <vector>
+#include <algorithm>
 
 #include "sdsl/bits.hpp"
 #include "sdsl/cereal.hpp"
@@ -60,13 +61,11 @@ namespace sdsl
 // forward declarations
 
 class byte_alphabet; // IWYU pragma: keep
-
 template <class bit_vector_type = bit_vector,
           class rank_support_type = rank_support_scan<>,
           class select_support_type = select_support_scan<>,
           class C_array_type = int_vector<>>
 class succinct_byte_alphabet; // IWYU pragma: keep
-
 template <class bit_vector_type = sd_vector<>,
           class rank_support_type = typename bit_vector_type::rank_1_type,
           class select_support_type = typename bit_vector_type::select_1_type,

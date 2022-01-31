@@ -9,10 +9,12 @@
 #define INCLUDED_SDSL_RMQ_SUCCINCT_SADA
 
 #include <assert.h>
+#include <sdsl/rank_support_v.hpp>
+#include <stdint.h>
 #include <iosfwd>
 #include <stack>
-#include <stdint.h>
 #include <string>
+#include <utility>
 
 #include "sdsl/bp_support_sada.hpp"
 #include "sdsl/cereal.hpp"

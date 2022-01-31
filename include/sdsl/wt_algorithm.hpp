@@ -4,16 +4,16 @@
 #ifndef INCLUDED_SDSL_WT_ALGORITHM
 #define INCLUDED_SDSL_WT_ALGORITHM
 
-#include <array>
 #include <assert.h>
+#include <array>
 #include <cstdint>
 #include <iterator>
 #include <numeric>
 #include <stack>
-#include <tuple>
 #include <type_traits>
 #include <utility>
 #include <vector>
+#include <variant>
 
 #include "sdsl/bits.hpp"
 #include "sdsl/wt_helper.hpp"

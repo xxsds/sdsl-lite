@@ -8,13 +8,14 @@
 #ifndef INCLUDED_SDSL_CSA_SADA
 #define INCLUDED_SDSL_CSA_SADA
 
-#include <cassert>
-#include <iostream>
 #include <stddef.h>
 #include <stdint.h>
+#include <cassert>
+#include <iostream>
 #include <string>
 #include <type_traits>
 #include <vector>
+#include <utility>
 
 #include "sdsl/bits.hpp"
 #include "sdsl/cereal.hpp"

@@ -11,6 +11,7 @@
 #include <cstdint>
 #include <iterator>
 #include <queue>
+#include <utility>
 
 namespace sdsl
 {

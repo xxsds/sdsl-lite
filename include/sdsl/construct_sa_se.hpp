@@ -22,7 +22,7 @@
 #include "sdsl/select_support_mcl.hpp"
 #include "sdsl/util.hpp"
 
-#include <ext/alloc_traits.h>
+// IWYU pragma: no_include <ext/alloc_traits.h>
 
 namespace sdsl
 {

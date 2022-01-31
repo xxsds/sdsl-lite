@@ -8,12 +8,13 @@
 #ifndef SDSL_DAC_VECTOR
 #define SDSL_DAC_VECTOR
 
-#include <algorithm>
 #include <assert.h>
-#include <iosfwd>
 #include <stddef.h>
 #include <stdint.h>
+#include <algorithm>
+#include <iosfwd>
 #include <string>
+#include <utility>
 
 #include "sdsl/bits.hpp"
 #include "sdsl/cereal.hpp"

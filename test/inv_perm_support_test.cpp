@@ -1,13 +1,27 @@
+#include <ext/alloc_traits.h>
+#include <gtest/gtest.h>// IWYU pragma: keep
+#include <sdsl/int_vector.hpp>
+#include <sdsl/io.hpp>
+#include <sdsl/iterators.hpp>
+#include <sdsl/ram_fs.hpp>
+#include <stddef.h>
 #include <algorithm>
+#include <iostream>
+#include <memory>
 #include <random>
 #include <string>
+#include <type_traits>
+#include <utility>
 #include <vector>
 
 #include "sdsl/inv_perm_support.hpp"
 #include "sdsl/rank_support_v.hpp"
 #include "sdsl/util.hpp"
+// IWYU pragma: no_include "gtest/gtest_pred_impl.h"
+// IWYU pragma: no_include <gtest/gtest-message.h>
+// IWYU pragma: no_include <gtest/gtest-test-part.h>
+// IWYU pragma: no_include <gtest/gtest-typed-test.h>
 
-#include <gtest/gtest.h>
 
 namespace
 {

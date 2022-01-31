@@ -34,6 +34,7 @@
 #include "sdsl/ram_fs.hpp"
 
 #include <sys/mman.h> // IWYU pragma: keep
+// IWYU pragma: no_include <bits/mman-map-flags-generic.h>
 
 namespace sdsl
 {

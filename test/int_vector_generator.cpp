@@ -1,7 +1,12 @@
+#include <stdint.h>
+#include <sdsl/bits.hpp>
+#include <sdsl/io.hpp>
+#include <sdsl/util.hpp>
 #include <algorithm>
 #include <cstdlib>
 #include <iostream>
 #include <string>
+#include <random>
 
 #include "sdsl/int_vector.hpp"
 
