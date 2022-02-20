@@ -583,7 +583,7 @@ constexpr uint64_t bits_impl<T>::map01(uint64_t x, uint64_t c)
 template <typename T>
 constexpr uint32_t bits_impl<T>::sel(uint64_t x, uint32_t i)
 {
-#ifdef __BMI2__
+#if defined(__BMI__) && defined(__BMI2__)
     // taken from folly
     return _tzcnt_u64(_pdep_u64(1ULL << (i - 1), x));
 #endif
