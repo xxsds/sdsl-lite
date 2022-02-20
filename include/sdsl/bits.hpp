@@ -19,7 +19,7 @@
 #endif
 
 #ifdef WIN32
-#include <sdsl/iso646.h>
+#include <iso646.h>
 #endif
 
 //! Namespace for the succinct data structure library.
