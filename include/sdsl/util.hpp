@@ -263,7 +263,7 @@ inline std::string dirname(std::string file)
  */
 inline std::string demangle(const std::string & name)
 {
-#if 1
+#ifndef _WIN32
     char buf[4096];
     size_t size = 4096;
     int status = 0;
