@@ -113,20 +113,13 @@ struct int_vector_trait
     typedef int_vector_const_iterator<int_vector_type> const_iterator;
 
     static iterator begin(int_vector_type * v) noexcept { return iterator(v, 0); }
-    static iterator end(int_vector_type * v) noexcept
-    {
-        return iterator(v, v->size() * v->width());
-    }
+    static iterator end(int_vector_type * v) noexcept { return iterator(v, v->size() * v->width()); }
     static const_iterator begin(const int_vector_type * v) noexcept { return const_iterator(v, 0); }
-    static const_iterator end(const int_vector_type * v) noexcept
-    {
-        return const_iterator(v, v->size() * v->width());
-    }
+    static const_iterator end(const int_vector_type * v) noexcept { return const_iterator(v, v->size() * v->width()); }
 
     static void set_width(uint8_t new_width, int_width_type & width) noexcept
     {
-        if constexpr (t_width == 0)
-            width = new_width ? std::min(new_width, uint8_t{64u}) : 64u;
+        if constexpr (t_width == 0) width = new_width ? std::min(new_width, uint8_t{ 64u }) : 64u;
     }
 };
 
@@ -275,28 +268,26 @@ class int_vector
         assert(growth_factor > 1.0);
         if constexpr (t_width != 0)
         {
-            size_type const bit_size{size * t_width};
+            size_type const bit_size{ size * t_width };
             if (bit_size > m_capacity || m_data == nullptr)
             {
                 // start with 64 bit if vector has no capacity
                 size_type new_capacity = std::max<size_type>(m_capacity, 64u);
                 // find smallest x s.t. m_capacity * 1.5 ** x >= size
-                while (new_capacity < bit_size)
-                    new_capacity *= growth_factor;
+                while (new_capacity < bit_size) new_capacity *= growth_factor;
                 memory_manager::resize(*this, new_capacity);
             }
             m_size = bit_size;
         }
         else
         {
-            size_type const bit_size{size * m_width};
+            size_type const bit_size{ size * m_width };
             if (bit_size > m_capacity || m_data == nullptr)
             {
                 // start with 64 bit if vector has no capacity
                 size_type new_capacity = std::max<size_type>(m_capacity, 64u);
                 // find smallest x s.t. m_capacity * 1.5 ** x >= size
-                while (new_capacity < bit_size)
-                    new_capacity *= growth_factor;
+                while (new_capacity < bit_size) new_capacity *= growth_factor;
                 memory_manager::resize(*this, new_capacity);
             }
             m_size = bit_size;
@@ -1910,42 +1901,89 @@ int_vector<t_width>::CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
     }
 }
 
-typename int_vector_trait<64>::iterator int_vector_trait<64>::begin(typename int_vector_trait<64>::int_vector_type * v) noexcept
-{ return v->data(); }
-typename int_vector_trait<64>::iterator int_vector_trait<64>::end(typename int_vector_trait<64>::int_vector_type * v) noexcept
-{ return v->data() + v->size(); }
-typename int_vector_trait<64>::const_iterator int_vector_trait<64>::begin(const typename int_vector_trait<64>::int_vector_type * v) noexcept
-{ return v->data(); }
-typename int_vector_trait<64>::const_iterator int_vector_trait<64>::end(const typename int_vector_trait<64>::int_vector_type * v) noexcept
-{ return v->data() + v->size(); }
+typename int_vector_trait<64>::iterator int_vector_trait<64>::begin(
+                                                  typename int_vector_trait<64>::int_vector_type * v) noexcept
+{
+    return v->data();
+}
+typename int_vector_trait<64>::iterator int_vector_trait<64>::end(
+                                                  typename int_vector_trait<64>::int_vector_type * v) noexcept
+{
+    return v->data() + v->size();
+}
+typename int_vector_trait<64>::const_iterator int_vector_trait<64>::begin(
+                                                  const typename int_vector_trait<64>::int_vector_type * v) noexcept
+{
+    return v->data();
+}
+typename int_vector_trait<64>::const_iterator int_vector_trait<64>::end(
+                                                  const typename int_vector_trait<64>::int_vector_type * v) noexcept
+{
+    return v->data() + v->size();
+}
 
-typename int_vector_trait<32>::iterator int_vector_trait<32>::begin(typename int_vector_trait<32>::int_vector_type * v) noexcept
-{ return (uint32_t *)v->data(); }
-typename int_vector_trait<32>::iterator int_vector_trait<32>::end(typename int_vector_trait<32>::int_vector_type * v) noexcept
-{ return ((uint32_t *)v->data()) + v->size(); }
-typename int_vector_trait<32>::const_iterator int_vector_trait<32>::begin(const typename int_vector_trait<32>::int_vector_type * v) noexcept
-{ return (uint32_t *)v->data(); }
-typename int_vector_trait<32>::const_iterator int_vector_trait<32>::end(const typename int_vector_trait<32>::int_vector_type * v) noexcept
-{ return ((uint32_t *)v->data()) + v->size(); }
+typename int_vector_trait<32>::iterator int_vector_trait<32>::begin(
+                                                  typename int_vector_trait<32>::int_vector_type * v) noexcept
+{
+    return (uint32_t *)v->data();
+}
+typename int_vector_trait<32>::iterator int_vector_trait<32>::end(
+                                                  typename int_vector_trait<32>::int_vector_type * v) noexcept
+{
+    return ((uint32_t *)v->data()) + v->size();
+}
+typename int_vector_trait<32>::const_iterator int_vector_trait<32>::begin(
+                                                  const typename int_vector_trait<32>::int_vector_type * v) noexcept
+{
+    return (uint32_t *)v->data();
+}
+typename int_vector_trait<32>::const_iterator int_vector_trait<32>::end(
+                                                  const typename int_vector_trait<32>::int_vector_type * v) noexcept
+{
+    return ((uint32_t *)v->data()) + v->size();
+}
 
-typename int_vector_trait<16>::iterator int_vector_trait<16>::begin(typename int_vector_trait<16>::int_vector_type * v) noexcept
-{ return (uint16_t *)v->data(); }
-typename int_vector_trait<16>::iterator int_vector_trait<16>::end(typename int_vector_trait<16>::int_vector_type * v) noexcept
-{ return ((uint16_t *)v->data()) + v->size(); }
-typename int_vector_trait<16>::const_iterator int_vector_trait<16>::begin(const typename int_vector_trait<16>::int_vector_type * v) noexcept
-{ return (uint16_t *)v->data(); }
-typename int_vector_trait<16>::const_iterator int_vector_trait<16>::end(const typename int_vector_trait<16>::int_vector_type * v) noexcept
-{ return ((uint16_t *)v->data()) + v->size(); }
+typename int_vector_trait<16>::iterator int_vector_trait<16>::begin(
+                                                  typename int_vector_trait<16>::int_vector_type * v) noexcept
+{
+    return (uint16_t *)v->data();
+}
+typename int_vector_trait<16>::iterator int_vector_trait<16>::end(
+                                                  typename int_vector_trait<16>::int_vector_type * v) noexcept
+{
+    return ((uint16_t *)v->data()) + v->size();
+}
+typename int_vector_trait<16>::const_iterator int_vector_trait<16>::begin(
+                                                  const typename int_vector_trait<16>::int_vector_type * v) noexcept
+{
+    return (uint16_t *)v->data();
+}
+typename int_vector_trait<16>::const_iterator int_vector_trait<16>::end(
+                                                  const typename int_vector_trait<16>::int_vector_type * v) noexcept
+{
+    return ((uint16_t *)v->data()) + v->size();
+}
 
-typename int_vector_trait<8>::iterator int_vector_trait<8>::begin(typename int_vector_trait<8>::int_vector_type * v) noexcept
-{ return (uint8_t *)v->data(); }
-typename int_vector_trait<8>::iterator int_vector_trait<8>::end(typename int_vector_trait<8>::int_vector_type * v) noexcept
-{ return ((uint8_t *)v->data()) + v->size(); }
-typename int_vector_trait<8>::const_iterator int_vector_trait<8>::begin(const typename int_vector_trait<8>::int_vector_type * v) noexcept
-{ return (uint8_t *)v->data(); }
-typename int_vector_trait<8>::const_iterator int_vector_trait<8>::end(const typename int_vector_trait<8>::int_vector_type * v) noexcept
-{ return ((uint8_t *)v->data()) + v->size(); }
-
+typename int_vector_trait<8>::iterator int_vector_trait<8>::begin(
+                                                  typename int_vector_trait<8>::int_vector_type * v) noexcept
+{
+    return (uint8_t *)v->data();
+}
+typename int_vector_trait<8>::iterator int_vector_trait<8>::end(
+                                                  typename int_vector_trait<8>::int_vector_type * v) noexcept
+{
+    return ((uint8_t *)v->data()) + v->size();
+}
+typename int_vector_trait<8>::const_iterator int_vector_trait<8>::begin(
+                                                  const typename int_vector_trait<8>::int_vector_type * v) noexcept
+{
+    return (uint8_t *)v->data();
+}
+typename int_vector_trait<8>::const_iterator int_vector_trait<8>::end(
+                                                  const typename int_vector_trait<8>::int_vector_type * v) noexcept
+{
+    return ((uint8_t *)v->data()) + v->size();
+}
 
 } // end namespace sdsl
 
