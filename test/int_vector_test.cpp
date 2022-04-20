@@ -603,8 +603,7 @@ TEST_F(int_vector_test, growth_factor_test)
         uint64_t const bit_size = v.width() * (v.size() + 1);
 
         uint64_t expected_capacity = v.bit_capacity();
-        while (expected_capacity < bit_size)
-            expected_capacity *= gw;
+        while (expected_capacity < bit_size) expected_capacity *= gw;
         // capacity will be a multiple of 64
         expected_capacity = ((expected_capacity + 63) >> 6) << 6;
 
