@@ -594,21 +594,23 @@ TEST_F(int_vector_test, growth_factor_test)
     for (float gw : growth_factors)
     {
         sdsl::int_vector<> v;
-        v.resize(10); // v is at max capacity
+        v.resize(10); // v has a capacity of > 0
+
         v.growth_factor = gw;
         ASSERT_EQ(v.growth_factor, gw);
-        uint64_t capacity_start = v.bit_capacity(); // number of reserved bits
+
         // size in bits of the vector when we want to push back one element
-        uint64_t bit_size = v.width() * (v.size() + 1);
-        // Get the resize factor
-        auto resize_factor = pow(gw,
-                                 std::ceil(std::log((bit_size + capacity_start - 1) / capacity_start) / std::log(gw)));
+        uint64_t const bit_size = v.width() * (v.size() + 1);
+
+        uint64_t expected_capacity = v.bit_capacity();
+        while (expected_capacity < bit_size)
+            expected_capacity *= gw;
+        // capacity will be a multiple of 64
+        expected_capacity = ((expected_capacity + 63) >> 6) << 6;
+
         // force resize
         v.push_back(0);
-        uint64_t new_capacity = std::ceil(resize_factor * capacity_start);
-        // the new capacity must be a multiple of 64
-        new_capacity = ((new_capacity + 63) >> 6) << 6;
-        ASSERT_EQ(v.bit_capacity(), new_capacity);
+        ASSERT_EQ(v.bit_capacity(), expected_capacity);
     }
 }
 
