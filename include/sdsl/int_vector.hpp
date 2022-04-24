@@ -1901,85 +1901,85 @@ int_vector<t_width>::CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
     }
 }
 
-typename int_vector_trait<64>::iterator int_vector_trait<64>::begin(
+inline typename int_vector_trait<64>::iterator int_vector_trait<64>::begin(
                                                   typename int_vector_trait<64>::int_vector_type * v) noexcept
 {
     return v->data();
 }
-typename int_vector_trait<64>::iterator int_vector_trait<64>::end(
+inline typename int_vector_trait<64>::iterator int_vector_trait<64>::end(
                                                   typename int_vector_trait<64>::int_vector_type * v) noexcept
 {
     return v->data() + v->size();
 }
-typename int_vector_trait<64>::const_iterator int_vector_trait<64>::begin(
+inline typename int_vector_trait<64>::const_iterator int_vector_trait<64>::begin(
                                                   const typename int_vector_trait<64>::int_vector_type * v) noexcept
 {
     return v->data();
 }
-typename int_vector_trait<64>::const_iterator int_vector_trait<64>::end(
+inline typename int_vector_trait<64>::const_iterator int_vector_trait<64>::end(
                                                   const typename int_vector_trait<64>::int_vector_type * v) noexcept
 {
     return v->data() + v->size();
 }
 
-typename int_vector_trait<32>::iterator int_vector_trait<32>::begin(
+inline typename int_vector_trait<32>::iterator int_vector_trait<32>::begin(
                                                   typename int_vector_trait<32>::int_vector_type * v) noexcept
 {
     return (uint32_t *)v->data();
 }
-typename int_vector_trait<32>::iterator int_vector_trait<32>::end(
+inline typename int_vector_trait<32>::iterator int_vector_trait<32>::end(
                                                   typename int_vector_trait<32>::int_vector_type * v) noexcept
 {
     return ((uint32_t *)v->data()) + v->size();
 }
-typename int_vector_trait<32>::const_iterator int_vector_trait<32>::begin(
+inline typename int_vector_trait<32>::const_iterator int_vector_trait<32>::begin(
                                                   const typename int_vector_trait<32>::int_vector_type * v) noexcept
 {
     return (uint32_t *)v->data();
 }
-typename int_vector_trait<32>::const_iterator int_vector_trait<32>::end(
+inline typename int_vector_trait<32>::const_iterator int_vector_trait<32>::end(
                                                   const typename int_vector_trait<32>::int_vector_type * v) noexcept
 {
     return ((uint32_t *)v->data()) + v->size();
 }
 
-typename int_vector_trait<16>::iterator int_vector_trait<16>::begin(
+inline typename int_vector_trait<16>::iterator int_vector_trait<16>::begin(
                                                   typename int_vector_trait<16>::int_vector_type * v) noexcept
 {
     return (uint16_t *)v->data();
 }
-typename int_vector_trait<16>::iterator int_vector_trait<16>::end(
+inline typename int_vector_trait<16>::iterator int_vector_trait<16>::end(
                                                   typename int_vector_trait<16>::int_vector_type * v) noexcept
 {
     return ((uint16_t *)v->data()) + v->size();
 }
-typename int_vector_trait<16>::const_iterator int_vector_trait<16>::begin(
+inline typename int_vector_trait<16>::const_iterator int_vector_trait<16>::begin(
                                                   const typename int_vector_trait<16>::int_vector_type * v) noexcept
 {
     return (uint16_t *)v->data();
 }
-typename int_vector_trait<16>::const_iterator int_vector_trait<16>::end(
+inline typename int_vector_trait<16>::const_iterator int_vector_trait<16>::end(
                                                   const typename int_vector_trait<16>::int_vector_type * v) noexcept
 {
     return ((uint16_t *)v->data()) + v->size();
 }
 
-typename int_vector_trait<8>::iterator int_vector_trait<8>::begin(
+inline typename int_vector_trait<8>::iterator int_vector_trait<8>::begin(
                                                   typename int_vector_trait<8>::int_vector_type * v) noexcept
 {
     return (uint8_t *)v->data();
 }
-typename int_vector_trait<8>::iterator int_vector_trait<8>::end(
+inline typename int_vector_trait<8>::iterator int_vector_trait<8>::end(
                                                   typename int_vector_trait<8>::int_vector_type * v) noexcept
 {
     return ((uint8_t *)v->data()) + v->size();
 }
-typename int_vector_trait<8>::const_iterator int_vector_trait<8>::begin(
+inline typename int_vector_trait<8>::const_iterator int_vector_trait<8>::begin(
                                                   const typename int_vector_trait<8>::int_vector_type * v) noexcept
 {
     return (uint8_t *)v->data();
 }
-typename int_vector_trait<8>::const_iterator int_vector_trait<8>::end(
+inline typename int_vector_trait<8>::const_iterator int_vector_trait<8>::end(
                                                   const typename int_vector_trait<8>::int_vector_type * v) noexcept
 {
     return ((uint8_t *)v->data()) + v->size();
