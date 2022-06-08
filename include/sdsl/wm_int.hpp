@@ -341,7 +341,6 @@ class wm_int
         assert(i < size());
         value_type c = 0;
         size_type b = 0; // start position of the interval
-        uint64_t mask = (1ULL) << (m_max_level - 1);
         for (uint32_t k = 0; k < m_max_level; ++k)
         {
             size_type rank_b = m_tree_rank(b);
@@ -359,7 +358,6 @@ class wm_int
                 i = i - ones;
                 b = (k + 1) * m_size + (b - k * m_size - ones_p);
             }
-            mask >>= 1;
         }
         return std::make_pair(i, c);
     }
