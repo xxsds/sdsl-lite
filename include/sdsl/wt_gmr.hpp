@@ -529,7 +529,7 @@ class wt_gmr_rs
                 }
                 else
                 {
-                    if (binary_search(m_e.begin() + search_begin, m_e.begin() + search_end, val))
+                    if (std::binary_search(m_e.begin() + search_begin, m_e.begin() + search_end, val))
                     {
                         return (block - 1) / m_blocks;
                     }
