@@ -9,6 +9,7 @@
 #define INCLUDED_SDSL_ITERATORS
 
 #include <iterator>
+#include <type_traits> // std::invoke_result_t
 
 #include <sdsl/int_vector.hpp>
 
@@ -139,7 +140,7 @@ struct random_access_container
 {
     typedef int_vector<>::size_type size_type;
     typedef int_vector<>::difference_type difference_type;
-    typedef typename std::result_of<t_F(size_type)>::type value_type;
+    typedef typename std::invoke_result_t<t_F, size_type> value_type;
     typedef random_access_const_iterator<random_access_container> iterator_type;
 
     t_F f;
