@@ -12,15 +12,17 @@
 
 * header-only library
 * support for serialisation via [cereal](https://github.com/USCiLab/cereal)
-* compatible with C++17 and C++20
+* compatible with C++17, C++20, and C++23
 
 ## Supported compilers
 
 Other compiler may work, but are not tested within the continuous integration. In general, the latest minor release of each
 listed major compiler version is supported.
 
-* GCC 8, 9, 10, 11
-* clang 9, 10, 11, 12
+* GCC 10, 11, 12
+* clang 11, 12, 13, 14
+
+Tests are run with both C++20 and C++23.
 
 ## Dependencies
 
