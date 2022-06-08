@@ -1054,11 +1054,14 @@ inline void swap(int_vector_reference<bit_vector> x, bool & y) noexcept
 
 template <class t_int_vector>
 class int_vector_iterator_base
-  : public std::iterator<std::random_access_iterator_tag,
-                         typename t_int_vector::value_type,
-                         typename t_int_vector::difference_type>
 {
   public:
+    using iterator_category = std::random_access_iterator_tag;
+    using value_type = typename t_int_vector::value_type;
+    using difference_type = typename t_int_vector::difference_type;
+    using pointer = value_type *;
+    using reference = value_type &;
+
     typedef uint64_t size_type;
 
   protected:

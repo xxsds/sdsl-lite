@@ -17,11 +17,16 @@ namespace sdsl
 {
 
 template <class t_cst>
-class cst_node_child_proxy_iterator : public std::iterator<std::forward_iterator_tag, typename t_cst::node_type>
+class cst_node_child_proxy_iterator
 {
   public:
+    using iterator_category = std::forward_iterator_tag;
+    using value_type = typename t_cst::node_type;
+    using difference_type = std::ptrdiff_t;
+    using pointer = value_type *;
+    using reference = value_type &;
+
     using node_type = typename t_cst::node_type;
-    using value_type = node_type;
     using const_reference = const node_type;
     using iterator_type = cst_node_child_proxy_iterator<t_cst>;
 
