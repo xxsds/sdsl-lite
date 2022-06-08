@@ -24,47 +24,56 @@ defaults:
 jobs:
   build:
     name: ${{ matrix.name }}
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     timeout-minutes: 120
+    if: github.repository_owner == 'xxsds' || github.event_name == 'workflow_dispatch'
     strategy:
       fail-fast: false
       matrix:
         include:
+          - name: "gcc12"
+            cxx: "g++-12"
+            cc: "gcc-12"
+            build_type: Release
+            build_threads: 2
+            test_threads: 2
+            cxx_flags: "-std=c++23"
+
+          - name: "Header gcc12"
+            cxx: "g++-12"
+            cc: "gcc-12"
+            build_type: Release
+            build_threads: 2
+            test_threads: 2
+            cxx_flags: "-std=c++23"
+            header_test: "ON"
+
+          - name: "ASAN gcc12"
+            cxx: "g++-12"
+            cc: "gcc-12"
+            build_type: Debug
+            build_threads: 2
+            test_threads: 2
+            cxx_flags: "-std=c++23 -fsanitize=address"
+            ctest_exclude: "-E 'faust|moby'"
+            ctest_include: "-R '-im'"
+
+          - name: "cereal gcc12"
+            cxx: "g++-12"
+            cc: "gcc-12"
+            build_type: Release
+            build_threads: 2
+            test_threads: 2
+            cxx_flags: "-std=c++23"
+            has_cereal: "1"
+
           - name: "gcc11"
             cxx: "g++-11"
             cc: "gcc-11"
             build_type: Release
             build_threads: 2
             test_threads: 2
-            cxx_flags: "-std=c++20"
-
-          - name: "Header gcc11"
-            cxx: "g++-11"
-            cc: "gcc-11"
-            build_type: Release
-            build_threads: 2
-            test_threads: 2
-            cxx_flags: "-std=c++20"
-            header_test: "ON"
-
-          - name: "ASAN gcc11"
-            cxx: "g++-11"
-            cc: "gcc-11"
-            build_type: Debug
-            build_threads: 2
-            test_threads: 2
-            cxx_flags: "-std=c++20 -fsanitize=address"
-            ctest_exclude: "-E 'faust|moby'"
-            ctest_include: "-R '-im'"
-
-          - name: "cereal gcc11"
-            cxx: "g++-11"
-            cc: "gcc-11"
-            build_type: Release
-            build_threads: 2
-            test_threads: 2
-            cxx_flags: "-std=c++20"
-            has_cereal: "1"
+            cxx_flags: "-std=c++23"
 
           - name: "gcc10"
             cxx: "g++-10"
@@ -74,21 +83,49 @@ jobs:
             test_threads: 2
             cxx_flags: "-std=c++20"
 
-          - name: "gcc9 (c++2a)"
-            cxx: "g++-9"
-            cc: "gcc-9"
+          - name: "clang14"
+            cxx: "clang++-14"
+            cc: "clang-14"
             build_type: Release
             build_threads: 2
             test_threads: 2
-            cxx_flags: "-std=c++2a"
+            cxx_flags: "-std=c++2b"
 
-          - name: "gcc8"
-            cxx: "g++-8"
-            cc: "gcc-8"
+          - name: "Header clang14"
+            cxx: "clang++-14"
+            cc: "clang-14"
             build_type: Release
             build_threads: 2
             test_threads: 2
-            cxx_flags: "-std=c++17"
+            cxx_flags: "-std=c++2b"
+            header_test: "ON"
+
+          - name: "ASAN clang14"
+            cxx: "clang++-14"
+            cc: "clang-14"
+            build_type: Debug
+            build_threads: 2
+            test_threads: 2
+            cxx_flags: "-std=c++2b -fsanitize=address"
+            ctest_exclude: "-E 'faust|moby'"
+            ctest_include: "-R '-im'"
+
+          - name: "cereal clang14"
+            cxx: "clang++-14"
+            cc: "clang-14"
+            build_type: Release
+            build_threads: 2
+            test_threads: 2
+            cxx_flags: "-std=c++2b"
+            has_cereal: "1"
+
+          - name: "clang13"
+            cxx: "clang++-13"
+            cc: "clang-13"
+            build_type: Release
+            build_threads: 2
+            test_threads: 2
+            cxx_flags: "-std=c++2b"
 
           - name: "clang12"
             cxx: "clang++-12"
@@ -98,73 +135,21 @@ jobs:
             test_threads: 2
             cxx_flags: "-std=c++20"
 
-          - name: "Header clang12"
-            cxx: "clang++-12"
-            cc: "clang-12"
-            build_type: Release
-            build_threads: 2
-            test_threads: 2
-            cxx_flags: "-std=c++20"
-            header_test: "ON"
-
-          - name: "ASAN clang12"
-            cxx: "clang++-12"
-            cc: "clang-12"
-            build_type: Debug
-            build_threads: 2
-            test_threads: 2
-            cxx_flags: "-std=c++20 -fsanitize=address"
-            ctest_exclude: "-E 'faust|moby'"
-            ctest_include: "-R '-im'"
-
-          - name: "cereal clang12"
-            cxx: "clang++-12"
-            cc: "clang-12"
-            build_type: Release
-            build_threads: 2
-            test_threads: 2
-            cxx_flags: "-std=c++20"
-            has_cereal: "1"
-
-          - name: "clang11"
-            cxx: "clang++-11"
-            cc: "clang-11"
-            build_type: Release
-            build_threads: 2
-            test_threads: 2
-            cxx_flags: "-std=c++20"
-
-          - name: "clang10"
-            cxx: "clang++-10"
-            cc: "clang-10"
-            build_type: Release
-            build_threads: 2
-            test_threads: 2
-            cxx_flags: "-std=c++20"
-
-          - name: "clang9"
-            cxx: "clang++-9"
-            cc: "clang-9"
-            build_type: Release
-            build_threads: 2
-            test_threads: 2
-            cxx_flags: "-std=c++2a"
-
     steps:
       - name: Checkout SDSL
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           path: sdsl
           fetch-depth: 2
           submodules: true
 
       - name: Checkout SeqAn3
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: seqan/seqan3
-          ref: 9bd2f5b695f02bd701d456ca3e7ad7453545456d
+          ref: 39e696830bbdcde0e520c87811db3eb5e083d7c0
           path: seqan3
-          fetch-depth: 2
+          fetch-depth: 1
           submodules: false
 
       - name: Configure APT
@@ -181,7 +166,7 @@ jobs:
         run: sudo apt-get install --yes ${{ matrix.cxx }}
 
       - name: Load ccache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: .ccache
           key: ${{ runner.os }}-${{ matrix.name }}-ccache-${{ github.ref }}-${{ github.run_number }}
