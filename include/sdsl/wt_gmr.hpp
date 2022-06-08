@@ -568,7 +568,7 @@ class wt_gmr_rs
         }
         else
         {
-            offset = lower_bound(begin, end, val + 1) - begin;
+            offset = std::lower_bound(begin, end, val + 1) - begin;
         }
         return (begin - m_e.begin()) + offset - ones_before_cblock;
     }
@@ -611,7 +611,7 @@ class wt_gmr_rs
                 }
                 else
                 {
-                    offset = lower_bound(m_e.begin() + search_begin, m_e.begin() + search_end, val) - m_e.begin();
+                    offset = std::lower_bound(m_e.begin() + search_begin, m_e.begin() + search_end, val) - m_e.begin();
                     if (offset < search_end)
                     {
                         if (m_e[offset] == val)
@@ -1025,7 +1025,7 @@ class wt_gmr
         }
         else
         {
-            c_ones_in_chunk = lower_bound(begin, end, val + 1) - begin;
+            c_ones_in_chunk = std::lower_bound(begin, end, val + 1) - begin;
         }
         return c_ones_before_chunk + c_ones_in_chunk;
     }
