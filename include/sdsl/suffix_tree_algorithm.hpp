@@ -191,7 +191,7 @@ extract(const t_cst & cst,
                                                           cst_tag())
 {
     typedef typename t_cst::csa_type::string_type t_rac;
-    if (v == cst.root()) { return t_rac(0); }
+    if (v == cst.root()) { return t_rac{}; }
     // first get the suffix array entry of the leftmost leaf in the subtree rooted at v
     typename t_cst::size_type begin = cst.csa[cst.lb(v)];
     // then call the extract method on the compressed suffix array

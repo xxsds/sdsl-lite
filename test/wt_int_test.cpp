@@ -402,7 +402,7 @@ void test_range_search_2d(typename enable_if<has_range_search_2d<t_wt>::value, t
         auto vlb = unique_buf[r1];
         auto vrb = unique_buf[r2];
 
-        size_t cnt = upper_bound(buf.begin(), buf_end, vrb) - lower_bound(buf.begin(), buf_end, vlb);
+        size_t cnt = std::upper_bound(buf.begin(), buf_end, vrb) - std::lower_bound(buf.begin(), buf_end, vlb);
 
         auto res = wt.range_search_2d(lb, rb, vlb, vrb);
         ASSERT_EQ(cnt, res.first);
@@ -463,7 +463,7 @@ void test_quantile_freq(typename enable_if<t_wt::lex_ordered, t_wt>::type & wt)
         for (auto it = buf.begin(); it != buf_end; ++it)
         {
             auto val = *it;
-            size_type freq = upper_bound(buf.begin(), buf_end, val) - lower_bound(buf.begin(), buf_end, val);
+            size_type freq = std::upper_bound(buf.begin(), buf_end, val) - std::lower_bound(buf.begin(), buf_end, val);
             size_type q = it - buf.begin();
             auto res = quantile_freq(wt, lb, rb, q);
             ASSERT_EQ(val, res.first);

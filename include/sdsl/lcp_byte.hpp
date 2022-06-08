@@ -135,7 +135,7 @@ class lcp_byte
         if (m_small_lcp[i] != 255) { return m_small_lcp[i]; }
         else
         {
-            size_type idx = lower_bound(m_big_lcp_idx.begin(), m_big_lcp_idx.end(), i) - m_big_lcp_idx.begin();
+            size_type idx = std::lower_bound(m_big_lcp_idx.begin(), m_big_lcp_idx.end(), i) - m_big_lcp_idx.begin();
             return m_big_lcp[idx];
         }
     }

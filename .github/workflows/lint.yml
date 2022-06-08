@@ -5,6 +5,8 @@ on:
     branches:
       # Push events to branches matching refs/heads/master
       - 'master'
+  # Enables a manual trigger, may run on any branch
+  workflow_dispatch:
 
 concurrency:
   group: lint-${{ github.event.pull_request.number || github.ref }}
@@ -20,11 +22,11 @@ defaults:
 jobs:
   lint:
     name: Linting
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     timeout-minutes: 30
-    if: github.repository_owner == 'xxsds'
+    if: github.repository_owner == 'xxsds' || github.event_name == 'workflow_dispatch'
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Run clang-format
         uses: DoozyX/clang-format-lint-action@v0.13
         with:
