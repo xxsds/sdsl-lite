@@ -9,6 +9,8 @@
 #ifndef INCLUDED_SDSL_WT_GMR
 #define INCLUDED_SDSL_WT_GMR
 
+#include <algorithm>
+
 #include <sdsl/bit_vectors.hpp>
 #include <sdsl/int_vector.hpp>
 #include <sdsl/vectors.hpp>
