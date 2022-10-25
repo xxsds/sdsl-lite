@@ -43,7 +43,10 @@ inline void construct_first_child_lcp(int_vector_buffer<> & lcp_buf, int_vector<
         while (!vec_stack.empty() and x < vec_stack.top())
         {
             y = vec_stack.top();
-            if (vec_stack.pop()) { fc_lcp[fc_cnt++] = y; }
+            if (vec_stack.pop())
+            {
+                fc_lcp[fc_cnt++] = y;
+            }
         }
         vec_stack.push(x);
     }
@@ -51,7 +54,10 @@ inline void construct_first_child_lcp(int_vector_buffer<> & lcp_buf, int_vector<
     while (!vec_stack.empty())
     {
         y = vec_stack.top();
-        if (vec_stack.pop()) { fc_lcp[fc_cnt++] = y; }
+        if (vec_stack.pop())
+        {
+            fc_lcp[fc_cnt++] = y;
+        }
     }
     if (fc_cnt < fc_lcp.size())
     {
@@ -72,7 +78,7 @@ inline void construct_first_child_lcp(int_vector_buffer<> & lcp_buf, int_vector<
 template <class t_lcp, class t_cst>
 class _lcp_support_tree
 {
-  public:
+public:
     typedef typename t_lcp::value_type value_type;
     typedef random_access_const_iterator<_lcp_support_tree> const_iterator;
     typedef const_iterator iterator;
@@ -98,11 +104,11 @@ class _lcp_support_tree
         typedef _lcp_support_tree lcp_type;
     };
 
-  private:
-    const t_cst * m_cst;
+private:
+    t_cst const * m_cst;
     t_lcp m_lcp;
 
-  public:
+public:
     //! Default constructor
     _lcp_support_tree() = default;
 
@@ -110,9 +116,9 @@ class _lcp_support_tree
     ~_lcp_support_tree() = default;
 
     //! Copy/Move constructor
-    _lcp_support_tree(const _lcp_support_tree &) = default;
+    _lcp_support_tree(_lcp_support_tree const &) = default;
     _lcp_support_tree(_lcp_support_tree &&) = default;
-    _lcp_support_tree & operator=(const _lcp_support_tree &) = default;
+    _lcp_support_tree & operator=(_lcp_support_tree const &) = default;
     _lcp_support_tree & operator=(_lcp_support_tree &&) = default;
 
     //! Constructor
@@ -120,7 +126,7 @@ class _lcp_support_tree
      *  \param config  Cache configuration.
      *  \param cst     A pointer to the CST.
      */
-    _lcp_support_tree(cache_config & config, const t_cst * cst = nullptr)
+    _lcp_support_tree(cache_config & config, t_cst const * cst = nullptr)
     {
         m_cst = cst;
         std::string fc_lcp_key = "fc_lcp_" + util::to_string(util::id());
@@ -140,26 +146,47 @@ class _lcp_support_tree
         sdsl::remove(tmp_file);
     }
 
-    size_type size() const { return m_cst->size(); }
+    size_type size() const
+    {
+        return m_cst->size();
+    }
 
-    void set_cst(const t_cst * cst) { m_cst = cst; }
+    void set_cst(t_cst const * cst)
+    {
+        m_cst = cst;
+    }
 
-    static size_type max_size() { return t_lcp::max_size(); }
+    static size_type max_size()
+    {
+        return t_lcp::max_size();
+    }
 
-    size_type empty() const { return m_lcp.empty(); }
+    size_type empty() const
+    {
+        return m_lcp.empty();
+    }
 
     //! Returns a const_iterator to the first element.
-    const_iterator begin() const { return const_iterator(this, 0); }
+    const_iterator begin() const
+    {
+        return const_iterator(this, 0);
+    }
 
     //! Returns a const_iterator to the element after the last element.
-    const_iterator end() const { return const_iterator(this, size()); }
+    const_iterator end() const
+    {
+        return const_iterator(this, size());
+    }
 
     //! []-operator
     /*!\param i Index of the value. \f$ i \in [0..size()-1]\f$.
      * \par Time complexity
      *     \f$ \Order{t_{find\_close} + t_{rank}} \f$
      */
-    inline value_type operator[](size_type i) const { return m_lcp[m_cst->tlcp_idx(i)]; }
+    inline value_type operator[](size_type i) const
+    {
+        return m_lcp[m_cst->tlcp_idx(i)];
+    }
 
     //! Serialize to a stream.
     size_type serialize(std::ostream & out, structure_tree_node * v = nullptr, std::string name = "") const
@@ -172,7 +199,7 @@ class _lcp_support_tree
     }
 
     //! Load from a stream.
-    void load(std::istream & in, const t_cst * cst = nullptr)
+    void load(std::istream & in, t_cst const * cst = nullptr)
     {
         m_lcp.load(in); // works for lcp_byte and lcp_bitcompressed
         m_cst = cst;
@@ -191,10 +218,16 @@ class _lcp_support_tree
     }
 
     //! Equality operator.
-    bool operator==(_lcp_support_tree const & other) const noexcept { return (m_lcp == other.m_lcp); }
+    bool operator==(_lcp_support_tree const & other) const noexcept
+    {
+        return (m_lcp == other.m_lcp);
+    }
 
     //! Inequality operator.
-    bool operator!=(_lcp_support_tree const & other) const noexcept { return !(*this == other); }
+    bool operator!=(_lcp_support_tree const & other) const noexcept
+    {
+        return !(*this == other);
+    }
 };
 
 //! Helper class which provides _lcp_support_tree the context of a CST.

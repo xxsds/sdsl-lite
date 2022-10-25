@@ -14,6 +14,7 @@ int main()
     auto occs = locate(csa, "\n");
     sort(occs.begin(), occs.end());
     auto max_line_length = occs[0];
-    for (size_t i = 1; i < occs.size(); ++i) max_line_length = std::max(max_line_length, occs[i] - occs[i - 1] + 1);
+    for (size_t i = 1; i < occs.size(); ++i)
+        max_line_length = std::max(max_line_length, occs[i] - occs[i - 1] + 1);
     cout << "max line length : " << max_line_length << endl;
 }

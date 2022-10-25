@@ -50,7 +50,7 @@ class csa_bitcompressed
 {
     friend class bwt_of_csa_psi<csa_bitcompressed>;
 
-  public:
+public:
     typedef uint64_t value_type;                                            // STL Container requirement
     typedef random_access_const_iterator<csa_bitcompressed> const_iterator; // STL Container requirement
     typedef const_iterator iterator;                                        // STL Container requirement
@@ -85,12 +85,12 @@ class csa_bitcompressed
         isa_sample_dens = 1
     };
 
-  private:
+private:
     sa_sample_type m_sa;   // vector for suffix array values
     isa_sample_type m_isa; // vector for inverse suffix array values
     alphabet_type m_alphabet;
 
-  public:
+public:
     const typename alphabet_type::char2comp_type & char2comp = m_alphabet.char2comp;
     const typename alphabet_type::comp2char_type & comp2char = m_alphabet.comp2char;
     const typename alphabet_type::C_type & C = m_alphabet.C;
@@ -99,23 +99,24 @@ class csa_bitcompressed
     const lf_type lf = lf_type(*this);
     const bwt_type bwt = bwt_type(*this);
     const bwt_type L = bwt_type(*this);
-    const isa_type & isa = m_isa;
+    isa_type const & isa = m_isa;
     const first_row_type F = first_row_type(*this);
     const text_type text = text_type(*this);
-    const sa_sample_type & sa_sample = m_sa;
-    const isa_sample_type & isa_sample = m_isa;
+    sa_sample_type const & sa_sample = m_sa;
+    isa_sample_type const & isa_sample = m_isa;
 
     //! Default constructor
-    csa_bitcompressed() {}
+    csa_bitcompressed()
+    {}
     //! Copy constructor
-    csa_bitcompressed(const csa_bitcompressed & csa)
-      : m_sa(csa.m_sa)
-      , m_isa(csa.m_isa)
-      , m_alphabet(csa.m_alphabet)
+    csa_bitcompressed(csa_bitcompressed const & csa) : m_sa(csa.m_sa), m_isa(csa.m_isa), m_alphabet(csa.m_alphabet)
     {}
 
     //! Move constructor
-    csa_bitcompressed(csa_bitcompressed && csa) { *this = std::move(csa); }
+    csa_bitcompressed(csa_bitcompressed && csa)
+    {
+        *this = std::move(csa);
+    }
 
     //! Constructor
     csa_bitcompressed(cache_config & config)
@@ -134,44 +135,62 @@ class csa_bitcompressed
     /*! Required for the Container Concept of the STL.
      *  \sa max_size, empty
      */
-    size_type size() const { return m_sa.size(); }
+    size_type size() const
+    {
+        return m_sa.size();
+    }
 
     //! Returns the largest size that csa_bitcompressed can ever have.
     /*! Required for the Container Concept of the STL.
      *  \sa size
      */
-    static size_type max_size() { return int_vector<>::max_size(); }
+    static size_type max_size()
+    {
+        return int_vector<>::max_size();
+    }
 
     //! Returns if the data structure is empty.
     /*! Required for the Container Concept of the STL.
      * \sa size
      */
-    bool empty() const { return m_sa.empty(); }
+    bool empty() const
+    {
+        return m_sa.empty();
+    }
 
     //! Returns a const_iterator to the first element.
     /*! Required for the STL Container Concept.
      *  \sa end
      */
-    const_iterator begin() const { return const_iterator(this, 0); }
+    const_iterator begin() const
+    {
+        return const_iterator(this, 0);
+    }
 
     //! Returns a const_iterator to the element after the last element.
     /*! Required for the STL Container Concept.
      *  \sa begin.
      */
-    const_iterator end() const { return const_iterator(this, size()); }
+    const_iterator end() const
+    {
+        return const_iterator(this, size());
+    }
 
     //! []-operator
     /*!\param i Index of the value. \f$ i \in [0..size()-1]\f$.
      *
      * Required for the STL Random Access Container Concept.
      */
-    inline value_type operator[](size_type i) const { return m_sa[i]; }
+    inline value_type operator[](size_type i) const
+    {
+        return m_sa[i];
+    }
 
     //! Assignment Operator.
     /*!
      *    Required for the Assignable Concept of the STL.
      */
-    csa_bitcompressed & operator=(const csa_bitcompressed & csa)
+    csa_bitcompressed & operator=(csa_bitcompressed const & csa)
     {
         if (this != &csa)
         {
@@ -203,7 +222,10 @@ class csa_bitcompressed
     }
 
     //! Inequality operator.
-    bool operator!=(csa_bitcompressed const & other) const noexcept { return !(*this == other); }
+    bool operator!=(csa_bitcompressed const & other) const noexcept
+    {
+        return !(*this == other);
+    }
 
     //! Serialize to a stream.
     /*!\param out Output stream to write the data structure.
@@ -243,9 +265,12 @@ class csa_bitcompressed
         ar(CEREAL_NVP(m_alphabet));
     }
 
-    size_type get_sample_dens() const { return 1; }
+    size_type get_sample_dens() const
+    {
+        return 1;
+    }
 
-  private:
+private:
     // Calculates how many symbols c are in the prefix [0..i-1] of the BWT of the original text.
     /*
      *  \param i The exclusive index of the prefix range [0..i-1], so \f$i\in [0..size()]\f$.
@@ -293,7 +318,10 @@ class csa_bitcompressed
         comp_char_type cc = char2comp[c];
         if (cc == 0 and c != 0) // character is not in the text => return size()
             return size();
-        if (C[cc] + i - 1 < C[((size_type)1) + cc]) { return psi[C[cc] + i - 1]; }
+        if (C[cc] + i - 1 < C[((size_type)1) + cc])
+        {
+            return psi[C[cc] + i - 1];
+        }
         return size();
     }
 };

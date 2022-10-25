@@ -57,7 +57,10 @@ int main(int argc, char * argv[])
         string query(buffer);
         if (q_len != query.size())
         {
-            if (q_len == 0) { start = timer::now(); }
+            if (q_len == 0)
+            {
+                start = timer::now();
+            }
             else
             {
                 auto stop = timer::now();

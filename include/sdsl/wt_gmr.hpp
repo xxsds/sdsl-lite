@@ -53,7 +53,7 @@ template <uint64_t t_s = 32,
           class t_rank = typename t_bv::rank_1_type>
 class inv_multi_perm_support
 {
-  public:
+public:
     typedef t_rac iv_type;
     typedef typename iv_type::size_type size_type;
     typedef typename iv_type::value_type value_type;
@@ -62,21 +62,21 @@ class inv_multi_perm_support
     typedef t_rank rank_type;
     typedef random_access_const_iterator<inv_multi_perm_support> const_iterator;
 
-  private:
-    const iv_type * m_perm = nullptr; // pointer to supported permutation
+private:
+    iv_type const * m_perm = nullptr; // pointer to supported permutation
     uint64_t m_chunksize;             // size of one permutation
     int_vector<> m_back_pointer;      // back pointers
     bit_vector_type m_marked;         // back pointer marking
     rank_type m_marked_rank;          // rank support for back pointer marking
 
-  public:
+public:
     //! Default constructor
     inv_multi_perm_support(){};
 
     //! Constructor
-    inv_multi_perm_support(const iv_type * perm, int_vector<> & iv, uint64_t chunksize)
-      : m_perm(perm)
-      , m_chunksize(chunksize)
+    inv_multi_perm_support(iv_type const * perm, int_vector<> & iv, uint64_t chunksize) :
+        m_perm(perm),
+        m_chunksize(chunksize)
     {
         bit_vector marked(iv.size(), 0);
         bit_vector done(m_chunksize, 0);
@@ -148,27 +148,33 @@ class inv_multi_perm_support
                         back_pointer = j;
                     }
                 }
-                if (all_steps > t_s) { m_back_pointer[m_marked_rank(i)] = back_pointer - off; }
+                if (all_steps > t_s)
+                {
+                    m_back_pointer[m_marked_rank(i)] = back_pointer - off;
+                }
             }
         }
     }
 
     //! Copy constructor
-    inv_multi_perm_support(const inv_multi_perm_support & p)
-      : m_perm(p.m_perm)
-      , m_chunksize(p.m_chunksize)
-      , m_back_pointer(p.m_back_pointer)
-      , m_marked(p.m_marked)
-      , m_marked_rank(p.m_marked_rank)
+    inv_multi_perm_support(inv_multi_perm_support const & p) :
+        m_perm(p.m_perm),
+        m_chunksize(p.m_chunksize),
+        m_back_pointer(p.m_back_pointer),
+        m_marked(p.m_marked),
+        m_marked_rank(p.m_marked_rank)
     {
         m_marked_rank.set_vector(&m_marked);
     }
 
     //! Move constructor
-    inv_multi_perm_support(inv_multi_perm_support && p) { *this = std::move(p); }
+    inv_multi_perm_support(inv_multi_perm_support && p)
+    {
+        *this = std::move(p);
+    }
 
     //! Assignment operation
-    inv_multi_perm_support & operator=(const inv_multi_perm_support & p)
+    inv_multi_perm_support & operator=(inv_multi_perm_support const & p)
     {
         if (this != &p)
         {
@@ -198,10 +204,16 @@ class inv_multi_perm_support
     }
 
     //! Returns the size of the original vector.
-    size_type size() const { return nullptr == m_perm ? 0 : m_perm->size(); }
+    size_type size() const
+    {
+        return nullptr == m_perm ? 0 : m_perm->size();
+    }
 
     //! Returns whether the original vector contains no data.
-    bool empty() const { return size() == 0; }
+    bool empty() const
+    {
+        return size() == 0;
+    }
 
     //! Access operator
     /*
@@ -217,7 +229,8 @@ class inv_multi_perm_support
             if (m_marked[j])
             {
                 j = m_back_pointer[m_marked_rank(j)] + off;
-                while ((j_new = ((*m_perm)[j]) + off) != i) j = j_new;
+                while ((j_new = ((*m_perm)[j]) + off) != i)
+                    j = j_new;
             }
             else
             {
@@ -228,12 +241,21 @@ class inv_multi_perm_support
     }
 
     //! Returns a const_iterator to the first element.
-    const_iterator begin() const { return const_iterator(this, 0); }
+    const_iterator begin() const
+    {
+        return const_iterator(this, 0);
+    }
 
     //! Returns a const_iterator to the element after the last element.
-    const_iterator end() const { return const_iterator(this, size()); }
+    const_iterator end() const
+    {
+        return const_iterator(this, size());
+    }
 
-    void set_vector(const iv_type * v) { m_perm = v; }
+    void set_vector(iv_type const * v)
+    {
+        m_perm = v;
+    }
 
     //! Serialize into stream
     size_type serialize(std::ostream & out, structure_tree_node * v = nullptr, std::string name = "") const
@@ -249,7 +271,7 @@ class inv_multi_perm_support
     }
 
     //! Load sampling from disk
-    void load(std::istream & in, const iv_type * v = nullptr)
+    void load(std::istream & in, iv_type const * v = nullptr)
     {
         set_vector(v);
         read_member(m_chunksize, in);
@@ -282,12 +304,15 @@ class inv_multi_perm_support
     //! Equality operator.
     bool operator==(inv_multi_perm_support const & other) const noexcept
     {
-        return (m_chunksize == other.m_chunksize) && (m_back_pointer == other.m_back_pointer) &&
-               (m_marked == other.m_marked) && (m_marked_rank == other.m_marked_rank);
+        return (m_chunksize == other.m_chunksize) && (m_back_pointer == other.m_back_pointer)
+            && (m_marked == other.m_marked) && (m_marked_rank == other.m_marked_rank);
     }
 
     //! Inequality operator.
-    bool operator!=(inv_multi_perm_support const & other) const noexcept { return !(*this == other); }
+    bool operator!=(inv_multi_perm_support const & other) const noexcept
+    {
+        return !(*this == other);
+    }
 };
 
 template <class t_rac>
@@ -334,7 +359,7 @@ template <class t_rac = int_vector<>,
           class t_select_zero = typename t_bitvector::select_0_type>
 class wt_gmr_rs
 {
-  public:
+public:
     typedef int_vector<>::size_type size_type;
     typedef int_vector<>::value_type value_type;
     typedef typename t_bitvector::difference_type difference_type;
@@ -347,7 +372,7 @@ class wt_gmr_rs
         lex_ordered = 0
     };
 
-  private:
+private:
     t_bitvector m_bv_blocks;
     t_rac m_e;
     t_select m_bv_blocks_select1;
@@ -357,8 +382,8 @@ class wt_gmr_rs
     uint64_t m_blocks;         // blocks per character
     uint64_t m_sigma = 0;
 
-  public:
-    const size_type & sigma = m_sigma;
+public:
+    size_type const & sigma = m_sigma;
 
     //! Default constructor
     wt_gmr_rs() = default;
@@ -373,14 +398,14 @@ class wt_gmr_rs
      *        I.e. we need \Order{n\log n} if rac is a permutation of 0..n-1.
      */
     template <typename t_it>
-    wt_gmr_rs(t_it begin, t_it end, std::string tmp_dir = ram_file_name(""))
-      : m_size(std::distance(begin, end))
+    wt_gmr_rs(t_it begin, t_it end, std::string tmp_dir = ram_file_name("")) : m_size(std::distance(begin, end))
     {
         // Determine max. symbol
         for (auto it = begin; it != end; ++it)
         {
             value_type value = *it;
-            if (m_block_size < value) m_block_size = value;
+            if (m_block_size < value)
+                m_block_size = value;
         }
         ++m_block_size;
 
@@ -403,12 +428,16 @@ class wt_gmr_rs
 
             for (uint64_t i = 0; i < symbols.size(); ++i)
             {
-                for (uint64_t j = m_blocks * i; j < (i + 1) * m_blocks; ++j) { symbols[i] += tmp[j]; }
+                for (uint64_t j = m_blocks * i; j < (i + 1) * m_blocks; ++j)
+                {
+                    symbols[i] += tmp[j];
+                }
             }
 
             for (uint64_t i = 0, l = 1; i < tmp.size(); ++i, ++l)
             {
-                for (uint64_t j = 0; j < tmp[i]; ++j) b[l++] = 1;
+                for (uint64_t j = 0; j < tmp[i]; ++j)
+                    b[l++] = 1;
             }
 
             // calc m_sigma
@@ -446,7 +475,10 @@ class wt_gmr_rs
         }
         for (auto it = begin; it != end;)
         {
-            for (uint64_t j = 0; j < m_block_size and it != end; ++it, ++j) { positions[symbols[*it]++] = j; }
+            for (uint64_t j = 0; j < m_block_size and it != end; ++it, ++j)
+            {
+                positions[symbols[*it]++] = j;
+            }
         }
         _transform_to_compressed<t_rac>(positions, m_e, tmp_dir);
 
@@ -455,37 +487,37 @@ class wt_gmr_rs
     }
 
     //! Copy constructor
-    wt_gmr_rs(const wt_gmr_rs & wt)
-      : m_bv_blocks(wt.m_bv_blocks)
-      , m_e(wt.m_e)
-      , m_bv_blocks_select1(wt.m_bv_blocks_select1)
-      , m_bv_blocks_select0(wt.m_bv_blocks_select0)
-      , m_size(wt.m_size)
-      , m_block_size(wt.m_block_size)
-      , m_blocks(wt.m_blocks)
-      , m_sigma(wt.m_sigma)
+    wt_gmr_rs(wt_gmr_rs const & wt) :
+        m_bv_blocks(wt.m_bv_blocks),
+        m_e(wt.m_e),
+        m_bv_blocks_select1(wt.m_bv_blocks_select1),
+        m_bv_blocks_select0(wt.m_bv_blocks_select0),
+        m_size(wt.m_size),
+        m_block_size(wt.m_block_size),
+        m_blocks(wt.m_blocks),
+        m_sigma(wt.m_sigma)
     {
         m_bv_blocks_select1.set_vector(&m_bv_blocks);
         m_bv_blocks_select0.set_vector(&m_bv_blocks);
     }
 
     //! Move copy constructor
-    wt_gmr_rs(wt_gmr_rs && wt)
-      : m_bv_blocks(std::move(wt.m_bv_blocks))
-      , m_e(std::move(wt.m_e))
-      , m_bv_blocks_select1(std::move(wt.m_bv_blocks_select1))
-      , m_bv_blocks_select0(std::move(wt.m_bv_blocks_select0))
-      , m_size(wt.m_size)
-      , m_block_size(wt.m_block_size)
-      , m_blocks(wt.m_blocks)
-      , m_sigma(wt.m_sigma)
+    wt_gmr_rs(wt_gmr_rs && wt) :
+        m_bv_blocks(std::move(wt.m_bv_blocks)),
+        m_e(std::move(wt.m_e)),
+        m_bv_blocks_select1(std::move(wt.m_bv_blocks_select1)),
+        m_bv_blocks_select0(std::move(wt.m_bv_blocks_select0)),
+        m_size(wt.m_size),
+        m_block_size(wt.m_block_size),
+        m_blocks(wt.m_blocks),
+        m_sigma(wt.m_sigma)
     {
         m_bv_blocks_select1.set_vector(&m_bv_blocks);
         m_bv_blocks_select0.set_vector(&m_bv_blocks);
     }
 
     //! Assignment operator
-    wt_gmr_rs & operator=(const wt_gmr_rs & wt)
+    wt_gmr_rs & operator=(wt_gmr_rs const & wt)
     {
         wt_gmr_rs tmp(wt);
         *this = std::move(tmp);
@@ -509,10 +541,16 @@ class wt_gmr_rs
     }
 
     //! Returns the size of the original vector.
-    size_type size() const { return m_size; }
+    size_type size() const
+    {
+        return m_size;
+    }
 
     //! Returns whether the wavelet tree contains no data.
-    bool empty() const { return m_size == 0; }
+    bool empty() const
+    {
+        return m_size == 0;
+    }
 
     //! Recovers the i-th symbol of the original vector.
     /*!\param i The index of the symbol in the original vector.
@@ -537,7 +575,10 @@ class wt_gmr_rs
                 { // After a short test, this seems to be a good threshold
                     while (search_begin < search_end and m_e[search_begin] <= val)
                     {
-                        if (m_e[search_begin] == val) { return (block - 1) / m_blocks; }
+                        if (m_e[search_begin] == val)
+                        {
+                            return (block - 1) / m_blocks;
+                        }
                         ++search_begin;
                     }
                 }
@@ -565,20 +606,29 @@ class wt_gmr_rs
      */
     size_type rank(size_type i, value_type c) const
     {
-        if (0 == i or c > m_block_size - 1) { return 0; }
+        if (0 == i or c > m_block_size - 1)
+        {
+            return 0;
+        }
 
         size_type offset = 0;
         size_type ones_before_cblock = m_bv_blocks_select0(c * m_blocks + 1) - c * m_blocks;
 
-        auto begin = m_e.begin() + m_bv_blocks_select0(c * m_blocks + (i - 1) / m_block_size + 1) -
-                     (c * m_blocks + (i - 1) / m_block_size + 1) + 1;
-        auto end = m_e.begin() + m_bv_blocks_select0(c * m_blocks + (i - 1) / m_block_size + 2) -
-                   (c * m_blocks + (i - 1) / m_block_size + 1);
+        auto begin = m_e.begin() + m_bv_blocks_select0(c * m_blocks + (i - 1) / m_block_size + 1)
+                   - (c * m_blocks + (i - 1) / m_block_size + 1) + 1;
+        auto end = m_e.begin() + m_bv_blocks_select0(c * m_blocks + (i - 1) / m_block_size + 2)
+                 - (c * m_blocks + (i - 1) / m_block_size + 1);
 
         size_type val = (i - 1) % m_block_size;
         if (end - begin < 50)
         { // After a short test, this seems to be a good threshold
-            offset = std::find_if(begin, end, [&val](const decltype(*begin) x) { return x > val; }) - begin;
+            offset = std::find_if(begin,
+                                  end,
+                                  [&val](auto const && x)
+                                  {
+                                      return x > val;
+                                  })
+                   - begin;
         }
         else
         {
@@ -717,21 +767,36 @@ class wt_gmr_rs
         m_bv_blocks_select1.set_vector(&m_bv_blocks);
     }
 
-    iterator begin() { return { this, 0 }; };
-    const_iterator end() { return { this, size() }; };
-    iterator begin() const { return { this, 0 }; };
-    const_iterator end() const { return { this, size() }; };
+    iterator begin()
+    {
+        return {this, 0};
+    };
+    const_iterator end()
+    {
+        return {this, size()};
+    };
+    iterator begin() const
+    {
+        return {this, 0};
+    };
+    const_iterator end() const
+    {
+        return {this, size()};
+    };
 
     //! Equality operator.
     bool operator==(wt_gmr_rs const & other) const noexcept
     {
-        return (m_size == other.m_size) && (m_block_size == other.m_block_size) && (m_blocks == other.m_blocks) &&
-               (m_sigma == other.m_sigma) && (m_e == other.m_e) && (m_bv_blocks == other.m_bv_blocks) &&
-               (m_bv_blocks_select0 == other.m_bv_blocks_select0) && (m_bv_blocks_select1 == other.m_bv_blocks_select1);
+        return (m_size == other.m_size) && (m_block_size == other.m_block_size) && (m_blocks == other.m_blocks)
+            && (m_sigma == other.m_sigma) && (m_e == other.m_e) && (m_bv_blocks == other.m_bv_blocks)
+            && (m_bv_blocks_select0 == other.m_bv_blocks_select0) && (m_bv_blocks_select1 == other.m_bv_blocks_select1);
     }
 
     //! Inequality operator.
-    bool operator!=(wt_gmr_rs const & other) const noexcept { return !(*this == other); }
+    bool operator!=(wt_gmr_rs const & other) const noexcept
+    {
+        return !(*this == other);
+    }
 };
 
 //! A wavelet tree class for integer sequences.
@@ -759,7 +824,7 @@ template <class t_rac = int_vector<>,
           class t_select_zero = typename t_bitvector::select_0_type>
 class wt_gmr
 {
-  public:
+public:
     typedef typename t_rac::size_type size_type;
     typedef typename t_rac::value_type value_type;
     typedef typename t_bitvector::difference_type difference_type;
@@ -772,7 +837,7 @@ class wt_gmr
         lex_ordered = 0
     };
 
-  private:
+private:
     t_bitvector m_bv_blocks; // 0 indicates end of block. Corresponds to B in the paper.
     t_bitvector m_bv_chunks; // 0 indicates end of symbol in chunk. Corresponds to X in the paper.
 
@@ -788,8 +853,8 @@ class wt_gmr
     uint64_t m_chunksize;
     uint64_t m_sigma = 0;
 
-  public:
-    const size_type & sigma = m_sigma;
+public:
+    size_type const & sigma = m_sigma;
 
     //! Default constructor
     wt_gmr() = default;
@@ -804,14 +869,14 @@ class wt_gmr
      *        I.e. we need \Order{n\log n} if rac is a permutation of 0..n-1.
      */
     template <typename t_it>
-    wt_gmr(t_it begin, t_it end, std::string tmp_dir = ram_file_name(""))
-      : m_size(std::distance(begin, end))
+    wt_gmr(t_it begin, t_it end, std::string tmp_dir = ram_file_name("")) : m_size(std::distance(begin, end))
     {
         // Determine max. symbol
         for (auto it = begin; it != end; ++it)
         {
             value_type value = *it;
-            if (m_max_symbol < value) m_max_symbol = value;
+            if (m_max_symbol < value)
+                m_max_symbol = value;
         }
         ++m_max_symbol;
         m_chunksize = (1ULL << (bits::hi(m_max_symbol - 1) + 1)); // In some cases this is better than m_max_smbol
@@ -834,7 +899,8 @@ class wt_gmr
             }
 
             for (uint64_t i = 0, l = 1; i < tmp.size(); ++i, ++l)
-                for (uint64_t j = 0; j < tmp[i]; ++j) b[l++] = 1;
+                for (uint64_t j = 0; j < tmp[i]; ++j)
+                    b[l++] = 1;
 
             // calc m_sigma
             bool write = true;
@@ -879,7 +945,8 @@ class wt_gmr
                 }
                 // calc m_bv_chunks
                 for (uint64_t j = 0; j < m_max_symbol; ++j, ++x_pos)
-                    for (uint64_t k = 0; k < symbols[j]; ++k) x[++x_pos] = 1;
+                    for (uint64_t k = 0; k < symbols[j]; ++k)
+                        x[++x_pos] = 1;
 
                 // calc symbols prefix sum
                 for (uint64_t j = 0, tmp = 0, sum = 0; j < m_max_symbol; ++j)
@@ -906,20 +973,20 @@ class wt_gmr
     }
 
     //! Copy constructor
-    wt_gmr(const wt_gmr & wt)
-      : m_bv_blocks(wt.m_bv_blocks)
-      , m_bv_chunks(wt.m_bv_chunks)
-      , m_perm(wt.m_perm)
-      , m_ips(wt.m_ips)
-      , m_bv_blocks_select1(wt.m_bv_blocks_select1)
-      , m_bv_chunks_select1(wt.m_bv_chunks_select1)
-      , m_bv_blocks_select0(wt.m_bv_blocks_select0)
-      , m_bv_chunks_select0(wt.m_bv_chunks_select0)
-      , m_size(wt.m_size)
-      , m_max_symbol(wt.m_max_symbol)
-      , m_chunks(wt.m_chunks)
-      , m_chunksize(wt.m_chunksize)
-      , m_sigma(wt.m_sigma)
+    wt_gmr(wt_gmr const & wt) :
+        m_bv_blocks(wt.m_bv_blocks),
+        m_bv_chunks(wt.m_bv_chunks),
+        m_perm(wt.m_perm),
+        m_ips(wt.m_ips),
+        m_bv_blocks_select1(wt.m_bv_blocks_select1),
+        m_bv_chunks_select1(wt.m_bv_chunks_select1),
+        m_bv_blocks_select0(wt.m_bv_blocks_select0),
+        m_bv_chunks_select0(wt.m_bv_chunks_select0),
+        m_size(wt.m_size),
+        m_max_symbol(wt.m_max_symbol),
+        m_chunks(wt.m_chunks),
+        m_chunksize(wt.m_chunksize),
+        m_sigma(wt.m_sigma)
     {
         m_ips.set_vector(&m_perm);
         m_bv_blocks_select1.set_vector(&m_bv_blocks);
@@ -929,20 +996,20 @@ class wt_gmr
     }
 
     //! Move constructor
-    wt_gmr(wt_gmr && wt)
-      : m_bv_blocks(std::move(wt.m_bv_blocks))
-      , m_bv_chunks(std::move(wt.m_bv_chunks))
-      , m_perm(std::move(wt.m_perm))
-      , m_ips(std::move(wt.m_ips))
-      , m_bv_blocks_select1(std::move(wt.m_bv_blocks_select1))
-      , m_bv_chunks_select1(std::move(wt.m_bv_chunks_select1))
-      , m_bv_blocks_select0(std::move(wt.m_bv_blocks_select0))
-      , m_bv_chunks_select0(std::move(wt.m_bv_chunks_select0))
-      , m_size(wt.m_size)
-      , m_max_symbol(wt.m_max_symbol)
-      , m_chunks(wt.m_chunks)
-      , m_chunksize(wt.m_chunksize)
-      , m_sigma(wt.m_sigma)
+    wt_gmr(wt_gmr && wt) :
+        m_bv_blocks(std::move(wt.m_bv_blocks)),
+        m_bv_chunks(std::move(wt.m_bv_chunks)),
+        m_perm(std::move(wt.m_perm)),
+        m_ips(std::move(wt.m_ips)),
+        m_bv_blocks_select1(std::move(wt.m_bv_blocks_select1)),
+        m_bv_chunks_select1(std::move(wt.m_bv_chunks_select1)),
+        m_bv_blocks_select0(std::move(wt.m_bv_blocks_select0)),
+        m_bv_chunks_select0(std::move(wt.m_bv_chunks_select0)),
+        m_size(wt.m_size),
+        m_max_symbol(wt.m_max_symbol),
+        m_chunks(wt.m_chunks),
+        m_chunksize(wt.m_chunksize),
+        m_sigma(wt.m_sigma)
     {
         m_ips.set_vector(&m_perm);
         m_bv_blocks_select1.set_vector(&m_bv_blocks);
@@ -952,7 +1019,7 @@ class wt_gmr
     }
 
     //! Assignment operator
-    wt_gmr & operator=(const wt_gmr & wt)
+    wt_gmr & operator=(wt_gmr const & wt)
     {
         wt_gmr tmp(wt);
         *this = std::move(tmp);
@@ -984,10 +1051,16 @@ class wt_gmr
     }
 
     //! Returns the size of the original vector.
-    size_type size() const { return m_size; }
+    size_type size() const
+    {
+        return m_size;
+    }
 
     //! Returns whether the wavelet tree contains no data.
-    bool empty() const { return m_size == 0; }
+    bool empty() const
+    {
+        return m_size == 0;
+    }
 
     //! Recovers the i-th symbol of the original vector.
     /*!\param i The index of the symbol in the original vector.
@@ -1019,23 +1092,32 @@ class wt_gmr
     {
         assert(i <= size());
 
-        if (0 == i or c > m_max_symbol - 1) { return 0; }
+        if (0 == i or c > m_max_symbol - 1)
+        {
+            return 0;
+        }
 
         uint64_t chunk = (i - 1) / m_chunksize;
         uint64_t ones_before_c = m_bv_blocks_select0(c * m_chunks + 1) - (c * m_chunks + 1) + 1;
-        uint64_t c_ones_before_chunk = m_bv_blocks_select0(c * m_chunks + chunk + 1) - (c * m_chunks + chunk + 1) + 1 -
-                                       ones_before_c;
+        uint64_t c_ones_before_chunk =
+            m_bv_blocks_select0(c * m_chunks + chunk + 1) - (c * m_chunks + chunk + 1) + 1 - ones_before_c;
 
         uint64_t c_ones_in_chunk = 0;
-        auto begin = m_perm.begin() + m_bv_chunks_select0(chunk * m_max_symbol + 1 + c) -
-                     (chunk * m_max_symbol + 1 + c) + 1;
-        auto end = m_perm.begin() + m_bv_chunks_select0(chunk * m_max_symbol + 2 + c) - (chunk * m_max_symbol + 2 + c) +
-                   1;
+        auto begin =
+            m_perm.begin() + m_bv_chunks_select0(chunk * m_max_symbol + 1 + c) - (chunk * m_max_symbol + 1 + c) + 1;
+        auto end =
+            m_perm.begin() + m_bv_chunks_select0(chunk * m_max_symbol + 2 + c) - (chunk * m_max_symbol + 2 + c) + 1;
 
         size_type val = (i - 1) % m_chunksize;
         if (end - begin < 50)
         { // After a short test, this seems to be a good threshold
-            c_ones_in_chunk = std::find_if(begin, end, [&val](const decltype(*begin) x) { return x > val; }) - begin;
+            c_ones_in_chunk = std::find_if(begin,
+                                           end,
+                                           [&val](auto const && x)
+                                           {
+                                               return x > val;
+                                           })
+                            - begin;
         }
         else
         {
@@ -1062,8 +1144,8 @@ class wt_gmr
         uint64_t c = tmp - x - (chunk * m_max_symbol) - 1;
 
         uint64_t ones_before_c = m_bv_blocks_select0(c * m_chunks + 1) - (c * m_chunks + 1) + 1;
-        uint64_t c_before_chunk = m_bv_blocks_select0(c * m_chunks + chunk + 1) - (c * m_chunks + chunk + 1) + 1 -
-                                  ones_before_c;
+        uint64_t c_before_chunk =
+            m_bv_blocks_select0(c * m_chunks + chunk + 1) - (c * m_chunks + chunk + 1) + 1 - ones_before_c;
         uint64_t c_in_chunk = tmp - m_bv_chunks_select0(c + 1 + chunk * m_max_symbol) - 1;
         return std::make_pair(c_before_chunk + c_in_chunk, c);
     }
@@ -1083,10 +1165,10 @@ class wt_gmr
 
         uint64_t ones_before_c = m_bv_blocks_select0(c * m_chunks + 1) - (c * m_chunks);
         uint64_t chunk = m_bv_blocks_select1(ones_before_c + i) - ones_before_c - (c * m_chunks + 1) - i + 1;
-        uint64_t c_ones_before_chunk = m_bv_blocks_select0(c * m_chunks + chunk + 1) - (c * m_chunks + chunk) -
-                                       ones_before_c;
-        uint64_t pi_pos = m_bv_chunks_select0(chunk * m_max_symbol + c + 1) + (i - c_ones_before_chunk) -
-                          chunk * m_max_symbol - c - 1;
+        uint64_t c_ones_before_chunk =
+            m_bv_blocks_select0(c * m_chunks + chunk + 1) - (c * m_chunks + chunk) - ones_before_c;
+        uint64_t pi_pos = m_bv_chunks_select0(chunk * m_max_symbol + c + 1) + (i - c_ones_before_chunk)
+                        - chunk * m_max_symbol - c - 1;
 
         return m_perm[pi_pos] + chunk * m_chunksize;
     }
@@ -1174,24 +1256,38 @@ class wt_gmr
         m_ips.set_vector(&m_perm);
     }
 
-    iterator begin() { return { this, 0 }; };
-    const_iterator end() { return { this, size() }; };
-    iterator begin() const { return { this, 0 }; };
-    const_iterator end() const { return { this, size() }; };
+    iterator begin()
+    {
+        return {this, 0};
+    };
+    const_iterator end()
+    {
+        return {this, size()};
+    };
+    iterator begin() const
+    {
+        return {this, 0};
+    };
+    const_iterator end() const
+    {
+        return {this, size()};
+    };
 
     //! Equality operator.
     bool operator==(wt_gmr const & other) const noexcept
     {
-        return (m_size == other.m_size) && (m_max_symbol == other.m_max_symbol) && (m_chunks == other.m_chunks) &&
-               (m_chunksize == other.m_chunksize) && (m_sigma == other.m_sigma) && (m_bv_blocks == other.m_bv_blocks) &&
-               (m_bv_blocks_select0 == other.m_bv_blocks_select0) &&
-               (m_bv_blocks_select1 == other.m_bv_blocks_select1) && (m_bv_chunks == other.m_bv_chunks) &&
-               (m_bv_chunks_select0 == other.m_bv_chunks_select0) &&
-               (m_bv_chunks_select1 == other.m_bv_chunks_select1) && (m_perm == other.m_perm) && (m_ips == other.m_ips);
+        return (m_size == other.m_size) && (m_max_symbol == other.m_max_symbol) && (m_chunks == other.m_chunks)
+            && (m_chunksize == other.m_chunksize) && (m_sigma == other.m_sigma) && (m_bv_blocks == other.m_bv_blocks)
+            && (m_bv_blocks_select0 == other.m_bv_blocks_select0) && (m_bv_blocks_select1 == other.m_bv_blocks_select1)
+            && (m_bv_chunks == other.m_bv_chunks) && (m_bv_chunks_select0 == other.m_bv_chunks_select0)
+            && (m_bv_chunks_select1 == other.m_bv_chunks_select1) && (m_perm == other.m_perm) && (m_ips == other.m_ips);
     }
 
     //! Inequality operator.
-    bool operator!=(wt_gmr const & other) const noexcept { return !(*this == other); }
+    bool operator!=(wt_gmr const & other) const noexcept
+    {
+        return !(*this == other);
+    }
 };
 } // namespace sdsl
 

@@ -7,7 +7,7 @@ using namespace sdsl;
 using namespace std;
 
 template <class t_cst, class t_pat = typename t_cst::string_type>
-void execute(const char * input, uint8_t num_bytes, t_pat pat, const char * format)
+void execute(char const * input, uint8_t num_bytes, t_pat pat, char const * format)
 {
     typedef typename t_cst::node_type node_t;
     t_cst cst;
@@ -91,7 +91,7 @@ int main()
         cout << "# Integer alphabet example\n" << endl;
         execute<cst_sct3<csa_bitcompressed<int_alphabet<>>>>("2 801 543 293 597 801 444 444 293",
                                                              'd',
-                                                             { 801, 444 },
+                                                             {801, 444},
                                                              "%2I %3S %:4T");
     }
 }

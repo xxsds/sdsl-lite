@@ -42,7 +42,7 @@ namespace sdsl
 template <uint64_t t_s = 32, class t_bv = bit_vector, class t_rank = typename bit_vector::rank_1_type>
 class inv_perm_support
 {
-  public:
+public:
     typedef int_vector<> iv_type;
     typedef iv_type::size_type size_type;
     typedef iv_type::value_type value_type;
@@ -51,28 +51,31 @@ class inv_perm_support
     typedef t_bv bit_vector_type;
     typedef t_rank rank_type;
 
-  private:
-    const iv_type * m_v = nullptr; // pointer to supported permutation
+private:
+    iv_type const * m_v = nullptr; // pointer to supported permutation
     iv_type m_back_pointer;        // back pointers
     bit_vector_type m_marked;      // back pointer marking
     rank_type m_rank_marked;       // rank support for back pointer marking
-  public:
+
+public:
     inv_perm_support(){};
 
-    inv_perm_support(const inv_perm_support & p)
-      : m_v(p.m_v)
-      , m_back_pointer(p.m_back_pointer)
-      , m_marked(p.m_marked)
-      , m_rank_marked(p.m_rank_marked)
+    inv_perm_support(inv_perm_support const & p) :
+        m_v(p.m_v),
+        m_back_pointer(p.m_back_pointer),
+        m_marked(p.m_marked),
+        m_rank_marked(p.m_rank_marked)
     {
         m_rank_marked.set_vector(&m_marked);
     }
 
-    inv_perm_support(inv_perm_support && p) { *this = std::move(p); }
+    inv_perm_support(inv_perm_support && p)
+    {
+        *this = std::move(p);
+    }
 
     //! Constructor
-    inv_perm_support(const iv_type * v)
-      : m_v(v)
+    inv_perm_support(iv_type const * v) : m_v(v)
     {
         bit_vector marked = bit_vector(m_v->size(), 0);
         bit_vector done = bit_vector(m_v->size(), 0);
@@ -134,7 +137,10 @@ class inv_perm_support
                         back_pointer = j;
                     }
                 }
-                if (all_steps > t_s) { m_back_pointer[m_rank_marked(i)] = back_pointer; }
+                if (all_steps > t_s)
+                {
+                    m_back_pointer[m_rank_marked(i)] = back_pointer;
+                }
             }
         }
     }
@@ -148,7 +154,8 @@ class inv_perm_support
             if (m_marked[j])
             {
                 j = m_back_pointer[m_rank_marked(j)];
-                while ((j_new = (*m_v)[j]) != i) j = j_new;
+                while ((j_new = (*m_v)[j]) != i)
+                    j = j_new;
             }
             else
             {
@@ -158,18 +165,30 @@ class inv_perm_support
         return j;
     }
 
-    size_type size() const { return nullptr == m_v ? 0 : m_v->size(); }
+    size_type size() const
+    {
+        return nullptr == m_v ? 0 : m_v->size();
+    }
 
     //! Returns a const_iterator to the first element.
-    const_iterator begin() const { return const_iterator(this, 0); }
+    const_iterator begin() const
+    {
+        return const_iterator(this, 0);
+    }
 
     //! Returns a const_iterator to the element after the last element.
-    const_iterator end() const { return const_iterator(this, size()); }
+    const_iterator end() const
+    {
+        return const_iterator(this, size());
+    }
 
-    void set_vector(const iv_type * v) { m_v = v; }
+    void set_vector(iv_type const * v)
+    {
+        m_v = v;
+    }
 
     //! Assignment operation
-    inv_perm_support & operator=(const inv_perm_support & p)
+    inv_perm_support & operator=(inv_perm_support const & p)
     {
         if (this != &p)
         {
@@ -235,12 +254,15 @@ class inv_perm_support
     //! Equality operator.
     bool operator==(inv_perm_support const & other) const noexcept
     {
-        return (m_back_pointer == other.m_back_pointer) && (m_marked == other.m_marked) &&
-               (m_rank_marked == other.m_rank_marked);
+        return (m_back_pointer == other.m_back_pointer) && (m_marked == other.m_marked)
+            && (m_rank_marked == other.m_rank_marked);
     }
 
     //! Inequality operator.
-    bool operator!=(inv_perm_support const & other) const noexcept { return !(*this == other); }
+    bool operator!=(inv_perm_support const & other) const noexcept
+    {
+        return !(*this == other);
+    }
 };
 
 } // end namespace sdsl

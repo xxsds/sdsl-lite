@@ -33,28 +33,38 @@ namespace sdsl
  */
 class sorted_int_stack
 {
-  public:
+public:
     typedef int_vector<64>::size_type size_type;
 
-  private:
+private:
     size_type m_n;                     // maximal value which can be stored on the stack
     size_type m_cnt;                   // counter for elements on the stack
     size_type m_top;                   // top element of the stack
     int_vector<64> m_stack;            // memory for the stack
     std::vector<size_type> m_overflow; // memory for the elements which are greater than n
 
-    inline size_type block_nr(size_type x) { return x / 63; };  // maybe we can speed this up with bit hacks
-    inline size_type block_pos(size_type x) { return x % 63; }; // maybe we can speed this up with bit hacks
-  public:
+    inline size_type block_nr(size_type x)
+    {
+        return x / 63;
+    }; // maybe we can speed this up with bit hacks
+    inline size_type block_pos(size_type x)
+    {
+        return x % 63;
+    }; // maybe we can speed this up with bit hacks
+
+public:
     sorted_int_stack(size_type n);
-    sorted_int_stack(const sorted_int_stack &) = default;
+    sorted_int_stack(sorted_int_stack const &) = default;
     sorted_int_stack(sorted_int_stack &&) = default;
-    sorted_int_stack & operator=(const sorted_int_stack &) = default;
+    sorted_int_stack & operator=(sorted_int_stack const &) = default;
     sorted_int_stack & operator=(sorted_int_stack &&) = default;
 
     /*! Returns if the stack is empty.
      */
-    bool empty() const { return 0 == m_cnt; };
+    bool empty() const
+    {
+        return 0 == m_cnt;
+    };
 
     /*! Returns the topmost element of the stack.
      * \pre empty()==false
@@ -73,7 +83,10 @@ class sorted_int_stack
 
     /*! Returns the number of element is the stack.
      */
-    size_type size() const { return m_cnt; };
+    size_type size() const
+    {
+        return m_cnt;
+    };
 
     size_type serialize(std::ostream & out, structure_tree_node * v = nullptr, std::string name = "") const;
     void load(std::istream & in);
@@ -85,10 +98,7 @@ class sorted_int_stack
     bool operator!=(sorted_int_stack const & other) const noexcept;
 };
 
-inline sorted_int_stack::sorted_int_stack(size_type n)
-  : m_n(n)
-  , m_cnt(0)
-  , m_top(0)
+inline sorted_int_stack::sorted_int_stack(size_type n) : m_n(n), m_cnt(0), m_top(0)
 {
     m_stack = int_vector<64>(block_nr(n) + 2, 0);
     m_stack[0] = 1;
@@ -106,7 +116,10 @@ inline void sorted_int_stack::push(size_type x)
     ++m_cnt; //< increment counter
     if (x > m_n + 63)
     {
-        if (m_overflow.empty()) { m_overflow.push_back(m_top); }
+        if (m_overflow.empty())
+        {
+            m_overflow.push_back(m_top);
+        }
         m_overflow.push_back(x);
         m_top = x;
     }
@@ -114,7 +127,10 @@ inline void sorted_int_stack::push(size_type x)
     {
         size_type bn = block_nr(x);
         m_stack[bn] ^= (1ULL << block_pos(x));
-        if (m_stack[bn - 1] == 0) { m_stack[bn - 1] = 0x8000000000000000ULL | m_top; }
+        if (m_stack[bn - 1] == 0)
+        {
+            m_stack[bn - 1] = 0x8000000000000000ULL | m_top;
+        }
         m_top = x;
     }
 }
@@ -128,7 +144,8 @@ inline void sorted_int_stack::pop()
         {
             m_overflow.pop_back();
             m_top = m_overflow.back();
-            if (m_overflow.size() == 1) m_overflow.pop_back();
+            if (m_overflow.size() == 1)
+                m_overflow.pop_back();
         }
         else
         {
@@ -137,7 +154,10 @@ inline void sorted_int_stack::pop()
             assert((w >> 63) == 0); // highest bit is not set, as the block contains no pointer
             w ^= (1ULL << block_pos(m_top));
             m_stack[bn] = w;
-            if (w > 0) { m_top = bn * 63 + bits::hi(w); }
+            if (w > 0)
+            {
+                m_top = bn * 63 + bits::hi(w);
+            }
             else
             { // w==0 and cnt>0
                 assert(bn > 0);
@@ -157,9 +177,8 @@ inline void sorted_int_stack::pop()
     }
 }
 
-inline sorted_int_stack::size_type sorted_int_stack::serialize(std::ostream & out,
-                                                               structure_tree_node * v,
-                                                               std::string name) const
+inline sorted_int_stack::size_type
+sorted_int_stack::serialize(std::ostream & out, structure_tree_node * v, std::string name) const
 {
     structure_tree_node * child = structure_tree::add_child(v, name, util::class_name(*this));
     size_type written_bytes = 0;
@@ -204,8 +223,8 @@ void sorted_int_stack::CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
 //! Equality operator.
 inline bool sorted_int_stack::operator==(sorted_int_stack const & other) const noexcept
 {
-    return (m_n == other.m_n) && (m_cnt == other.m_cnt) && (m_top == other.m_top) && (m_stack == other.m_stack) &&
-           (m_overflow == other.m_overflow);
+    return (m_n == other.m_n) && (m_cnt == other.m_cnt) && (m_top == other.m_top) && (m_stack == other.m_stack)
+        && (m_overflow == other.m_overflow);
 }
 
 //! Inequality operator.

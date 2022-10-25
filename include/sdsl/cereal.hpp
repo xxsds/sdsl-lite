@@ -11,30 +11,30 @@
 #include <type_traits>
 
 #if defined(__has_include)
-#if __has_include(<cereal/cereal.hpp>)
-#define SDSL_HAS_CEREAL 1
-#include <cereal/archives/binary.hpp>
-#include <cereal/archives/json.hpp>
-#include <cereal/archives/portable_binary.hpp>
-#include <cereal/archives/xml.hpp>
-#include <cereal/cereal.hpp>
-#include <cereal/details/traits.hpp>
-#include <cereal/types/array.hpp>
-#include <cereal/types/memory.hpp>
-#include <cereal/types/vector.hpp>
-#endif
+#    if __has_include(<cereal/cereal.hpp>)
+#        define SDSL_HAS_CEREAL 1
+#        include <cereal/archives/binary.hpp>
+#        include <cereal/archives/json.hpp>
+#        include <cereal/archives/portable_binary.hpp>
+#        include <cereal/archives/xml.hpp>
+#        include <cereal/cereal.hpp>
+#        include <cereal/details/traits.hpp>
+#        include <cereal/types/array.hpp>
+#        include <cereal/types/memory.hpp>
+#        include <cereal/types/vector.hpp>
+#    endif
 #endif
 
 #ifndef SDSL_HAS_CEREAL
-#define SDSL_HAS_CEREAL 0
+#    define SDSL_HAS_CEREAL 0
 
-#define CEREAL_NVP(X) X
+#    define CEREAL_NVP(X) X
 
-#define CEREAL_SERIALIZE_FUNCTION_NAME serialize
-#define CEREAL_LOAD_FUNCTION_NAME load
-#define CEREAL_SAVE_FUNCTION_NAME save
-#define CEREAL_LOAD_MINIMAL_FUNCTION_NAME load_minimal
-#define CEREAL_SAVE_MINIMAL_FUNCTION_NAME save_minimal
+#    define CEREAL_SERIALIZE_FUNCTION_NAME serialize
+#    define CEREAL_LOAD_FUNCTION_NAME load
+#    define CEREAL_SAVE_FUNCTION_NAME save
+#    define CEREAL_LOAD_MINIMAL_FUNCTION_NAME load_minimal
+#    define CEREAL_SAVE_MINIMAL_FUNCTION_NAME save_minimal
 
 namespace cereal
 {

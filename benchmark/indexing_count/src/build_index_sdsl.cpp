@@ -14,7 +14,10 @@ int main(int argc, char ** argv)
         return 0;
     }
     CSA_TYPE csa;
-    if (argc < 3) { construct(csa, argv[1], 1); }
+    if (argc < 3)
+    {
+        construct(csa, argv[1], 1);
+    }
     else
     {
         // config: do not delete files, tmp_dir=argv[2], id=basename(argv[1])

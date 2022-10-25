@@ -52,7 +52,10 @@ int main(int argc, char * argv[])
         {
             uint64_t x = dice1();
             uint64_t len = dice2();
-            for (uint64_t j = x; j < x + len and j < bv.size(); ++j) { bv[j] = 1 - default_value; }
+            for (uint64_t j = x; j < x + len and j < bv.size(); ++j)
+            {
+                bv[j] = 1 - default_value;
+            }
         }
     }
     else if ("CRAFTED-MAT-SELECT")
@@ -64,7 +67,10 @@ int main(int argc, char * argv[])
         for (uint64_t i = 0; i < ones; i++)
         {
             uint64_t rnd = rand();
-            while (bv[rnd % bv.size()] == 1) { rnd = rand(); }
+            while (bv[rnd % bv.size()] == 1)
+            {
+                rnd = rand();
+            }
             bv[rnd % bv.size()] = 1;
         }
     }

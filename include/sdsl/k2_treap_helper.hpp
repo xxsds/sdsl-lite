@@ -30,55 +30,103 @@ struct precomp
         impl()
         {
             exp[0] = 1;
-            for (uint8_t i = 1; i < 65; ++i) { exp[i] = t_k * exp[i - 1]; }
+            for (uint8_t i = 1; i < 65; ++i)
+            {
+                exp[i] = t_k * exp[i - 1];
+            }
         }
     } data;
 
-    static uint64_t exp(uint8_t l) { return data.exp[l]; }
+    static uint64_t exp(uint8_t l)
+    {
+        return data.exp[l];
+    }
 
-    static uint64_t divexp(uint64_t x, uint8_t l) { return x / data.exp[l]; }
+    static uint64_t divexp(uint64_t x, uint8_t l)
+    {
+        return x / data.exp[l];
+    }
 
-    static uint64_t modexp(uint64_t x, uint8_t l) { return x % data.exp[l]; }
+    static uint64_t modexp(uint64_t x, uint8_t l)
+    {
+        return x % data.exp[l];
+    }
 };
 
 template <>
 struct precomp<2>
 {
-    static uint64_t exp(uint8_t l) { return 1ULL << l; }
+    static uint64_t exp(uint8_t l)
+    {
+        return 1ULL << l;
+    }
 
-    static uint64_t divexp(uint64_t x, uint8_t l) { return x >> l; }
+    static uint64_t divexp(uint64_t x, uint8_t l)
+    {
+        return x >> l;
+    }
 
-    static uint64_t modexp(uint64_t x, uint8_t l) { return x & bits::lo_set[l]; }
+    static uint64_t modexp(uint64_t x, uint8_t l)
+    {
+        return x & bits::lo_set[l];
+    }
 };
 
 template <>
 struct precomp<4>
 {
-    static uint64_t exp(uint8_t l) { return 1ULL << (2 * l); }
+    static uint64_t exp(uint8_t l)
+    {
+        return 1ULL << (2 * l);
+    }
 
-    static uint64_t divexp(uint64_t x, uint8_t l) { return x >> (2 * l); }
+    static uint64_t divexp(uint64_t x, uint8_t l)
+    {
+        return x >> (2 * l);
+    }
 
-    static uint64_t modexp(uint64_t x, uint8_t l) { return x & bits::lo_set[2 * l]; }
+    static uint64_t modexp(uint64_t x, uint8_t l)
+    {
+        return x & bits::lo_set[2 * l];
+    }
 };
 
 template <>
 struct precomp<8>
 {
-    static uint64_t exp(uint8_t l) { return 1ULL << (3 * l); }
+    static uint64_t exp(uint8_t l)
+    {
+        return 1ULL << (3 * l);
+    }
 
-    static uint64_t divexp(uint64_t x, uint8_t l) { return x >> (3 * l); }
+    static uint64_t divexp(uint64_t x, uint8_t l)
+    {
+        return x >> (3 * l);
+    }
 
-    static uint64_t modexp(uint64_t x, uint8_t l) { return x & bits::lo_set[3 * l]; }
+    static uint64_t modexp(uint64_t x, uint8_t l)
+    {
+        return x & bits::lo_set[3 * l];
+    }
 };
 
 template <>
 struct precomp<16>
 {
-    static uint64_t exp(uint8_t l) { return 1ULL << (4 * l); }
+    static uint64_t exp(uint8_t l)
+    {
+        return 1ULL << (4 * l);
+    }
 
-    static uint64_t divexp(uint64_t x, uint8_t l) { return x >> (4 * l); }
+    static uint64_t divexp(uint64_t x, uint8_t l)
+    {
+        return x >> (4 * l);
+    }
 
-    static uint64_t modexp(uint64_t x, uint8_t l) { return x & bits::lo_set[4 * l]; }
+    static uint64_t modexp(uint64_t x, uint8_t l)
+    {
+        return x & bits::lo_set[4 * l];
+    }
 };
 
 template <uint8_t t_k>
@@ -97,22 +145,28 @@ struct node_type
     t_p max_p;      // maximal point
 
     node_type() = default;
-    node_type(uint8_t _t, t_p _p, uint64_t _idx, uint64_t _max_v, t_p _max_p)
-      : t(_t)
-      , p(_p)
-      , idx(_idx)
-      , max_v(_max_v)
-      , max_p(_max_p)
+    node_type(uint8_t _t, t_p _p, uint64_t _idx, uint64_t _max_v, t_p _max_p) :
+        t(_t),
+        p(_p),
+        idx(_idx),
+        max_v(_max_v),
+        max_p(_max_p)
     {}
     node_type(node_type &&) = default;
-    node_type(const node_type &) = default;
+    node_type(node_type const &) = default;
     node_type & operator=(node_type &&) = default;
-    node_type & operator=(const node_type &) = default;
+    node_type & operator=(node_type const &) = default;
 
-    bool operator<(const node_type & v) const
+    bool operator<(node_type const & v) const
     {
-        if (max_v != v.max_v) { return max_v < v.max_v; }
-        if (real(max_p) != real(v.max_p)) { return real(max_p) > real(v.max_p); }
+        if (max_v != v.max_v)
+        {
+            return max_v < v.max_v;
+        }
+        if (real(max_p) != real(v.max_p))
+        {
+            return real(max_p) > real(v.max_p);
+        }
         return imag(max_p) > imag(v.max_p);
     }
 };

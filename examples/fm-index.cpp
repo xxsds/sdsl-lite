@@ -24,9 +24,18 @@ int main(int argc, char ** argv)
     size_t max_locations = 5;
     size_t post_context = 10;
     size_t pre_context = 10;
-    if (argc >= 3) { max_locations = atoi(argv[2]); }
-    if (argc >= 4) { post_context = atoi(argv[3]); }
-    if (argc >= 5) { pre_context = atoi(argv[4]); }
+    if (argc >= 3)
+    {
+        max_locations = atoi(argv[2]);
+    }
+    if (argc >= 4)
+    {
+        post_context = atoi(argv[3]);
+    }
+    if (argc >= 5)
+    {
+        pre_context = atoi(argv[4]);
+    }
     string index_suffix = ".fm9";
     string index_file = string(argv[1]) + index_suffix;
     csa_wt<wt_huff<rrr_vector<127>>, 512, 1024> fm_index;
@@ -62,7 +71,10 @@ int main(int argc, char ** argv)
                  ++i)
             {
                 cout << setw(8) << locations[i] << ": ";
-                if (pre_extract > locations[i]) { pre_extract = locations[i]; }
+                if (pre_extract > locations[i])
+                {
+                    pre_extract = locations[i];
+                }
                 if (locations[i] + m + post_extract > fm_index.size())
                 {
                     post_extract = fm_index.size() - locations[i] - m;
@@ -70,7 +82,10 @@ int main(int argc, char ** argv)
                 auto s = extract(fm_index, locations[i] - pre_extract, locations[i] + m + post_extract - 1);
                 string pre = s.substr(0, pre_extract);
                 s = s.substr(pre_extract);
-                if (pre.find_last_of('\n') != string::npos) { pre = pre.substr(pre.find_last_of('\n') + 1); }
+                if (pre.find_last_of('\n') != string::npos)
+                {
+                    pre = pre.substr(pre.find_last_of('\n') + 1);
+                }
                 cout << pre;
                 cout << "\033[1;31m";
                 cout << s.substr(0, m);

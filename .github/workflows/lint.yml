@@ -4,7 +4,7 @@ on:
   push:
     branches:
       # Push events to branches matching refs/heads/master
-      - 'master'
+      # - 'master'
   # Enables a manual trigger, may run on any branch
   workflow_dispatch:
 
@@ -33,7 +33,7 @@ jobs:
           source: '.'
           exclude: './external'
           extensions: 'h,hpp,hpp.cmake,cpp'
-          clangFormatVersion: 12
+          clangFormatVersion: 15
           inplace: True
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v3

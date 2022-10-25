@@ -44,7 +44,10 @@ struct wt_rlmn_trait
     typedef int_vector<> C_type;
     typedef int_vector<> C_bf_rank_type;
 
-    static std::map<uint64_t, uint64_t> temp_C() { return std::map<uint64_t, uint64_t>(); }
+    static std::map<uint64_t, uint64_t> temp_C()
+    {
+        return std::map<uint64_t, uint64_t>();
+    }
 
     static C_type init_C(std::map<uint64_t, uint64_t> & C, uint64_t size)
     {
@@ -52,7 +55,7 @@ struct wt_rlmn_trait
         return C_type(max_symbol + 1, 0, bits::hi(size) + 1);
     }
 
-    static C_bf_rank_type init_C_bf_rank(const C_type & C, uint64_t size)
+    static C_bf_rank_type init_C_bf_rank(C_type const & C, uint64_t size)
     {
         return C_bf_rank_type(C.size(), 0, bits::hi(size) + 1);
     }
@@ -68,11 +71,20 @@ struct wt_rlmn_trait<byte_alphabet_tag>
     typedef int_vector<64> C_type;
     typedef int_vector<64> C_bf_rank_type;
 
-    static int_vector<64> temp_C() { return int_vector<64>(256, 0); }
+    static int_vector<64> temp_C()
+    {
+        return int_vector<64>(256, 0);
+    }
 
-    static C_type init_C(C_type & C, uint64_t) { return C; }
+    static C_type init_C(C_type & C, uint64_t)
+    {
+        return C;
+    }
 
-    static C_bf_rank_type init_C_bf_rank(const C_type &, uint64_t) { return int_vector<64>(256, 0); }
+    static C_bf_rank_type init_C_bf_rank(C_type const &, uint64_t)
+    {
+        return int_vector<64>(256, 0);
+    }
 };
 
 //! A Wavelet Tree class for byte sequences.
@@ -101,7 +113,7 @@ template <class t_bitvector = sd_vector<>,
           class t_wt = wt_huff<>>
 class wt_rlmn
 {
-  public:
+public:
     typedef t_wt wt_type;
     typedef int_vector<>::size_type size_type;
     typedef typename t_wt::value_type value_type;
@@ -127,7 +139,7 @@ class wt_rlmn
     // operations if t_wt::lex_ordered is
     // true
 
-  private:
+private:
     size_type m_size = 0; // size of the original input sequence
     bit_vector_type m_bl; // bit vector for starts of runs in
     // the BWT (or last column), i.e. _b_ _l_ast
@@ -144,8 +156,8 @@ class wt_rlmn
                                      // the prefixes m_bf[0..m_C[0]],m_bf[0..m_C[1]],....,m_bf[0..m_C[255]];
                                      // named C_s in the original paper
 
-  public:
-    const size_type & sigma = m_wt.sigma;
+public:
+    size_type const & sigma = m_wt.sigma;
 
     // Default constructor
     wt_rlmn() = default;
@@ -157,13 +169,13 @@ class wt_rlmn
      * \param tmp_dir Temporary directory for intermediate results.
      */
     template <typename t_it>
-    wt_rlmn(t_it begin, t_it end, std::string tmp_dir = ram_file_name(""))
-      : m_size(std::distance(begin, end))
+    wt_rlmn(t_it begin, t_it end, std::string tmp_dir = ram_file_name("")) : m_size(std::distance(begin, end))
     {
-        std::string temp_file = tmp_dir + +"_wt_rlmn_" + util::to_string(util::pid()) + "_" +
-                                util::to_string(util::id());
+        std::string temp_file =
+            tmp_dir + +"_wt_rlmn_" + util::to_string(util::pid()) + "_" + util::to_string(util::id());
         {
-            if (0 == m_size) return;
+            if (0 == m_size)
+                return;
             int_vector_buffer<width> condensed_wt(temp_file, std::ios::out);
             // scope for bl and bf
             bit_vector bl = bit_vector(m_size, 0);
@@ -198,7 +210,10 @@ class wt_rlmn
             for (auto it = begin; it != end; ++it, ++j)
             {
                 value_type c = *it;
-                if (bl[j]) { bf[lf_map[c]] = 1; }
+                if (bl[j])
+                {
+                    bf[lf_map[c]] = 1;
+                }
                 ++lf_map[c];
             }
             {
@@ -216,21 +231,24 @@ class wt_rlmn
         util::init_support(m_bl_select, &m_bl);
 
         m_C_bf_rank = wt_rlmn_trait<alphabet_category>::init_C_bf_rank(m_C, m_size);
-        for (size_type i = 0; i < m_C.size(); ++i) { m_C_bf_rank[i] = m_bf_rank(m_C[i]); }
+        for (size_type i = 0; i < m_C.size(); ++i)
+        {
+            m_C_bf_rank[i] = m_bf_rank(m_C[i]);
+        }
     }
 
     //! Copy constructor
-    wt_rlmn(const wt_rlmn & wt)
-      : m_size(wt.m_size)
-      , m_bl(wt.m_bl)
-      , m_bf(wt.m_bf)
-      , m_wt(wt.m_wt)
-      , m_bl_rank(wt.m_bl_rank)
-      , m_bf_rank(wt.m_bf_rank)
-      , m_bl_select(wt.m_bl_select)
-      , m_bf_select(wt.m_bf_select)
-      , m_C(wt.m_C)
-      , m_C_bf_rank(wt.m_C_bf_rank)
+    wt_rlmn(wt_rlmn const & wt) :
+        m_size(wt.m_size),
+        m_bl(wt.m_bl),
+        m_bf(wt.m_bf),
+        m_wt(wt.m_wt),
+        m_bl_rank(wt.m_bl_rank),
+        m_bf_rank(wt.m_bf_rank),
+        m_bl_select(wt.m_bl_select),
+        m_bf_select(wt.m_bf_select),
+        m_C(wt.m_C),
+        m_C_bf_rank(wt.m_C_bf_rank)
     {
         m_bl_rank.set_vector(&m_bl);
         m_bf_rank.set_vector(&m_bf);
@@ -239,17 +257,17 @@ class wt_rlmn
     }
 
     //! Move constructor
-    wt_rlmn(wt_rlmn && wt)
-      : m_size(wt.m_size)
-      , m_bl(std::move(wt.m_bl))
-      , m_bf(std::move(wt.m_bf))
-      , m_wt(std::move(wt.m_wt))
-      , m_bl_rank(std::move(wt.m_bl_rank))
-      , m_bf_rank(std::move(wt.m_bf_rank))
-      , m_bl_select(std::move(wt.m_bl_select))
-      , m_bf_select(std::move(wt.m_bf_select))
-      , m_C(std::move(wt.m_C))
-      , m_C_bf_rank(std::move(wt.m_C_bf_rank))
+    wt_rlmn(wt_rlmn && wt) :
+        m_size(wt.m_size),
+        m_bl(std::move(wt.m_bl)),
+        m_bf(std::move(wt.m_bf)),
+        m_wt(std::move(wt.m_wt)),
+        m_bl_rank(std::move(wt.m_bl_rank)),
+        m_bf_rank(std::move(wt.m_bf_rank)),
+        m_bl_select(std::move(wt.m_bl_select)),
+        m_bf_select(std::move(wt.m_bf_select)),
+        m_C(std::move(wt.m_C)),
+        m_C_bf_rank(std::move(wt.m_C_bf_rank))
     {
         m_bl_rank.set_vector(&m_bl);
         m_bf_rank.set_vector(&m_bf);
@@ -258,7 +276,7 @@ class wt_rlmn
     }
 
     //! Assignment operator
-    wt_rlmn & operator=(const wt_rlmn & wt)
+    wt_rlmn & operator=(wt_rlmn const & wt)
     {
         if (this != &wt)
         {
@@ -292,10 +310,16 @@ class wt_rlmn
     }
 
     //! Returns the size of the original vector.
-    size_type size() const { return m_size; }
+    size_type size() const
+    {
+        return m_size;
+    }
 
     //! Returns whether the wavelet tree contains no data.
-    bool empty() const { return 0 == m_size; }
+    bool empty() const
+    {
+        return 0 == m_size;
+    }
 
     //! Recovers the i-th symbol of the original vector.
     /*!\param i Index in the original vector. \f$i \in [0..size()-1]\f$.
@@ -322,10 +346,12 @@ class wt_rlmn
     size_type rank(size_type i, value_type c) const
     {
         assert(i <= size());
-        if (i == 0) return 0;
+        if (i == 0)
+            return 0;
         size_type wt_ex_pos = m_bl_rank(i);
         size_type c_runs = m_wt.rank(wt_ex_pos, c);
-        if (c_runs == 0) return 0;
+        if (c_runs == 0)
+            return 0;
         if (m_wt[wt_ex_pos - 1] == c)
         {
             size_type c_run_begin = m_bl_select(wt_ex_pos);
@@ -347,12 +373,16 @@ class wt_rlmn
     std::pair<size_type, value_type> inverse_select(size_type i) const
     {
         assert(i < size());
-        if (i == 0) { return std::make_pair(0, m_wt[0]); }
+        if (i == 0)
+        {
+            return std::make_pair(0, m_wt[0]);
+        }
         size_type wt_ex_pos = m_bl_rank(i + 1);
         auto rc = m_wt.inverse_select(wt_ex_pos - 1);
         size_type c_runs = rc.first + 1;
         value_type c = rc.second;
-        if (c_runs == 0) return std::make_pair(0, c);
+        if (c_runs == 0)
+            return std::make_pair(0, c);
         if (m_wt[wt_ex_pos - 1] == c)
         {
             size_type c_run_begin = m_bl_select(wt_ex_pos);
@@ -382,10 +412,16 @@ class wt_rlmn
     };
 
     //! Returns a const_iterator to the first element.
-    const_iterator begin() const { return const_iterator(this, 0); }
+    const_iterator begin() const
+    {
+        return const_iterator(this, 0);
+    }
 
     //! Returns a const_iterator to the element after the last element.
-    const_iterator end() const { return const_iterator(this, size()); }
+    const_iterator end() const
+    {
+        return const_iterator(this, size());
+    }
 
     //! Serializes the data structure into the given ostream
     size_type serialize(std::ostream & out, structure_tree_node * v = nullptr, std::string name = "") const
@@ -460,13 +496,16 @@ class wt_rlmn
     //! Equality operator.
     bool operator==(wt_rlmn const & other) const noexcept
     {
-        return (m_size == other.m_size) && (m_bl == other.m_bl) && (m_bf == other.m_bf) && (m_wt == other.m_wt) &&
-               (m_bl_rank == other.m_bl_rank) && (m_bf_rank == other.m_bf_rank) && (m_bl_select == other.m_bl_select) &&
-               (m_bf_select == other.m_bf_select) && (m_C == other.m_C) && (m_C_bf_rank == other.m_C_bf_rank);
+        return (m_size == other.m_size) && (m_bl == other.m_bl) && (m_bf == other.m_bf) && (m_wt == other.m_wt)
+            && (m_bl_rank == other.m_bl_rank) && (m_bf_rank == other.m_bf_rank) && (m_bl_select == other.m_bl_select)
+            && (m_bf_select == other.m_bf_select) && (m_C == other.m_C) && (m_C_bf_rank == other.m_C_bf_rank);
     }
 
     //! Inequality operator.
-    bool operator!=(wt_rlmn const & other) const noexcept { return !(*this == other); }
+    bool operator!=(wt_rlmn const & other) const noexcept
+    {
+        return !(*this == other);
+    }
 };
 
 } // end namespace sdsl

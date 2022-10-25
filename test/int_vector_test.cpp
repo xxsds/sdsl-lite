@@ -21,10 +21,12 @@ std::string temp_dir;
 // The fixture for testing class int_vector.
 class int_vector_test : public ::testing::Test
 {
-  protected:
-    int_vector_test() {}
+protected:
+    int_vector_test()
+    {}
 
-    virtual ~int_vector_test() {}
+    virtual ~int_vector_test()
+    {}
 
     virtual void SetUp()
     {
@@ -32,18 +34,25 @@ class int_vector_test : public ::testing::Test
         {
             std::uniform_int_distribution<uint64_t> distribution(0, 100000);
             auto dice = bind(distribution, rng);
-            for (size_type i = 0; i < 128; ++i) { vec_sizes.push_back(dice()); }
+            for (size_type i = 0; i < 128; ++i)
+            {
+                vec_sizes.push_back(dice());
+            }
         }
         {
             std::uniform_int_distribution<uint64_t> distribution(0, 10000000);
             auto dice = bind(distribution, rng);
-            for (size_type i = 0; i < 10; ++i) { vec_sizes.push_back(dice()); }
+            for (size_type i = 0; i < 10; ++i)
+            {
+                vec_sizes.push_back(dice());
+            }
         }
     }
 
-    virtual void TearDown() {}
+    virtual void TearDown()
+    {}
 
-    std::vector<size_type> vec_sizes = { 0, 64, 65, 127, 128 }; // different sizes for the vectors
+    std::vector<size_type> vec_sizes = {0, 64, 65, 127, 128}; // different sizes for the vectors
 };
 
 template <class t_iv>
@@ -85,7 +94,10 @@ void test_Constructors(uint8_t template_width, size_type constructor_size, uint8
         value_type expected_val = rng();
         t_iv iv(constructor_size, expected_val, constructor_width);
         ASSERT_EQ(constructor_size, iv.size());
-        if (iv.fixed_int_width == 0) { ASSERT_EQ(constructor_width, iv.width()); }
+        if (iv.fixed_int_width == 0)
+        {
+            ASSERT_EQ(constructor_width, iv.width());
+        }
         else
         {
             ASSERT_EQ(template_width, iv.width());
@@ -98,7 +110,7 @@ void test_Constructors(uint8_t template_width, size_type constructor_size, uint8
     }
     {
         // Constructor with initalizer list (ignores constructor_size)
-        t_iv iv({ 1, 0, 1 });
+        t_iv iv({1, 0, 1});
         ASSERT_EQ(iv.size(), (size_type)3);
         ASSERT_EQ(iv[0], (value_type)1);
         ASSERT_EQ(iv[1], (value_type)0);
@@ -110,7 +122,8 @@ void test_Constructors(uint8_t template_width, size_type constructor_size, uint8
         sdsl::util::set_to_id(iv);
         t_iv iv2(iv.begin() + constructor_size / 4, iv.end() - constructor_size / 4); // copy some infix
         ASSERT_EQ(iv2.size(), constructor_size - 2 * (constructor_size / 4));
-        for (auto it = iv2.begin(); it != iv2.end(); ++it) ASSERT_EQ(*it, iv[it - iv2.begin() + constructor_size / 4]);
+        for (auto it = iv2.begin(); it != iv2.end(); ++it)
+            ASSERT_EQ(*it, iv[it - iv2.begin() + constructor_size / 4]);
     }
 }
 
@@ -185,7 +198,10 @@ TEST_F(int_vector_test, swap)
             std::swap(tmp, iv);
             ASSERT_EQ((size_type)0, iv.size());
             ASSERT_EQ(vec_sizes[i], tmp.size());
-            for (size_type j = 0; j < tmp.size(); ++j) { ASSERT_EQ(val, tmp[j]); }
+            for (size_type j = 0; j < tmp.size(); ++j)
+            {
+                ASSERT_EQ(val, tmp[j]);
+            }
         }
     }
 }
@@ -194,14 +210,22 @@ TEST_F(int_vector_test, access)
 {
     std::mt19937_64 rng;
     sdsl::int_vector<3> iv(10, 0);
-    std::generate(iv.begin(), iv.end(), [&rng]() { return rng(); });
+    std::generate(iv.begin(),
+                  iv.end(),
+                  [&rng]()
+                  {
+                      return rng();
+                  });
 
     // front()
     ASSERT_EQ(iv.front(), iv[0]);
     // back()
     ASSERT_EQ(iv.back(), iv[iv.size() - 1]);
     // at()
-    for (size_type j = 0; j < iv.size(); ++j) { ASSERT_EQ(iv.at(j), iv[j]); }
+    for (size_type j = 0; j < iv.size(); ++j)
+    {
+        ASSERT_EQ(iv.at(j), iv[j]);
+    }
 }
 
 template <class t_iv>
@@ -286,7 +310,10 @@ void test_AssignAndModifyElement<sdsl::bit_vector>(uint64_t size, uint8_t width)
 TEST_F(int_vector_test, AssignAndModifyElement)
 {
     // unspecialized vector for each possible width
-    for (uint8_t width = 1; width <= 64; ++width) { test_AssignAndModifyElement<sdsl::int_vector<>>(100000, width); }
+    for (uint8_t width = 1; width <= 64; ++width)
+    {
+        test_AssignAndModifyElement<sdsl::int_vector<>>(100000, width);
+    }
     // specialized vectors
     test_AssignAndModifyElement<sdsl::bit_vector>(100000, 1);
     test_AssignAndModifyElement<sdsl::int_vector<8>>(100000, 8);
@@ -311,12 +338,13 @@ void test_AssignAndResize(uint64_t size, uint8_t width)
         uint64_t new_size = std::max((size_type)0, size + (rng() % 100) - 50); // increase or decrease randomly
         iv.assign(new_size, expected_val);
         ASSERT_EQ(iv.size(), new_size);
-        for (size_type j = 0; j < iv.size(); ++j) ASSERT_EQ(expected_val, iv[j]);
+        for (size_type j = 0; j < iv.size(); ++j)
+            ASSERT_EQ(expected_val, iv[j]);
     }
     {
         // assign(initializer_list)
         t_iv iv(size, rng(), width);
-        iv.assign({ 1, 0, 1 });
+        iv.assign({1, 0, 1});
         ASSERT_EQ(iv.size(), (size_type)3);
         ASSERT_EQ(iv[0], (value_type)1);
         ASSERT_EQ(iv[1], (value_type)0);
@@ -328,7 +356,8 @@ void test_AssignAndResize(uint64_t size, uint8_t width)
         sdsl::util::set_to_id(iv);
         iv2.assign(iv.begin() + size / 4, iv.end() - size / 4); // copy some infix
         ASSERT_EQ(iv2.size(), size - 2 * (size / 4));
-        for (auto it = iv2.begin(); it != iv2.end(); ++it) ASSERT_EQ(*it, iv[it - iv2.begin() + size / 4]);
+        for (auto it = iv2.begin(); it != iv2.end(); ++it)
+            ASSERT_EQ(*it, iv[it - iv2.begin() + size / 4]);
     }
     {
         // resize(size)
@@ -337,8 +366,10 @@ void test_AssignAndResize(uint64_t size, uint8_t width)
         uint64_t new_size = std::max((size_type)0, size + (rng() % 100) - 50); // increase or decrease randomly
         iv.resize(new_size);
         ASSERT_EQ(iv.size(), new_size);
-        for (size_type j = 0; j < std::min(size, new_size); ++j) ASSERT_EQ(val, iv[j]); // old values
-        for (size_type j = size; j < new_size; ++j) ASSERT_EQ((value_type)0, iv[j]);    // new values
+        for (size_type j = 0; j < std::min(size, new_size); ++j)
+            ASSERT_EQ(val, iv[j]); // old values
+        for (size_type j = size; j < new_size; ++j)
+            ASSERT_EQ((value_type)0, iv[j]); // new values
     }
     {
         // resize(size, v)
@@ -349,8 +380,10 @@ void test_AssignAndResize(uint64_t size, uint8_t width)
         uint64_t new_size = std::max((size_type)0, size + (rng() % 100) - 50); // increase or decrease randomly
         iv.resize(new_size, val2);
         ASSERT_EQ(iv.size(), new_size);
-        for (size_type j = 0; j < std::min(size, new_size); ++j) ASSERT_EQ(val1, iv[j]); // old values
-        for (size_type j = size; j < new_size; ++j) ASSERT_EQ(val2, iv[j]);              // new values
+        for (size_type j = 0; j < std::min(size, new_size); ++j)
+            ASSERT_EQ(val1, iv[j]); // old values
+        for (size_type j = size; j < new_size; ++j)
+            ASSERT_EQ(val2, iv[j]); // new values
     }
     {
         // clear()
@@ -378,7 +411,10 @@ void test_AssignAndResize(uint64_t size, uint8_t width)
 TEST_F(int_vector_test, AssignAndResize)
 {
     // unspecialized vector for each possible width
-    for (uint8_t width = 1; width <= 64; ++width) { test_AssignAndResize<sdsl::int_vector<>>(100000, width); }
+    for (uint8_t width = 1; width <= 64; ++width)
+    {
+        test_AssignAndResize<sdsl::int_vector<>>(100000, width);
+    }
     // specialized vectors
     test_AssignAndResize<sdsl::bit_vector>(100000, 1);
     test_AssignAndResize<sdsl::int_vector<8>>(100000, 8);
@@ -413,7 +449,8 @@ void test_InsertAndDelete(uint64_t size, uint8_t width)
         iv.erase(iv.begin());
         iv.erase(iv.end() - 1);
         ASSERT_EQ(iv.size(), size);
-        for (size_type j = 0; j < iv.size(); ++j) ASSERT_EQ(val1, iv[j]);
+        for (size_type j = 0; j < iv.size(); ++j)
+            ASSERT_EQ(val1, iv[j]);
     }
     {
         // insert(it, n, value)
@@ -450,13 +487,14 @@ void test_InsertAndDelete(uint64_t size, uint8_t width)
         iv.erase(iv.begin(), iv.begin() + 2);     // remove from beginning
         iv.erase(iv.end() - 2, iv.end());         // remove from end
         ASSERT_EQ(iv.size(), size);
-        for (size_type j = 0; j < iv.size(); ++j) ASSERT_EQ(val1, iv[j]);
+        for (size_type j = 0; j < iv.size(); ++j)
+            ASSERT_EQ(val1, iv[j]);
     }
     {
         // insert(it, initializer_list)
         t_iv iv(size, val1, width);
         iv.insert(iv.begin(), {});
-        iv.insert(iv.begin(), { val2, val2 });
+        iv.insert(iv.begin(), {val2, val2});
         ASSERT_EQ(iv.size(), size + 2);
         for (size_type j = 0; j < iv.size(); ++j)
         {
@@ -481,14 +519,20 @@ void test_InsertAndDelete(uint64_t size, uint8_t width)
         // pop_back()
         iv.pop_back();
         ASSERT_EQ(iv.size(), size);
-        for (size_type j = 0; j < iv.size(); ++j) { ASSERT_EQ(val1, iv[j]); }
+        for (size_type j = 0; j < iv.size(); ++j)
+        {
+            ASSERT_EQ(val1, iv[j]);
+        }
     }
 }
 
 TEST_F(int_vector_test, InsertAndDelete)
 {
     // unspecialized vector for each possible width
-    for (uint8_t width = 1; width <= 64; ++width) { test_InsertAndDelete<sdsl::int_vector<>>(100000, width); }
+    for (uint8_t width = 1; width <= 64; ++width)
+    {
+        test_InsertAndDelete<sdsl::int_vector<>>(100000, width);
+    }
     // specialized vectors
     test_InsertAndDelete<sdsl::bit_vector>(100000, 1);
     test_InsertAndDelete<sdsl::int_vector<8>>(100000, 8);
@@ -504,10 +548,13 @@ TEST_F(int_vector_test, stl)
         sdsl::int_vector<> iv(vec_sizes[i]);
         ASSERT_EQ(vec_sizes[i], iv.size());
         auto cnt = iv.size();
-        for (auto x : iv) { x = --cnt; }
+        for (auto x : iv)
+        {
+            x = --cnt;
+        }
         std::sort(iv.begin(), iv.end());
         sdsl::int_vector<>::value_type last = 0;
-        for (const auto & x : iv)
+        for (auto const & x : iv)
         {
             ASSERT_TRUE(x >= last);
             last = x;
@@ -520,21 +567,26 @@ void test_SerializeAndLoad(uint8_t width = 1)
 {
     std::mt19937_64 rng;
     t_iv iv(sdsl::conf::SDSL_BLOCK_SIZE + 1000000, 0, width);
-    for (size_type i = 0; i < iv.size(); ++i) iv[i] = rng();
+    for (size_type i = 0; i < iv.size(); ++i)
+        iv[i] = rng();
     std::string file_name = temp_dir + "/int_vector";
     sdsl::store_to_file(iv, file_name);
     t_iv iv2;
     sdsl::load_from_file(iv2, file_name);
     ASSERT_EQ(iv.size(), iv2.size());
     ASSERT_EQ(iv.width(), iv2.width());
-    for (size_type i = 0; i < iv.size(); ++i) ASSERT_EQ(iv[i], iv2[i]);
+    for (size_type i = 0; i < iv.size(); ++i)
+        ASSERT_EQ(iv[i], iv2[i]);
     sdsl::remove(file_name);
 }
 
 TEST_F(int_vector_test, serialize_and_load)
 {
     // unspecialized vector for each possible width
-    for (uint8_t width = 1; width <= 64; ++width) { test_SerializeAndLoad<sdsl::int_vector<>>(width); }
+    for (uint8_t width = 1; width <= 64; ++width)
+    {
+        test_SerializeAndLoad<sdsl::int_vector<>>(width);
+    }
     // specialized vectors
     test_SerializeAndLoad<sdsl::bit_vector>();
     test_SerializeAndLoad<sdsl::int_vector<8>>();
@@ -591,7 +643,7 @@ TEST_F(int_vector_test, iterator_test)
 
 TEST_F(int_vector_test, growth_factor_test)
 {
-    std::vector<float> growth_factors{ 1.5, 2.0, 5.0, 10.0 };
+    std::vector<float> growth_factors{1.5, 2.0, 5.0, 10.0};
     for (float gw : growth_factors)
     {
         sdsl::int_vector<> v;
@@ -604,7 +656,8 @@ TEST_F(int_vector_test, growth_factor_test)
         uint64_t const bit_size = v.width() * (v.size() + 1);
 
         uint64_t expected_capacity = v.bit_capacity();
-        while (expected_capacity < bit_size) expected_capacity *= gw;
+        while (expected_capacity < bit_size)
+            expected_capacity *= gw;
         // capacity will be a multiple of 64
         expected_capacity = ((expected_capacity + 63) >> 6) << 6;
 

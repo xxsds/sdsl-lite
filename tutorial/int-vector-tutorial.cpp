@@ -10,7 +10,7 @@ int main()
     std::string tmp_file = "tmp_file.sdsl";
     {
         // generate int_vector and store to a file
-        int_vector<> v = { 1, 3, 5, 7, 2, 3, 4, 9, 8, 7, 10, 1 };
+        int_vector<> v = {1, 3, 5, 7, 2, 3, 4, 9, 8, 7, 10, 1};
         store_to_file(v, tmp_file);
     }
     {

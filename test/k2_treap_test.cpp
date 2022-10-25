@@ -40,7 +40,7 @@ typedef Types<k2_treap<2, bit_vector>,
               k2_treap<5, rrr_vector<63>>,
               k2_treap<6, rrr_vector<63>>,
               k2_treap<16, rrr_vector<63>>>
-                                                  Implementations;
+    Implementations;
 
 TYPED_TEST_SUITE(k2_treap_test, Implementations, );
 
@@ -53,14 +53,14 @@ TYPED_TEST(k2_treap_test, create_and_store_test)
 }
 
 template <class t_k2treap>
-void topk_test(const t_k2treap & k2treap,
+void topk_test(t_k2treap const & k2treap,
                complex<uint64_t> min_xy,
                complex<uint64_t> max_xy,
-               const int_vector<> & x,
-               const int_vector<> & y,
-               const int_vector<> & w)
+               int_vector<> const & x,
+               int_vector<> const & y,
+               int_vector<> const & w)
 {
-    auto res_it = top_k(k2treap, { real(min_xy), imag(min_xy) }, { real(max_xy), imag(max_xy) });
+    auto res_it = top_k(k2treap, {real(min_xy), imag(min_xy)}, {real(max_xy), imag(max_xy)});
     typedef tuple<uint64_t, uint64_t, uint64_t> t_xyw;
     vector<t_xyw> vec;
     for (uint64_t i = 0; i < x.size(); ++i)
@@ -70,13 +70,16 @@ void topk_test(const t_k2treap & k2treap,
             vec.emplace_back(x[i], y[i], w[i]);
         }
     }
-    sort(vec.begin(), vec.end(), [](const t_xyw & a, const t_xyw & b) {
-        if (get<2>(a) != get<2>(b))
-            return get<2>(a) > get<2>(b);
-        else if (get<0>(a) != get<0>(b))
-            return get<0>(a) < get<0>(b);
-        return get<1>(a) < get<1>(b);
-    });
+    sort(vec.begin(),
+         vec.end(),
+         [](t_xyw const & a, t_xyw const & b)
+         {
+             if (get<2>(a) != get<2>(b))
+                 return get<2>(a) > get<2>(b);
+             else if (get<0>(a) != get<0>(b))
+                 return get<0>(a) < get<0>(b);
+             return get<1>(a) < get<1>(b);
+         });
     uint64_t cnt = 0;
     while (res_it)
     {
@@ -109,7 +112,7 @@ TYPED_TEST(k2_treap_test, size_and_top_k)
         maxy = *max_element(y.begin(), y.end());
     }
     uint64_t minx = 0, miny = 0;
-    topk_test(k2treap, { minx, maxx }, { miny, maxy }, x, y, w);
+    topk_test(k2treap, {minx, maxx}, {miny, maxy}, x, y, w);
 
     if (x.size() > 0)
     {
@@ -123,26 +126,25 @@ TYPED_TEST(k2_treap_test, size_and_top_k)
             uint64_t yy = y[idx];
             uint64_t dd = 20;
             uint64_t minx = 0, miny = 0, maxx = xx + dd, maxy = yy + dd;
-            if (xx >= dd) minx = xx - dd;
-            if (yy >= dd) miny = yy - dd;
-            topk_test(k2treap, { minx, miny }, { maxx, maxy }, x, y, w);
+            if (xx >= dd)
+                minx = xx - dd;
+            if (yy >= dd)
+                miny = yy - dd;
+            topk_test(k2treap, {minx, miny}, {maxx, maxy}, x, y, w);
         }
     }
 }
 
 template <class t_k2treap>
-void range3d_test(const t_k2treap & k2treap,
+void range3d_test(t_k2treap const & k2treap,
                   complex<uint64_t> min_xy,
                   complex<uint64_t> max_xy,
                   complex<uint64_t> z,
-                  const int_vector<> & x,
-                  const int_vector<> & y,
-                  const int_vector<> & w)
+                  int_vector<> const & x,
+                  int_vector<> const & y,
+                  int_vector<> const & w)
 {
-    auto res_it = range_3d(k2treap,
-                           { real(min_xy), imag(min_xy) },
-                           { real(max_xy), imag(max_xy) },
-                           { real(z), imag(z) });
+    auto res_it = range_3d(k2treap, {real(min_xy), imag(min_xy)}, {real(max_xy), imag(max_xy)}, {real(z), imag(z)});
     typedef tuple<uint64_t, uint64_t, uint64_t> t_xyw;
     vector<t_xyw> vec;
     for (uint64_t i = 0; i < x.size(); ++i)
@@ -152,13 +154,16 @@ void range3d_test(const t_k2treap & k2treap,
             vec.emplace_back(x[i], y[i], w[i]);
         }
     }
-    sort(vec.begin(), vec.end(), [](const t_xyw & a, const t_xyw & b) {
-        if (get<2>(a) != get<2>(b))
-            return get<2>(a) > get<2>(b);
-        else if (get<0>(a) != get<0>(b))
-            return get<0>(a) < get<0>(b);
-        return get<1>(a) < get<1>(b);
-    });
+    sort(vec.begin(),
+         vec.end(),
+         [](t_xyw const & a, t_xyw const & b)
+         {
+             if (get<2>(a) != get<2>(b))
+                 return get<2>(a) > get<2>(b);
+             else if (get<0>(a) != get<0>(b))
+                 return get<0>(a) < get<0>(b);
+             return get<1>(a) < get<1>(b);
+         });
     uint64_t cnt = 0;
     while (res_it)
     {
@@ -199,27 +204,33 @@ TYPED_TEST(k2_treap_test, range_3d)
             uint64_t dd = 20;
             uint64_t dw = 100;
             uint64_t minx = 0, miny = 0, maxx = xx + dd, maxy = yy + dd, minw = 0, maxw = ww + dw;
-            if (xx >= dd) minx = xx - dd;
-            if (yy >= dd) miny = yy - dd;
-            if (ww >= dw) minw = ww - dw;
-            range3d_test(k2treap, { minx, miny }, { maxx, maxy }, { minw, maxw }, x, y, w);
+            if (xx >= dd)
+                minx = xx - dd;
+            if (yy >= dd)
+                miny = yy - dd;
+            if (ww >= dw)
+                minw = ww - dw;
+            range3d_test(k2treap, {minx, miny}, {maxx, maxy}, {minw, maxw}, x, y, w);
         }
     }
 }
 
 template <class t_k2treap>
-void count_test(const t_k2treap & k2treap,
+void count_test(t_k2treap const & k2treap,
                 complex<uint64_t> min_xy,
                 complex<uint64_t> max_xy,
-                const int_vector<> & x,
-                const int_vector<> & y)
+                int_vector<> const & x,
+                int_vector<> const & y)
 {
     uint64_t cnt = 0;
     for (uint64_t i = 0; i < x.size(); ++i)
     {
-        if (x[i] >= real(min_xy) and x[i] <= real(max_xy) and y[i] >= imag(min_xy) and y[i] <= imag(max_xy)) { ++cnt; }
+        if (x[i] >= real(min_xy) and x[i] <= real(max_xy) and y[i] >= imag(min_xy) and y[i] <= imag(max_xy))
+        {
+            ++cnt;
+        }
     }
-    ASSERT_EQ(cnt, count(k2treap, { real(min_xy), imag(min_xy) }, { real(max_xy), imag(max_xy) }));
+    ASSERT_EQ(cnt, count(k2treap, {real(min_xy), imag(min_xy)}, {real(max_xy), imag(max_xy)}));
 }
 
 TYPED_TEST(k2_treap_test, count)
@@ -244,7 +255,7 @@ TYPED_TEST(k2_treap_test, count)
             uint64_t y1 = y[idx1];
             uint64_t x2 = x[idx2];
             uint64_t y2 = y[idx2];
-            count_test(k2treap, { std::min(x1, x2), std::min(y1, y2) }, { std::max(x1, x2), std::max(y1, y2) }, x, y);
+            count_test(k2treap, {std::min(x1, x2), std::min(y1, y2)}, {std::max(x1, x2), std::max(y1, y2)}, x, y);
         }
     }
 }
@@ -254,15 +265,15 @@ template <typename in_archive_t, typename out_archive_t, typename TypeParam>
 void do_serialisation(TypeParam const & l)
 {
     {
-        std::ofstream os{ temp_file, std::ios::binary };
-        out_archive_t oarchive{ os };
+        std::ofstream os{temp_file, std::ios::binary};
+        out_archive_t oarchive{os};
         oarchive(l);
     }
 
     TypeParam in_l{};
     {
-        std::ifstream is{ temp_file, std::ios::binary };
-        in_archive_t iarchive{ is };
+        std::ifstream is{temp_file, std::ios::binary};
+        in_archive_t iarchive{is};
         iarchive(in_l);
     }
     EXPECT_EQ(l, in_l);
@@ -293,6 +304,9 @@ TYPED_TEST(k2_treap_test, delete_)
 int main(int argc, char ** argv)
 {
     ::testing::InitGoogleTest(&argc, argv);
-    if (init_2_arg_test(argc, argv, "K2_TREAP_TEST", test_file, temp_dir, temp_file) != 0) { return 1; }
+    if (init_2_arg_test(argc, argv, "K2_TREAP_TEST", test_file, temp_dir, temp_file) != 0)
+    {
+        return 1;
+    }
     return RUN_ALL_TESTS();
 }

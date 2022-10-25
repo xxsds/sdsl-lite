@@ -44,7 +44,7 @@ namespace sdsl
 template <uint8_t alphabet_size, class rank_type = rank_support_int_v<alphabet_size>, class t_tree_strat = byte_tree<>>
 class wt_epr
 {
-  public:
+public:
     typedef typename t_tree_strat::template type<wt_epr> tree_strat_type;
     typedef int_vector<>::size_type size_type;
     typedef int_vector<>::value_type value_type;
@@ -58,7 +58,7 @@ class wt_epr
         lex_ordered = true
     };
 
-  private:
+private:
     //!\brief Check if underlying rank support structure stores the text implicitly.
     static constexpr bool has_inblock_text = std::is_same<rank_type, rank_support_int_v<alphabet_size>>::value;
 
@@ -72,7 +72,7 @@ class wt_epr
     auto construct_init_rank_select(int_vector<> intermediate_bitvector) -> std::enable_if_t<has_inblock_text_, void>
     {
         // The text is stored inside of the rank structure so we do not store it here.
-        m_bv_rank = rank_type{ &intermediate_bitvector }; // Create the rank support structure.
+        m_bv_rank = rank_type{&intermediate_bitvector}; // Create the rank support structure.
     }
 
     //!\brief Overload for the other rank support structures.
@@ -80,7 +80,7 @@ class wt_epr
     auto construct_init_rank_select(int_vector<> intermediate_bitvector) -> std::enable_if_t<!has_inblock_text_, void>
     {
         m_bv = std::move(intermediate_bitvector);
-        m_bv_rank = rank_type{ &m_bv }; // Create the rank support structure.
+        m_bv_rank = rank_type{&m_bv}; // Create the rank support structure.
     }
 
     //!\brief Overload for the special epr rank structure. Extract the text value from the given position.
@@ -99,9 +99,9 @@ class wt_epr
         return m_bv[position];
     }
 
-  public:
-    const size_type & sigma = m_sigma;
-    const int_vector<> & bv = m_bv;
+public:
+    size_type const & sigma = m_sigma;
+    int_vector<> const & bv = m_bv;
 
     //!\brief Default constructor.
     wt_epr() = default;
@@ -113,10 +113,10 @@ class wt_epr
      *      \f$ \Order{n\log|\Sigma|}\f$, where \f$n=size\f$
      */
     template <typename t_it>
-    wt_epr(t_it begin, t_it end)
-      : m_size(std::distance(begin, end))
+    wt_epr(t_it begin, t_it end) : m_size(std::distance(begin, end))
     {
-        if (0 == m_size) return;
+        if (0 == m_size)
+            return;
         // O(n + |\Sigma|\log|\Sigma|) algorithm for calculating node sizes
         // TODO: C should also depend on the tree_strategy. C is just a mapping
         // from a symbol to its frequency. So a map<uint64_t,uint64_t> could be
@@ -129,8 +129,8 @@ class wt_epr
 
         // The text cannot have an alphabet larger than the required alphabet_size.
         if (m_sigma > alphabet_size)
-            throw std::domain_error{ "The given text uses an alphabet that is larger than the explicitly given "
-                                     "alphabet size." };
+            throw std::domain_error{"The given text uses an alphabet that is larger than the explicitly given "
+                                    "alphabet size."};
 
         // 4. Generate wavelet tree bit sequence m_bv
         int_vector<> intermediate_bitvector{};
@@ -144,31 +144,26 @@ class wt_epr
     }
 
     template <typename t_it>
-    wt_epr(t_it begin, t_it end, std::string)
-      : wt_epr(begin, end)
+    wt_epr(t_it begin, t_it end, std::string) : wt_epr(begin, end)
     {}
 
     //!\brief Copy constructor
-    wt_epr(const wt_epr & wt)
-      : m_size(wt.m_size)
-      , m_sigma(wt.m_sigma)
-      , m_bv(wt.m_bv)
-      , m_bv_rank(wt.m_bv_rank)
+    wt_epr(wt_epr const & wt) : m_size(wt.m_size), m_sigma(wt.m_sigma), m_bv(wt.m_bv), m_bv_rank(wt.m_bv_rank)
     {
         m_bv_rank.set_vector(&m_bv);
     }
 
-    wt_epr(wt_epr && wt)
-      : m_size(wt.m_size)
-      , m_sigma(wt.m_sigma)
-      , m_bv(std::move(wt.m_bv))
-      , m_bv_rank(std::move(wt.m_bv_rank))
+    wt_epr(wt_epr && wt) :
+        m_size(wt.m_size),
+        m_sigma(wt.m_sigma),
+        m_bv(std::move(wt.m_bv)),
+        m_bv_rank(std::move(wt.m_bv_rank))
     {
         m_bv_rank.set_vector(&m_bv);
     }
 
     //!\brief Assignment operator
-    wt_epr & operator=(const wt_epr & wt)
+    wt_epr & operator=(wt_epr const & wt)
     {
         if (this != &wt)
         {
@@ -193,10 +188,16 @@ class wt_epr
     }
 
     //!\brief Returns the size of the original vector.
-    size_type size() const { return m_size; }
+    size_type size() const
+    {
+        return m_size;
+    }
 
     //!\brief Returns whether the wavelet tree contains no data.
-    bool empty() const { return m_size == 0; }
+    bool empty() const
+    {
+        return m_size == 0;
+    }
 
     /*!\brief Recovers the i-th symbol of the original vector.
      * \param i Index in the original vector.
@@ -307,7 +308,7 @@ class wt_epr
         }
         size_type rank = prefix_i_c - prefix_i_c_1;
 
-        return t_ret_type{ rank, smaller, greater };
+        return t_ret_type{rank, smaller, greater};
     }
 
     /*\brief How many symbols are lexicographic smaller than c in [0..i-1].
@@ -327,15 +328,22 @@ class wt_epr
         assert(i <= size());
         // TODO: write a function returning a pair for (i, c) and (i, c-1) and benchmark!
         size_type prefix_count_smaller = 0;
-        if (c > 0) prefix_count_smaller = m_bv_rank.prefix_rank(i, c - 1);
-        return t_ret_type{ m_bv_rank.prefix_rank(i, c) - prefix_count_smaller, prefix_count_smaller };
+        if (c > 0)
+            prefix_count_smaller = m_bv_rank.prefix_rank(i, c - 1);
+        return t_ret_type{m_bv_rank.prefix_rank(i, c) - prefix_count_smaller, prefix_count_smaller};
     }
 
     //!\brief Returns a const_iterator to the first element.
-    const_iterator begin() const { return const_iterator(this, 0); }
+    const_iterator begin() const
+    {
+        return const_iterator(this, 0);
+    }
 
     //!\brief Returns a const_iterator to the element after the last element.
-    const_iterator end() const { return const_iterator(this, size()); }
+    const_iterator end() const
+    {
+        return const_iterator(this, size());
+    }
 
     //!\brief Serializes the data structure into the given ostream
     size_type serialize(std::ostream & out, structure_tree_node * v = nullptr, std::string name = "") const
@@ -362,12 +370,15 @@ class wt_epr
     //!\brief Equality operator.
     friend bool operator==(wt_epr const & lhs, wt_epr const & rhs) noexcept
     {
-        return (lhs.m_size == rhs.m_size) && (lhs.m_sigma == rhs.m_sigma) && (lhs.m_bv == rhs.m_bv) &&
-               (lhs.m_bv_rank == rhs.m_bv_rank);
+        return (lhs.m_size == rhs.m_size) && (lhs.m_sigma == rhs.m_sigma) && (lhs.m_bv == rhs.m_bv)
+            && (lhs.m_bv_rank == rhs.m_bv_rank);
     }
 
     //!\brief Inequality operator.
-    friend bool operator!=(wt_epr const & lhs, wt_epr const & rhs) noexcept { return !(lhs == rhs); }
+    friend bool operator!=(wt_epr const & lhs, wt_epr const & rhs) noexcept
+    {
+        return !(lhs == rhs);
+    }
 
     template <typename archive_t>
     void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const

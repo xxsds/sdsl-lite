@@ -27,21 +27,20 @@ template <class t_csa = csa_wt<wt_huff<rrr_vector<63>>, 1000000, 1000000>,
           typename t_csa::char_type t_doc_delim = 1>
 class doc_list_index_qprobing : public doc_list_index_greedy<t_csa, t_wtd, t_doc_delim>
 {
-  private:
+private:
     using base_type = doc_list_index_greedy<t_csa, t_wtd, t_doc_delim>;
     using base_type::m_csa_full;
     using base_type::m_wtd;
 
-  public:
+public:
     using size_type = typename base_type::size_type;
     using value_type = typename t_wtd::value_type;
     using result = typename base_type::result;
 
-    doc_list_index_qprobing()
-      : base_type()
+    doc_list_index_qprobing() : base_type()
     {}
-    doc_list_index_qprobing(std::string file_name, sdsl::cache_config & cconfig, uint8_t num_bytes)
-      : base_type(file_name, cconfig, num_bytes)
+    doc_list_index_qprobing(std::string file_name, sdsl::cache_config & cconfig, uint8_t num_bytes) :
+        base_type(file_name, cconfig, num_bytes)
     {}
 
     //! Search for the k documents which contains the search term most frequent
@@ -73,7 +72,10 @@ class doc_list_index_qprobing : public doc_list_index_greedy<t_csa, t_wtd, t_doc
     {
         using p_t = std::pair<value_type, size_type>;
         std::vector<p_t> results;
-        auto comp = [](p_t & a, p_t & b) { return a.second > b.second; };
+        auto comp = [](p_t & a, p_t & b)
+        {
+            return a.second > b.second;
+        };
         std::priority_queue<p_t, std::vector<p_t>, decltype(comp)> heap(comp);
         bit_vector seen(1ULL << m_wtd.max_level); // TODO: better idea?
 
@@ -88,7 +90,8 @@ class doc_list_index_qprobing : public doc_list_index_greedy<t_csa, t_wtd, t_doc
         seen[qf.first] = 1;
 
         qf = quantile_freq(m_wtd, lb, rb, probe_interval);
-        if (!seen[qf.first]) heap.push(qf);
+        if (!seen[qf.first])
+            heap.push(qf);
         seen[qf.first] = 1;
 
         while (probe_interval > 1)
@@ -119,7 +122,8 @@ class doc_list_index_qprobing : public doc_list_index_greedy<t_csa, t_wtd, t_doc
             }
             probe_interval >>= 1;
             /* we have enough or can't find anything better */
-            if (heap.size() == k && probe_interval - 1 <= heap.top().second) break;
+            if (heap.size() == k && probe_interval - 1 <= heap.top().second)
+                break;
         }
         /* populate results */
         while (!heap.empty())

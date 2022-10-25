@@ -31,17 +31,17 @@ class structure_tree_node;
  */
 class select_support
 {
-  protected:
-    const int_vector<1> * m_v; //!< Pointer to the select supported sdsl::bit_vector.
-  public:
+protected:
+    int_vector<1> const * m_v; //!< Pointer to the select supported sdsl::bit_vector.
+
+public:
     typedef int_vector<1>::size_type size_type;
-    const bit_vector * vv;
+    bit_vector const * vv;
 
     //! Constructor of select_support.
     /*!\param v The bit_vector to support rank queries.
      */
-    select_support(const int_vector<1> * f_v = nullptr)
-      : vv(f_v)
+    select_support(int_vector<1> const * f_v = nullptr) : vv(f_v)
     {
         m_v = f_v;
     }
@@ -49,7 +49,7 @@ class select_support
     /*! Copy the whole select_support including the  pointer
      *  to the supported bit_vector.
      */
-    select_support(const select_support & f_v);
+    select_support(select_support const & f_v);
     //! Destructor of select_support.
     virtual ~select_support(){};
 
@@ -71,10 +71,10 @@ class select_support
      * \param v The bit_vector to be supported.
      * \sa init, select.
      */
-    virtual void load(std::istream & in, const int_vector<1> * v = nullptr) = 0;
+    virtual void load(std::istream & in, int_vector<1> const * v = nullptr) = 0;
 
     //! This method sets the supported bit_vector
-    virtual void set_vector(const int_vector<1> * v = nullptr) = 0;
+    virtual void set_vector(int_vector<1> const * v = nullptr) = 0;
 };
 
 template <uint8_t bit_pattern, uint8_t pattern_len>
@@ -83,21 +83,45 @@ struct select_support_trait
     typedef select_support::size_type size_type;
 
     /* Count the number of arguments for the specific select support */
-    static size_type arg_cnt(const bit_vector &) { return 0; }
+    static size_type arg_cnt(bit_vector const &)
+    {
+        return 0;
+    }
 
-    static size_type args_in_the_first_word(uint64_t, uint8_t, uint64_t) { return 0; }
+    static size_type args_in_the_first_word(uint64_t, uint8_t, uint64_t)
+    {
+        return 0;
+    }
 
-    static size_type ith_arg_pos_in_the_first_word(uint64_t, size_type, uint8_t, uint64_t) { return 0; }
+    static size_type ith_arg_pos_in_the_first_word(uint64_t, size_type, uint8_t, uint64_t)
+    {
+        return 0;
+    }
 
-    static size_type args_in_the_word(uint64_t, uint64_t &) { return 0; }
+    static size_type args_in_the_word(uint64_t, uint64_t &)
+    {
+        return 0;
+    }
 
-    static size_type ith_arg_pos_in_the_word(uint64_t, size_type, uint64_t) { return 0; }
+    static size_type ith_arg_pos_in_the_word(uint64_t, size_type, uint64_t)
+    {
+        return 0;
+    }
 
-    static bool found_arg(size_type, const bit_vector &) { return 0; }
+    static bool found_arg(size_type, bit_vector const &)
+    {
+        return 0;
+    }
 
-    static uint64_t init_carry(const uint64_t *, size_type) { return 0; }
+    static uint64_t init_carry(uint64_t const *, size_type)
+    {
+        return 0;
+    }
 
-    static uint64_t get_carry(uint64_t) { return 0; }
+    static uint64_t get_carry(uint64_t)
+    {
+        return 0;
+    }
 };
 
 template <>
@@ -105,7 +129,10 @@ struct select_support_trait<0, 1>
 {
     typedef select_support::size_type size_type;
 
-    static size_type arg_cnt(const bit_vector & v) { return v.bit_size() - util::cnt_one_bits(v); }
+    static size_type arg_cnt(bit_vector const & v)
+    {
+        return v.bit_size() - util::cnt_one_bits(v);
+    }
     static size_type args_in_the_first_word(uint64_t w, uint8_t offset, uint64_t)
     {
         return bits::cnt((~w) & bits::lo_unset[offset]);
@@ -114,11 +141,26 @@ struct select_support_trait<0, 1>
     {
         return bits::sel(~w & bits::lo_unset[offset], (uint32_t)i);
     }
-    static size_type args_in_the_word(uint64_t w, uint64_t &) { return bits::cnt(~w); }
-    static size_type ith_arg_pos_in_the_word(uint64_t w, size_type i, uint64_t) { return bits::sel(~w, (uint32_t)i); }
-    static bool found_arg(size_type i, const bit_vector & v) { return !v[i]; }
-    static uint64_t init_carry(const uint64_t *, size_type) { return 0; }
-    static uint64_t get_carry(uint64_t) { return 0; }
+    static size_type args_in_the_word(uint64_t w, uint64_t &)
+    {
+        return bits::cnt(~w);
+    }
+    static size_type ith_arg_pos_in_the_word(uint64_t w, size_type i, uint64_t)
+    {
+        return bits::sel(~w, (uint32_t)i);
+    }
+    static bool found_arg(size_type i, bit_vector const & v)
+    {
+        return !v[i];
+    }
+    static uint64_t init_carry(uint64_t const *, size_type)
+    {
+        return 0;
+    }
+    static uint64_t get_carry(uint64_t)
+    {
+        return 0;
+    }
 };
 
 template <>
@@ -126,7 +168,10 @@ struct select_support_trait<1, 1>
 {
     typedef select_support::size_type size_type;
 
-    static size_type arg_cnt(const bit_vector & v) { return util::cnt_one_bits(v); }
+    static size_type arg_cnt(bit_vector const & v)
+    {
+        return util::cnt_one_bits(v);
+    }
     static size_type args_in_the_first_word(uint64_t w, uint8_t offset, uint64_t)
     {
         return bits::cnt(w & bits::lo_unset[offset]);
@@ -135,11 +180,26 @@ struct select_support_trait<1, 1>
     {
         return bits::sel(w & bits::lo_unset[offset], (uint32_t)i);
     }
-    static size_type args_in_the_word(uint64_t w, uint64_t &) { return bits::cnt(w); }
-    static size_type ith_arg_pos_in_the_word(uint64_t w, size_type i, uint64_t) { return bits::sel(w, (uint32_t)i); }
-    static bool found_arg(size_type i, const bit_vector & v) { return v[i] == 1; }
-    static uint64_t init_carry(const uint64_t *, size_type) { return 0; }
-    static uint64_t get_carry(uint64_t) { return 0; }
+    static size_type args_in_the_word(uint64_t w, uint64_t &)
+    {
+        return bits::cnt(w);
+    }
+    static size_type ith_arg_pos_in_the_word(uint64_t w, size_type i, uint64_t)
+    {
+        return bits::sel(w, (uint32_t)i);
+    }
+    static bool found_arg(size_type i, bit_vector const & v)
+    {
+        return v[i] == 1;
+    }
+    static uint64_t init_carry(uint64_t const *, size_type)
+    {
+        return 0;
+    }
+    static uint64_t get_carry(uint64_t)
+    {
+        return 0;
+    }
 };
 
 template <>
@@ -147,7 +207,10 @@ struct select_support_trait<10, 2>
 {
     typedef select_support::size_type size_type;
 
-    static size_type arg_cnt(const bit_vector & v) { return util::cnt_onezero_bits(v); }
+    static size_type arg_cnt(bit_vector const & v)
+    {
+        return util::cnt_onezero_bits(v);
+    }
     static size_type args_in_the_first_word(uint64_t w, uint8_t offset, uint64_t carry)
     {
         return bits::cnt(bits::map10(w, carry) & bits::lo_unset[offset]);
@@ -156,18 +219,28 @@ struct select_support_trait<10, 2>
     {
         return bits::sel(bits::map10(w, carry) & bits::lo_unset[offset], (uint32_t)i);
     }
-    static size_type args_in_the_word(uint64_t w, uint64_t & carry) { return bits::cnt10(w, carry); }
+    static size_type args_in_the_word(uint64_t w, uint64_t & carry)
+    {
+        return bits::cnt10(w, carry);
+    }
     static size_type ith_arg_pos_in_the_word(uint64_t w, size_type i, uint64_t carry)
     {
         return bits::sel(bits::map10(w, carry), (uint32_t)i);
     }
-    static bool found_arg(size_type i, const bit_vector & v)
+    static bool found_arg(size_type i, bit_vector const & v)
     {
-        if (i > 0 and v[i - 1] and !v[i]) return true;
+        if (i > 0 and v[i - 1] and !v[i])
+            return true;
         return false;
     }
-    static uint64_t init_carry(const uint64_t * data, size_type word_pos) { return word_pos ? (*(data - 1) >> 63) : 0; }
-    static uint64_t get_carry(uint64_t w) { return w >> 63; }
+    static uint64_t init_carry(uint64_t const * data, size_type word_pos)
+    {
+        return word_pos ? (*(data - 1) >> 63) : 0;
+    }
+    static uint64_t get_carry(uint64_t w)
+    {
+        return w >> 63;
+    }
 };
 
 template <>
@@ -175,7 +248,10 @@ struct select_support_trait<01, 2>
 {
     typedef select_support::size_type size_type;
 
-    static size_type arg_cnt(const bit_vector & v) { return util::cnt_zeroone_bits(v); }
+    static size_type arg_cnt(bit_vector const & v)
+    {
+        return util::cnt_zeroone_bits(v);
+    }
     static size_type args_in_the_first_word(uint64_t w, uint8_t offset, uint64_t carry)
     {
         return bits::cnt(bits::map01(w, carry) & bits::lo_unset[offset]);
@@ -184,18 +260,28 @@ struct select_support_trait<01, 2>
     {
         return bits::sel(bits::map01(w, carry) & bits::lo_unset[offset], (uint32_t)i);
     }
-    static size_type args_in_the_word(uint64_t w, uint64_t & carry) { return bits::cnt01(w, carry); }
+    static size_type args_in_the_word(uint64_t w, uint64_t & carry)
+    {
+        return bits::cnt01(w, carry);
+    }
     static size_type ith_arg_pos_in_the_word(uint64_t w, size_type i, uint64_t carry)
     {
         return bits::sel(bits::map01(w, carry), (uint32_t)i);
     }
-    static bool found_arg(size_type i, const bit_vector & v)
+    static bool found_arg(size_type i, bit_vector const & v)
     {
-        if (i > 0 and !v[i - 1] and v[i]) return true;
+        if (i > 0 and !v[i - 1] and v[i])
+            return true;
         return false;
     }
-    static uint64_t init_carry(const uint64_t * data, size_type word_pos) { return word_pos ? (*(data - 1) >> 63) : 1; }
-    static uint64_t get_carry(uint64_t w) { return w >> 63; }
+    static uint64_t init_carry(uint64_t const * data, size_type word_pos)
+    {
+        return word_pos ? (*(data - 1) >> 63) : 1;
+    }
+    static uint64_t get_carry(uint64_t w)
+    {
+        return w >> 63;
+    }
 };
 
 template <>
@@ -203,10 +289,11 @@ struct select_support_trait<00, 2>
 {
     typedef select_support::size_type size_type;
 
-    static size_type arg_cnt(const bit_vector & v)
+    static size_type arg_cnt(bit_vector const & v)
     {
-        const uint64_t * data = v.data();
-        if (v.empty()) return 0;
+        uint64_t const * data = v.data();
+        if (v.empty())
+            return 0;
         uint64_t carry = rank_support_trait<00, 2>::init_carry();
         size_type result = 0;
         for (auto end = v.data() + (v.size() >> 6); data < end; ++data)
@@ -244,9 +331,18 @@ struct select_support_trait<00, 2>
     {
         return bits::sel(~(((w << 1) | carry) | w), i);
     }
-    static bool found_arg(size_type i, const bit_vector & v) { return i > 0 and !v[i - 1] and !v[i]; }
-    static uint64_t init_carry(const uint64_t * data, size_type word_pos) { return word_pos ? (*(data - 1) >> 63) : 1; }
-    static uint64_t get_carry(uint64_t w) { return w >> 63; }
+    static bool found_arg(size_type i, bit_vector const & v)
+    {
+        return i > 0 and !v[i - 1] and !v[i];
+    }
+    static uint64_t init_carry(uint64_t const * data, size_type word_pos)
+    {
+        return word_pos ? (*(data - 1) >> 63) : 1;
+    }
+    static uint64_t get_carry(uint64_t w)
+    {
+        return w >> 63;
+    }
 };
 
 template <>
@@ -254,10 +350,11 @@ struct select_support_trait<11, 2>
 {
     typedef select_support::size_type size_type;
 
-    static size_type arg_cnt(const bit_vector & v)
+    static size_type arg_cnt(bit_vector const & v)
     {
-        const uint64_t * data = v.data();
-        if (v.empty()) return 0;
+        uint64_t const * data = v.data();
+        if (v.empty())
+            return 0;
         uint64_t carry = rank_support_trait<11, 2>::init_carry();
         size_type result = 0;
         for (auto end = v.data() + (v.size() >> 6); data < end; ++data)
@@ -295,13 +392,20 @@ struct select_support_trait<11, 2>
     {
         return bits::sel(((w << 1) | carry) & w, i);
     }
-    static bool found_arg(size_type i, const bit_vector & v)
+    static bool found_arg(size_type i, bit_vector const & v)
     {
-        if (i > 0 and v[i - 1] and v[i]) return true;
+        if (i > 0 and v[i - 1] and v[i])
+            return true;
         return false;
     }
-    static uint64_t init_carry(const uint64_t * data, size_type word_pos) { return word_pos ? (*(data - 1) >> 63) : 0; }
-    static uint64_t get_carry(uint64_t w) { return w >> 63; }
+    static uint64_t init_carry(uint64_t const * data, size_type word_pos)
+    {
+        return word_pos ? (*(data - 1) >> 63) : 0;
+    }
+    static uint64_t get_carry(uint64_t w)
+    {
+        return w >> 63;
+    }
 };
 
 } // end namespace sdsl

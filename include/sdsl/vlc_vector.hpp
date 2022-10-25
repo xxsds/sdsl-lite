@@ -52,16 +52,16 @@ struct vlc_vector_trait<32>
 template <class t_coder = coder::elias_delta<>, uint32_t t_dens = 128, uint8_t t_width = 0>
 class vlc_vector
 {
-  private:
+private:
     static_assert(t_dens > 1, "vlc_vector: Sampling density must be larger than 1");
 
-  public:
+public:
     typedef uint64_t value_type;
     typedef random_access_const_iterator<vlc_vector> iterator;
     typedef iterator const_iterator;
     typedef const value_type reference;
     typedef const value_type const_reference;
-    typedef const value_type * const_pointer;
+    typedef value_type const * const_pointer;
     typedef ptrdiff_t difference_type;
     typedef int_vector<>::size_type size_type;
     typedef t_coder coder;
@@ -70,7 +70,8 @@ class vlc_vector
 
     static const uint32_t sample_dens = t_dens;
     bit_vector m_z; // compressed bit stream
-  private:
+
+private:
     int_vector_type m_sample_pointer;
     size_type m_size = 0; // number of elements
     uint32_t m_sample_dens = t_dens;
@@ -84,11 +85,11 @@ class vlc_vector
         m_sample_pointer.shrink_to_fit();
     }
 
-  public:
+public:
     vlc_vector() = default;
-    vlc_vector(const vlc_vector &) = default;
+    vlc_vector(vlc_vector const &) = default;
     vlc_vector(vlc_vector &&) = default;
-    vlc_vector & operator=(const vlc_vector &) = default;
+    vlc_vector & operator=(vlc_vector const &) = default;
     vlc_vector & operator=(vlc_vector &&) = default;
 
     //! Constructor for a Container of unsigned integers.
@@ -96,32 +97,50 @@ class vlc_vector
      * \pre No two adjacent values should be equal.
      */
     template <class Container>
-    vlc_vector(const Container & c);
+    vlc_vector(Container const & c);
 
     //! Constructor for an int_vector_buffer of unsigned integers.
     template <uint8_t int_width>
     vlc_vector(int_vector_buffer<int_width> & v_buf);
 
     //! The number of elements in the vlc_vector.
-    size_type size() const { return m_size; }
+    size_type size() const
+    {
+        return m_size;
+    }
     //! Return the largest size that this container can ever have.
-    static size_type max_size() { return int_vector<>::max_size() / 2; }
+    static size_type max_size()
+    {
+        return int_vector<>::max_size() / 2;
+    }
 
     //!    Returns if the vlc_vector is empty.
-    bool empty() const { return 0 == m_size; }
+    bool empty() const
+    {
+        return 0 == m_size;
+    }
 
     //! Iterator that points to the first element of the vlc_vector.
-    const const_iterator begin() const { return const_iterator(this, 0); }
+    const const_iterator begin() const
+    {
+        return const_iterator(this, 0);
+    }
 
     //! Iterator that points to the position after the last element of the vlc_vector.
-    const const_iterator end() const { return const_iterator(this, this->m_size); }
+    const const_iterator end() const
+    {
+        return const_iterator(this, this->m_size);
+    }
 
-    bool operator==(const vlc_vector & v) const
+    bool operator==(vlc_vector const & v) const
     {
         return m_size && v.m_size && m_z == v.m_z && m_sample_pointer == v.m_sample_pointer;
     }
 
-    bool operator!=(const vlc_vector & v) const { return !(*this == v); }
+    bool operator!=(vlc_vector const & v) const
+    {
+        return !(*this == v);
+    }
 
     //! []-operator
     value_type operator[](size_type i) const;
@@ -163,8 +182,8 @@ inline void vlc_vector<t_coder, t_dens, t_width>::set_sample_dens(const uint32_t
 }
 
 template <class t_coder, uint32_t t_dens, uint8_t t_width>
-inline typename vlc_vector<t_coder, t_dens, t_width>::value_type vlc_vector<t_coder, t_dens, t_width>::operator[](
-                                                  const size_type i) const
+inline typename vlc_vector<t_coder, t_dens, t_width>::value_type
+vlc_vector<t_coder, t_dens, t_width>::operator[](const size_type i) const
 {
     assert(i + 1 != 0);
     assert(i < m_size);
@@ -174,7 +193,7 @@ inline typename vlc_vector<t_coder, t_dens, t_width>::value_type vlc_vector<t_co
 
 template <class t_coder, uint32_t t_dens, uint8_t t_width>
 template <class Container>
-vlc_vector<t_coder, t_dens, t_width>::vlc_vector(const Container & c)
+vlc_vector<t_coder, t_dens, t_width>::vlc_vector(Container const & c)
 {
     clear(); // clear bit_vectors
 
@@ -184,7 +203,10 @@ vlc_vector<t_coder, t_dens, t_width>::vlc_vector(const Container & c)
     //  (1) Calculate size of z
     for (size_type i = 0; i < c.size(); ++i)
     {
-        if (c[i] + 1 < 1) { throw std::logic_error("vlc_vector cannot decode values smaller than 1!"); }
+        if (c[i] + 1 < 1)
+        {
+            throw std::logic_error("vlc_vector cannot decode values smaller than 1!");
+        }
         z_size += t_coder::encoding_length(c[i] + 1);
     }
     samples = (c.size() + get_sample_dens() - 1) / get_sample_dens();
@@ -222,7 +244,10 @@ vlc_vector<t_coder, t_dens, t_width>::vlc_vector(int_vector_buffer<int_width> & 
     for (size_type i = 0; i < n; ++i)
     {
         size_type x = v_buf[i] + 1;
-        if (x < 1) { throw std::logic_error("vlc_vector cannot decode values smaller than 1!"); }
+        if (x < 1)
+        {
+            throw std::logic_error("vlc_vector cannot decode values smaller than 1!");
+        }
         z_size += t_coder::encoding_length(x);
     }
     samples = (n + get_sample_dens() - 1) / get_sample_dens();
@@ -253,9 +278,8 @@ vlc_vector<t_coder, t_dens, t_width>::vlc_vector(int_vector_buffer<int_width> & 
 }
 
 template <class t_coder, uint32_t t_dens, uint8_t t_width>
-vlc_vector<>::size_type vlc_vector<t_coder, t_dens, t_width>::serialize(std::ostream & out,
-                                                                        structure_tree_node * v,
-                                                                        std::string name) const
+vlc_vector<>::size_type
+vlc_vector<t_coder, t_dens, t_width>::serialize(std::ostream & out, structure_tree_node * v, std::string name) const
 {
     structure_tree_node * child = structure_tree::add_child(v, name, util::class_name(*this));
     size_type written_bytes = 0;

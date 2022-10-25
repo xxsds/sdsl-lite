@@ -30,17 +30,17 @@ class int_vector_mapper
 {
     static_assert(t_width <= 64, "int_vector_mapper: width must be at most 64 bits.");
 
-  public:
+public:
     typedef typename int_vector<t_width>::difference_type difference_type;
     typedef typename int_vector<t_width>::value_type value_type;
     typedef typename int_vector<t_width>::size_type size_type;
     typedef typename int_vector<t_width>::int_width_type width_type;
     static constexpr uint8_t fixed_int_width = t_width;
 
-  public:
+public:
     const size_type append_block_size = 1000000;
 
-  private:
+private:
     uint8_t * m_mapped_data = nullptr;
     uint64_t m_file_size_bytes = 0;
     off_t m_data_offset = 0;
@@ -49,12 +49,12 @@ class int_vector_mapper
     std::string m_file_name;
     bool m_delete_on_close;
 
-  public:
+public:
     int_vector_mapper() = delete;
-    int_vector_mapper(const int_vector_mapper &) = delete;
-    int_vector_mapper & operator=(const int_vector_mapper &) = delete;
+    int_vector_mapper(int_vector_mapper const &) = delete;
+    int_vector_mapper & operator=(int_vector_mapper const &) = delete;
 
-  public:
+public:
     ~int_vector_mapper()
     {
         if (m_mapped_data)
@@ -100,8 +100,8 @@ class int_vector_mapper
                     int tret = memory_manager::truncate_file_mmap(m_fd, data_size_in_bytes + m_data_offset);
                     if (tret == -1)
                     {
-                        std::string truncate_error = std::string("int_vector_mapper: truncate error. ") +
-                                                     std::string(util::str_from_errno());
+                        std::string truncate_error =
+                            std::string("int_vector_mapper: truncate error. ") + std::string(util::str_from_errno());
                         std::cerr << truncate_error;
                     }
                 }
@@ -156,14 +156,14 @@ class int_vector_mapper
         return (*this);
     }
 
-    int_vector_mapper(const std::string & key, const cache_config & config)
-      : int_vector_mapper(cache_file_name(key, config))
+    int_vector_mapper(std::string const & key, cache_config const & config) :
+        int_vector_mapper(cache_file_name(key, config))
     {}
 
-    int_vector_mapper(const std::string filename, bool is_plain = false, bool delete_on_close = false)
-      : m_data_offset(0)
-      , m_file_name(filename)
-      , m_delete_on_close(delete_on_close)
+    int_vector_mapper(const std::string filename, bool is_plain = false, bool delete_on_close = false) :
+        m_data_offset(0),
+        m_file_name(filename),
+        m_delete_on_close(delete_on_close)
     {
         size_type size_in_bits = 0;
         uint8_t int_width = t_width;
@@ -173,7 +173,10 @@ class int_vector_mapper
             {
                 throw std::runtime_error("int_vector_mapper: file " + m_file_name + " does not exist.");
             }
-            if (!is_plain) { m_data_offset = int_vector<t_width>::read_header(size_in_bits, int_width, f); }
+            if (!is_plain)
+            {
+                m_data_offset = int_vector<t_width>::read_header(size_in_bits, int_width, f);
+            }
         }
 
         m_file_size_bytes = util::file_size(m_file_name);
@@ -191,9 +194,9 @@ class int_vector_mapper
                 // if( m_file_size_bytes % (t_width/8) != 0)
                 if ((m_file_size_bytes & bits::lo_set[bits::cnt(byte_width - 1)]) != 0)
                 {
-                    throw std::runtime_error("int_vector_mapper: plain vector not a multiple of byte: " +
-                                             std::to_string(m_file_size_bytes) + " mod " + std::to_string(byte_width) +
-                                             " != 0");
+                    throw std::runtime_error("int_vector_mapper: plain vector not a multiple of byte: "
+                                             + std::to_string(m_file_size_bytes) + " mod " + std::to_string(byte_width)
+                                             + " != 0");
                 }
             }
             size_in_bits = m_file_size_bytes * 8;
@@ -203,8 +206,8 @@ class int_vector_mapper
         m_fd = memory_manager::open_file_for_mmap(m_file_name, t_mode);
         if (m_fd == -1)
         {
-            std::string open_error = std::string("int_vector_mapper: open file error.") +
-                                     std::string(util::str_from_errno());
+            std::string open_error =
+                std::string("int_vector_mapper: open file error.") + std::string(util::str_from_errno());
             throw std::runtime_error(open_error);
         }
 
@@ -214,8 +217,8 @@ class int_vector_mapper
         m_mapped_data = (uint8_t *)memory_manager::mmap_file(m_fd, m_file_size_bytes, t_mode);
         if (m_mapped_data == nullptr)
         {
-            std::string mmap_error = std::string("int_vector_mapper: mmap error. ") +
-                                     std::string(util::str_from_errno());
+            std::string mmap_error =
+                std::string("int_vector_mapper: mmap error. ") + std::string(util::str_from_errno());
             throw std::runtime_error(mmap_error);
         }
 
@@ -224,14 +227,23 @@ class int_vector_mapper
         m_wrapper.m_data = (uint64_t *)(m_mapped_data + m_data_offset);
     }
 
-    std::string file_name() const { return m_file_name; }
-    width_type width() const { return m_wrapper.width(); }
+    std::string file_name() const
+    {
+        return m_file_name;
+    }
+    width_type width() const
+    {
+        return m_wrapper.width();
+    }
     void width(const uint8_t new_int_width)
     {
         static_assert(t_mode & std::ios_base::out, "int_vector_mapper: must be opened in in+out mode for 'width'");
         m_wrapper.width(new_int_width);
     }
-    size_type size() const { return m_wrapper.size(); }
+    size_type size() const
+    {
+        return m_wrapper.size();
+    }
     void bit_resize(const size_type bit_size)
     {
         static_assert(t_mode & std::ios_base::out, "int_vector_mapper: must be opened in in+out mode for 'bit_resize'");
@@ -250,8 +262,8 @@ class int_vector_mapper
             int tret = memory_manager::truncate_file_mmap(m_fd, new_size_in_bytes + m_data_offset);
             if (tret == -1)
             {
-                std::string truncate_error = std::string("int_vector_mapper: truncate error. ") +
-                                             std::string(util::str_from_errno());
+                std::string truncate_error =
+                    std::string("int_vector_mapper: truncate error. ") + std::string(util::str_from_errno());
                 throw std::runtime_error(truncate_error);
             }
             m_file_size_bytes = new_size_in_bytes + m_data_offset;
@@ -260,8 +272,8 @@ class int_vector_mapper
             m_mapped_data = (uint8_t *)memory_manager::mmap_file(m_fd, m_file_size_bytes, t_mode);
             if (m_mapped_data == nullptr)
             {
-                std::string mmap_error = std::string("int_vector_mapper: mmap error. ") +
-                                         std::string(util::str_from_errno());
+                std::string mmap_error =
+                    std::string("int_vector_mapper: mmap error. ") + std::string(util::str_from_errno());
                 throw std::runtime_error(mmap_error);
             }
 
@@ -288,26 +300,44 @@ class int_vector_mapper
         static_assert(t_mode & std::ios_base::out, "int_vector_mapper: must be opened in in+out mode for 'end'");
         return m_wrapper.end();
     }
-    auto begin() const -> typename int_vector<t_width>::const_iterator { return m_wrapper.begin(); }
-    auto end() const -> typename int_vector<t_width>::const_iterator { return m_wrapper.end(); }
-    auto cbegin() const -> typename int_vector<t_width>::const_iterator { return m_wrapper.begin(); }
-    auto cend() const -> typename int_vector<t_width>::const_iterator { return m_wrapper.end(); }
-    auto operator[](const size_type & idx) const -> typename int_vector<t_width>::const_reference
+    auto begin() const -> typename int_vector<t_width>::const_iterator
+    {
+        return m_wrapper.begin();
+    }
+    auto end() const -> typename int_vector<t_width>::const_iterator
+    {
+        return m_wrapper.end();
+    }
+    auto cbegin() const -> typename int_vector<t_width>::const_iterator
+    {
+        return m_wrapper.begin();
+    }
+    auto cend() const -> typename int_vector<t_width>::const_iterator
+    {
+        return m_wrapper.end();
+    }
+    auto operator[](size_type const & idx) const -> typename int_vector<t_width>::const_reference
     {
         return m_wrapper[idx];
     }
-    auto operator[](const size_type & idx) -> typename int_vector<t_width>::reference
+    auto operator[](size_type const & idx) -> typename int_vector<t_width>::reference
     {
         static_assert(t_mode & std::ios_base::out, "int_vector_mapper: must be opened in in+out mode for 'operator[]'");
         return m_wrapper[idx];
     }
-    const uint64_t * data() const { return m_wrapper.data(); }
+    uint64_t const * data() const
+    {
+        return m_wrapper.data();
+    }
     uint64_t * data()
     {
         static_assert(t_mode & std::ios_base::out, "int_vector_mapper: must be opened in in+out mode for 'data'");
         return m_wrapper.data();
     }
-    value_type get_int(size_type idx, const uint8_t len = 64) const { return m_wrapper.get_int(idx, len); }
+    value_type get_int(size_type idx, const uint8_t len = 64) const
+    {
+        return m_wrapper.get_int(idx, len);
+    }
     void set_int(size_type idx, value_type x, const uint8_t len = 64)
     {
         static_assert(t_mode & std::ios_base::out, "int_vector_mapper: must be opened in in+out mode for 'set_int'");
@@ -332,16 +362,25 @@ class int_vector_mapper
         size_t data_size_in_bits = 8 * (m_file_size_bytes - m_data_offset);
         return data_size_in_bits / width();
     }
-    size_type bit_size() const { return m_wrapper.bit_size(); }
+    size_type bit_size() const
+    {
+        return m_wrapper.bit_size();
+    }
     template <class container>
-    bool operator==(const container & v) const
+    bool operator==(container const & v) const
     {
         return std::equal(begin(), end(), v.begin());
     }
-    bool operator==(const int_vector<t_width> & v) const { return m_wrapper == v; }
-    bool operator==(const int_vector_mapper & v) const { return m_wrapper == v.m_wrapper; }
+    bool operator==(int_vector<t_width> const & v) const
+    {
+        return m_wrapper == v;
+    }
+    bool operator==(int_vector_mapper const & v) const
+    {
+        return m_wrapper == v.m_wrapper;
+    }
     template <class container>
-    bool operator!=(const container & v) const
+    bool operator!=(container const & v) const
     {
         return !(*this == v);
     }
@@ -350,33 +389,42 @@ class int_vector_mapper
         static_assert(t_mode & std::ios_base::out, "int_vector_mapper: must be opened in in+out mode for 'flip'");
         m_wrapper.flip();
     }
-    bool empty() const { return m_wrapper.empty(); }
+    bool empty() const
+    {
+        return m_wrapper.empty();
+    }
 };
 
 template <uint8_t t_width = 0>
 class temp_file_buffer
 {
-  private:
-    static std::string tmp_file(const std::string & dir)
+private:
+    static std::string tmp_file(std::string const & dir)
     {
-        char tmp_file_name[1024] = { 0 };
+        char tmp_file_name[1024] = {0};
 #ifdef _WIN32
         auto ret = GetTempFileName(dir.c_str(), "tmp_mapper_file_", 0, tmp_file_name);
-        if (ret == 0) { throw std::runtime_error("could not create temporary file."); }
+        if (ret == 0)
+        {
+            throw std::runtime_error("could not create temporary file.");
+        }
 #else
         sprintf(tmp_file_name, "%s/tmp_mapper_file_%" PRIu64 "_XXXXXX.sdsl", dir.c_str(), util::pid());
         int fd = mkstemps(tmp_file_name, 5);
-        if (fd == -1) { throw std::runtime_error("could not create temporary file."); }
+        if (fd == -1)
+        {
+            throw std::runtime_error("could not create temporary file.");
+        }
         close(fd);
 #endif
         return std::string(tmp_file_name, strlen(tmp_file_name));
     }
 
-  public:
+public:
     static int_vector_mapper<t_width> create()
     {
 #ifdef MSVC_COMPILER
-        char tmp_dir_name[1024] = { 0 };
+        char tmp_dir_name[1024] = {0};
         auto tmp_dir = GetTempPath(1024, tmp_dir_name);
         auto file_name = tmp_file(tmp_dir_name);
 #else
@@ -384,12 +432,12 @@ class temp_file_buffer
 #endif
         return create(file_name);
     }
-    static int_vector_mapper<t_width> create(const cache_config & config)
+    static int_vector_mapper<t_width> create(cache_config const & config)
     {
         auto file_name = tmp_file(config.dir);
         return create(file_name);
     }
-    static int_vector_mapper<t_width> create(const std::string & file_name)
+    static int_vector_mapper<t_width> create(std::string const & file_name)
     {
         // write empty int_vector to init the file
         int_vector<t_width> tmp_vector;
@@ -402,22 +450,22 @@ class temp_file_buffer
 template <uint8_t t_width = 0>
 class write_out_mapper
 {
-  public:
-    static int_vector_mapper<t_width> create(const std::string & key, cache_config & config)
+public:
+    static int_vector_mapper<t_width> create(std::string const & key, cache_config & config)
     {
         auto file_name = cache_file_name(key, config);
         auto tmp = create(file_name);
         register_cache_file(key, config);
         return std::move(tmp);
     }
-    static int_vector_mapper<t_width> create(const std::string & file_name)
+    static int_vector_mapper<t_width> create(std::string const & file_name)
     {
         // write empty int_vector to init the file
         int_vector<t_width> tmp_vector;
         store_to_file(tmp_vector, file_name);
         return int_vector_mapper<t_width, std::ios_base::out | std::ios_base::in>(file_name, false, false);
     }
-    static int_vector_mapper<t_width> create(const std::string & file_name, size_t size, uint8_t int_width = t_width)
+    static int_vector_mapper<t_width> create(std::string const & file_name, size_t size, uint8_t int_width = t_width)
     {
         // write empty int_vector to init the file
         int_vector<t_width> tmp_vector(0, 0, int_width);
@@ -432,7 +480,7 @@ template <std::ios_base::openmode t_mode = std::ios_base::out | std::ios_base::i
 using bit_vector_mapper = int_vector_mapper<1, t_mode>;
 
 template <uint8_t t_width = 0>
-using read_only_mapper = const int_vector_mapper<t_width, std::ios_base::in>;
+using read_only_mapper = int_vector_mapper<t_width, std::ios_base::in> const;
 
 } // namespace sdsl
 

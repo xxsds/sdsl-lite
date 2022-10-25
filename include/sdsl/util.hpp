@@ -39,15 +39,15 @@
 #include <vector>
 
 #ifndef MSVC_COMPILER
-#include <cxxabi.h>
+#    include <cxxabi.h>
 #endif
 
 #ifndef _WIN32
-#include <libgen.h> // for basename
-#include <unistd.h> // for getpid, file_size, clock_gettime
+#    include <libgen.h> // for basename
+#    include <unistd.h> // for getpid, file_size, clock_gettime
 #else
-#include <iso646.h>
-#include <process.h>
+#    include <iso646.h>
+#    include <process.h>
 #endif
 
 //! Namespace for the succinct data structure library.
@@ -132,19 +132,19 @@ void set_to_id(t_int_vec & v);
  * \return The number of 1-bits in v.
  */
 template <class t_int_vec>
-typename t_int_vec::size_type cnt_one_bits(const t_int_vec & v);
+typename t_int_vec::size_type cnt_one_bits(t_int_vec const & v);
 
 //! Number of occurrences of bit pattern `10` in v.
 /*!\sa getOneBits, getOneZeroBits
  */
 template <class t_int_vec>
-typename t_int_vec::size_type cnt_onezero_bits(const t_int_vec & v);
+typename t_int_vec::size_type cnt_onezero_bits(t_int_vec const & v);
 
 //! Number of occurrences of bit pattern `01` in v.
 /*!\sa getOneBits, getZeroOneBits
  */
 template <class t_int_vec>
-typename t_int_vec::size_type cnt_zeroone_bits(const t_int_vec & v);
+typename t_int_vec::size_type cnt_zeroone_bits(t_int_vec const & v);
 
 //! Get the smallest position \f$i\geq idx\f$ where a bit is set
 /*!\param v The int_vector in which the bit is searched
@@ -153,7 +153,7 @@ typename t_int_vec::size_type cnt_zeroone_bits(const t_int_vec & v);
  * position exists \par Time complexity \f$ \Order{n} \f$
  */
 template <class t_int_vec>
-typename t_int_vec::size_type next_bit(const t_int_vec & v, uint64_t idx);
+typename t_int_vec::size_type next_bit(t_int_vec const & v, uint64_t idx);
 
 //! Get the greatest position \f$i\leq idx\f$ where a bit is set
 /*!\param v The int_vector in which the bit is searched
@@ -162,7 +162,7 @@ typename t_int_vec::size_type next_bit(const t_int_vec & v, uint64_t idx);
  * position exists \par Time complexity \f$ \Order{n} \f$
  */
 template <class t_int_vec>
-typename t_int_vec::size_type prev_bit(const t_int_vec & v, uint64_t idx);
+typename t_int_vec::size_type prev_bit(t_int_vec const & v, uint64_t idx);
 
 //============= Handling files =============================
 
@@ -170,9 +170,12 @@ typename t_int_vec::size_type prev_bit(const t_int_vec & v, uint64_t idx);
 /*!\param file  Path to a file.
  *  \returns     Size of the specified file in bytes.
  */
-inline size_t file_size(const std::string & file)
+inline size_t file_size(std::string const & file)
 {
-    if (is_ram_file(file)) { return ram_fs::file_size(file); }
+    if (is_ram_file(file))
+    {
+        return ram_fs::file_size(file);
+    }
     else
     {
         struct stat fs;
@@ -189,16 +192,16 @@ inline std::string basename(std::string file)
 {
     file = disk_file_name(file); // remove RAM-prefix
 #ifdef _WIN32
-    char * c = _strdup((const char *)file.c_str());
-    char file_name[_MAX_FNAME] = { 0 };
-#ifdef MSVC_COMPILER
+    char * c = _strdup((char const *)file.c_str());
+    char file_name[_MAX_FNAME] = {0};
+#    ifdef MSVC_COMPILER
     ::_splitpath_s(c, NULL, 0, NULL, NULL, file_name, _MAX_FNAME, NULL, 0);
-#else
+#    else
     ::_splitpath(c, NULL, NULL, file_name, NULL);
-#endif
+#    endif
     std::string res(file_name);
 #else
-    char * c = strdup((const char *)file.c_str());
+    char * c = strdup((char const *)file.c_str());
     std::string res = std::string(::basename(c));
 #endif
     free(c);
@@ -214,23 +217,26 @@ inline std::string dirname(std::string file)
     bool ram_file = is_ram_file(file);
     file = disk_file_name(file); // remove RAM-prefix
 #ifdef _WIN32
-    char * c = _strdup((const char *)file.c_str());
-    char dir_name[_MAX_DIR] = { 0 };
-    char drive[_MAX_DRIVE] = { 0 };
-#ifdef MSVC_COMPILER
+    char * c = _strdup((char const *)file.c_str());
+    char dir_name[_MAX_DIR] = {0};
+    char drive[_MAX_DRIVE] = {0};
+#    ifdef MSVC_COMPILER
     ::_splitpath_s(c, drive, _MAX_DRIVE, dir_name, _MAX_DIR, NULL, 0, NULL, 0);
-#else
+#    else
     ::_splitpath(c, drive, dir_name, NULL, NULL);
-#endif
+#    endif
     std::string res = std::string(drive) + std::string(dir_name);
 #else
-    char * c = strdup((const char *)file.c_str());
+    char * c = strdup((char const *)file.c_str());
     std::string res = std::string(::dirname(c));
     auto it = res.begin();
     auto next_it = res.begin() + 1;
     while (it != res.end() and next_it != res.end())
     {
-        if (*next_it != '/' or *it != '/') { *(++it) = *next_it; }
+        if (*next_it != '/' or *it != '/')
+        {
+            *(++it) = *next_it;
+        }
         ++next_it;
     }
     res.resize(it - res.begin() + 1);
@@ -238,7 +244,10 @@ inline std::string dirname(std::string file)
     free(c);
     if (ram_file)
     {
-        if ("." == res) { res = ram_file_name(""); }
+        if ("." == res)
+        {
+            res = ram_file_name("");
+        }
         else if ("/" == res)
         {
             res = ram_file_name(res);
@@ -251,14 +260,15 @@ inline std::string dirname(std::string file)
 /*!
  * \param name A pointer to the result of typeid(...).name()
  */
-inline std::string demangle(const std::string & name)
+inline std::string demangle(std::string const & name)
 {
 #ifndef _WIN32
     char buf[4096];
     size_t size = 4096;
     int status = 0;
     abi::__cxa_demangle(name.c_str(), buf, &size, &status);
-    if (status == 0) return std::string(buf);
+    if (status == 0)
+        return std::string(buf);
     return name;
 #else
     return name;
@@ -266,7 +276,7 @@ inline std::string demangle(const std::string & name)
 }
 
 //! Demangle the class name of typeid(...).name() and remove the "sdsl::"-prefix, "unsigned int",...
-inline std::string demangle2(const std::string & name)
+inline std::string demangle2(std::string const & name)
 {
     std::string result = demangle(name);
     std::vector<std::string> words_to_delete;
@@ -294,11 +304,11 @@ inline std::string demangle2(const std::string & name)
 
 //! Convert type to string
 template <typename T>
-std::string to_string(const T & t, int w);
+std::string to_string(T const & t, int w);
 
 //! Transforms the demangled class name of an object to a hash value.
 template <class T>
-uint64_t hashvalue_of_classname(const T &)
+uint64_t hashvalue_of_classname(T const &)
 {
     std::hash<std::string> str_hash;
     return str_hash(sdsl::util::demangle2(typeid(T).name()));
@@ -306,17 +316,20 @@ uint64_t hashvalue_of_classname(const T &)
 
 //! Transforms the demangled class name of an object to a hash value.
 template <class T>
-std::string class_to_hash(const T & t)
+std::string class_to_hash(T const & t)
 {
     return to_string(hashvalue_of_classname(t));
 }
 
 template <class T>
-std::string class_name(const T & t)
+std::string class_name(T const & t)
 {
     std::string result = demangle2(typeid(t).name());
     size_t template_pos = result.find("<");
-    if (template_pos != std::string::npos) { result = result.erase(template_pos); }
+    if (template_pos != std::string::npos)
+    {
+        result = result.erase(template_pos);
+    }
     return result;
 }
 
@@ -324,9 +337,9 @@ std::string class_name(const T & t)
 inline char * str_from_errno()
 {
 #ifdef MSVC_COMPILER
-#pragma warning(disable : 4996)
+#    pragma warning(disable : 4996)
     return strerror(errno);
-#pragma warning(default : 4996)
+#    pragma warning(default : 4996)
 #else
     return strerror(errno);
 #endif
@@ -360,7 +373,7 @@ inline uint64_t id()
 }
 
 template <typename T>
-std::string to_latex_string(const T & t);
+std::string to_latex_string(T const & t);
 
 inline std::string to_latex_string(unsigned char c)
 {
@@ -375,7 +388,10 @@ inline std::string to_latex_string(unsigned char c)
 //! Delete all files of the file_map.
 inline void delete_all_files(tMSS & file_map)
 {
-    for (auto file_pair : file_map) { sdsl::remove(file_pair.second); }
+    for (auto file_pair : file_map)
+    {
+        sdsl::remove(file_pair.second);
+    }
     file_map.clear();
 }
 
@@ -400,7 +416,7 @@ void clear(T & x)
  *  swap p1 and p2 before we use this method.
  */
 template <class S, class P>
-void swap_support(S & s1, S & s2, const P * p1, const P * p2)
+void swap_support(S & s1, S & s2, P const * p1, P const * p2)
 {
     std::swap(s1, s2);
     s1.set_vector(p1);
@@ -412,7 +428,7 @@ void swap_support(S & s1, S & s2, const P * p1, const P * p2)
  *  \param x Pointer to the data structure which should be supported.
  */
 template <class S, class X>
-void init_support(S & s, const X * x)
+void init_support(S & s, X const * x)
 {
     S temp(x);           // generate a temporary support object
     s = std::move(temp); // swap its content with the target object
@@ -428,7 +444,10 @@ t_int_vec rnd_positions(uint8_t log_s, uint64_t & mask, uint64_t mod = 0, uint64
     mask = (1 << log_s) - 1;
     t_int_vec rands(1 << log_s, 0);
     set_random_bits(rands, seed);
-    if (mod > 0) { util::mod(rands, mod); }
+    if (mod > 0)
+    {
+        util::mod(rands, mod);
+    }
     return rands;
 }
 
@@ -437,12 +456,11 @@ t_int_vec rnd_positions(uint8_t log_s, uint64_t & mask, uint64_t mod = 0, uint64
  *  Code is from a talk of Aerix Consulting
  */
 template <typename T>
-struct is_regular
-  : std::integral_constant<bool,
-                           std::is_default_constructible<T>::value && std::is_copy_constructible<T>::value &&
-                                                                             std::is_move_constructible<T>::value &&
-                                                                             std::is_copy_assignable<T>::value &&
-                                                                             std::is_move_assignable<T>::value>
+struct is_regular :
+    std::integral_constant<bool,
+                           std::is_default_constructible<T>::value && std::is_copy_constructible<T>::value
+                               && std::is_move_constructible<T>::value && std::is_copy_assignable<T>::value
+                               && std::is_move_assignable<T>::value>
 {};
 
 } // end namespace util
@@ -453,21 +471,31 @@ template <class t_int_vec>
 void util::set_random_bits(t_int_vec & v, int seed)
 {
     std::mt19937_64 rng;
-    if (0 == seed) { rng.seed(std::chrono::system_clock::now().time_since_epoch().count() + util::id()); }
+    if (0 == seed)
+    {
+        rng.seed(std::chrono::system_clock::now().time_since_epoch().count() + util::id());
+    }
     else
         rng.seed(seed);
 
     uint64_t * data = v.data();
-    if (v.empty()) return;
+    if (v.empty())
+        return;
     *data = rng();
-    for (typename t_int_vec::size_type i = 1; i < ((v.bit_size() + 63) >> 6); ++i) { *(++data) = rng(); }
+    for (typename t_int_vec::size_type i = 1; i < ((v.bit_size() + 63) >> 6); ++i)
+    {
+        *(++data) = rng();
+    }
 }
 
 // all elements of vector v modulo m
 template <class t_int_vec>
 void util::mod(t_int_vec & v, typename t_int_vec::size_type m)
 {
-    for (typename t_int_vec::size_type i = 0; i < v.size(); ++i) { v[i] = v[i] % m; }
+    for (typename t_int_vec::size_type i = 0; i < v.size(); ++i)
+    {
+        v[i] = v[i] % m;
+    }
 }
 
 template <class t_int_vec>
@@ -475,12 +503,15 @@ void util::bit_compress(t_int_vec & v)
 {
     auto max_elem = std::max_element(v.begin(), v.end());
     uint64_t max = 0;
-    if (max_elem != v.end()) { max = *max_elem; }
+    if (max_elem != v.end())
+    {
+        max = *max_elem;
+    }
     uint8_t min_width = bits::hi(max) + 1;
     uint8_t old_width = v.width();
     if (old_width > min_width)
     {
-        const uint64_t * read_data = v.data();
+        uint64_t const * read_data = v.data();
         uint64_t * write_data = v.data();
         uint8_t read_offset = 0;
         uint8_t write_offset = 0;
@@ -520,13 +551,23 @@ void util::expand_width(t_int_vec & v, uint8_t new_width)
 template <class t_int_vec>
 void util::_set_zero_bits(t_int_vec & v)
 {
-    std::for_each(v.data(), v.data() + ((v.bit_size() + 63) >> 6), [](uint64_t & value) { value = 0ULL; });
+    std::for_each(v.data(),
+                  v.data() + ((v.bit_size() + 63) >> 6),
+                  [](uint64_t & value)
+                  {
+                      value = 0ULL;
+                  });
 }
 
 template <class t_int_vec>
 void util::_set_one_bits(t_int_vec & v)
 {
-    std::for_each(v.data(), v.data() + ((v.bit_size() + 63) >> 6), [](uint64_t & value) { value = -1ULL; });
+    std::for_each(v.data(),
+                  v.data() + ((v.bit_size() + 63) >> 6),
+                  [](uint64_t & value)
+                  {
+                      value = -1ULL;
+                  });
 }
 
 inline void util::cyclic_shifts(uint64_t * vec, uint8_t & n, uint64_t k, uint8_t int_width)
@@ -535,27 +576,34 @@ inline void util::cyclic_shifts(uint64_t * vec, uint8_t & n, uint64_t k, uint8_t
     vec[0] = 0;
     uint8_t offset = 0;
     k &= 0xFFFFFFFFFFFFFFFFULL >> (64 - int_width);
-    do { // loop terminates after at most 64 iterations
+    do
+    { // loop terminates after at most 64 iterations
         vec[n] |= k << offset;
         offset += int_width;
         if (offset >= 64)
         {
             ++n;
-            if (int_width == 64) return;
+            if (int_width == 64)
+                return;
             assert(int_width - (offset - 64) < 64);
             vec[n] = k >> (int_width - (offset - 64));
             offset -= 64;
         }
-    } while (offset != 0);
+    }
+    while (offset != 0);
 }
 
 template <class t_int_vec>
 void util::set_to_value(t_int_vec & v, uint64_t k)
 {
     uint64_t * data = v.data();
-    if (v.empty()) return;
+    if (v.empty())
+        return;
     uint8_t int_width = v.width();
-    if (int_width == 0) { throw std::logic_error("util::set_to_value can not be performed with int_width=0!"); }
+    if (int_width == 0)
+    {
+        throw std::logic_error("util::set_to_value can not be performed with int_width=0!");
+    }
     if (0 == k)
     {
         _set_zero_bits(v);
@@ -573,7 +621,10 @@ void util::set_to_value(t_int_vec & v, uint64_t k)
     typename t_int_vec::size_type n64 = (v.bit_size() + 63) >> 6;
     for (typename t_int_vec::size_type i = 0; i < n64;)
     {
-        for (uint64_t ii = 0; ii < n and i < n64; ++ii, ++i) { *(data++) = vec[ii]; }
+        for (uint64_t ii = 0; ii < n and i < n64; ++ii, ++i)
+        {
+            *(data++) = vec[ii];
+        }
     }
 }
 
@@ -582,9 +633,13 @@ void util::set_to_value(t_int_vec & v, uint64_t k, t_int_vec_iterator it)
 {
     typedef typename t_int_vec::size_type size_type;
 
-    if (v.empty()) return;
+    if (v.empty())
+        return;
     uint8_t int_width = v.width();
-    if (int_width == 0) { throw std::logic_error("util::set_to_value can not be performed with int_width=0!"); }
+    if (int_width == 0)
+    {
+        throw std::logic_error("util::set_to_value can not be performed with int_width=0!");
+    }
     uint8_t n;
     uint64_t vec[65];
     util::cyclic_shifts(vec, n, k, int_width);
@@ -601,7 +656,10 @@ void util::set_to_value(t_int_vec & v, uint64_t k, t_int_vec_iterator it)
 
     while (word_pos < words)
     {
-        for (; cyclic_shift < n && word_pos < words; ++cyclic_shift, ++word_pos) { *(++data) = vec[cyclic_shift]; }
+        for (; cyclic_shift < n && word_pos < words; ++cyclic_shift, ++word_pos)
+        {
+            *(++data) = vec[cyclic_shift];
+        }
         cyclic_shift = 0;
     }
 }
@@ -614,21 +672,29 @@ void util::set_to_id(t_int_vec & v)
 }
 
 template <class t_int_vec>
-typename t_int_vec::size_type util::cnt_one_bits(const t_int_vec & v)
+typename t_int_vec::size_type util::cnt_one_bits(t_int_vec const & v)
 {
-    const uint64_t * data = v.data();
-    if (v.empty()) return 0;
+    uint64_t const * data = v.data();
+    if (v.empty())
+        return 0;
     typename t_int_vec::size_type result = bits::cnt(*data);
-    for (typename t_int_vec::size_type i = 1; i < ((v.bit_size() + 63) >> 6); ++i) { result += bits::cnt(*(++data)); }
-    if (v.bit_size() & 0x3F) { result -= bits::cnt((*data) & (~bits::lo_set[v.bit_size() & 0x3F])); }
+    for (typename t_int_vec::size_type i = 1; i < ((v.bit_size() + 63) >> 6); ++i)
+    {
+        result += bits::cnt(*(++data));
+    }
+    if (v.bit_size() & 0x3F)
+    {
+        result -= bits::cnt((*data) & (~bits::lo_set[v.bit_size() & 0x3F]));
+    }
     return result;
 }
 
 template <class t_int_vec>
-typename t_int_vec::size_type util::cnt_onezero_bits(const t_int_vec & v)
+typename t_int_vec::size_type util::cnt_onezero_bits(t_int_vec const & v)
 {
-    const uint64_t * data = v.data();
-    if (v.empty()) return 0;
+    uint64_t const * data = v.data();
+    if (v.empty())
+        return 0;
     uint64_t carry = 0, oldcarry = 0;
     typename t_int_vec::size_type result = bits::cnt10(*data, carry);
     for (typename t_int_vec::size_type i = 1; i < ((v.bit_size() + 63) >> 6); ++i)
@@ -644,10 +710,11 @@ typename t_int_vec::size_type util::cnt_onezero_bits(const t_int_vec & v)
 }
 
 template <class t_int_vec>
-typename t_int_vec::size_type util::cnt_zeroone_bits(const t_int_vec & v)
+typename t_int_vec::size_type util::cnt_zeroone_bits(t_int_vec const & v)
 {
-    const uint64_t * data = v.data();
-    if (v.empty()) return 0;
+    uint64_t const * data = v.data();
+    if (v.empty())
+        return 0;
     uint64_t carry = 1, oldcarry = 1;
     typename t_int_vec::size_type result = bits::cnt01(*data, carry);
     for (typename t_int_vec::size_type i = 1; i < ((v.bit_size() + 63) >> 6); ++i)
@@ -663,18 +730,24 @@ typename t_int_vec::size_type util::cnt_zeroone_bits(const t_int_vec & v)
 }
 
 template <class t_int_vec>
-typename t_int_vec::size_type util::next_bit(const t_int_vec & v, uint64_t idx)
+typename t_int_vec::size_type util::next_bit(t_int_vec const & v, uint64_t idx)
 {
     uint64_t pos = idx >> 6;
     uint64_t node = v.data()[pos];
     node >>= (idx & 0x3F);
-    if (node) { return idx + bits::lo(node); }
+    if (node)
+    {
+        return idx + bits::lo(node);
+    }
     else
     {
         ++pos;
         while ((pos << 6) < v.bit_size())
         {
-            if (v.data()[pos]) { return (pos << 6) | bits::lo(v.data()[pos]); }
+            if (v.data()[pos])
+            {
+                return (pos << 6) | bits::lo(v.data()[pos]);
+            }
             ++pos;
         }
         return v.bit_size();
@@ -682,18 +755,24 @@ typename t_int_vec::size_type util::next_bit(const t_int_vec & v, uint64_t idx)
 }
 
 template <class t_int_vec>
-typename t_int_vec::size_type util::prev_bit(const t_int_vec & v, uint64_t idx)
+typename t_int_vec::size_type util::prev_bit(t_int_vec const & v, uint64_t idx)
 {
     uint64_t pos = idx >> 6;
     uint64_t node = v.data()[pos];
     node <<= 63 - (idx & 0x3F);
-    if (node) { return bits::hi(node) + (pos << 6) - (63 - (idx & 0x3F)); }
+    if (node)
+    {
+        return bits::hi(node) + (pos << 6) - (63 - (idx & 0x3F));
+    }
     else
     {
         --pos;
         while ((pos << 6) < v.bit_size())
         {
-            if (v.data()[pos]) { return (pos << 6) | bits::hi(v.data()[pos]); }
+            if (v.data()[pos])
+            {
+                return (pos << 6) | bits::hi(v.data()[pos]);
+            }
             --pos;
         }
         return v.bit_size();
@@ -701,7 +780,7 @@ typename t_int_vec::size_type util::prev_bit(const t_int_vec & v, uint64_t idx)
 }
 
 template <typename T>
-std::string util::to_string(const T & t, int w)
+std::string util::to_string(T const & t, int w)
 {
     std::stringstream ss;
     ss << std::setw(w) << t;
@@ -709,7 +788,7 @@ std::string util::to_string(const T & t, int w)
 }
 
 template <typename T>
-std::string util::to_latex_string(const T & t)
+std::string util::to_latex_string(T const & t)
 {
     return to_string(t);
 }

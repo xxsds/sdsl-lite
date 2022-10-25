@@ -17,11 +17,11 @@ int main(int argc, char ** argv)
         return 1;
     }
 
-    const char * input_file = argv[1];
-    const char * tmp_dir = argv[2];
-    const char * cst_file = argv[3];
-    const char * time_file = argv[4];
-    const char * struct_file = argv[5];
+    char const * input_file = argv[1];
+    char const * tmp_dir = argv[2];
+    char const * cst_file = argv[3];
+    char const * time_file = argv[4];
+    char const * struct_file = argv[5];
 
     memory_monitor::start();
 

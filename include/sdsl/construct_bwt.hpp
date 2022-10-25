@@ -41,8 +41,8 @@ void construct_bwt(cache_config & config)
                   "construct_bwt: width must be `0` for integer alphabet and `8` for byte alphabet");
 
     typedef int_vector<>::size_type size_type;
-    const char * KEY_TEXT = key_text_trait<t_width>::KEY_TEXT;
-    const char * KEY_BWT = key_bwt_trait<t_width>::KEY_BWT;
+    char const * KEY_TEXT = key_text_trait<t_width>::KEY_TEXT;
+    char const * KEY_BWT = key_bwt_trait<t_width>::KEY_BWT;
 
     //  (1) Load text from disk
     read_only_mapper<t_width> text(KEY_TEXT, config);
@@ -50,9 +50,13 @@ void construct_bwt(cache_config & config)
     uint8_t bwt_width = text.width();
     std::string bwt_file = cache_file_name(KEY_BWT, config);
 
-    auto gen_bwt = [&n](auto & bwt, auto & text, auto & sa) {
-        size_type to_add[2] = { (size_type)-1, n - 1 };
-        for (size_type i = 0; i < n; ++i) { bwt[i] = text[sa[i] + to_add[sa[i] == 0]]; }
+    auto gen_bwt = [&n](auto & bwt, auto & text, auto & sa)
+    {
+        size_type to_add[2] = {(size_type)-1, n - 1};
+        for (size_type i = 0; i < n; ++i)
+        {
+            bwt[i] = text[sa[i] + to_add[sa[i] == 0]];
+        }
     };
     //  (2) Prepare to stream SA from disc and BWT to disc
     if (is_ram_file(bwt_file))

@@ -12,14 +12,14 @@
 #include <stddef.h>
 #include <stdint.h> // for uint64_t uint32_t declaration
 #ifdef __SSE4_2__
-#include <xmmintrin.h> // IWYU pragma: keep
+#    include <xmmintrin.h> // IWYU pragma: keep
 #endif
 #ifdef __BMI2__
-#include <x86intrin.h> // IWYU pragma: keep
+#    include <x86intrin.h> // IWYU pragma: keep
 #endif
 
 #ifdef WIN32
-#include <iso646.h>
+#    include <iso646.h>
 #endif
 
 //! Namespace for the succinct data structure library.
@@ -46,7 +46,7 @@ struct bits_impl
 {
     bits_impl() = delete;
     //! 64bit mask with all bits set to 1.
-    constexpr static uint64_t all_set{ -1ULL };
+    static constexpr uint64_t all_set{-1ULL};
 
     //! This constant represents a de Bruijn sequence B(k,n) for k=2 and n=6.
     /*! Details for de Bruijn sequences see
@@ -54,137 +54,134 @@ struct bits_impl
      * deBruijn64 is used in combination with the
      * array lt_deBruijn_to_idx.
      */
-    constexpr static uint64_t deBruijn64{ 0x0218A392CD3D5DBFULL };
+    static constexpr uint64_t deBruijn64{0x0218A392CD3D5DBFULL};
 
     //! This table maps a 6-bit subsequence S[idx...idx+5] of constant deBruijn64 to idx.
     /*!\sa deBruijn64
      */
-    constexpr static uint32_t lt_deBruijn_to_idx[64] = {
-        0,  1,  2,  7,  3,  13, 8,  19, 4,  25, 14, 28, 9,  34, 20, 40, 5,  17, 26, 38, 15, 46,
-        29, 48, 10, 31, 35, 54, 21, 50, 41, 57, 63, 6,  12, 18, 24, 27, 33, 39, 16, 37, 45, 47,
-        30, 53, 49, 56, 62, 11, 23, 32, 36, 44, 52, 55, 61, 22, 43, 51, 60, 42, 59, 58
-    };
+    static constexpr uint32_t lt_deBruijn_to_idx[64] = {0,  1,  2,  7,  3,  13, 8,  19, 4,  25, 14, 28, 9,  34, 20, 40,
+                                                        5,  17, 26, 38, 15, 46, 29, 48, 10, 31, 35, 54, 21, 50, 41, 57,
+                                                        63, 6,  12, 18, 24, 27, 33, 39, 16, 37, 45, 47, 30, 53, 49, 56,
+                                                        62, 11, 23, 32, 36, 44, 52, 55, 61, 22, 43, 51, 60, 42, 59, 58};
 
     //! Array containing Fibonacci numbers less than \f$2^64\f$.
-    constexpr static uint64_t lt_fib[92] = { 1,
-                                             2,
-                                             3,
-                                             5,
-                                             8,
-                                             13,
-                                             21,
-                                             34,
-                                             55,
-                                             89,
-                                             144,
-                                             233,
-                                             377,
-                                             610,
-                                             987,
-                                             1597,
-                                             2584,
-                                             4181,
-                                             6765,
-                                             10946,
-                                             17711,
-                                             28657,
-                                             46368,
-                                             75025,
-                                             121393,
-                                             196418,
-                                             317811,
-                                             514229,
-                                             832040,
-                                             1346269,
-                                             2178309,
-                                             3524578,
-                                             5702887,
-                                             9227465,
-                                             14930352,
-                                             24157817,
-                                             39088169,
-                                             63245986,
-                                             102334155,
-                                             165580141,
-                                             267914296,
-                                             433494437,
-                                             701408733,
-                                             1134903170,
-                                             1836311903,
-                                             2971215073ULL,
-                                             0x11e8d0a40ULL,
-                                             0x1cfa62f21ULL,
-                                             0x2ee333961ULL,
-                                             0x4bdd96882ULL,
-                                             0x7ac0ca1e3ULL,
-                                             0xc69e60a65ULL,
-                                             0x1415f2ac48ULL,
-                                             0x207fd8b6adULL,
-                                             0x3495cb62f5ULL,
-                                             0x5515a419a2ULL,
-                                             0x89ab6f7c97ULL,
-                                             0xdec1139639ULL,
-                                             0x1686c8312d0ULL,
-                                             0x2472d96a909ULL,
-                                             0x3af9a19bbd9ULL,
-                                             0x5f6c7b064e2ULL,
-                                             0x9a661ca20bbULL,
-                                             0xf9d297a859dULL,
-                                             0x19438b44a658ULL,
-                                             0x28e0b4bf2bf5ULL,
-                                             0x42244003d24dULL,
-                                             0x6b04f4c2fe42ULL,
-                                             0xad2934c6d08fULL,
-                                             0x1182e2989ced1ULL,
-                                             0x1c5575e509f60ULL,
-                                             0x2dd8587da6e31ULL,
-                                             0x4a2dce62b0d91ULL,
-                                             0x780626e057bc2ULL,
-                                             0xc233f54308953ULL,
-                                             0x13a3a1c2360515ULL,
-                                             0x1fc6e116668e68ULL,
-                                             0x336a82d89c937dULL,
-                                             0x533163ef0321e5ULL,
-                                             0x869be6c79fb562ULL,
-                                             0xd9cd4ab6a2d747ULL,
-                                             0x16069317e428ca9ULL,
-                                             0x23a367c34e563f0ULL,
-                                             0x39a9fadb327f099ULL,
-                                             0x5d4d629e80d5489ULL,
-                                             0x96f75d79b354522ULL,
-                                             0xf444c01834299abULL,
-                                             0x18b3c1d91e77decdULL,
-                                             0x27f80ddaa1ba7878ULL,
-                                             0x40abcfb3c0325745ULL,
-                                             0x68a3dd8e61eccfbdULL,
-                                             0xa94fad42221f2702ULL };
+    static constexpr uint64_t lt_fib[92] = {1,
+                                            2,
+                                            3,
+                                            5,
+                                            8,
+                                            13,
+                                            21,
+                                            34,
+                                            55,
+                                            89,
+                                            144,
+                                            233,
+                                            377,
+                                            610,
+                                            987,
+                                            1597,
+                                            2584,
+                                            4181,
+                                            6765,
+                                            10946,
+                                            17711,
+                                            28657,
+                                            46368,
+                                            75025,
+                                            121393,
+                                            196418,
+                                            317811,
+                                            514229,
+                                            832040,
+                                            1346269,
+                                            2178309,
+                                            3524578,
+                                            5702887,
+                                            9227465,
+                                            14930352,
+                                            24157817,
+                                            39088169,
+                                            63245986,
+                                            102334155,
+                                            165580141,
+                                            267914296,
+                                            433494437,
+                                            701408733,
+                                            1134903170,
+                                            1836311903,
+                                            2971215073ULL,
+                                            0x11e8d0a40ULL,
+                                            0x1cfa62f21ULL,
+                                            0x2ee333961ULL,
+                                            0x4bdd96882ULL,
+                                            0x7ac0ca1e3ULL,
+                                            0xc69e60a65ULL,
+                                            0x1415f2ac48ULL,
+                                            0x207fd8b6adULL,
+                                            0x3495cb62f5ULL,
+                                            0x5515a419a2ULL,
+                                            0x89ab6f7c97ULL,
+                                            0xdec1139639ULL,
+                                            0x1686c8312d0ULL,
+                                            0x2472d96a909ULL,
+                                            0x3af9a19bbd9ULL,
+                                            0x5f6c7b064e2ULL,
+                                            0x9a661ca20bbULL,
+                                            0xf9d297a859dULL,
+                                            0x19438b44a658ULL,
+                                            0x28e0b4bf2bf5ULL,
+                                            0x42244003d24dULL,
+                                            0x6b04f4c2fe42ULL,
+                                            0xad2934c6d08fULL,
+                                            0x1182e2989ced1ULL,
+                                            0x1c5575e509f60ULL,
+                                            0x2dd8587da6e31ULL,
+                                            0x4a2dce62b0d91ULL,
+                                            0x780626e057bc2ULL,
+                                            0xc233f54308953ULL,
+                                            0x13a3a1c2360515ULL,
+                                            0x1fc6e116668e68ULL,
+                                            0x336a82d89c937dULL,
+                                            0x533163ef0321e5ULL,
+                                            0x869be6c79fb562ULL,
+                                            0xd9cd4ab6a2d747ULL,
+                                            0x16069317e428ca9ULL,
+                                            0x23a367c34e563f0ULL,
+                                            0x39a9fadb327f099ULL,
+                                            0x5d4d629e80d5489ULL,
+                                            0x96f75d79b354522ULL,
+                                            0xf444c01834299abULL,
+                                            0x18b3c1d91e77decdULL,
+                                            0x27f80ddaa1ba7878ULL,
+                                            0x40abcfb3c0325745ULL,
+                                            0x68a3dd8e61eccfbdULL,
+                                            0xa94fad42221f2702ULL};
 
     //! Lookup table for byte popcounts.
-    constexpr static uint8_t lt_cnt[256] = {
+    static constexpr uint8_t lt_cnt[256] = {
         0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4, 1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5, 1, 2, 2, 3, 2,
         3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5, 2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 1, 2, 2, 3, 2, 3, 3, 4, 2, 3,
         3, 4, 3, 4, 4, 5, 2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5,
         6, 3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7, 1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5, 2, 3, 3, 4,
         3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 3, 4, 4, 5, 4, 5, 5, 6, 4,
         5, 5, 6, 5, 6, 6, 7, 2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6,
-        6, 7, 3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7, 4, 5, 5, 6, 5, 6, 6, 7, 5, 6, 6, 7, 6, 7, 7, 8
-    };
+        6, 7, 3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7, 4, 5, 5, 6, 5, 6, 6, 7, 5, 6, 6, 7, 6, 7, 7, 8};
 
     //! Lookup table for most significant set bit in a byte.
-    constexpr static uint32_t lt_hi[256] = {
+    static constexpr uint32_t lt_hi[256] = {
         0, 0, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5,
         5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
         6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
         6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
         7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
         7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
-        7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7
-    };
+        7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7};
 
     //! lo_set[i] is a 64-bit word with the i least significant bits set and the high bits not set.
     /*! lo_set[0] = 0ULL, lo_set[1]=1ULL, lo_set[2]=3ULL...
      */
-    constexpr static uint64_t lo_set[65] = {
+    static constexpr uint64_t lo_set[65] = {
         0x0000000000000000ULL, 0x0000000000000001ULL, 0x0000000000000003ULL, 0x0000000000000007ULL,
         0x000000000000000FULL, 0x000000000000001FULL, 0x000000000000003FULL, 0x000000000000007FULL,
         0x00000000000000FFULL, 0x00000000000001FFULL, 0x00000000000003FFULL, 0x00000000000007FFULL,
@@ -201,13 +198,12 @@ struct bits_impl
         0x000FFFFFFFFFFFFFULL, 0x001FFFFFFFFFFFFFULL, 0x003FFFFFFFFFFFFFULL, 0x007FFFFFFFFFFFFFULL,
         0x00FFFFFFFFFFFFFFULL, 0x01FFFFFFFFFFFFFFULL, 0x03FFFFFFFFFFFFFFULL, 0x07FFFFFFFFFFFFFFULL,
         0x0FFFFFFFFFFFFFFFULL, 0x1FFFFFFFFFFFFFFFULL, 0x3FFFFFFFFFFFFFFFULL, 0x7FFFFFFFFFFFFFFFULL,
-        0xFFFFFFFFFFFFFFFFULL
-    };
+        0xFFFFFFFFFFFFFFFFULL};
 
     //! lo_unset[i] is a 64-bit word with the i least significant bits not set and the high bits set.
     /*! lo_unset[0] = FFFFFFFFFFFFFFFFULL, lo_unset_set[1]=FFFFFFFFFFFFFFFEULL, ...
      */
-    constexpr static uint64_t lo_unset[65] = {
+    static constexpr uint64_t lo_unset[65] = {
         0xFFFFFFFFFFFFFFFFULL, 0xFFFFFFFFFFFFFFFEULL, 0xFFFFFFFFFFFFFFFCULL, 0xFFFFFFFFFFFFFFF8ULL,
         0xFFFFFFFFFFFFFFF0ULL, 0xFFFFFFFFFFFFFFE0ULL, 0xFFFFFFFFFFFFFFC0ULL, 0xFFFFFFFFFFFFFF80ULL,
         0xFFFFFFFFFFFFFF00ULL, 0xFFFFFFFFFFFFFE00ULL, 0xFFFFFFFFFFFFFC00ULL, 0xFFFFFFFFFFFFF800ULL,
@@ -224,11 +220,10 @@ struct bits_impl
         0xFFF0000000000000ULL, 0xFFE0000000000000ULL, 0xFFC0000000000000ULL, 0xFF80000000000000ULL,
         0xFF00000000000000ULL, 0xFE00000000000000ULL, 0xFC00000000000000ULL, 0xF800000000000000ULL,
         0xF000000000000000ULL, 0xE000000000000000ULL, 0xC000000000000000ULL, 0x8000000000000000ULL,
-        0x0000000000000000ULL
-    };
+        0x0000000000000000ULL};
 
     //! Lookup table for least significant set bit in a byte.
-    constexpr static uint8_t lt_lo[256] = {
+    static constexpr uint8_t lt_lo[256] = {
         0x00, 0x00, 0x01, 0x00, 0x02, 0x00, 0x01, 0x00, 0x03, 0x00, 0x01, 0x00, 0x02, 0x00, 0x01, 0x00, 0x04, 0x00,
         0x01, 0x00, 0x02, 0x00, 0x01, 0x00, 0x03, 0x00, 0x01, 0x00, 0x02, 0x00, 0x01, 0x00, 0x05, 0x00, 0x01, 0x00,
         0x02, 0x00, 0x01, 0x00, 0x03, 0x00, 0x01, 0x00, 0x02, 0x00, 0x01, 0x00, 0x04, 0x00, 0x01, 0x00, 0x02, 0x00,
@@ -243,14 +238,13 @@ struct bits_impl
         0x01, 0x00, 0x03, 0x00, 0x01, 0x00, 0x02, 0x00, 0x01, 0x00, 0x04, 0x00, 0x01, 0x00, 0x02, 0x00, 0x01, 0x00,
         0x03, 0x00, 0x01, 0x00, 0x02, 0x00, 0x01, 0x00, 0x05, 0x00, 0x01, 0x00, 0x02, 0x00, 0x01, 0x00, 0x03, 0x00,
         0x01, 0x00, 0x02, 0x00, 0x01, 0x00, 0x04, 0x00, 0x01, 0x00, 0x02, 0x00, 0x01, 0x00, 0x03, 0x00, 0x01, 0x00,
-        0x02, 0x00, 0x01, 0x00
-    };
+        0x02, 0x00, 0x01, 0x00};
 
     //! Lookup table for select on bytes.
     /*! Entry at idx = 256*j + i equals the position of the
      * (j+1)-th set bit in byte i. Positions lie in the range \f$[0..7]\f$.
      */
-    constexpr static uint8_t lt_sel[256 * 8] = {
+    static constexpr uint8_t lt_sel[256 * 8] = {
         0, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0, 4, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0, 5, 0, 1, 0, 2,
         0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0, 4, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0, 6, 0, 1, 0, 2, 0, 1, 0, 3, 0,
         1, 0, 2, 0, 1, 0, 4, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0, 5, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1,
@@ -313,11 +307,10 @@ struct bits_impl
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7
-    };
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7};
 
     //! Use to help to decide if a prefix sum stored in a byte overflows.
-    constexpr static uint64_t ps_overflow[65] = {
+    static constexpr uint64_t ps_overflow[65] = {
         0x8080808080808080ULL, 0x7f7f7f7f7f7f7f7fULL, 0x7e7e7e7e7e7e7e7eULL, 0x7d7d7d7d7d7d7d7dULL,
         0x7c7c7c7c7c7c7c7cULL, 0x7b7b7b7b7b7b7b7bULL, 0x7a7a7a7a7a7a7a7aULL, 0x7979797979797979ULL,
         0x7878787878787878ULL, 0x7777777777777777ULL, 0x7676767676767676ULL, 0x7575757575757575ULL,
@@ -334,14 +327,13 @@ struct bits_impl
         0x4c4c4c4c4c4c4c4cULL, 0x4b4b4b4b4b4b4b4bULL, 0x4a4a4a4a4a4a4a4aULL, 0x4949494949494949ULL,
         0x4848484848484848ULL, 0x4747474747474747ULL, 0x4646464646464646ULL, 0x4545454545454545ULL,
         0x4444444444444444ULL, 0x4343434343434343ULL, 0x4242424242424242ULL, 0x4141414141414141ULL,
-        0x4040404040404040ULL
-    };
+        0x4040404040404040ULL};
 
     //! Counts the number of set bits in x.
     /*!\param  x 64-bit word
      * \return Number of set bits.
      */
-    constexpr static uint64_t cnt(uint64_t x);
+    static constexpr uint64_t cnt(uint64_t x);
 
     //! Position of the most significant set bit the 64-bit word x
     /*!\param x 64-bit word
@@ -349,7 +341,7 @@ struct bits_impl
      * in `x` or 0 if x equals 0.
      * \sa sel, lo
      */
-    constexpr static uint32_t hi(uint64_t x);
+    static constexpr uint32_t hi(uint64_t x);
 
     //! Calculates the position of the rightmost 1-bit in the 64bit integer x if it exists
     /*!\param x 64 bit integer.
@@ -357,7 +349,7 @@ struct bits_impl
      * x>0 and 0 if x equals 0.
      * \sa sel, hi
      */
-    constexpr static uint32_t lo(uint64_t x);
+    static constexpr uint32_t lo(uint64_t x);
 
     //! Counts the number of 1-bits in the 32bit integer x.
     /*! This function is a variant of the method cnt. If
@@ -366,40 +358,40 @@ struct bits_impl
      * \param x 64bit integer to count the bits.
      * \return The number of 1-bits in x.
      */
-    constexpr static uint32_t cnt32(uint32_t x);
+    static constexpr uint32_t cnt32(uint32_t x);
 
     //! Count the number of consecutive and distinct 11 in the 64bit integer x.
     /*!
      * \param x 64bit integer to count the terminating sequence 11 of a Fibonacci code.
      * \param c Carry equals msb of the previous 64bit integer.
      */
-    constexpr static uint32_t cnt11(uint64_t x, uint64_t & c);
+    static constexpr uint32_t cnt11(uint64_t x, uint64_t & c);
 
     //! Count the number of consecutive and distinct 11 in the 64bit integer x.
     /*!
      * \param x 64bit integer to count the terminating sequence 11 of a Fibonacci code.
      */
-    constexpr static uint32_t cnt11(uint64_t x);
+    static constexpr uint32_t cnt11(uint64_t x);
 
     //! Count 10 bit pairs in the word x.
     /*!
      * \param x 64bit integer to count the 10 bit pairs.
      * \param c Carry equals msb of the previous 64bit integer.
      */
-    constexpr static uint32_t cnt10(uint64_t x, uint64_t & c);
+    static constexpr uint32_t cnt10(uint64_t x, uint64_t & c);
 
     //! Count 01 bit pairs in the word x.
     /*!
      * \param x 64bit integer to count the 01 bit pairs.
      * \param c Carry equals msb of the previous 64bit integer.
      */
-    constexpr static uint32_t cnt01(uint64_t x, uint64_t & c);
+    static constexpr uint32_t cnt01(uint64_t x, uint64_t & c);
 
     //! Map all 10 bit pairs to 01 or 1 if c=1 and the lsb=0. All other pairs are mapped to 00.
-    constexpr static uint64_t map10(uint64_t x, uint64_t c = 0);
+    static constexpr uint64_t map10(uint64_t x, uint64_t c = 0);
 
     //! Map all 01 bit pairs to 01 or 1 if c=1 and the lsb=0. All other pairs are mapped to 00.
-    constexpr static uint64_t map01(uint64_t x, uint64_t c = 1);
+    static constexpr uint64_t map01(uint64_t x, uint64_t c = 1);
 
     //! Calculate the position of the i-th rightmost 1 bit in the 64bit integer x
     /*!
@@ -408,8 +400,8 @@ struct bits_impl
      * \pre Argument i must be in the range \f$[1..cnt(x)]\f$.
      * \sa hi, lo
      */
-    constexpr static uint32_t sel(uint64_t x, uint32_t i);
-    constexpr static uint32_t _sel(uint64_t x, uint32_t i);
+    static constexpr uint32_t sel(uint64_t x, uint32_t i);
+    static constexpr uint32_t _sel(uint64_t x, uint32_t i);
 
     //! Calculates the position of the i-th rightmost 11-bit-pattern which terminates a Fibonacci coded integer in x.
     /*!	\param x 64 bit integer.
@@ -420,7 +412,7 @@ struct bits_impl
      * \sa cnt11, hi11, sel
      *
      */
-    constexpr static uint32_t sel11(uint64_t x, uint32_t i, uint32_t c = 0);
+    static constexpr uint32_t sel11(uint64_t x, uint32_t i, uint32_t c = 0);
 
     //! Calculates the position of the leftmost 11-bit-pattern which terminates a Fibonacci coded integer in x.
     /*!\param x 64 bit integer.
@@ -429,27 +421,27 @@ struct bits_impl
      * and 0 otherwise.
      * \sa cnt11, sel11
      */
-    constexpr static uint32_t hi11(uint64_t x);
+    static constexpr uint32_t hi11(uint64_t x);
 
     //! Writes value x to an bit position in an array.
-    constexpr static void write_int(uint64_t * word, uint64_t x, const uint8_t offset = 0, const uint8_t len = 64);
+    static constexpr void write_int(uint64_t * word, uint64_t x, const uint8_t offset = 0, const uint8_t len = 64);
 
     //! Writes value x to an bit position in an array and moves the bit-pointer.
-    constexpr static void write_int_and_move(uint64_t *& word, uint64_t x, uint8_t & offset, const uint8_t len);
+    static constexpr void write_int_and_move(uint64_t *& word, uint64_t x, uint8_t & offset, const uint8_t len);
 
     //! Reads a value from a bit position in an array.
-    constexpr static uint64_t read_int(const uint64_t * word, uint8_t offset = 0, const uint8_t len = 64);
-    constexpr static uint64_t read_int_bounded(const uint64_t * word, uint8_t offset = 0, const uint8_t len = 64);
+    static constexpr uint64_t read_int(uint64_t const * word, uint8_t offset = 0, const uint8_t len = 64);
+    static constexpr uint64_t read_int_bounded(uint64_t const * word, uint8_t offset = 0, const uint8_t len = 64);
 
     //! Reads a value from a bit position in an array and moved the bit-pointer.
-    constexpr static uint64_t read_int_and_move(const uint64_t *& word, uint8_t & offset, const uint8_t len = 64);
+    static constexpr uint64_t read_int_and_move(uint64_t const *& word, uint8_t & offset, const uint8_t len = 64);
 
     //! Reads an unary decoded value from a bit position in an array.
-    constexpr static uint64_t read_unary(const uint64_t * word, uint8_t offset = 0);
-    constexpr static uint64_t read_unary_bounded(const uint64_t * word, uint8_t offset = 0);
+    static constexpr uint64_t read_unary(uint64_t const * word, uint8_t offset = 0);
+    static constexpr uint64_t read_unary_bounded(uint64_t const * word, uint8_t offset = 0);
 
     //! Reads an unary decoded value from a bit position in an array and moves the bit-pointer.
-    constexpr static uint64_t read_unary_and_move(const uint64_t *& word, uint8_t & offset);
+    static constexpr uint64_t read_unary_and_move(uint64_t const *& word, uint8_t & offset);
 
     //! Move the bit-pointer (=uint64_t word and offset) `len` to the right.
     /*!\param word   64-bit word part of the bit pointer
@@ -457,7 +449,7 @@ struct bits_impl
      * \param len    Move distance. \f$ len \in [0..64] \f$
      * \sa move_left
      */
-    constexpr static void move_right(const uint64_t *& word, uint8_t & offset, const uint8_t len);
+    static constexpr void move_right(uint64_t const *& word, uint8_t & offset, const uint8_t len);
 
     //! Move the bit-pointer (=uint64_t word and offset) `len` to the left.
     /*!\param word   64-bit word part of the bit pointer
@@ -465,16 +457,16 @@ struct bits_impl
      * \param len    Move distance. \f$ len \in [0..64] \f$
      * \sa move_right
      */
-    constexpr static void move_left(const uint64_t *& word, uint8_t & offset, const uint8_t len);
+    static constexpr void move_left(uint64_t const *& word, uint8_t & offset, const uint8_t len);
 
     //! Get the first one bit in the interval \f$[idx..\infty )\f$
-    constexpr static uint64_t next(const uint64_t * word, uint64_t idx);
+    static constexpr uint64_t next(uint64_t const * word, uint64_t idx);
 
     //! Get the one bit with the greatest position in the interval \f$[0..idx]\f$
-    constexpr static uint64_t prev(const uint64_t * word, uint64_t idx);
+    static constexpr uint64_t prev(uint64_t const * word, uint64_t idx);
 
     //! reverses a given 64 bit word
-    constexpr static uint64_t rev(uint64_t x);
+    static constexpr uint64_t rev(uint64_t x);
 };
 
 // ============= inline - implementations ================
@@ -486,16 +478,16 @@ constexpr uint64_t bits_impl<T>::cnt(uint64_t x)
 #ifdef __SSE4_2__
     return __builtin_popcountll(x);
 #else
-#ifdef POPCOUNT_TL
-    return lt_cnt[x & 0xFFULL] + lt_cnt[(x >> 8) & 0xFFULL] + lt_cnt[(x >> 16) & 0xFFULL] +
-           lt_cnt[(x >> 24) & 0xFFULL] + lt_cnt[(x >> 32) & 0xFFULL] + lt_cnt[(x >> 40) & 0xFFULL] +
-           lt_cnt[(x >> 48) & 0xFFULL] + lt_cnt[(x >> 56) & 0xFFULL];
-#else
+#    ifdef POPCOUNT_TL
+    return lt_cnt[x & 0xFFULL] + lt_cnt[(x >> 8) & 0xFFULL] + lt_cnt[(x >> 16) & 0xFFULL] + lt_cnt[(x >> 24) & 0xFFULL]
+         + lt_cnt[(x >> 32) & 0xFFULL] + lt_cnt[(x >> 40) & 0xFFULL] + lt_cnt[(x >> 48) & 0xFFULL]
+         + lt_cnt[(x >> 56) & 0xFFULL];
+#    else
     x = x - ((x >> 1) & 0x5555555555555555ull);
     x = (x & 0x3333333333333333ull) + ((x >> 2) & 0x3333333333333333ull);
     x = (x + (x >> 4)) & 0x0f0f0f0f0f0f0f0full;
     return (0x0101010101010101ull * x >> 56);
-#endif
+#    endif
 #endif
 }
 
@@ -651,7 +643,8 @@ template <typename T>
 constexpr uint32_t bits_impl<T>::hi(uint64_t x)
 {
 #ifdef __SSE4_2__
-    if (x == 0) return 0;
+    if (x == 0)
+        return 0;
     return 63 - __builtin_clzll(x);
 #else
     uint64_t t{}, tt{}; // temporaries
@@ -686,12 +679,16 @@ template <typename T>
 constexpr uint32_t bits_impl<T>::lo(uint64_t x)
 {
 #ifdef __SSE4_2__
-    if (x == 0) return 0;
+    if (x == 0)
+        return 0;
     return __builtin_ctzll(x);
 #else
-    if (x & 1) return 0;
-    if (x & 3) return 1;
-    if (x & 7) return 2;
+    if (x & 1)
+        return 0;
+    if (x & 3)
+        return 1;
+    if (x & 7)
+        return 2;
     if (x & 0x7FF)
     { // in average every second random number x can be answered this way
         return lt_lo[(x & 0x7FF) >> 3] + 3;
@@ -767,7 +764,7 @@ constexpr void bits_impl<T>::write_int_and_move(uint64_t *& word, uint64_t x, ui
 }
 
 template <typename T>
-constexpr uint64_t bits_impl<T>::read_int(const uint64_t * word, uint8_t offset, const uint8_t len)
+constexpr uint64_t bits_impl<T>::read_int(uint64_t const * word, uint8_t offset, const uint8_t len)
 {
     uint64_t w1 = (*word) >> offset;
     if ((offset + len) > 64)
@@ -783,13 +780,13 @@ constexpr uint64_t bits_impl<T>::read_int(const uint64_t * word, uint8_t offset,
 }
 
 template <typename T>
-constexpr uint64_t bits_impl<T>::read_int_bounded(const uint64_t * word, uint8_t offset, const uint8_t len)
+constexpr uint64_t bits_impl<T>::read_int_bounded(uint64_t const * word, uint8_t offset, const uint8_t len)
 {
     return ((*word) >> offset) & bits_impl<T>::lo_set[len];
 }
 
 template <typename T>
-constexpr uint64_t bits_impl<T>::read_int_and_move(const uint64_t *& word, uint8_t & offset, const uint8_t len)
+constexpr uint64_t bits_impl<T>::read_int_and_move(uint64_t const *& word, uint8_t & offset, const uint8_t len)
 {
     uint64_t w1 = (*word) >> offset;
     if ((offset = (offset + len)) >= 64)
@@ -813,25 +810,33 @@ constexpr uint64_t bits_impl<T>::read_int_and_move(const uint64_t *& word, uint8
 }
 
 template <typename T>
-constexpr uint64_t bits_impl<T>::read_unary(const uint64_t * word, uint8_t offset)
+constexpr uint64_t bits_impl<T>::read_unary(uint64_t const * word, uint8_t offset)
 {
     uint64_t w = *word >> offset;
-    if (w) { return bits_impl<T>::lo(w); }
+    if (w)
+    {
+        return bits_impl<T>::lo(w);
+    }
     else
     {
-        if (0 != (w = *(++word))) return bits_impl<T>::lo(w) + 64 - offset;
+        if (0 != (w = *(++word)))
+            return bits_impl<T>::lo(w) + 64 - offset;
         uint64_t cnt = 2;
-        while (0 == (w = *(++word))) ++cnt;
+        while (0 == (w = *(++word)))
+            ++cnt;
         return bits_impl<T>::lo(w) + (cnt << 6) - offset;
     }
     return 0;
 }
 
 template <typename T>
-constexpr uint64_t bits_impl<T>::read_unary_bounded(const uint64_t * word, uint8_t offset)
+constexpr uint64_t bits_impl<T>::read_unary_bounded(uint64_t const * word, uint8_t offset)
 {
     uint64_t w = *word >> offset;
-    if (w) { return bits_impl<T>::lo(w); }
+    if (w)
+    {
+        return bits_impl<T>::lo(w);
+    }
     else
     {
         return 0;
@@ -839,7 +844,7 @@ constexpr uint64_t bits_impl<T>::read_unary_bounded(const uint64_t * word, uint8
 }
 
 template <typename T>
-constexpr uint64_t bits_impl<T>::read_unary_and_move(const uint64_t *& word, uint8_t & offset)
+constexpr uint64_t bits_impl<T>::read_unary_and_move(uint64_t const *& word, uint8_t & offset)
 {
     uint64_t w = (*word) >> offset; // temporary variable is good for the performance
     if (w)
@@ -863,7 +868,8 @@ constexpr uint64_t bits_impl<T>::read_unary_and_move(const uint64_t *& word, uin
         else
         {
             uint64_t cnt_1 = 1;
-            while (0 == (w = *(++word))) ++cnt_1;
+            while (0 == (w = *(++word)))
+                ++cnt_1;
             rr = bits_impl<T>::lo(w) + 64 - offset;
             offset = (offset + rr + 1) & 0x3F;
             word += (offset == 0);
@@ -874,7 +880,7 @@ constexpr uint64_t bits_impl<T>::read_unary_and_move(const uint64_t *& word, uin
 }
 
 template <typename T>
-constexpr void bits_impl<T>::move_right(const uint64_t *& word, uint8_t & offset, const uint8_t len)
+constexpr void bits_impl<T>::move_right(uint64_t const *& word, uint8_t & offset, const uint8_t len)
 {
     if ((offset += len) & 0xC0)
     { // if offset >= 65
@@ -884,7 +890,7 @@ constexpr void bits_impl<T>::move_right(const uint64_t *& word, uint8_t & offset
 }
 
 template <typename T>
-constexpr void bits_impl<T>::move_left(const uint64_t *& word, uint8_t & offset, const uint8_t len)
+constexpr void bits_impl<T>::move_left(uint64_t const *& word, uint8_t & offset, const uint8_t len)
 {
     if ((offset -= len) & 0xC0)
     { // if offset-len<0
@@ -894,10 +900,13 @@ constexpr void bits_impl<T>::move_left(const uint64_t *& word, uint8_t & offset,
 }
 
 template <typename T>
-constexpr uint64_t bits_impl<T>::next(const uint64_t * word, uint64_t idx)
+constexpr uint64_t bits_impl<T>::next(uint64_t const * word, uint64_t idx)
 {
     word += (idx >> 6);
-    if (*word & ~lo_set[idx & 0x3F]) { return (idx & ~((size_t)0x3F)) + lo(*word & ~lo_set[idx & 0x3F]); }
+    if (*word & ~lo_set[idx & 0x3F])
+    {
+        return (idx & ~((size_t)0x3F)) + lo(*word & ~lo_set[idx & 0x3F]);
+    }
     idx = (idx & ~((size_t)0x3F)) + 64;
     ++word;
     while (*word == 0)
@@ -909,10 +918,13 @@ constexpr uint64_t bits_impl<T>::next(const uint64_t * word, uint64_t idx)
 }
 
 template <typename T>
-constexpr uint64_t bits_impl<T>::prev(const uint64_t * word, uint64_t idx)
+constexpr uint64_t bits_impl<T>::prev(uint64_t const * word, uint64_t idx)
 {
     word += (idx >> 6);
-    if (*word & lo_set[(idx & 0x3F) + 1]) { return (idx & ~((size_t)0x3F)) + hi(*word & lo_set[(idx & 0x3F) + 1]); }
+    if (*word & lo_set[(idx & 0x3F) + 1])
+    {
+        return (idx & ~((size_t)0x3F)) + hi(*word & lo_set[(idx & 0x3F) + 1]);
+    }
     idx = (idx & ~((size_t)0x3F)) - 64;
     --word;
     while (*word == 0)

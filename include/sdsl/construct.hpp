@@ -32,7 +32,7 @@ namespace sdsl
 {
 
 template <class int_vector>
-bool contains_no_zero_symbol(const int_vector & text, const std::string & file)
+bool contains_no_zero_symbol(int_vector const & text, std::string const & file)
 {
     for (int_vector_size_type i = 0; i < text.size(); ++i)
     {
@@ -85,7 +85,7 @@ void construct_im(t_index & idx, t_data && data, uint8_t num_bytes = 0)
  *                  	of `num_bytes`-byte integer stored in big endian order.
  */
 template <class t_index>
-void construct(t_index & idx, const std::string & file, cache_config & config, uint8_t num_bytes = 0)
+void construct(t_index & idx, std::string const & file, cache_config & config, uint8_t num_bytes = 0)
 {
     // delegate to CSA or CST construction
     typename t_index::index_category index_tag;
@@ -94,11 +94,11 @@ void construct(t_index & idx, const std::string & file, cache_config & config, u
 
 // Specialization for WTs
 template <class t_index>
-void construct(t_index & idx, const std::string & file, cache_config & config, uint8_t num_bytes, wt_tag)
+void construct(t_index & idx, std::string const & file, cache_config & config, uint8_t num_bytes, wt_tag)
 {
     auto event = memory_monitor::event("construct wavelet tree");
-    if ((t_index::alphabet_category::WIDTH == 8 and num_bytes <= 1) or
-        (t_index::alphabet_category::WIDTH == 0 and num_bytes != 'd'))
+    if ((t_index::alphabet_category::WIDTH == 8 and num_bytes <= 1)
+        or (t_index::alphabet_category::WIDTH == 0 and num_bytes != 'd'))
     {
         int_vector_buffer<t_index::alphabet_category::WIDTH> text_buf(file,
                                                                       std::ios::in,
@@ -125,12 +125,12 @@ void construct(t_index & idx, const std::string & file, cache_config & config, u
 
 // Specialization for CSAs
 template <class t_index>
-void construct(t_index & idx, const std::string & file, cache_config & config, uint8_t num_bytes, csa_tag)
+void construct(t_index & idx, std::string const & file, cache_config & config, uint8_t num_bytes, csa_tag)
 {
     auto event = memory_monitor::event("construct CSA");
     constexpr uint8_t width = t_index::alphabet_category::WIDTH;
-    const char * KEY_TEXT = key_text_trait<width>::KEY_TEXT;
-    const char * KEY_BWT = key_bwt_trait<width>::KEY_BWT;
+    char const * KEY_TEXT = key_text_trait<width>::KEY_TEXT;
+    char const * KEY_BWT = key_bwt_trait<width>::KEY_BWT;
     typedef int_vector<t_index::alphabet_category::WIDTH> text_type;
     {
         auto event = memory_monitor::event("parse input text");
@@ -158,17 +158,26 @@ void construct(t_index & idx, const std::string & file, cache_config & config, u
         }
         register_cache_file(KEY_TEXT, config);
     }
-    if (config.delete_data) { sdsl::remove(file); }
+    if (config.delete_data)
+    {
+        sdsl::remove(file);
+    }
     {
         // (2) check, if the suffix array is cached
         auto event = memory_monitor::event("SA");
-        if (!cache_file_exists(conf::KEY_SA, config)) { construct_sa<t_index::alphabet_category::WIDTH>(config); }
+        if (!cache_file_exists(conf::KEY_SA, config))
+        {
+            construct_sa<t_index::alphabet_category::WIDTH>(config);
+        }
         register_cache_file(conf::KEY_SA, config);
     }
     {
         //  (3) construct BWT
         auto event = memory_monitor::event("BWT");
-        if (!cache_file_exists(KEY_BWT, config)) { construct_bwt<t_index::alphabet_category::WIDTH>(config); }
+        if (!cache_file_exists(KEY_BWT, config))
+        {
+            construct_bwt<t_index::alphabet_category::WIDTH>(config);
+        }
         register_cache_file(KEY_BWT, config);
     }
     {
@@ -185,10 +194,10 @@ void construct(t_index & idx, const std::string & file, cache_config & config, u
 
 // Specialization for standalone LCPs
 template <class t_index, uint8_t t_width>
-void construct(t_index & idx, const std::string & file, cache_config & config, uint8_t num_bytes, lcp_tag)
+void construct(t_index & idx, std::string const & file, cache_config & config, uint8_t num_bytes, lcp_tag)
 {
     auto event = memory_monitor::event("construct compressed LCP");
-    const char * KEY_TEXT = key_text_trait<t_width>::KEY_TEXT;
+    char const * KEY_TEXT = key_text_trait<t_width>::KEY_TEXT;
     typedef int_vector<t_width> text_type;
     {
         // (2) check, if the longest common prefix array is cached
@@ -213,10 +222,16 @@ void construct(t_index & idx, const std::string & file, cache_config & config, u
             {
                 // (2) check, if the suffix array is cached
                 auto event = memory_monitor::event("SA");
-                if (!cache_file_exists(conf::KEY_SA, config)) { construct_sa<t_width>(config); }
+                if (!cache_file_exists(conf::KEY_SA, config))
+                {
+                    construct_sa<t_width>(config);
+                }
                 register_cache_file(conf::KEY_SA, config);
             }
-            if (t_width == 8) { construct_lcp_semi_extern_PHI(config); }
+            if (t_width == 8)
+            {
+                construct_lcp_semi_extern_PHI(config);
+            }
             else
             {
                 construct_lcp_PHI<t_width>(config);
@@ -237,9 +252,12 @@ void construct(t_index & idx, const std::string & file, cache_config & config, u
 
 // Specialization for standalone LCPs
 template <class t_index>
-void construct(t_index & idx, const std::string & file, cache_config & config, uint8_t num_bytes, lcp_tag tag)
+void construct(t_index & idx, std::string const & file, cache_config & config, uint8_t num_bytes, lcp_tag tag)
 {
-    if (1 == num_bytes) { construct<t_index, 8>(idx, file, config, num_bytes, tag); }
+    if (1 == num_bytes)
+    {
+        construct<t_index, 8>(idx, file, config, num_bytes, tag);
+    }
     else
     {
         construct<t_index, 0>(idx, file, config, num_bytes, tag);
@@ -248,11 +266,11 @@ void construct(t_index & idx, const std::string & file, cache_config & config, u
 
 // Specialization for CSTs
 template <class t_index>
-void construct(t_index & idx, const std::string & file, cache_config & config, uint8_t num_bytes, cst_tag)
+void construct(t_index & idx, std::string const & file, cache_config & config, uint8_t num_bytes, cst_tag)
 {
     auto event = memory_monitor::event("construct CST");
-    const char * KEY_TEXT = key_text_trait<t_index::alphabet_category::WIDTH>::KEY_TEXT;
-    const char * KEY_BWT = key_bwt_trait<t_index::alphabet_category::WIDTH>::KEY_BWT;
+    char const * KEY_TEXT = key_text_trait<t_index::alphabet_category::WIDTH>::KEY_TEXT;
+    char const * KEY_BWT = key_bwt_trait<t_index::alphabet_category::WIDTH>::KEY_BWT;
     csa_tag csa_t;
     {
         // (1) check, if the compressed suffix array is cached
@@ -275,7 +293,10 @@ void construct(t_index & idx, const std::string & file, cache_config & config, u
         register_cache_file(conf::KEY_SA, config);
         if (!cache_file_exists(conf::KEY_LCP, config))
         {
-            if (t_index::alphabet_category::WIDTH == 8) { construct_lcp_semi_extern_PHI(config); }
+            if (t_index::alphabet_category::WIDTH == 8)
+            {
+                construct_lcp_semi_extern_PHI(config);
+            }
             else
             {
                 construct_lcp_PHI<t_index::alphabet_category::WIDTH>(config);

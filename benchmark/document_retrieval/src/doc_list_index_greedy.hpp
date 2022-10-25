@@ -30,7 +30,7 @@ template <class t_csa = csa_wt<wt_huff<rrr_vector<63>>, 1000000, 1000000>,
           typename t_csa::char_type t_doc_delim = 1>
 class doc_list_index_greedy
 {
-  public:
+public:
     using size_type = typename t_wtd::size_type;
     using value_type = typename t_wtd::value_type;
 
@@ -46,28 +46,24 @@ class doc_list_index_greedy
 
     class result : public list_type
     {
-      private:
+    private:
         size_type m_sp, m_ep;
 
-      public:
+    public:
         // Number of occurrences
-        size_type count() { return m_ep - m_sp + 1; }
+        size_type count()
+        {
+            return m_ep - m_sp + 1;
+        }
 
         // Constructors for an empty result and for a result in the interval [sp, ep]:
-        result(size_type sp, size_type ep, list_type && l)
-          : list_type(l)
-          , m_sp(sp)
-          , m_ep(ep)
+        result(size_type sp, size_type ep, list_type && l) : list_type(l), m_sp(sp), m_ep(ep)
         {}
-        result()
-          : m_sp(1)
-          , m_ep(0)
+        result() : m_sp(1), m_ep(0)
         {}
-        result(size_type sp, size_type ep)
-          : m_sp(sp)
-          , m_ep(ep)
+        result(size_type sp, size_type ep) : m_sp(sp), m_ep(ep)
         {}
-        result & operator=(const result & res)
+        result & operator=(result const & res)
         {
             if (this != &res)
             {
@@ -86,34 +82,39 @@ class doc_list_index_greedy
         node_type v;
         range_type r;
 
-        size_t size() const { return r[1] - r[0] + 1; }
-
-        bool operator<(const wt_range_t & x) const
+        size_t size() const
         {
-            if (x.size() != size()) return size() < x.size();
+            return r[1] - r[0] + 1;
+        }
+
+        bool operator<(wt_range_t const & x) const
+        {
+            if (x.size() != size())
+                return size() < x.size();
             return v.sym > x.v.sym;
         }
 
-        wt_range_t() {}
-        wt_range_t(const node_type & _v, const range_type & _r)
-          : v(_v)
-          , r(_r)
+        wt_range_t()
+        {}
+        wt_range_t(node_type const & _v, range_type const & _r) : v(_v), r(_r)
         {}
     };
 
-  protected:
+protected:
     size_type m_doc_cnt; // number of documents in the collection
     csa_type m_csa_full; // CSA built from the collection text
     wtd_type m_wtd;      // wtd build from the collection text
-  public:
+
+public:
     //! Default constructor
-    doc_list_index_greedy() {}
+    doc_list_index_greedy()
+    {}
 
     doc_list_index_greedy(std::string file_name, sdsl::cache_config & cconfig, uint8_t num_bytes)
     {
         construct(m_csa_full, file_name, cconfig, num_bytes);
 
-        const char * KEY_TEXT = key_text_trait<WIDTH>::KEY_TEXT;
+        char const * KEY_TEXT = key_text_trait<WIDTH>::KEY_TEXT;
         std::string text_file = cache_file_name(KEY_TEXT, cconfig);
 
         bit_vector doc_border;
@@ -138,7 +139,10 @@ class doc_list_index_greedy
         return m_wtd.sigma - 1; // subtract one, since zero does not count
     }
 
-    size_type word_cnt() const { return m_wtd.size() - doc_cnt(); }
+    size_type word_cnt() const
+    {
+        return m_wtd.size() - doc_cnt();
+    }
 
     size_type serialize(std::ostream & out, structure_tree_node * v = NULL, std::string name = "") const
     {
@@ -176,15 +180,18 @@ class doc_list_index_greedy
         }
     }
 
-  private:
+private:
     //! Construct the doc_border bitvector by streaming the text file
-    void construct_doc_border(const std::string & text_file, bit_vector & doc_border)
+    void construct_doc_border(std::string const & text_file, bit_vector & doc_border)
     {
         int_vector_buffer<WIDTH> text_buf(text_file);
         doc_border = bit_vector(text_buf.size(), 0);
         for (size_type i = 0; i < text_buf.size(); ++i)
         {
-            if (t_doc_delim == text_buf[i]) { doc_border[i] = 1; }
+            if (t_doc_delim == text_buf[i])
+            {
+                doc_border[i] = 1;
+            }
         }
     }
 
@@ -213,7 +220,7 @@ class doc_list_index_greedy
         std::vector<std::pair<value_type, size_type>> results;
         std::priority_queue<wt_range_t> heap;
 
-        heap.emplace(wt_range_t(m_wtd.root(), { lb, rb }));
+        heap.emplace(wt_range_t(m_wtd.root(), {lb, rb}));
 
         while (!heap.empty())
         {
@@ -222,7 +229,10 @@ class doc_list_index_greedy
             if (m_wtd.is_leaf(e.v))
             {
                 results.emplace_back(e.v.sym, e.size());
-                if (results.size() == k) { break; }
+                if (results.size() == k)
+                {
+                    break;
+                }
                 continue;
             }
 
@@ -231,8 +241,14 @@ class doc_list_index_greedy
             auto left_range = std::get<0>(child_ranges);
             auto right_range = std::get<1>(child_ranges);
 
-            if (!empty(left_range)) { heap.emplace(wt_range_t(std::get<0>(child), left_range)); }
-            if (!empty(right_range)) { heap.emplace(wt_range_t(std::get<1>(child), right_range)); }
+            if (!empty(left_range))
+            {
+                heap.emplace(wt_range_t(std::get<0>(child), left_range));
+            }
+            if (!empty(right_range))
+            {
+                heap.emplace(wt_range_t(std::get<1>(child), right_range));
+            }
         }
         return results;
     };

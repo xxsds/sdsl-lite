@@ -58,11 +58,11 @@ namespace sdsl
 template <uint8_t t_b = 4, typename t_rank = rank_support_v5<>>
 class dac_vector
 {
-  private:
+private:
     static_assert(t_b > 0, "dac_vector: t_b has to be larger than 0");
     static_assert(t_b < 64, "dac_vector: t_b has to be smaller than 64");
 
-  public:
+public:
     typedef typename int_vector<>::value_type value_type;
     typedef random_access_const_iterator<dac_vector> const_iterator;
     typedef const_iterator iterator;
@@ -75,28 +75,31 @@ class dac_vector
     typedef t_rank rank_support_type;
     typedef iv_tag index_category;
 
-  private:
+private:
     int_vector<t_b> m_data;            // block data for every level
     bit_vector m_overflow;             // mark non-end bytes
     rank_support_type m_overflow_rank; // rank for m_overflow
     int_vector<64> m_level_pointer_and_rank = int_vector<64>(4, 0);
     uint8_t m_max_level; // maximum level < (log n)/b+1
 
-  public:
+public:
     dac_vector() = default;
 
-    dac_vector(const dac_vector & v)
-      : m_data(v.m_data)
-      , m_overflow(v.m_overflow)
-      , m_overflow_rank(v.m_overflow_rank)
-      , m_level_pointer_and_rank(v.m_level_pointer_and_rank)
-      , m_max_level(v.m_max_level)
+    dac_vector(dac_vector const & v) :
+        m_data(v.m_data),
+        m_overflow(v.m_overflow),
+        m_overflow_rank(v.m_overflow_rank),
+        m_level_pointer_and_rank(v.m_level_pointer_and_rank),
+        m_max_level(v.m_max_level)
     {
         m_overflow_rank.set_vector(&m_overflow);
     }
 
-    dac_vector(dac_vector && v) { *this = std::move(v); }
-    dac_vector & operator=(const dac_vector & v)
+    dac_vector(dac_vector && v)
+    {
+        *this = std::move(v);
+    }
+    dac_vector & operator=(dac_vector const & v)
     {
         if (this != &v)
         {
@@ -125,25 +128,40 @@ class dac_vector
      * \pre No two adjacent values should be equal.
      */
     template <class Container>
-    dac_vector(const Container & c);
+    dac_vector(Container const & c);
 
     //! Constructor for an int_vector_buffer of unsigned integers.
     template <uint8_t int_width>
     dac_vector(int_vector_buffer<int_width> & v_buf);
 
     //! The number of elements in the dac_vector.
-    size_type size() const { return m_level_pointer_and_rank[2]; }
+    size_type size() const
+    {
+        return m_level_pointer_and_rank[2];
+    }
     //! Return the largest size that this container can ever have.
-    static size_type max_size() { return int_vector<>::max_size() / 2; }
+    static size_type max_size()
+    {
+        return int_vector<>::max_size() / 2;
+    }
 
     //!    Returns if the dac_vector is empty.
-    bool empty() const { return 0 == m_level_pointer_and_rank[2]; }
+    bool empty() const
+    {
+        return 0 == m_level_pointer_and_rank[2];
+    }
 
     //! Iterator that points to the first element of the dac_vector.
-    const const_iterator begin() const { return const_iterator(this, 0); }
+    const const_iterator begin() const
+    {
+        return const_iterator(this, 0);
+    }
 
     //! Iterator that points to the position after the last element of the dac_vector.
-    const const_iterator end() const { return const_iterator(this, size()); }
+    const const_iterator end() const
+    {
+        return const_iterator(this, size());
+    }
 
     //! []-operator
     value_type operator[](size_type i) const
@@ -151,7 +169,7 @@ class dac_vector
         uint8_t level = 1;
         uint8_t offset = t_b;
         size_type result = m_data[i];
-        const uint64_t * p = m_level_pointer_and_rank.data();
+        uint64_t const * p = m_level_pointer_and_rank.data();
         uint64_t ppi = (*p) + i;
         while (level < m_max_level and m_overflow[ppi])
         {
@@ -184,24 +202,28 @@ class dac_vector
     template <typename archive_t>
     void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar);
 
-    bool operator==(const dac_vector & v) const
+    bool operator==(dac_vector const & v) const
     {
-        return (m_max_level == v.m_max_level) && (m_data == v.m_data) && (m_overflow == v.m_overflow) &&
-               (m_overflow_rank == v.m_overflow_rank) && (m_level_pointer_and_rank == v.m_level_pointer_and_rank);
+        return (m_max_level == v.m_max_level) && (m_data == v.m_data) && (m_overflow == v.m_overflow)
+            && (m_overflow_rank == v.m_overflow_rank) && (m_level_pointer_and_rank == v.m_level_pointer_and_rank);
     }
 
-    bool operator!=(const dac_vector & v) const { return !(*this == v); }
+    bool operator!=(dac_vector const & v) const
+    {
+        return !(*this == v);
+    }
 };
 
 template <uint8_t t_b, typename t_rank>
 template <class Container>
-dac_vector<t_b, t_rank>::dac_vector(const Container & c)
+dac_vector<t_b, t_rank>::dac_vector(Container const & c)
 {
     //  (1) Count for each level, how many blocks are needed for the representation
     //      Running time: \f$ O(n \times \frac{\log n}{b}  \f$
     //      Result is sorted in m_level_pointer_and_rank
     size_type n = c.size(), val = 0;
-    if (n == 0) return;
+    if (n == 0)
+        return;
     // initialize counter
     m_level_pointer_and_rank = int_vector<64>(128, 0);
     m_level_pointer_and_rank[0] = n; // level 0 has n entries
@@ -283,7 +305,8 @@ dac_vector<t_b, t_rank>::dac_vector(int_vector_buffer<int_width> & v_buf)
     //      Running time: \f$ O(n \times \frac{\log n}{b}  \f$
     //      Result is sorted in m_level_pointer_and_rank
     size_type n = v_buf.size(), val = 0;
-    if (n == 0) return;
+    if (n == 0)
+        return;
     // initialize counter
     m_level_pointer_and_rank = int_vector<64>(128, 0);
     m_level_pointer_and_rank[0] = n; // level 0 has n entries
@@ -358,9 +381,8 @@ dac_vector<t_b, t_rank>::dac_vector(int_vector_buffer<int_width> & v_buf)
 }
 
 template <uint8_t t_b, typename t_rank>
-dac_vector<>::size_type dac_vector<t_b, t_rank>::serialize(std::ostream & out,
-                                                           structure_tree_node * v,
-                                                           std::string name) const
+dac_vector<>::size_type
+dac_vector<t_b, t_rank>::serialize(std::ostream & out, structure_tree_node * v, std::string name) const
 {
     structure_tree_node * child = structure_tree::add_child(v, name, util::class_name(*this));
     size_type written_bytes = 0;

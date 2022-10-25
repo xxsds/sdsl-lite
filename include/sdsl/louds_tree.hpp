@@ -24,29 +24,32 @@ namespace sdsl
 //! A class for the node representation of louds_tree
 class louds_node
 {
-  public:
+public:
     typedef bit_vector::size_type size_type;
 
-  private:
+private:
     size_type m_nr;  // node number
     size_type m_pos; // position in the LOUDS
-  public:
-    const size_type & nr;
-    const size_type & pos;
 
-    louds_node(size_type f_nr = 0, size_type f_pos = 0)
-      : m_nr(f_nr)
-      , m_pos(f_pos)
-      , nr(m_nr)
-      , pos(m_pos)
+public:
+    size_type const & nr;
+    size_type const & pos;
+
+    louds_node(size_type f_nr = 0, size_type f_pos = 0) : m_nr(f_nr), m_pos(f_pos), nr(m_nr), pos(m_pos)
     {}
 
-    bool operator==(const louds_node & v) const { return m_nr == v.m_nr and m_pos == v.m_pos; }
+    bool operator==(louds_node const & v) const
+    {
+        return m_nr == v.m_nr and m_pos == v.m_pos;
+    }
 
-    bool operator!=(const louds_node & v) const { return !(v == *this); }
+    bool operator!=(louds_node const & v) const
+    {
+        return !(v == *this);
+    }
 };
 
-inline std::ostream & operator<<(std::ostream & os, const louds_node & v)
+inline std::ostream & operator<<(std::ostream & os, louds_node const & v)
 {
     os << "(" << v.nr << "," << v.pos << ")";
     return os;
@@ -69,27 +72,28 @@ template <class bit_vec_t = bit_vector,
           class select_0_t = typename bit_vec_t::select_0_type>
 class louds_tree
 {
-  public:
+public:
     typedef bit_vector::size_type size_type;
     typedef louds_node node_type;
     typedef bit_vec_t bit_vector_type;
     typedef select_1_t select_1_type;
     typedef select_0_t select_0_type;
 
-  private:
+private:
     bit_vector_type m_bv;       // bit vector for the LOUDS sequence
     select_1_type m_bv_select1; // select support for 1-bits on m_bv
     select_0_type m_bv_select0; // select support for 0-bits on m_bv
-  public:
-    const bit_vector_type & bv; // const reference to the LOUDS sequence
+
+public:
+    bit_vector_type const & bv; // const reference to the LOUDS sequence
 
     //! Constructor for a cst and a root node for the traversal
     template <class Cst, class CstBfsIterator>
-    louds_tree(const Cst & cst, const CstBfsIterator begin, const CstBfsIterator end)
-      : m_bv()
-      , m_bv_select1()
-      , m_bv_select0()
-      , bv(m_bv)
+    louds_tree(Cst const & cst, const CstBfsIterator begin, const CstBfsIterator end) :
+        m_bv(),
+        m_bv_select1(),
+        m_bv_select0(),
+        bv(m_bv)
     {
         bit_vector tmp_bv(4 * cst.size(*begin), 0); // resize the bit_vector to the maximal
         // possible size 2*2*#leaves in the tree
@@ -108,23 +112,22 @@ class louds_tree
         util::init_support(m_bv_select0, &m_bv);
     }
 
-    louds_tree(const louds_tree & lt)
-      : m_bv(lt.m_bv)
-      , m_bv_select1(lt.m_bv_select1)
-      , m_bv_select0(lt.m_bv_select0)
-      , bv(m_bv)
+    louds_tree(louds_tree const & lt) :
+        m_bv(lt.m_bv),
+        m_bv_select1(lt.m_bv_select1),
+        m_bv_select0(lt.m_bv_select0),
+        bv(m_bv)
     {
         m_bv_select1.set_vector(&m_bv);
         m_bv_select0.set_vector(&m_bv);
     }
 
-    louds_tree(louds_tree && lt)
-      : bv(m_bv)
+    louds_tree(louds_tree && lt) : bv(m_bv)
     {
         *this = std::move(lt);
     }
 
-    louds_tree & operator=(const louds_tree & lt)
+    louds_tree & operator=(louds_tree const & lt)
     {
         if (this != &lt)
         {
@@ -148,15 +151,21 @@ class louds_tree
     }
 
     //! Returns the root node
-    node_type root() const { return louds_node(0, 0); }
+    node_type root() const
+    {
+        return louds_node(0, 0);
+    }
 
     //! Returns the number of nodes in the tree.
-    size_type nodes() const { return (m_bv.size() + 1) / 2; }
+    size_type nodes() const
+    {
+        return (m_bv.size() + 1) / 2;
+    }
 
     //! Indicates if a node is a leaf.
     /*!\param v A node.
      */
-    bool is_leaf(const node_type & v) const
+    bool is_leaf(node_type const & v) const
     {
         // node is the last leaf        or  has no children, so m_bv[v.pos]==1
         return (v.pos + 1 == m_bv.size()) or m_bv[v.pos + 1];
@@ -166,7 +175,7 @@ class louds_tree
     /*!
      *  \param v A node.
      */
-    size_type degree(const node_type & v) const
+    size_type degree(node_type const & v) const
     {
         if (is_leaf(v))
         { // handles boundary cases
@@ -182,7 +191,7 @@ class louds_tree
      * \param i Index of the child. Indexing starts at 1.
      * \pre \f$ i \in [1..degree(v)] \f$
      */
-    node_type child(const node_type & v, size_type i) const
+    node_type child(node_type const & v, size_type i) const
     {
         size_type pos = v.pos + i; // go to the position of the child's zero
         // (#bits = pos+1) - (#1-bits = v.nr+1)
@@ -191,16 +200,22 @@ class louds_tree
     }
 
     //! Returns the parent of a node v or root() if v==root().
-    node_type parent(const node_type & v) const
+    node_type parent(node_type const & v) const
     {
-        if (v == root()) { return root(); }
+        if (v == root())
+        {
+            return root();
+        }
         size_type zero_pos = m_bv_select0(v.nr);
         size_type parent_nr = (zero_pos + 1) - v.nr - 1;
         return node_type(parent_nr, m_bv_select1(parent_nr + 1));
     }
 
     //! Returns an unique id for each node in [0..size()-1]
-    size_type id(const node_type & v) const { return v.nr; }
+    size_type id(node_type const & v) const
+    {
+        return v.nr;
+    }
 
     size_type serialize(std::ostream & out, structure_tree_node * v = nullptr, std::string name = "") const
     {

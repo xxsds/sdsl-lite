@@ -37,7 +37,7 @@ namespace sdsl
 template <class Cst, uint32_t cache_size = 128>
 class cst_dfs_const_forward_iterator
 {
-  public:
+public:
     using iterator_category = std::forward_iterator_tag;
     using value_type = typename Cst::node_type;
     using difference_type = std::ptrdiff_t;
@@ -49,8 +49,8 @@ class cst_dfs_const_forward_iterator
     typedef cst_dfs_const_forward_iterator<Cst> iterator;
     typedef typename Cst::node_type node_type;
 
-  private:
-    const Cst * m_cst;
+private:
+    Cst const * m_cst;
     node_type m_v;
     bool m_visited;
     bool m_valid;
@@ -60,7 +60,10 @@ class cst_dfs_const_forward_iterator
     inline node_type parent()
     {
         --m_stack_size; // decrease stack size
-        if (m_stack_cache != nullptr and m_stack_size < cache_size) { return m_stack_cache[m_stack_size]; }
+        if (m_stack_cache != nullptr and m_stack_size < cache_size)
+        {
+            return m_stack_cache[m_stack_size];
+        }
         else
             return m_cst->parent(m_v);
     }
@@ -74,23 +77,22 @@ class cst_dfs_const_forward_iterator
     }
 
     //! Default constructor
-    cst_dfs_const_forward_iterator()
-      : m_cst(nullptr)
-      , m_visited(false)
-      , m_valid(false)
-      , m_stack_cache(nullptr)
+    cst_dfs_const_forward_iterator() : m_cst(nullptr), m_visited(false), m_valid(false), m_stack_cache(nullptr)
     {}
 
-  public:
+public:
     //! Constructor
-    cst_dfs_const_forward_iterator(const Cst * cst, const value_type node, bool visited = false, bool valid = true)
-      : m_visited(visited)
-      , m_valid(valid)
-      , m_stack_cache(nullptr)
+    cst_dfs_const_forward_iterator(Cst const * cst, const value_type node, bool visited = false, bool valid = true) :
+        m_visited(visited),
+        m_valid(valid),
+        m_stack_cache(nullptr)
     {
         m_cst = cst;
         m_v = node;
-        if (m_cst == nullptr) { m_valid = false; }
+        if (m_cst == nullptr)
+        {
+            m_valid = false;
+        }
         else if (m_v == m_cst->root() and !m_visited and m_valid)
         { // if the iterator equal cst.begin()
             m_stack_cache = new node_type[cache_size];
@@ -114,23 +116,33 @@ class cst_dfs_const_forward_iterator
     }
 
     //! Returns how often the current node was already visited.
-    uint8_t visit() const { return 1 + (uint8_t)m_visited; }
+    uint8_t visit() const
+    {
+        return 1 + (uint8_t)m_visited;
+    }
 
     void skip_subtree()
     {
         if (m_valid)
         {
-            if (!m_visited) { m_visited = true; }
+            if (!m_visited)
+            {
+                m_visited = true;
+            }
         }
     }
 
     //! Method for dereferencing the iterator.
-    const_reference operator*() const { return m_v; }
+    const_reference operator*() const
+    {
+        return m_v;
+    }
 
     //! Prefix increment of the iterator.
     iterator & operator++()
     {
-        if (!m_valid) return *this;
+        if (!m_valid)
+            return *this;
         if (m_v == m_cst->root() and m_visited)
         {
             m_valid = false;
@@ -144,7 +156,7 @@ class cst_dfs_const_forward_iterator
                 w = m_cst->sibling(m_v); // determine sibling of leaf v
                 if (w == m_cst->root())
                 { // if there exists no right sibling of the leaf v
-                  //					w = m_cst->parent(m_v);
+                    //					w = m_cst->parent(m_v);
                     w = parent();
                     m_visited = true; // go up
                 }
@@ -171,26 +183,32 @@ class cst_dfs_const_forward_iterator
     }
 
     //! Postfix increment of the iterator.
-    void operator++(int) { ++(*this); }
+    void operator++(int)
+    {
+        ++(*this);
+    }
 
     //! Equality operator.
-    bool operator==(const iterator & it) const
+    bool operator==(iterator const & it) const
     {
         return (it.m_visited == m_visited) // visited status is equal
-               and (it.m_valid == m_valid) // valid status is equal => for end() iterator
-               and (it.m_v == m_v)         // nodes are equal
-               and (it.m_cst == m_cst);    // iterator belongs to the same cst
+           and (it.m_valid == m_valid)     // valid status is equal => for end() iterator
+           and (it.m_v == m_v)             // nodes are equal
+           and (it.m_cst == m_cst);        // iterator belongs to the same cst
     }
 
     //! Inequality operator.
-    bool operator!=(const iterator & it) const { return !(*this == it); }
+    bool operator!=(iterator const & it) const
+    {
+        return !(*this == it);
+    }
 };
 
 //! A forward iterator for a bottom up traversal of a suffix tree
 template <class Cst>
 class cst_bottom_up_const_forward_iterator
 {
-  public:
+public:
     using iterator_category = std::forward_iterator_tag;
     using value_type = typename Cst::node_type;
     using difference_type = std::ptrdiff_t;
@@ -201,34 +219,36 @@ class cst_bottom_up_const_forward_iterator
     typedef typename Cst::size_type size_type;
     typedef cst_bottom_up_const_forward_iterator<Cst> iterator;
 
-  private:
-    const Cst * m_cst;
+private:
+    Cst const * m_cst;
     typename Cst::node_type m_v;
     bool m_valid;
 
-  public:
+public:
     //! Default constructor
-    cst_bottom_up_const_forward_iterator()
-      : m_cst(nullptr)
-      , m_valid(false)
+    cst_bottom_up_const_forward_iterator() : m_cst(nullptr), m_valid(false)
     {}
 
     //! Constructor
-    cst_bottom_up_const_forward_iterator(const Cst * cst, const value_type node, bool valid = true)
-      : m_valid(valid)
+    cst_bottom_up_const_forward_iterator(Cst const * cst, const value_type node, bool valid = true) : m_valid(valid)
     {
         m_cst = cst;
         m_v = node;
-        if (m_cst == nullptr) m_valid = false;
+        if (m_cst == nullptr)
+            m_valid = false;
     }
 
     //! Method for dereferencing the iterator.
-    const_reference operator*() const { return m_v; }
+    const_reference operator*() const
+    {
+        return m_v;
+    }
 
     //! Prefix increment of the iterator.
     iterator & operator++()
     {
-        if (!m_valid) return *this;
+        if (!m_valid)
+            return *this;
         if (m_v == m_cst->root())
         {
             m_valid = false;
@@ -255,15 +275,18 @@ class cst_bottom_up_const_forward_iterator
     }
 
     //! Equality operator.
-    bool operator==(const iterator & it) const
+    bool operator==(iterator const & it) const
     {
-        return (it.m_valid == m_valid)  // valid status is equal => for end() iterator
-               and (it.m_v == m_v)      // nodes are equal
-               and (it.m_cst == m_cst); // iterator belongs to the same cst
+        return (it.m_valid == m_valid) // valid status is equal => for end() iterator
+           and (it.m_v == m_v)         // nodes are equal
+           and (it.m_cst == m_cst);    // iterator belongs to the same cst
     }
 
     //! Inequality operator.
-    bool operator!=(const iterator & it) const { return !(*this == it); }
+    bool operator!=(iterator const & it) const
+    {
+        return !(*this == it);
+    }
 };
 
 //! A forward iterator for a breath first traversal of a tree
@@ -275,7 +298,7 @@ class cst_bottom_up_const_forward_iterator
 template <class Cst, class Queue = std::queue<typename Cst::node_type>>
 class cst_bfs_iterator
 {
-  public:
+public:
     using iterator_category = std::forward_iterator_tag;
     using value_type = typename Cst::node_type;
     using difference_type = std::ptrdiff_t;
@@ -287,12 +310,12 @@ class cst_bfs_iterator
     typedef cst_bfs_iterator<Cst, Queue> iterator;
     typedef Queue queue_type;
 
-  private:
-    const Cst * m_cst;  // Pointer to the cst.
+private:
+    Cst const * m_cst;  // Pointer to the cst.
     queue_type m_queue; //
     bool m_valid;       // State of the iterator.
 
-  public:
+public:
     //! Constructor
     /*!
      * \param cst	Pointer to the compressed suffix tree.
@@ -300,23 +323,33 @@ class cst_bfs_iterator
      * \param valid State of the iterator.
      * \param end   If valid=true and end=true, we get the end() iterator otherwise ``end'' has no effect.
      */
-    cst_bfs_iterator(const Cst * cst, const value_type node, bool valid = true, bool end_it = false)
+    cst_bfs_iterator(Cst const * cst, const value_type node, bool valid = true, bool end_it = false)
     {
         m_cst = cst;
         m_valid = valid;
-        if (m_cst != nullptr and !end_it) { m_queue.push(node); }
+        if (m_cst != nullptr and !end_it)
+        {
+            m_queue.push(node);
+        }
     }
 
     //! Returns the current number of nodes in the queue.
-    size_type size() const { return m_queue.size(); }
+    size_type size() const
+    {
+        return m_queue.size();
+    }
 
     //! Method for dereferencing the iterator.
-    const_reference operator*() const { return m_queue.front(); }
+    const_reference operator*() const
+    {
+        return m_queue.front();
+    }
 
     //! Prefix increment of the iterator.
     iterator & operator++()
     {
-        if (!m_valid) return *this;
+        if (!m_valid)
+            return *this;
         if (m_queue.empty())
         {
             m_valid = false;
@@ -342,7 +375,7 @@ class cst_bfs_iterator
     }
 
     //! Equality operator.
-    bool operator==(const iterator & it) const
+    bool operator==(iterator const & it) const
     {
         if (m_queue.size() != it.m_queue.size())
         {                 // if the queue size is different
@@ -352,14 +385,17 @@ class cst_bfs_iterator
         { // if the queue is empty, we have to check if they are valid and
             return it.m_valid == m_valid and it.m_cst == m_cst; // belong to the same cst
         }
-        return (it.m_valid == m_valid)                     // valid status is equal => for end() iterator
-               and (it.m_cst == m_cst)                     // iterator belongs to the same cst
-               and (it.m_queue.front() == m_queue.front()) // front element and
-               and (it.m_queue.back() == m_queue.back());  //  back element are the same.
+        return (it.m_valid == m_valid)                 // valid status is equal => for end() iterator
+           and (it.m_cst == m_cst)                     // iterator belongs to the same cst
+           and (it.m_queue.front() == m_queue.front()) // front element and
+           and (it.m_queue.back() == m_queue.back());  //  back element are the same.
     }
 
     //! Inequality operator.
-    bool operator!=(const iterator & it) const { return !(*this == it); }
+    bool operator!=(iterator const & it) const
+    {
+        return !(*this == it);
+    }
 };
 
 } // end namespace sdsl

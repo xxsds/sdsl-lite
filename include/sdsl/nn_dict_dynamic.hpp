@@ -38,33 +38,36 @@ inline void set_zero_bits(nn_dict_dynamic & nn);
 //! A class for a dynamic bit vector which also supports the prev and next operations
 class nn_dict_dynamic
 {
-  public:
+public:
     typedef int_vector<64>::size_type size_type;
     class reference; // forward declaration of inner class
 
     friend class reference;
     friend void util::set_zero_bits(nn_dict_dynamic & nn);
 
-  private:
+private:
     uint64_t m_depth;          // Depth of the tree (1 level corresonds to 0, 2 levels corresponds to 1,...)
     uint64_t m_v_begin_leaves; // Virtual begin of leaves
     size_type m_size;
     int_vector<64> m_offset; // Number of nodes to skip on each level
     int_vector<64> m_tree;   // Tree
 
-  public:
-    const uint64_t & depth;
+public:
+    uint64_t const & depth;
 
-    size_type size() const { return m_size; }
+    size_type size() const
+    {
+        return m_size;
+    }
 
     //! Constructor
     /*!\param n Number of supported bits
      */
-    nn_dict_dynamic(const uint64_t n = 0)
-      : depth(m_depth)
+    nn_dict_dynamic(const uint64_t n = 0) : depth(m_depth)
     {
         m_size = n;
-        if (n == 0) return;
+        if (n == 0)
+            return;
         uint64_t level;     // level indicator
         uint64_t nodes = 1; // number of nodes (=64 bit integer)
         uint64_t tmp;       // tmp-variable
@@ -87,31 +90,33 @@ class nn_dict_dynamic
         }
 
         /* Calc how many nodes to skip up to each level*/
-        for (level = 1; level <= m_depth; ++level) { m_offset[level] += m_offset[level - 1]; }
+        for (level = 1; level <= m_depth; ++level)
+        {
+            m_offset[level] += m_offset[level - 1];
+        }
 
         /* Create Tree incl. leaves */
         m_tree = int_vector<64>(nodes);
     }
 
     //! Copy constructor
-    nn_dict_dynamic(const nn_dict_dynamic & nn)
-      : m_depth(nn.m_depth)
-      , m_v_begin_leaves(nn.m_v_begin_leaves)
-      , m_size(nn.m_size)
-      , m_offset(nn.m_offset)
-      , m_tree(nn.m_tree)
-      , depth(m_depth)
+    nn_dict_dynamic(nn_dict_dynamic const & nn) :
+        m_depth(nn.m_depth),
+        m_v_begin_leaves(nn.m_v_begin_leaves),
+        m_size(nn.m_size),
+        m_offset(nn.m_offset),
+        m_tree(nn.m_tree),
+        depth(m_depth)
     {}
 
     //! move constructor
-    nn_dict_dynamic(nn_dict_dynamic && nn)
-      : depth(m_depth)
+    nn_dict_dynamic(nn_dict_dynamic && nn) : depth(m_depth)
     {
         *this = std::move(nn);
     }
 
     //! Assignment operator
-    nn_dict_dynamic & operator=(const nn_dict_dynamic & nn)
+    nn_dict_dynamic & operator=(nn_dict_dynamic const & nn)
     {
         if (this != &nn)
         {
@@ -144,13 +149,16 @@ class nn_dict_dynamic
      *  \par Precondition
      *    \f$ 0 \leq  idx < size() \f$
      */
-    bool operator[](const size_type & idx) const
+    bool operator[](size_type const & idx) const
     {
         uint64_t node = m_tree[(m_v_begin_leaves + (idx >> 6)) - m_offset[m_depth]];
         return (node >> (idx & 0x3F)) & 1;
     }
 
-    inline reference operator[](const size_type & idx) { return reference(this, idx); }
+    inline reference operator[](size_type const & idx)
+    {
+        return reference(this, idx);
+    }
 
     //! Get the leftmost index \f$i\geq idx\f$ where a bit is set.
     /*!\param idx Left border of the search interval. \f$ 0\leq idx < size()\f$
@@ -304,23 +312,25 @@ class nn_dict_dynamic
     //! Equality operator.
     bool operator==(nn_dict_dynamic const & other) const noexcept
     {
-        return (m_depth == other.m_depth) && (m_v_begin_leaves == other.m_v_begin_leaves) && (m_size == other.m_size) &&
-               (m_offset == other.m_offset) && (m_tree == other.m_tree);
+        return (m_depth == other.m_depth) && (m_v_begin_leaves == other.m_v_begin_leaves) && (m_size == other.m_size)
+            && (m_offset == other.m_offset) && (m_tree == other.m_tree);
     }
 
     //! Inequality operator.
-    bool operator!=(nn_dict_dynamic const & other) const noexcept { return !(*this == other); }
+    bool operator!=(nn_dict_dynamic const & other) const noexcept
+    {
+        return !(*this == other);
+    }
 
     class reference
     {
-      private:
+    private:
         nn_dict_dynamic * m_pbv; // pointer to the bit_vector_nearest_neigbour
         size_type m_idx;         // virtual node position
-      public:
+
+    public:
         //! Constructor
-        reference(nn_dict_dynamic * pbv, nn_dict_dynamic::size_type idx)
-          : m_pbv(pbv)
-          , m_idx(idx){};
+        reference(nn_dict_dynamic * pbv, nn_dict_dynamic::size_type idx) : m_pbv(pbv), m_idx(idx){};
 
         //! Assignment operator for the proxy class
         reference & operator=(bool x)
@@ -388,9 +398,12 @@ class nn_dict_dynamic
             return *this;
         }
 
-        reference & operator=(const reference & x) { return *this = bool(x); }
+        reference & operator=(reference const & x)
+        {
+            return *this = bool(x);
+        }
 
-        reference(const reference &) = default;
+        reference(reference const &) = default;
 
         //! Cast the reference to a bool
         operator bool() const
@@ -399,9 +412,15 @@ class nn_dict_dynamic
             return (node >> (m_idx & 0x3F)) & 1;
         }
 
-        bool operator==(const reference & x) const { return bool(*this) == bool(x); }
+        bool operator==(reference const & x) const
+        {
+            return bool(*this) == bool(x);
+        }
 
-        bool operator<(const reference & x) const { return !bool(*this) and bool(x); }
+        bool operator<(reference const & x) const
+        {
+            return !bool(*this) and bool(x);
+        }
     };
 };
 

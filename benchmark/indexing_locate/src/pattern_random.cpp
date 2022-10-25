@@ -50,7 +50,8 @@ int main(int argc, char ** argv)
     // (2)
     uint64_t cum_sum = 0;
     uint64_t number = 0;
-    do {
+    do
+    {
         // (3)
         uint64_t start_idx = my_rand64() % (csa.size() - pat_len);
         auto pat = extract(csa, start_idx, start_idx + pat_len - 1);
@@ -60,9 +61,13 @@ int main(int argc, char ** argv)
         occ_out << x << std::endl;
         cum_sum += x;
         ++number;
-    } while (cum_sum < min_cum_occ);
+    }
+    while (cum_sum < min_cum_occ);
     // (5)
     out << "# number=" << number << " length=" << pat_len << " file=" << argv[1];
     out << " forbidden=" << std::endl;
-    for (size_t i = 0; i < pattern.size(); ++i) { out << pattern[i]; }
+    for (size_t i = 0; i < pattern.size(); ++i)
+    {
+        out << pattern[i];
+    }
 }

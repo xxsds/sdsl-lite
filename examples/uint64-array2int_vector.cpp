@@ -22,7 +22,7 @@ int main(int argc, char * argv[])
     }
 
     size_t x = util::file_size(argv[1]);
-    const int BPI = 8;
+    int const BPI = 8;
     cout << "file size in bytes = " << x << endl;
     if (x % BPI != 0)
     {
@@ -39,7 +39,8 @@ int main(int argc, char * argv[])
     uint64_t max = 0;
     for (size_t i = 0; i < ivb.size(); ++i)
     {
-        if (ivb[i] > max) max = ivb[i];
+        if (ivb[i] > max)
+            max = ivb[i];
     }
     cout << "Max value: " << max << endl;
     uint8_t width = bits::hi(max) + 1;
@@ -53,7 +54,10 @@ int main(int argc, char * argv[])
         cout << "ERROR: could not open output file " << argv[1] << endl;
         return 1;
     }
-    for (size_t i = 0; i < ivb.size(); ++i) { ivb2[i] = ivb[i]; }
+    for (size_t i = 0; i < ivb.size(); ++i)
+    {
+        ivb2[i] = ivb[i];
+    }
     ivb.close();
     ivb2.close();
 
@@ -61,7 +65,7 @@ int main(int argc, char * argv[])
     load_from_file(v, ofile);
     cout << "v.size()=" << v.size() << endl;
     cout << "v[0]=" << v[0] << endl;
-    const bool do_check = false;
+    bool const do_check = false;
     if (do_check)
     {
         int_vector<> check;

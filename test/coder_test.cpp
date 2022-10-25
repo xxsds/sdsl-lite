@@ -18,24 +18,29 @@ using namespace sdsl;
 template <class T>
 class coder_test : public ::testing::Test
 {
-  protected:
+protected:
     coder_test()
     {
         m_data = sdsl::int_vector<>(10000000);
         util::set_random_bits(m_data);
-        for (size_t i = 0; i < m_data.size() / 3; ++i) m_data[i] = i;
+        for (size_t i = 0; i < m_data.size() / 3; ++i)
+            m_data[i] = i;
 
         std::mt19937_64 rng;
         std::uniform_int_distribution<uint64_t> distribution(0, 6);
         auto dice = bind(distribution, rng);
-        for (size_t i = m_data.size() / 3; i < 2 * m_data.size() / 3; ++i) m_data[i] = dice();
+        for (size_t i = m_data.size() / 3; i < 2 * m_data.size() / 3; ++i)
+            m_data[i] = dice();
     }
 
-    virtual ~coder_test() {}
+    virtual ~coder_test()
+    {}
 
-    virtual void SetUp() {}
+    virtual void SetUp()
+    {}
 
-    virtual void TearDown() {}
+    virtual void TearDown()
+    {}
     sdsl::int_vector<> m_data;
 };
 
@@ -47,7 +52,7 @@ typedef Types<coder::elias_delta<>,
               coder::comma<4>,
               coder::comma<8>,
               coder::comma<16>>
-                                                  Implementations;
+    Implementations;
 
 TYPED_TEST_SUITE(coder_test, Implementations, );
 
@@ -55,7 +60,7 @@ TYPED_TEST(coder_test, sinlge_encode_decode)
 {
     static_assert(sdsl::util::is_regular<TypeParam>::value, "Type is not regular");
     uint8_t offset = 0;
-    uint64_t buf[8] = { 0 };
+    uint64_t buf[8] = {0};
     uint64_t * pb = buf;
     for (size_t i = 0; i < this->m_data.size(); ++i)
     {
@@ -73,7 +78,10 @@ TYPED_TEST(coder_test, all_encode_decode)
     TypeParam::encode(this->m_data, tmp);
     TypeParam::decode(tmp, data);
     ASSERT_EQ(this->m_data.size(), data.size());
-    for (size_t i = 0; i < this->m_data.size(); ++i) { ASSERT_EQ(this->m_data[i], data[i]); }
+    for (size_t i = 0; i < this->m_data.size(); ++i)
+    {
+        ASSERT_EQ(this->m_data[i], data[i]);
+    }
 }
 
 TYPED_TEST(coder_test, decode_prefix_sum)

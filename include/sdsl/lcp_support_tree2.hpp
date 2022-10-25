@@ -33,8 +33,8 @@ namespace sdsl
 template <uint32_t t_dens, uint8_t t_bwt_width>
 void construct_first_child_and_lf_lcp(int_vector_buffer<> &,
                                       int_vector_buffer<t_bwt_width> &,
-                                      const std::string &,
-                                      const std::string &,
+                                      std::string const &,
+                                      std::string const &,
                                       int_vector<> &);
 
 /*! An lcp array class for cst_sct3 and cst_sada.
@@ -49,7 +49,7 @@ void construct_first_child_and_lf_lcp(int_vector_buffer<> &,
 template <uint32_t t_dens, class t_cst>
 class _lcp_support_tree2
 {
-  public:
+public:
     typedef int_vector<>::value_type value_type;
     typedef random_access_const_iterator<_lcp_support_tree2> const_iterator;
     typedef const_iterator iterator;
@@ -77,26 +77,27 @@ class _lcp_support_tree2
         typedef _lcp_support_tree2 lcp_type;
     };
 
-  private:
-    const cst_type * m_cst;
+private:
+    cst_type const * m_cst;
     small_lcp_type m_small_lcp; // vector for lcp values < 254
     int_vector<> m_big_lcp;     // vector for lcp values >= 254
 
-  public:
+public:
     //! Default constructor
-    _lcp_support_tree2() {}
+    _lcp_support_tree2()
+    {}
 
     //! Copy / Move constructor
-    _lcp_support_tree2(const _lcp_support_tree2 &) = default;
+    _lcp_support_tree2(_lcp_support_tree2 const &) = default;
     _lcp_support_tree2(_lcp_support_tree2 &&) = default;
-    _lcp_support_tree2 & operator=(const _lcp_support_tree2 &) = default;
+    _lcp_support_tree2 & operator=(_lcp_support_tree2 const &) = default;
     _lcp_support_tree2 & operator=(_lcp_support_tree2 &&) = default;
 
     //! Constructor
     /*!\param config Cache configuration.
      *
      */
-    _lcp_support_tree2(cache_config & config, const cst_type * cst = nullptr)
+    _lcp_support_tree2(cache_config & config, cst_type const * cst = nullptr)
     {
         m_cst = cst;
 
@@ -115,19 +116,37 @@ class _lcp_support_tree2
         sdsl::remove(big_lcp_file);
     }
 
-    void set_cst(const cst_type * cst) { m_cst = cst; }
+    void set_cst(cst_type const * cst)
+    {
+        m_cst = cst;
+    }
 
-    size_type size() const { return m_cst->size(); }
+    size_type size() const
+    {
+        return m_cst->size();
+    }
 
-    static size_type max_size() { return int_vector<>::max_size(); }
+    static size_type max_size()
+    {
+        return int_vector<>::max_size();
+    }
 
-    size_type empty() const { return m_small_lcp.empty(); }
+    size_type empty() const
+    {
+        return m_small_lcp.empty();
+    }
 
     //! Returns a const_iterator to the first element.
-    const_iterator begin() const { return const_iterator(this, 0); }
+    const_iterator begin() const
+    {
+        return const_iterator(this, 0);
+    }
 
     //! Returns a const_iterator to the element after the last element.
-    const_iterator end() const { return const_iterator(this, size()); }
+    const_iterator end() const
+    {
+        return const_iterator(this, size());
+    }
 
     //! []-operator
     /*!\param i Index of the value. \f$ i \in [0..size()-1]\f$.
@@ -169,7 +188,7 @@ class _lcp_support_tree2
     }
 
     //! Load from a stream.
-    void load(std::istream & in, const t_cst * cst = nullptr)
+    void load(std::istream & in, t_cst const * cst = nullptr)
     {
         m_small_lcp.load(in);
         m_big_lcp.load(in);
@@ -197,7 +216,10 @@ class _lcp_support_tree2
     }
 
     //! Inequality operator.
-    bool operator!=(_lcp_support_tree2 const & other) const noexcept { return !(*this == other); }
+    bool operator!=(_lcp_support_tree2 const & other) const noexcept
+    {
+        return !(*this == other);
+    }
 };
 
 //! Helper class which provides _lcp_support_tree2 the context of a CST.
@@ -216,8 +238,8 @@ struct lcp_support_tree2
 template <uint32_t t_dens, uint8_t t_bwt_width>
 void construct_first_child_and_lf_lcp(int_vector_buffer<> & lcp_buf,
                                       int_vector_buffer<t_bwt_width> & bwt_buf,
-                                      const std::string & small_lcp_file,
-                                      const std::string & big_lcp_file,
+                                      std::string const & small_lcp_file,
+                                      std::string const & big_lcp_file,
                                       int_vector<> & big_lcp)
 {
     typedef int_vector<>::size_type size_type;
@@ -258,7 +280,8 @@ void construct_first_child_and_lf_lcp(int_vector_buffer<> & lcp_buf,
                         val = M;
                         big_lcp_out.write((char *)&y, sizeof(y));
                         ++fc_cnt_big;
-                        if (y > max_lcp) max_lcp = y;
+                        if (y > max_lcp)
+                            max_lcp = y;
                     }
                     else
                     {
@@ -299,7 +322,8 @@ void construct_first_child_and_lf_lcp(int_vector_buffer<> & lcp_buf,
                     val = M;
                     big_lcp_out.write((char *)&y, sizeof(y));
                     ++fc_cnt_big;
-                    if (y > max_lcp) max_lcp = y;
+                    if (y > max_lcp)
+                        max_lcp = y;
                 }
                 else
                 {

@@ -47,7 +47,7 @@ namespace coder
 template <uint8_t t_width = 2>
 class comma
 {
-  private:
+private:
     static_assert(t_width > 1 && t_width <= 32, "comma coder: Width must be in interval [2,32]");
 
     static constexpr size_t base_fits_in_64(uint32_t base, uint64_t product, size_t res)
@@ -82,7 +82,7 @@ class comma
     // termination digit
     static void encode_in_base(uint64_t x, uint64_t *& z, uint8_t & offset);
 
-  public:
+public:
     typedef uint64_t size_type;
     static const uint8_t min_codeword_length = t_width; // 0 needs t_width bits as termination
 
@@ -107,7 +107,7 @@ class comma
      * \param z vector to put the encoded values
      */
     template <class int_vector>
-    static bool encode(const int_vector & v, int_vector & z);
+    static bool encode(int_vector const & v, int_vector & z);
 
     //// DECODING /////////////////////////////////////////////////
 
@@ -119,7 +119,7 @@ class comma
      * \param it Iterator to store the values.
      */
     template <bool t_sumup, bool t_inc, class t_iter>
-    static uint64_t decode(const uint64_t * data, const size_type start_idx, size_type n, t_iter it = (t_iter) nullptr);
+    static uint64_t decode(uint64_t const * data, const size_type start_idx, size_type n, t_iter it = (t_iter) nullptr);
 
     //! Decode n comma gamma encoded integers
     //  beginning at start_idx in the bitstring "data"
@@ -132,7 +132,7 @@ class comma
      * Attention: There have to be at least n encoded
      * values in the bitstring.
      */
-    static uint64_t decode_prefix_sum(const uint64_t * data, const size_type start_idx, size_type n);
+    static uint64_t decode_prefix_sum(uint64_t const * data, const size_type start_idx, size_type n);
 
     //! Decode n comma gamma encoded integers
     //  beginning at start_idx ending at end_idx (exclusive)
@@ -148,10 +148,8 @@ class comma
      * Attention: There have to be at least n encoded
      * values in the bitstring.
      */
-    static uint64_t decode_prefix_sum(const uint64_t * data,
-                                      const size_type start_idx,
-                                      const size_type end_idx,
-                                      size_type n);
+    static uint64_t
+    decode_prefix_sum(uint64_t const * data, const size_type start_idx, const size_type end_idx, size_type n);
 
     //! Decode vector z containing comma encoded integers
     //  and store them in vector v.
@@ -159,7 +157,7 @@ class comma
      * \param v vector to store the decoded integers
      */
     template <class int_vector>
-    static bool decode(const int_vector & z, int_vector & v);
+    static bool decode(int_vector const & z, int_vector & v);
 
     // interface needs this function for whatever :>
     template <class int_vector>
@@ -213,7 +211,7 @@ inline void comma<t_width>::encode(uint64_t x, uint64_t *& z, uint8_t & offset)
 
 template <uint8_t t_width>
 template <class int_vector>
-bool comma<t_width>::encode(const int_vector & v, int_vector & z)
+bool comma<t_width>::encode(int_vector const & v, int_vector & z)
 {
     // first, find out how much bits vector z needs to save values
     typedef typename int_vector::size_type size_type;
@@ -242,7 +240,7 @@ bool comma<t_width>::encode(const int_vector & v, int_vector & z)
 
 template <uint8_t t_width>
 template <bool t_sumup, bool t_inc, class t_iter>
-inline uint64_t comma<t_width>::decode(const uint64_t * data, const size_type start_idx, size_type n, t_iter it)
+inline uint64_t comma<t_width>::decode(uint64_t const * data, const size_type start_idx, size_type n, t_iter it)
 {
     data += (start_idx >> 6);          // jump to byte offset
     uint8_t offset = start_idx & 0x3F; // and calculate bit offset
@@ -258,13 +256,14 @@ inline uint64_t comma<t_width>::decode(const uint64_t * data, const size_type st
             ; // and read next digit
         // now decide how to handle value
         value = (t_sumup) ? value + v : v;
-        if (t_inc) *(it++) = value;
+        if (t_inc)
+            *(it++) = value;
     }
     return value;
 }
 
 template <uint8_t t_width>
-uint64_t comma<t_width>::decode_prefix_sum(const uint64_t * data, const size_type start_idx, size_type n)
+uint64_t comma<t_width>::decode_prefix_sum(uint64_t const * data, const size_type start_idx, size_type n)
 {
     // easiest seems to be to use already build function decode...
     return decode<true, false, int *>(data, start_idx, n);
@@ -272,7 +271,7 @@ uint64_t comma<t_width>::decode_prefix_sum(const uint64_t * data, const size_typ
 }
 
 template <uint8_t t_width>
-uint64_t comma<t_width>::decode_prefix_sum(const uint64_t * data,
+uint64_t comma<t_width>::decode_prefix_sum(uint64_t const * data,
                                            const size_type start_idx,
                                            SDSL_UNUSED const size_type end_idx,
                                            size_type n)
@@ -283,15 +282,16 @@ uint64_t comma<t_width>::decode_prefix_sum(const uint64_t * data,
 
 template <uint8_t t_width>
 template <class int_vector>
-bool comma<t_width>::decode(const int_vector & z, int_vector & v)
+bool comma<t_width>::decode(int_vector const & z, int_vector & v)
 {
     // check if bit size is dividable through t_width.
-    if (z.bit_size() % t_width != 0) return false;
+    if (z.bit_size() % t_width != 0)
+        return false;
 
     // calculate num of overall digits in z (including terminating digit)
     uint64_t numOfDigits = z.bit_size() / t_width;
     // iteration vars for z vector
-    const uint64_t * z_data = z.data();
+    uint64_t const * z_data = z.data();
     uint8_t z_offset = 0;
     // utility to count number of entries in z, and last read digit
     uint32_t digit = base;
@@ -302,11 +302,13 @@ bool comma<t_width>::decode(const int_vector & z, int_vector & v)
     while (numOfDigits--)
     {
         digit = (uint32_t)bits::read_int_and_move(z_data, z_offset, t_width);
-        if (digit == base) n++; // termination digit detected
+        if (digit == base)
+            n++; // termination digit detected
     }
 
     // also, ensure last read digit was a termination digit
-    if (digit != base) return false;
+    if (digit != base)
+        return false;
 
     // resize vector v
     v.width(z.width());

@@ -16,7 +16,10 @@ char buffer[buf_size];
 template <uint8_t t_width>
 struct myline
 {
-    static string parse(char * str) { return string(str); }
+    static string parse(char * str)
+    {
+        return string(str);
+    }
 };
 
 template <>
@@ -27,7 +30,10 @@ struct myline<0>
         vector<uint64_t> res;
         stringstream ss(str);
         uint64_t x;
-        while (ss >> x) { res.push_back(x); }
+        while (ss >> x)
+        {
+            res.push_back(x);
+        }
         return res;
     }
 };
@@ -78,10 +84,16 @@ int main(int argc, char * argv[])
         ++q_cnt;
         size_t x = idx.search(query.begin(), query.end(), res, 10);
         sum += x;
-        for (auto & r : res) { sum_fdt += r.second; }
+        for (auto & r : res)
+        {
+            sum_fdt += r.second;
+        }
         auto q_time = timer::now() - q_start;
         // single query should not take more then 5 seconds
-        if (std::chrono::duration_cast<std::chrono::seconds>(q_time).count() > 5) { tle = true; }
+        if (std::chrono::duration_cast<std::chrono::seconds>(q_time).count() > 5)
+        {
+            tle = true;
+        }
     }
     auto stop = timer::now();
     auto elapsed = stop - start;

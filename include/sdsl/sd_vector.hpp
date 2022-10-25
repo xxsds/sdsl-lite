@@ -52,10 +52,10 @@ class sd_vector_builder
     template <typename, typename, typename>
     friend class sd_vector;
 
-  public:
+public:
     typedef bit_vector::size_type size_type;
 
-  private:
+private:
     size_type m_size, m_capacity;
     size_type m_wl;
     size_type m_tail, m_items;
@@ -64,7 +64,7 @@ class sd_vector_builder
     int_vector<> m_low;
     bit_vector m_high;
 
-  public:
+public:
     sd_vector_builder();
 
     //! Constructor
@@ -73,10 +73,22 @@ class sd_vector_builder
      */
     sd_vector_builder(size_type n, size_type m);
 
-    inline size_type size() const { return m_size; }
-    inline size_type capacity() const { return m_capacity; }
-    inline size_type tail() const { return m_tail; }
-    inline size_type items() const { return m_items; }
+    inline size_type size() const
+    {
+        return m_size;
+    }
+    inline size_type capacity() const
+    {
+        return m_capacity;
+    }
+    inline size_type tail() const
+    {
+        return m_tail;
+    }
+    inline size_type items() const
+    {
+        return m_items;
+    }
 
     //! Set a bit to 1.
     /*!\param i The position of the bit.
@@ -121,7 +133,7 @@ template <class t_hi_bit_vector = bit_vector,
           class t_select_0 = typename t_hi_bit_vector::select_0_type>
 class sd_vector
 {
-  public:
+public:
     typedef bit_vector::size_type size_type;
     typedef size_type value_type;
     typedef bit_vector::difference_type difference_type;
@@ -138,7 +150,7 @@ class sd_vector
 
     typedef t_hi_bit_vector hi_bit_vector_type;
 
-  private:
+private:
     // we need this variables to represent the m ones of the original bit vector of size n
     size_type m_size = 0; // length of the original bit vector
     uint8_t m_wl = 0;     // log n - log m, where n is the length of the original bit vector
@@ -150,28 +162,29 @@ class sd_vector
     select_1_support_type m_high_1_select; // select support for the ones in m_high
     select_0_support_type m_high_0_select; // select support for the zeros in m_high
 
-  public:
-    const uint8_t & wl = m_wl;
-    const hi_bit_vector_type & high = m_high;
-    const int_vector<> & low = m_low;
-    const select_1_support_type & high_1_select = m_high_1_select;
-    const select_0_support_type & high_0_select = m_high_0_select;
+public:
+    uint8_t const & wl = m_wl;
+    hi_bit_vector_type const & high = m_high;
+    int_vector<> const & low = m_low;
+    select_1_support_type const & high_1_select = m_high_1_select;
+    select_0_support_type const & high_0_select = m_high_0_select;
 
-    sd_vector() {}
+    sd_vector()
+    {}
 
-    sd_vector(const sd_vector & sd)
-      : m_size(sd.m_size)
-      , m_wl(sd.m_wl)
-      , m_low(sd.m_low)
-      , m_high(sd.m_high)
-      , m_high_1_select(sd.m_high_1_select)
-      , m_high_0_select(sd.m_high_0_select)
+    sd_vector(sd_vector const & sd) :
+        m_size(sd.m_size),
+        m_wl(sd.m_wl),
+        m_low(sd.m_low),
+        m_high(sd.m_high),
+        m_high_1_select(sd.m_high_1_select),
+        m_high_0_select(sd.m_high_0_select)
     {
         m_high_1_select.set_vector(&m_high);
         m_high_0_select.set_vector(&m_high);
     }
 
-    sd_vector & operator=(const sd_vector & v)
+    sd_vector & operator=(sd_vector const & v)
     {
         if (this != &v)
         {
@@ -197,9 +210,12 @@ class sd_vector
         return *this;
     }
 
-    sd_vector(sd_vector && sd) { *this = std::move(sd); }
+    sd_vector(sd_vector && sd)
+    {
+        *this = std::move(sd);
+    }
 
-    sd_vector(const bit_vector & bv)
+    sd_vector(bit_vector const & bv)
     {
         m_size = bv.size();
         size_type m = util::cnt_one_bits(bv);
@@ -212,7 +228,7 @@ class sd_vector
         m_wl = logn - logm;
         m_low = int_vector<>(m, 0, m_wl);
         bit_vector high = bit_vector(m + (1ULL << logm), 0); //
-        const uint64_t * bvp = bv.data();
+        uint64_t const * bvp = bv.data();
         for (size_type i = 0, mm = 0, last_high = 0, highpos = 0; i < (bv.size() + 63) / 64; ++i, ++bvp)
         {
             size_type position = 64 * i;
@@ -243,8 +259,14 @@ class sd_vector
     template <class t_itr>
     sd_vector(const t_itr begin, const t_itr end)
     {
-        if (begin == end) { return; }
-        if (!is_sorted(begin, end)) { throw std::runtime_error("sd_vector: source list is not sorted."); }
+        if (begin == end)
+        {
+            return;
+        }
+        if (!is_sorted(begin, end))
+        {
+            throw std::runtime_error("sd_vector: source list is not sorted.");
+        }
         size_type m = std::distance(begin, end);
         m_size = *(end - 1) + 1;
         uint8_t logm = bits::hi(m) + 1;
@@ -308,7 +330,8 @@ class sd_vector
         size_type high_val = (i >> (m_wl));
         size_type sel_high = m_high_0_select(high_val + 1);
         size_type rank_low = sel_high - high_val;
-        if (0 == rank_low) return 0;
+        if (0 == rank_low)
+            return 0;
         size_type val_low = i & bits::lo_set[m_wl]; // extract the low m_wl = log n -log m bits
         --sel_high;
         --rank_low;
@@ -339,7 +362,8 @@ class sd_vector
         uint64_t high_val = (i >> (m_wl));
         uint64_t sel_high = m_high_0_select(high_val + 1);
         uint64_t rank_low = sel_high - high_val;
-        if (0 == rank_low) return 0;
+        if (0 == rank_low)
+            return 0;
         size_type val_low = i & bits::lo_set[m_wl]; // extract the low m_wl = log n -log m bits
         --sel_high;
         --rank_low;
@@ -371,7 +395,10 @@ class sd_vector
             while (m_high[sel_high])
             {
                 uint64_t val = (high_val << m_wl) + m_low[rank_low];
-                if (val >= idx) { res |= 1ULL << (val - idx); }
+                if (val >= idx)
+                {
+                    res |= 1ULL << (val - idx);
+                }
                 else
                 {
                     return res;
@@ -390,7 +417,10 @@ class sd_vector
     }
 
     //! Returns the size of the original bit vector.
-    size_type size() const { return m_size; }
+    size_type size() const
+    {
+        return m_size;
+    }
 
     //! Serializes the data structure into the given ostream
     size_type serialize(std::ostream & out, structure_tree_node * v = nullptr, std::string name = "") const
@@ -442,16 +472,25 @@ class sd_vector
         m_high_0_select.set_vector(&m_high);
     }
 
-    iterator begin() const { return iterator(this, 0); }
+    iterator begin() const
+    {
+        return iterator(this, 0);
+    }
 
-    iterator end() const { return iterator(this, size()); }
+    iterator end() const
+    {
+        return iterator(this, size());
+    }
 
-    bool operator==(const sd_vector & v) const
+    bool operator==(sd_vector const & v) const
     {
         return m_size == v.m_size && m_wl == v.m_wl && m_low == v.m_low && m_high == v.m_high;
     }
 
-    bool operator!=(const sd_vector & v) const { return !(*this == v); }
+    bool operator!=(sd_vector const & v) const
+    {
+        return !(*this == v);
+    }
 };
 
 //! Specialized constructor that is a bit more space-efficient than the default.
@@ -462,14 +501,20 @@ template <uint8_t t_b>
 struct rank_support_sd_trait
 {
     typedef bit_vector::size_type size_type;
-    static size_type adjust_rank(size_type r, size_type) { return r; }
+    static size_type adjust_rank(size_type r, size_type)
+    {
+        return r;
+    }
 };
 
 template <>
 struct rank_support_sd_trait<0>
 {
     typedef bit_vector::size_type size_type;
-    static size_type adjust_rank(size_type r, size_type n) { return n - r; }
+    static size_type adjust_rank(size_type r, size_type n)
+    {
+        return n - r;
+    }
 };
 
 //! Rank data structure for sd_vector
@@ -484,7 +529,7 @@ class rank_support_sd
 {
     static_assert(t_b == 1u or t_b == 0u, "rank_support_sd: bit pattern must be `0` or `1`");
 
-  public:
+public:
     typedef bit_vector::size_type size_type;
     typedef sd_vector<t_hi_bit_vector, t_select_1, t_select_0> bit_vector_type;
     enum
@@ -496,11 +541,14 @@ class rank_support_sd
         bit_pat_len = (uint8_t)1
     };
 
-  private:
-    const bit_vector_type * m_v;
+private:
+    bit_vector_type const * m_v;
 
-  public:
-    explicit rank_support_sd(const bit_vector_type * v = nullptr) { set_vector(v); }
+public:
+    explicit rank_support_sd(bit_vector_type const * v = nullptr)
+    {
+        set_vector(v);
+    }
 
     size_type rank(size_type i) const
     {
@@ -511,24 +559,40 @@ class rank_support_sd
         size_type high_val = (i >> (m_v->wl));
         size_type sel_high = m_v->high_0_select(high_val + 1);
         size_type rank_low = sel_high - high_val; //
-        if (0 == rank_low) return rank_support_sd_trait<t_b>::adjust_rank(0, i);
+        if (0 == rank_low)
+            return rank_support_sd_trait<t_b>::adjust_rank(0, i);
         size_type val_low = i & bits::lo_set[m_v->wl];
         // now since rank_low > 0 => sel_high > 0
-        do {
-            if (!sel_high) return rank_support_sd_trait<t_b>::adjust_rank(0, i);
+        do
+        {
+            if (!sel_high)
+                return rank_support_sd_trait<t_b>::adjust_rank(0, i);
             --sel_high;
             --rank_low;
-        } while (m_v->high[sel_high] and m_v->low[rank_low] >= val_low);
+        }
+        while (m_v->high[sel_high] and m_v->low[rank_low] >= val_low);
         return rank_support_sd_trait<t_b>::adjust_rank(rank_low + 1, i);
     }
 
-    size_type operator()(size_type i) const { return rank(i); }
+    size_type operator()(size_type i) const
+    {
+        return rank(i);
+    }
 
-    size_type size() const { return m_v->size(); }
+    size_type size() const
+    {
+        return m_v->size();
+    }
 
-    void set_vector(const bit_vector_type * v = nullptr) { m_v = v; }
+    void set_vector(bit_vector_type const * v = nullptr)
+    {
+        m_v = v;
+    }
 
-    void load(std::istream &, const bit_vector_type * v = nullptr) { set_vector(v); }
+    void load(std::istream &, bit_vector_type const * v = nullptr)
+    {
+        set_vector(v);
+    }
 
     size_type serialize(std::ostream & out, structure_tree_node * v = nullptr, std::string name = "") const
     {
@@ -543,16 +607,22 @@ class rank_support_sd
     void CEREAL_LOAD_FUNCTION_NAME(archive_t &)
     {}
 
-    bool operator==(const rank_support_sd & other) const noexcept { return *m_v == *other.m_v; }
+    bool operator==(rank_support_sd const & other) const noexcept
+    {
+        return *m_v == *other.m_v;
+    }
 
-    bool operator!=(const rank_support_sd & other) const noexcept { return !(*this == other); }
+    bool operator!=(rank_support_sd const & other) const noexcept
+    {
+        return !(*this == other);
+    }
 };
 
 template <uint8_t t_b, class t_sd_vec>
 struct select_support_sd_trait
 {
     typedef bit_vector::size_type size_type;
-    static size_type select(size_type i, const t_sd_vec * v)
+    static size_type select(size_type i, t_sd_vec const * v)
     {
         return v->low[i - 1] +                             // lower part of the number
                ((v->high_1_select(i) + 1 - i) << (v->wl)); // upper part
@@ -564,7 +634,7 @@ template <class t_sd_vec>
 struct select_support_sd_trait<0, t_sd_vec>
 {
     typedef bit_vector::size_type size_type;
-    static size_type select(size_type i, const t_sd_vec * v)
+    static size_type select(size_type i, t_sd_vec const * v)
     {
         auto ones = v->low.size();
         assert(0 < i and i <= v->size() - ones);
@@ -578,7 +648,10 @@ struct select_support_sd_trait<0, t_sd_vec>
             auto mid = lb + (rb - lb) / 2;
             auto x = select_support_sd_trait<1, t_sd_vec>::select(mid, v);
             auto rank0 = x + 1 - mid;
-            if (rank0 >= i) { rb = mid; }
+            if (rank0 >= i)
+            {
+                rb = mid;
+            }
             else
             {
                 r0 = rank0;
@@ -600,7 +673,7 @@ struct select_support_sd_trait<0, t_sd_vec>
 template <uint8_t t_b, class t_hi_bit_vector, class t_select_1, class t_select_0>
 class select_support_sd
 {
-  public:
+public:
     typedef bit_vector::size_type size_type;
     typedef sd_vector<t_hi_bit_vector, t_select_1, t_select_0> bit_vector_type;
     enum
@@ -612,22 +685,40 @@ class select_support_sd
         bit_pat_len = (uint8_t)1
     };
 
-  private:
-    const bit_vector_type * m_v;
+private:
+    bit_vector_type const * m_v;
 
-  public:
-    explicit select_support_sd(const bit_vector_type * v = nullptr) { set_vector(v); }
+public:
+    explicit select_support_sd(bit_vector_type const * v = nullptr)
+    {
+        set_vector(v);
+    }
 
     //! Returns the position of the i-th occurrence in the bit vector.
-    size_type select(size_type i) const { return select_support_sd_trait<t_b, bit_vector_type>::select(i, m_v); }
+    size_type select(size_type i) const
+    {
+        return select_support_sd_trait<t_b, bit_vector_type>::select(i, m_v);
+    }
 
-    size_type operator()(size_type i) const { return select(i); }
+    size_type operator()(size_type i) const
+    {
+        return select(i);
+    }
 
-    size_type size() const { return m_v->size(); }
+    size_type size() const
+    {
+        return m_v->size();
+    }
 
-    void set_vector(const bit_vector_type * v = nullptr) { m_v = v; }
+    void set_vector(bit_vector_type const * v = nullptr)
+    {
+        m_v = v;
+    }
 
-    void load(std::istream &, const bit_vector_type * v = nullptr) { set_vector(v); }
+    void load(std::istream &, bit_vector_type const * v = nullptr)
+    {
+        set_vector(v);
+    }
 
     size_type serialize(std::ostream & out, structure_tree_node * v = nullptr, std::string name = "") const
     {
@@ -642,9 +733,15 @@ class select_support_sd
     void CEREAL_LOAD_FUNCTION_NAME(archive_t &)
     {}
 
-    bool operator==(const select_support_sd & other) const noexcept { return *m_v == *other.m_v; }
+    bool operator==(select_support_sd const & other) const noexcept
+    {
+        return *m_v == *other.m_v;
+    }
 
-    bool operator!=(const select_support_sd & other) const noexcept { return !(*this == other); }
+    bool operator!=(select_support_sd const & other) const noexcept
+    {
+        return !(*this == other);
+    }
 };
 
 //! Select_0 data structure for sd_vector
@@ -654,7 +751,7 @@ class select_support_sd
 template <typename t_sd_vector = sd_vector<>>
 class select_0_support_sd
 {
-  public:
+public:
     typedef bit_vector::size_type size_type;
     typedef t_sd_vector bit_vector_type;
     using rank_1 = typename t_sd_vector::rank_1_type;
@@ -669,13 +766,13 @@ class select_0_support_sd
         bit_pat_len = (uint8_t)1
     };
 
-  private:
-    const bit_vector_type * m_v;
+private:
+    bit_vector_type const * m_v;
     int_vector<> m_pointer;
     int_vector<> m_rank1;
 
-  public:
-    explicit select_0_support_sd(const bit_vector_type * v = nullptr)
+public:
+    explicit select_0_support_sd(bit_vector_type const * v = nullptr)
     {
         set_vector(v);
         if (nullptr != m_v)
@@ -733,7 +830,8 @@ class select_0_support_sd
                                     // rank0 = pos - rank1;
         }
         uint64_t w = m_v->high.get_int(j, 64);
-        do {
+        do
+        {
             uint64_t _rank1 = rank1 + bits::cnt(w);
             uint64_t _rank0 = 0;
             if (_rank1 > 0 and (w >> 63) & 1)
@@ -756,9 +854,11 @@ class select_0_support_sd
             {
                 break;
             }
-        } while (true);
+        }
+        while (true);
         // invariant i >zeros
-        do {
+        do
+        {
             uint64_t _rank1 = rank1 + bits::lt_cnt[w & 0xFFULL];
             uint64_t _rank0 = 0;
             if (_rank1 > 0 and (w >> 7) & 1)
@@ -781,9 +881,11 @@ class select_0_support_sd
             {
                 break;
             }
-        } while (true);
+        }
+        while (true);
 
-        do {
+        do
+        {
             bool b = w & 1ULL;
             w >>= 1; // zeros are shifted in
             ++j;
@@ -809,18 +911,31 @@ class select_0_support_sd
                     break;
                 }
             }
-            if (j % 64 == 0) { w = m_v->high.get_int(j, 64); }
-        } while (true);
+            if (j % 64 == 0)
+            {
+                w = m_v->high.get_int(j, 64);
+            }
+        }
+        while (true);
         return pos;
     }
 
-    size_type operator()(size_type i) const { return select(i); }
+    size_type operator()(size_type i) const
+    {
+        return select(i);
+    }
 
-    size_type size() const { return m_v->size(); }
+    size_type size() const
+    {
+        return m_v->size();
+    }
 
-    void set_vector(const bit_vector_type * v = nullptr) { m_v = v; }
+    void set_vector(bit_vector_type const * v = nullptr)
+    {
+        m_v = v;
+    }
 
-    void load(std::istream & in, const bit_vector_type * v = nullptr)
+    void load(std::istream & in, bit_vector_type const * v = nullptr)
     {
         m_pointer.load(in);
         m_rank1.load(in);
@@ -851,32 +966,35 @@ class select_0_support_sd
         ar(CEREAL_NVP(m_rank1));
     }
 
-    bool operator==(const select_0_support_sd & other) const noexcept
+    bool operator==(select_0_support_sd const & other) const noexcept
     {
         return (m_pointer == other.m_pointer) && (m_rank1 == other.m_rank1);
     }
 
-    bool operator!=(const select_0_support_sd & other) const noexcept { return !(*this == other); }
+    bool operator!=(select_0_support_sd const & other) const noexcept
+    {
+        return !(*this == other);
+    }
 };
 
-inline sd_vector_builder::sd_vector_builder()
-  : m_size(0)
-  , m_capacity(0)
-  , m_wl(0)
-  , m_tail(0)
-  , m_items(0)
-  , m_last_high(0)
-  , m_highpos(0)
+inline sd_vector_builder::sd_vector_builder() :
+    m_size(0),
+    m_capacity(0),
+    m_wl(0),
+    m_tail(0),
+    m_items(0),
+    m_last_high(0),
+    m_highpos(0)
 {}
 
-inline sd_vector_builder::sd_vector_builder(size_type n, size_type m)
-  : m_size(n)
-  , m_capacity(m)
-  , m_wl(0)
-  , m_tail(0)
-  , m_items(0)
-  , m_last_high(0)
-  , m_highpos(0)
+inline sd_vector_builder::sd_vector_builder(size_type n, size_type m) :
+    m_size(n),
+    m_capacity(m),
+    m_wl(0),
+    m_tail(0),
+    m_items(0),
+    m_last_high(0),
+    m_highpos(0)
 {
     if (m_capacity > m_size)
     {
@@ -896,7 +1014,10 @@ inline sd_vector_builder::sd_vector_builder(size_type n, size_type m)
 template <>
 inline sd_vector<>::sd_vector(sd_vector_builder & builder)
 {
-    if (builder.items() != builder.capacity()) { throw std::runtime_error("sd_vector: the builder is not full."); }
+    if (builder.items() != builder.capacity())
+    {
+        throw std::runtime_error("sd_vector: the builder is not full.");
+    }
 
     m_size = builder.m_size;
     m_wl = builder.m_wl;

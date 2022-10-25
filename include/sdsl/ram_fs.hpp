@@ -26,14 +26,14 @@ namespace ram_fs
 {
 
 //! Check if the file exists
-inline bool exists(const std::string & name)
+inline bool exists(std::string const & name)
 {
     auto & rf = memory_monitor::ram_fs();
     std::lock_guard<std::recursive_mutex> lock(rf.m_rlock);
     return rf.m_map.find(name) != rf.m_map.end();
 }
 
-inline void store(const std::string & name, content_type data)
+inline void store(std::string const & name, content_type data)
 {
     auto & rf = memory_monitor::ram_fs();
     std::lock_guard<std::recursive_mutex> lock(rf.m_rlock);
@@ -49,11 +49,14 @@ inline void store(const std::string & name, content_type data)
 }
 
 //! Get the file size
-inline size_t file_size(const std::string & name)
+inline size_t file_size(std::string const & name)
 {
     auto & rf = memory_monitor::ram_fs();
     std::lock_guard<std::recursive_mutex> lock(rf.m_rlock);
-    if (exists(name)) { return rf.m_map[name].size(); }
+    if (exists(name))
+    {
+        return rf.m_map[name].size();
+    }
     else
     {
         return 0;
@@ -61,7 +64,7 @@ inline size_t file_size(const std::string & name)
 }
 
 //! Get the content
-inline content_type & content(const std::string & name)
+inline content_type & content(std::string const & name)
 {
     auto & rf = memory_monitor::ram_fs();
     std::lock_guard<std::recursive_mutex> lock(rf.m_rlock);
@@ -69,11 +72,14 @@ inline content_type & content(const std::string & name)
 }
 
 //! Remove the file with key `name`
-inline int remove(const std::string & name)
+inline int remove(std::string const & name)
 {
     auto & rf = memory_monitor::ram_fs();
     std::lock_guard<std::recursive_mutex> lock(rf.m_rlock);
-    if (exists(name)) { rf.m_map.erase(name); }
+    if (exists(name))
+    {
+        rf.m_map.erase(name);
+    }
     return 0;
 }
 
@@ -88,11 +94,14 @@ inline int rename(const std::string old_filename, const std::string new_filename
 }
 
 //! Get fd for file
-inline int open(const std::string & name)
+inline int open(std::string const & name)
 {
     auto & rf = memory_monitor::ram_fs();
     std::lock_guard<std::recursive_mutex> lock(rf.m_rlock);
-    if (!exists(name)) { store(name, content_type{}); }
+    if (!exists(name))
+    {
+        store(name, content_type{});
+    }
     int fd = -2;
     auto largest_fd = rf.m_fd_map.rbegin()->first;
     if (largest_fd < 0)
@@ -110,12 +119,16 @@ inline int open(const std::string & name)
 }
 
 //! Get fd for file
-inline int close(const int fd)
+inline int close(int const fd)
 {
     auto & rf = memory_monitor::ram_fs();
     std::lock_guard<std::recursive_mutex> lock(rf.m_rlock);
-    if (fd >= -1) return -1;
-    if (rf.m_fd_map.count(fd) == 0) { return -1; }
+    if (fd >= -1)
+        return -1;
+    if (rf.m_fd_map.count(fd) == 0)
+    {
+        return -1;
+    }
     else
     {
         rf.m_fd_map.erase(fd);
@@ -125,7 +138,7 @@ inline int close(const int fd)
 }
 
 //! Get the content with fd
-inline content_type & content(const int fd)
+inline content_type & content(int const fd)
 {
     auto & rf = memory_monitor::ram_fs();
     std::lock_guard<std::recursive_mutex> lock(rf.m_rlock);
@@ -134,11 +147,12 @@ inline content_type & content(const int fd)
 }
 
 //! Get the content with fd
-inline int truncate(const int fd, size_t new_size)
+inline int truncate(int const fd, size_t new_size)
 {
     auto & rf = memory_monitor::ram_fs();
     std::lock_guard<std::recursive_mutex> lock(rf.m_rlock);
-    if (rf.m_fd_map.count(fd) == 0) return -1;
+    if (rf.m_fd_map.count(fd) == 0)
+        return -1;
     auto name = rf.m_fd_map[fd];
     rf.m_map[name].reserve(new_size);
     rf.m_map[name].resize(new_size, 0);
@@ -146,11 +160,12 @@ inline int truncate(const int fd, size_t new_size)
 }
 
 //! Get the file size with fd
-inline size_t file_size(const int fd)
+inline size_t file_size(int const fd)
 {
     auto & rf = memory_monitor::ram_fs();
     std::lock_guard<std::recursive_mutex> lock(rf.m_rlock);
-    if (rf.m_fd_map.count(fd) == 0) return 0;
+    if (rf.m_fd_map.count(fd) == 0)
+        return 0;
     auto name = rf.m_fd_map[fd];
     return rf.m_map[name].size();
 }
@@ -158,25 +173,31 @@ inline size_t file_size(const int fd)
 } // end namespace ram_fs
 
 //! Determines if the given file is a RAM-file.
-inline bool is_ram_file(const std::string & file)
+inline bool is_ram_file(std::string const & file)
 {
     if (file.size() > 0)
     {
-        if (file[0] == '@') { return true; }
+        if (file[0] == '@')
+        {
+            return true;
+        }
     }
     return false;
 }
 
 //! Determines if the given file is a RAM-file.
-inline bool is_ram_file(const int fd)
+inline bool is_ram_file(int const fd)
 {
     return fd < -1;
 }
 
 //! Returns the corresponding RAM-file name for file.
-inline std::string ram_file_name(const std::string & file)
+inline std::string ram_file_name(std::string const & file)
 {
-    if (is_ram_file(file)) { return file; }
+    if (is_ram_file(file))
+    {
+        return file;
+    }
     else
     {
         return "@" + file;
@@ -184,9 +205,12 @@ inline std::string ram_file_name(const std::string & file)
 }
 
 //! Returns for a RAM-file the corresponding disk file name
-inline std::string disk_file_name(const std::string & file)
+inline std::string disk_file_name(std::string const & file)
 {
-    if (!is_ram_file(file)) { return file; }
+    if (!is_ram_file(file))
+    {
+        return file;
+    }
     else
     {
         return file.substr(1);
@@ -194,9 +218,12 @@ inline std::string disk_file_name(const std::string & file)
 }
 
 //! Remove a file.
-inline int remove(const std::string & file)
+inline int remove(std::string const & file)
 {
-    if (is_ram_file(file)) { return ram_fs::remove(file); }
+    if (is_ram_file(file))
+    {
+        return ram_fs::remove(file);
+    }
     else
     {
         return std::remove(file.c_str());
@@ -204,7 +231,7 @@ inline int remove(const std::string & file)
 }
 
 //! Rename a file
-inline int rename(const std::string & old_filename, const std::string & new_filename)
+inline int rename(std::string const & old_filename, std::string const & new_filename)
 {
     if (is_ram_file(old_filename))
     {

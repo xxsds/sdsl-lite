@@ -15,40 +15,49 @@ typedef WT_TYPE::value_type value_type;
 
 // test access
 template <class t_wt>
-uint64_t test_access(const t_wt & wt, const vector<size_type> & is, uint64_t mask, uint64_t times = 100000000)
+uint64_t test_access(t_wt const & wt, vector<size_type> const & is, uint64_t mask, uint64_t times = 100000000)
 {
     uint64_t cnt = 0;
-    for (uint64_t i = 0; i < times; ++i) { cnt += wt[is[i & mask]]; }
+    for (uint64_t i = 0; i < times; ++i)
+    {
+        cnt += wt[is[i & mask]];
+    }
     return cnt;
 }
 
 // test rank
 template <class t_wt>
-uint64_t test_rank(const t_wt & wt,
-                   const vector<size_type> & is,
-                   const vector<value_type> & cs,
+uint64_t test_rank(t_wt const & wt,
+                   vector<size_type> const & is,
+                   vector<value_type> const & cs,
                    uint64_t mask,
                    uint64_t times = 100000000)
 {
     uint64_t cnt = 0;
-    for (uint64_t i = 0; i < times; ++i) { cnt += wt.rank(is[i & mask], cs[i & mask]); }
+    for (uint64_t i = 0; i < times; ++i)
+    {
+        cnt += wt.rank(is[i & mask], cs[i & mask]);
+    }
     return cnt;
 }
 
 // test inverse_select
 template <class t_wt>
-uint64_t test_inverse_select(const t_wt & wt, const vector<size_type> & is, uint64_t mask, uint64_t times = 100000000)
+uint64_t test_inverse_select(t_wt const & wt, vector<size_type> const & is, uint64_t mask, uint64_t times = 100000000)
 {
     uint64_t cnt = 0;
-    for (uint64_t i = 0; i < times; ++i) { cnt += wt.inverse_select(is[i & mask]).first; }
+    for (uint64_t i = 0; i < times; ++i)
+    {
+        cnt += wt.inverse_select(is[i & mask]).first;
+    }
     return cnt;
 }
 
 // test interval_symbols
 template <class t_wt>
 uint64_t test_interval_symbols(typename enable_if<!(has_node_type<t_wt>::value), t_wt>::type &,
-                               const vector<size_type> &,
-                               const vector<size_type> &,
+                               vector<size_type> const &,
+                               vector<size_type> const &,
                                size_type &,
                                uint64_t,
                                uint64_t)
@@ -58,8 +67,8 @@ uint64_t test_interval_symbols(typename enable_if<!(has_node_type<t_wt>::value),
 
 template <class t_wt>
 uint64_t test_interval_symbols(typename enable_if<has_node_type<t_wt>::value, t_wt>::type & wt,
-                               const vector<size_type> & is,
-                               const vector<size_type> & js,
+                               vector<size_type> const & is,
+                               vector<size_type> const & js,
                                size_type & k,
                                uint64_t mask,
                                uint64_t times = 100000000)
@@ -78,9 +87,9 @@ uint64_t test_interval_symbols(typename enable_if<has_node_type<t_wt>::value, t_
 // test lex_count
 template <class t_wt>
 uint64_t test_lex_count(typename enable_if<!(t_wt::lex_ordered), t_wt>::type &,
-                        const vector<size_type> &,
-                        const vector<size_type> &,
-                        const vector<value_type> &,
+                        vector<size_type> const &,
+                        vector<size_type> const &,
+                        vector<value_type> const &,
                         uint64_t,
                         uint64_t)
 {
@@ -89,22 +98,25 @@ uint64_t test_lex_count(typename enable_if<!(t_wt::lex_ordered), t_wt>::type &,
 
 template <class t_wt>
 uint64_t test_lex_count(typename enable_if<t_wt::lex_ordered, t_wt>::type & wt,
-                        const vector<size_type> & is,
-                        const vector<size_type> & js,
-                        const vector<value_type> & cs,
+                        vector<size_type> const & is,
+                        vector<size_type> const & js,
+                        vector<value_type> const & cs,
                         uint64_t mask,
                         uint64_t times = 100000000)
 {
     uint64_t cnt = 0;
-    for (uint64_t i = 0; i < times; ++i) { cnt += get<0>(wt.lex_count(is[i & mask], js[i & mask], cs[i & mask])); }
+    for (uint64_t i = 0; i < times; ++i)
+    {
+        cnt += get<0>(wt.lex_count(is[i & mask], js[i & mask], cs[i & mask]));
+    }
     return cnt;
 }
 
 // test lex_smaller_count
 template <class t_wt>
 uint64_t test_lex_smaller_count(typename enable_if<!(t_wt::lex_ordered), t_wt>::type &,
-                                const vector<size_type> &,
-                                const vector<value_type> &,
+                                vector<size_type> const &,
+                                vector<value_type> const &,
                                 uint64_t,
                                 uint64_t)
 {
@@ -113,41 +125,50 @@ uint64_t test_lex_smaller_count(typename enable_if<!(t_wt::lex_ordered), t_wt>::
 
 template <class t_wt>
 uint64_t test_lex_smaller_count(typename enable_if<t_wt::lex_ordered, t_wt>::type & wt,
-                                const vector<size_type> & is,
-                                const vector<value_type> & cs,
+                                vector<size_type> const & is,
+                                vector<value_type> const & cs,
                                 uint64_t mask,
                                 uint64_t times = 100000000)
 {
     uint64_t cnt = 0;
-    for (uint64_t i = 0; i < times; ++i) { cnt += get<0>(wt.lex_smaller_count(is[i & mask], cs[i & mask])); }
+    for (uint64_t i = 0; i < times; ++i)
+    {
+        cnt += get<0>(wt.lex_smaller_count(is[i & mask], cs[i & mask]));
+    }
     return cnt;
 }
 
 // test select
 template <class t_wt>
-uint64_t test_select(const t_wt & wt,
-                     const vector<size_type> & is,
-                     const vector<value_type> & cs,
+uint64_t test_select(t_wt const & wt,
+                     vector<size_type> const & is,
+                     vector<value_type> const & cs,
                      uint64_t mask,
                      uint64_t times = 100000000)
 {
     uint64_t cnt = 0;
-    for (uint64_t i = 0; i < times; ++i) { cnt += wt.select(is[i & mask], cs[i & mask]); }
+    for (uint64_t i = 0; i < times; ++i)
+    {
+        cnt += wt.select(is[i & mask], cs[i & mask]);
+    }
     return cnt;
 }
 
 // generate benchmark input
 template <class t_iv>
-void random_cs(const t_iv & iv, vector<value_type> & cs)
+void random_cs(t_iv const & iv, vector<value_type> & cs)
 {
     std::mt19937_64 rng;
     std::uniform_int_distribution<uint64_t> distribution(0, iv.size() - 1);
     auto dice = bind(distribution, rng);
-    for (uint64_t l = 0; l < cs.size(); ++l) { cs[l] = iv[dice()]; }
+    for (uint64_t l = 0; l < cs.size(); ++l)
+    {
+        cs[l] = iv[dice()];
+    }
 }
 
 template <class t_iv>
-void random_is_js(const t_iv & iv, vector<size_type> & is, vector<size_type> & js)
+void random_is_js(t_iv const & iv, vector<size_type> & is, vector<size_type> & js)
 {
 
     std::mt19937_64 rng;
@@ -161,19 +182,23 @@ void random_is_js(const t_iv & iv, vector<size_type> & is, vector<size_type> & j
 }
 
 template <class t_iv>
-void prepare_for_select(const t_iv & iv, vector<value_type> & cs, vector<size_type> & is)
+void prepare_for_select(t_iv const & iv, vector<value_type> & cs, vector<size_type> & is)
 {
 
     uint64_t sigma = 0;
     for (uint64_t i = 0; i < iv.size(); ++i)
     {
-        if (sigma < iv[i]) sigma = iv[i];
+        if (sigma < iv[i])
+            sigma = iv[i];
     }
     ++sigma;
 
     vector<size_type> symbols(sigma, 0);
 
-    for (uint64_t i = 0; i < iv.size(); ++i) { ++symbols[iv[i]]; }
+    for (uint64_t i = 0; i < iv.size(); ++i)
+    {
+        ++symbols[iv[i]];
+    }
 
     std::mt19937_64 rng;
     std::uniform_int_distribution<uint64_t> distribution(0, iv.size() - 1);
@@ -188,17 +213,13 @@ void prepare_for_select(const t_iv & iv, vector<value_type> & cs, vector<size_ty
 template <class t_wt>
 struct wt_trait
 {
-    static uint64_t test_access(const t_wt & wt,
-                                const vector<size_type> & is,
-                                uint64_t mask,
-                                uint64_t times = 100000000)
+    static uint64_t
+    test_access(t_wt const & wt, vector<size_type> const & is, uint64_t mask, uint64_t times = 100000000)
     {
         return ::test_access(wt, is, mask, times);
     }
-    static uint64_t test_inverse_select(const t_wt & wt,
-                                        const vector<size_type> & is,
-                                        uint64_t mask,
-                                        uint64_t times = 100000000)
+    static uint64_t
+    test_inverse_select(t_wt const & wt, vector<size_type> const & is, uint64_t mask, uint64_t times = 100000000)
     {
         return ::test_inverse_select(wt, is, mask, times);
     }
@@ -207,15 +228,15 @@ struct wt_trait
 template <class t_rac, class t_bitvector, class t_select, class t_select_zero>
 struct wt_trait<wt_gmr_rs<t_rac, t_bitvector, t_select, t_select_zero>>
 {
-    static uint64_t test_access(const wt_gmr_rs<t_rac, t_bitvector, t_select, t_select_zero> &,
-                                const vector<size_type> &,
+    static uint64_t test_access(wt_gmr_rs<t_rac, t_bitvector, t_select, t_select_zero> const &,
+                                vector<size_type> const &,
                                 uint64_t,
                                 uint64_t)
     {
         return 0;
     }
-    static uint64_t test_inverse_select(const wt_gmr_rs<t_rac, t_bitvector, t_select, t_select_zero> &,
-                                        const vector<size_type> &,
+    static uint64_t test_inverse_select(wt_gmr_rs<t_rac, t_bitvector, t_select, t_select_zero> const &,
+                                        vector<size_type> const &,
                                         uint64_t,
                                         uint64_t)
     {

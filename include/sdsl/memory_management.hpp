@@ -38,7 +38,7 @@
 namespace sdsl
 {
 
-inline void output_event_json(std::ostream & out, const mm_event & ev, const tracker_storage & m)
+inline void output_event_json(std::ostream & out, mm_event const & ev, tracker_storage const & m)
 {
     using namespace std::chrono;
     out << "\t\t"
@@ -51,7 +51,10 @@ inline void output_event_json(std::ostream & out, const mm_event & ev, const tra
     {
         out << "\t\t\t[" << duration_cast<milliseconds>(ev.allocations[j].timestamp - m.start_log).count() << ","
             << ev.allocations[j].usage << "]";
-        if (j + 1 < ev.allocations.size()) { out << ",\n"; }
+        if (j + 1 < ev.allocations.size())
+        {
+            out << ",\n";
+        }
         else
         {
             out << "\n";
@@ -62,7 +65,7 @@ inline void output_event_json(std::ostream & out, const mm_event & ev, const tra
 }
 
 template <>
-inline void write_mem_log<JSON_FORMAT>(std::ostream & out, const tracker_storage & m)
+inline void write_mem_log<JSON_FORMAT>(std::ostream & out, tracker_storage const & m)
 {
     auto events = m.completed_events;
     std::sort(events.begin(), events.end());
@@ -73,7 +76,10 @@ inline void write_mem_log<JSON_FORMAT>(std::ostream & out, const tracker_storage
     {
         out << "\t{\n";
         output_event_json(out, events[i], m);
-        if (i < events.size() - 1) { out << "\t},\n"; }
+        if (i < events.size() - 1)
+        {
+            out << "\t},\n";
+        }
         else
         {
             out << "\t}\n";
@@ -102,7 +108,7 @@ inline std::string create_mem_html_header()
     return jsonheader.str();
 }
 
-inline std::string create_mem_js_body(const std::string & jsonObject)
+inline std::string create_mem_js_body(std::string const & jsonObject)
 {
     std::stringstream jsonbody;
     jsonbody << "var events = " << jsonObject << ";\n"
@@ -233,7 +239,7 @@ inline std::string create_mem_js_body(const std::string & jsonObject)
 }
 
 template <>
-inline void write_mem_log<HTML_FORMAT>(std::ostream & out, const tracker_storage & m)
+inline void write_mem_log<HTML_FORMAT>(std::ostream & out, tracker_storage const & m)
 {
     std::stringstream json_data;
     write_mem_log<JSON_FORMAT>(json_data, m);
@@ -276,7 +282,8 @@ inline mm_block_t * block_cur(void * ptr)
 inline mm_block_t * block_prev(mm_block_t * cur_bptr, mm_block_t * first)
 {
     /* start of the heap? */
-    if (cur_bptr == first) return nullptr;
+    if (cur_bptr == first)
+        return nullptr;
     mm_block_foot_t * prev_foot = (mm_block_foot_t *)((uint8_t *)cur_bptr - sizeof(mm_block_foot_t));
     mm_block_t * prev_bptr = (mm_block_t *)((uint8_t *)cur_bptr - UNMASK_SIZE(prev_foot->size));
     return prev_bptr;
@@ -286,7 +293,8 @@ inline mm_block_t * block_prev(mm_block_t * cur_bptr, mm_block_t * first)
 inline mm_block_t * block_next(mm_block_t * cur_bptr, uint8_t * top)
 {
     /* end of the heap? */
-    if ((uint8_t *)((uint8_t *)cur_bptr + UNMASK_SIZE(cur_bptr->size)) >= top) return nullptr;
+    if ((uint8_t *)((uint8_t *)cur_bptr + UNMASK_SIZE(cur_bptr->size)) >= top)
+        return nullptr;
 
     mm_block_t * next_bptr = (mm_block_t *)((uint8_t *)cur_bptr + UNMASK_SIZE(cur_bptr->size));
     return next_bptr;
@@ -308,7 +316,8 @@ inline bool block_isfree(mm_block_t * ptr)
 inline bool block_nextfree(mm_block_t * ptr, uint8_t * top)
 {
     mm_block_t * next = block_next(ptr, top);
-    if (next && block_isfree(next)) return true;
+    if (next && block_isfree(next))
+        return true;
     return false;
 }
 
@@ -316,7 +325,8 @@ inline bool block_nextfree(mm_block_t * ptr, uint8_t * top)
 inline bool block_prevfree(mm_block_t * ptr, mm_block_t * begin)
 {
     mm_block_t * prev = block_prev(ptr, begin);
-    if (prev && block_isfree(prev)) return 1;
+    if (prev && block_isfree(prev))
+        return 1;
     return 0;
 }
 
@@ -363,14 +373,14 @@ inline void block_markused(mm_block_t * ptr)
 
 class hugepage_allocator
 {
-  private:
+private:
     uint8_t * m_base = nullptr;
     mm_block_t * m_first_block = nullptr;
     uint8_t * m_top = nullptr;
     size_t m_total_size = 0;
     std::multimap<size_t, mm_block_t *> m_free_large;
 
-  private:
+private:
     inline void block_print(int id, mm_block_t * bptr)
     {
         fprintf(stdout,
@@ -388,10 +398,16 @@ class hugepage_allocator
         std::string num_str;
         for (size_t i = line.size() - 1; i + 1 >= 1; i--)
         {
-            if (isdigit(line[i])) { num_str.insert(num_str.begin(), line[i]); }
+            if (isdigit(line[i]))
+            {
+                num_str.insert(num_str.begin(), line[i]);
+            }
             else
             {
-                if (num_str.size() > 0) { break; }
+                if (num_str.size() > 0)
+                {
+                    break;
+                }
             }
         }
         return std::strtoull(num_str.c_str(), nullptr, 10);
@@ -400,9 +416,18 @@ class hugepage_allocator
     inline uint64_t extract_multiplier(std::string & line)
     {
         uint64_t num = 1;
-        if (line[line.size() - 2] == 'k' || line[line.size() - 2] == 'K') { num = 1024; }
-        if (line[line.size() - 2] == 'm' || line[line.size() - 2] == 'M') { num = 1024 * 1024; }
-        if (line[line.size() - 2] == 'g' || line[line.size() - 2] == 'G') { num = 1024 * 1024 * 1024; }
+        if (line[line.size() - 2] == 'k' || line[line.size() - 2] == 'K')
+        {
+            num = 1024;
+        }
+        if (line[line.size() - 2] == 'm' || line[line.size() - 2] == 'M')
+        {
+            num = 1024 * 1024;
+        }
+        if (line[line.size() - 2] == 'g' || line[line.size() - 2] == 'G')
+        {
+            num = 1024 * 1024 * 1024;
+        }
         return num;
     }
 
@@ -422,9 +447,15 @@ class hugepage_allocator
             while (std::getline(mifs, line))
             {
                 auto ps = std::mismatch(ps_str.begin(), ps_str.end(), line.begin());
-                if (ps.first == ps_str.end()) { page_size_in_bytes = extract_number(line) * extract_multiplier(line); }
+                if (ps.first == ps_str.end())
+                {
+                    page_size_in_bytes = extract_number(line) * extract_multiplier(line);
+                }
                 auto pf = std::mismatch(pf_str.begin(), pf_str.end(), line.begin());
-                if (pf.first == pf_str.end()) { num_free_pages = extract_number(line); }
+                if (pf.first == pf_str.end())
+                {
+                    num_free_pages = extract_number(line);
+                }
             }
             size_in_bytes = page_size_in_bytes * num_free_pages;
         }
@@ -504,7 +535,8 @@ class hugepage_allocator
     {
         // std::cout << "new_block(" << size << ")" << std::endl;
         size = ALIGN(size + MM_BLOCK_OVERHEAD);
-        if (size < MIN_BLOCKSIZE) size = MIN_BLOCKSIZE;
+        if (size < MIN_BLOCKSIZE)
+            size = MIN_BLOCKSIZE;
         mm_block_t * ptr = (mm_block_t *)hsbrk(size);
         block_update(ptr, size);
         return ptr;
@@ -520,10 +552,16 @@ class hugepage_allocator
         auto found = m_free_large.end();
         while (itr != last)
         {
-            if (itr->second == block) { found = itr; }
+            if (itr->second == block)
+            {
+                found = itr;
+            }
             ++itr;
         }
-        if (found == m_free_large.end()) { found = last; }
+        if (found == m_free_large.end())
+        {
+            found = last;
+        }
         m_free_large.erase(found);
     }
 
@@ -531,7 +569,7 @@ class hugepage_allocator
     {
         // std::cout << "insert_into_free_set("<< (void*)block << "," << UNMASK_SIZE(block->size) << ")" << std::endl;
         // std::cout << "insert_into_free_set("<< (void*)block << "," << block->size << ")" << std::endl;
-        m_free_large.insert({ block->size, block });
+        m_free_large.insert({block->size, block});
     }
 
     mm_block_t * find_free_block(size_t size_in_bytes)
@@ -576,19 +614,18 @@ class hugepage_allocator
         }
     }
 
-  public:
+public:
     void init(SDSL_UNUSED size_t size_in_bytes = 0)
     {
-#ifdef MAP_HUGETLB
-        if (size_in_bytes == 0) { size_in_bytes = determine_available_hugepage_memory(); }
+#    ifdef MAP_HUGETLB
+        if (size_in_bytes == 0)
+        {
+            size_in_bytes = determine_available_hugepage_memory();
+        }
 
         m_total_size = size_in_bytes;
-        m_base = (uint8_t *)mmap(nullptr,
-                                 m_total_size,
-                                 (PROT_READ | PROT_WRITE),
-                                 (MAP_HUGETLB | MAP_ANONYMOUS | MAP_PRIVATE),
-                                 0,
-                                 0);
+        m_base = (uint8_t *)
+            mmap(nullptr, m_total_size, (PROT_READ | PROT_WRITE), (MAP_HUGETLB | MAP_ANONYMOUS | MAP_PRIVATE), 0, 0);
         if (m_base == MAP_FAILED)
         {
             throw std::system_error(ENOMEM, std::system_category(), "hugepage_allocator could not allocate hugepages");
@@ -599,11 +636,11 @@ class hugepage_allocator
             m_top = m_base;
             m_first_block = (mm_block_t *)m_base;
         }
-#else
+#    else
         throw std::system_error(ENOMEM,
                                 std::system_category(),
                                 "hugepage_allocator: MAP_HUGETLB / hugepage support not available");
-#endif
+#    endif
     }
 
     void * mm_realloc(void * ptr, size_t size)
@@ -611,7 +648,8 @@ class hugepage_allocator
         // print_heap();
         // std::cout << "REALLOC(" << ptr << "," << size << ")" << std::endl;
         /* handle special cases first */
-        if (nullptr == ptr) return mm_alloc(size);
+        if (nullptr == ptr)
+            return mm_alloc(size);
         if (size == 0)
         {
             mm_free(ptr);
@@ -771,8 +809,14 @@ class hugepage_allocator
     bool in_address_space(void * ptr)
     {
         // check if ptr is in the hugepage address space
-        if (ptr == nullptr) { return true; }
-        if (ptr >= m_base && ptr < m_top) { return true; }
+        if (ptr == nullptr)
+        {
+            return true;
+        }
+        if (ptr >= m_base && ptr < m_top)
+        {
+            return true;
+        }
         return false;
     }
     static hugepage_allocator & the_allocator()
@@ -785,22 +829,25 @@ class hugepage_allocator
 
 class memory_manager
 {
-  private:
+private:
     bool hugepages = false;
 
-  private:
+private:
     static memory_manager & the_manager()
     {
         static memory_manager m;
         return m;
     }
 
-  public:
+public:
     static uint64_t * alloc_mem(size_t size_in_bytes)
     {
 #ifndef _WIN32
         auto & m = the_manager();
-        if (m.hugepages) { return (uint64_t *)hugepage_allocator::the_allocator().mm_alloc(size_in_bytes); }
+        if (m.hugepages)
+        {
+            return (uint64_t *)hugepage_allocator::the_allocator().mm_alloc(size_in_bytes);
+        }
 #endif
         return (uint64_t *)calloc(size_in_bytes, 1);
     }
@@ -828,7 +875,7 @@ class memory_manager
         return (uint64_t *)realloc(ptr, size);
     }
 
-  public:
+public:
     static void use_hugepages(size_t bytes = 0)
     {
 #ifndef _WIN32
@@ -857,10 +904,16 @@ class memory_manager
             // Note that this padding is not counted in the serialize method!
             size_t allocated_bytes = (size_t)(((v.m_capacity + 64) >> 6) << 3);
             v.m_data = memory_manager::realloc_mem(v.m_data, allocated_bytes);
-            if (allocated_bytes != 0 && v.m_data == nullptr) { throw std::bad_alloc(); }
+            if (allocated_bytes != 0 && v.m_data == nullptr)
+            {
+                throw std::bad_alloc();
+            }
 
             // update stats
-            if (do_realloc) { memory_monitor::record((int64_t)new_capacity_in_bytes - (int64_t)old_capacity_in_bytes); }
+            if (do_realloc)
+            {
+                memory_monitor::record((int64_t)new_capacity_in_bytes - (int64_t)old_capacity_in_bytes);
+            }
         }
     }
     template <class t_vec>
@@ -872,12 +925,18 @@ class memory_manager
         v.m_data = nullptr;
 
         // update stats
-        if (size_in_bytes) { memory_monitor::record(size_in_bytes * -1); }
+        if (size_in_bytes)
+        {
+            memory_monitor::record(size_in_bytes * -1);
+        }
     }
 
     static int open_file_for_mmap(std::string & filename, std::ios_base::openmode mode)
     {
-        if (is_ram_file(filename)) { return ram_fs::open(filename); }
+        if (is_ram_file(filename))
+        {
+            return ram_fs::open(filename);
+        }
 #ifdef MSVC_COMPILER
         int fd = -1;
         if (!(mode & std::ios_base::out))
@@ -903,14 +962,18 @@ class memory_manager
         }
         if (is_ram_file(fd))
         {
-            if (ram_fs::file_size(fd) < file_size) return nullptr;
+            if (ram_fs::file_size(fd) < file_size)
+                return nullptr;
             auto & file_content = ram_fs::content(fd);
             return file_content.data();
         }
         memory_monitor::record(file_size);
 #ifdef _WIN32
         HANDLE fh = (HANDLE)_get_osfhandle(fd);
-        if (fh == INVALID_HANDLE_VALUE) { return nullptr; }
+        if (fh == INVALID_HANDLE_VALUE)
+        {
+            return nullptr;
+        }
         HANDLE fm;
         if (!(mode & std::ios_base::out))
         { // read only?
@@ -918,7 +981,10 @@ class memory_manager
         }
         else
             fm = CreateFileMapping(fh, NULL, PAGE_READWRITE, 0, 0, NULL);
-        if (fm == NULL) { return nullptr; }
+        if (fm == NULL)
+        {
+            return nullptr;
+        }
         void * map = nullptr;
         if (!(mode & std::ios_base::out))
         { // read only?
@@ -938,7 +1004,8 @@ class memory_manager
             map = mmap(NULL, file_size, PROT_READ, MAP_SHARED, fd, 0);
         else
             map = mmap(NULL, file_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-        if (map == MAP_FAILED) map = nullptr; // unify windows and unix error behaviour
+        if (map == MAP_FAILED)
+            map = nullptr; // unify windows and unix error behaviour
         return map;
 #endif
         return nullptr;
@@ -946,11 +1013,18 @@ class memory_manager
 
     static int mem_unmap(int fd, void * addr, const uint64_t size)
     {
-        if (addr == nullptr) { return 0; }
-        if (is_ram_file(fd)) { return 0; }
+        if (addr == nullptr)
+        {
+            return 0;
+        }
+        if (is_ram_file(fd))
+        {
+            return 0;
+        }
         memory_monitor::record(-((int64_t)size));
 #ifdef _WIN32
-        if (UnmapViewOfFile(addr)) return 0;
+        if (UnmapViewOfFile(addr))
+            return 0;
         return -1;
 #else
         return munmap(addr, size);
@@ -960,7 +1034,10 @@ class memory_manager
 
     static int close_file_for_mmap(int fd)
     {
-        if (is_ram_file(fd)) { return ram_fs::close(fd); }
+        if (is_ram_file(fd))
+        {
+            return ram_fs::close(fd);
+        }
 #ifdef MSVC_COMPILER
         return _close(fd);
 #else
@@ -971,10 +1048,14 @@ class memory_manager
 
     static int truncate_file_mmap(int fd, const uint64_t new_size)
     {
-        if (is_ram_file(fd)) { return ram_fs::truncate(fd, new_size); }
+        if (is_ram_file(fd))
+        {
+            return ram_fs::truncate(fd, new_size);
+        }
 #ifdef _WIN32
         auto ret = _chsize_s(fd, new_size);
-        if (ret != 0) ret = -1;
+        if (ret != 0)
+            ret = -1;
         return ret;
 #else
         return ftruncate(fd, new_size);

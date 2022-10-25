@@ -18,7 +18,10 @@ struct fast_cache
     // Constructor
     fast_cache()
     {
-        for (size_type i = 0; i < (CACHE_SIZE + 1); ++i) { m_table[i << 1] = (size_type)-1; }
+        for (size_type i = 0; i < (CACHE_SIZE + 1); ++i)
+        {
+            m_table[i << 1] = (size_type)-1;
+        }
     }
     // Returns true if the request i is cached and
     // x is set to the answer of request i

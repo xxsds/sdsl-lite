@@ -16,7 +16,7 @@ typedef csa_bitcompressed<int_alphabet<>> csa_int_t;
 typedef cst_sct3<> cst_byte_t;
 typedef cst_sct3<csa_int_t> cst_int_t;
 
-void print_usage(const char * command)
+void print_usage(char const * command)
 {
     cout << "\
 A pretty printer for suffix array/tree members.\n\
@@ -59,15 +59,21 @@ int main(int argc, char * argv[])
         print_usage(argv[0]);
         return 1;
     }
-    if (argc > 2) { format = argv[2]; }
-    if (argc > 3) { header = argv[3]; }
+    if (argc > 2)
+    {
+        format = argv[2];
+    }
+    if (argc > 3)
+    {
+        header = argv[3];
+    }
     while (cin.getline(line, BUF_SIZE))
     {
         cout << header << endl;
         if ('1' == argv[1][0])
         {
             cst_byte_t cst;
-            construct_im(cst, (const char *)line, 1);
+            construct_im(cst, (char const *)line, 1);
             stringstream ss;
             csXprintf(ss, format, cst, ((argc > 4) ? argv[4][0] : '$'));
             std::string line(ss.str());
@@ -76,7 +82,7 @@ int main(int argc, char * argv[])
         else if ('d' == argv[1][0])
         {
             cst_int_t cst;
-            construct_im(cst, (const char *)line, 'd');
+            construct_im(cst, (char const *)line, 'd');
             csXprintf(cout, format, cst, ((argc > 4) ? argv[4][0] : '0'));
         }
         cout << endl;

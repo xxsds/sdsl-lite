@@ -65,15 +65,15 @@ class bp_support_gg
 {
     static_assert(t_bs > 2, "bp_support_gg: block size must be greater than 2.");
 
-  public:
+public:
     typedef bit_vector::size_type size_type;
     typedef t_nnd nnd_type;
     typedef t_rank rank_type;
     typedef t_select select_type;
     typedef bp_support_gg<nnd_type, rank_type, select_support_scan<>, t_bs> bp_support_type;
 
-  private:
-    const bit_vector * m_bp = nullptr; // balanced parentheses sequence
+private:
+    bit_vector const * m_bp = nullptr; // balanced parentheses sequence
     rank_type m_rank_bp;               // rank support for m_bp => see excess() and rank()
     select_type m_select_bp;           // select support for m_bp => see select()
 
@@ -85,19 +85,19 @@ class bp_support_gg
     size_type m_size = 0;
     size_type m_blocks = 0; // number of blocks
 
-  public:
-    const rank_type & bp_rank = m_rank_bp;
-    const select_type & bp_select = m_select_bp;
+public:
+    rank_type const & bp_rank = m_rank_bp;
+    select_type const & bp_select = m_select_bp;
 
     bp_support_gg() = default;
 
     //! Constructor
-    explicit bp_support_gg(const bit_vector * bp)
-      : m_bp(bp)
-      , m_size(bp == nullptr ? 0 : bp->size())
-      , m_blocks((m_size + t_bs - 1) / t_bs)
-      , bp_rank(m_rank_bp)
-      , bp_select(m_select_bp)
+    explicit bp_support_gg(bit_vector const * bp) :
+        m_bp(bp),
+        m_size(bp == nullptr ? 0 : bp->size()),
+        m_blocks((m_size + t_bs - 1) / t_bs),
+        bp_rank(m_rank_bp),
+        bp_select(m_select_bp)
     {
         if (bp == nullptr)
         { // -> m_bp == nullptr
@@ -115,11 +115,14 @@ class bp_support_gg
         m_pioneer_bp.resize(m_nnd.ones());
         if (m_nnd.ones() > 0 and m_nnd.ones() == m_bp->size())
         { // m_bp != nullptr see above
-            throw std::logic_error(util::demangle(typeid(this).name()) +
-                                   ": recursion in the construction does not terminate!");
+            throw std::logic_error(util::demangle(typeid(this).name())
+                                   + ": recursion in the construction does not terminate!");
         }
 
-        for (size_type i = 1; i <= m_nnd.ones(); ++i) { m_pioneer_bp[i - 1] = (*m_bp)[m_nnd.select(i)]; }
+        for (size_type i = 1; i <= m_nnd.ones(); ++i)
+        {
+            m_pioneer_bp[i - 1] = (*m_bp)[m_nnd.select(i)];
+        }
 
         if (m_bp->size() > 0)
         { // m_bp != nullptr see above
@@ -128,13 +131,13 @@ class bp_support_gg
     }
 
     //! Copy constructor
-    bp_support_gg(const bp_support_gg & v)
-      : m_rank_bp(v.m_rank_bp)
-      , m_select_bp(v.m_select_bp)
-      , m_nnd(v.m_nnd)
-      , m_pioneer_bp(v.m_pioneer_bp)
-      , m_size(v.m_size)
-      , m_blocks(v.m_blocks)
+    bp_support_gg(bp_support_gg const & v) :
+        m_rank_bp(v.m_rank_bp),
+        m_select_bp(v.m_select_bp),
+        m_nnd(v.m_nnd),
+        m_pioneer_bp(v.m_pioneer_bp),
+        m_size(v.m_size),
+        m_blocks(v.m_blocks)
     {
 
         m_rank_bp.set_vector(m_bp);
@@ -149,13 +152,16 @@ class bp_support_gg
     }
 
     //! Move constructor
-    bp_support_gg(bp_support_gg && bp_support) { *this = std::move(bp_support); }
+    bp_support_gg(bp_support_gg && bp_support)
+    {
+        *this = std::move(bp_support);
+    }
 
     //! Destructor
     ~bp_support_gg() = default;
 
     //! Assignment operator
-    bp_support_gg & operator=(const bp_support_gg & v)
+    bp_support_gg & operator=(bp_support_gg const & v)
     {
         if (this != &v)
         {
@@ -195,7 +201,7 @@ class bp_support_gg
         return *this;
     }
 
-    void set_vector(const bit_vector * bp)
+    void set_vector(bit_vector const * bp)
     {
         m_bp = bp;
         m_rank_bp.set_vector(bp);
@@ -205,19 +211,28 @@ class bp_support_gg
     /*! Calculates the excess value at index i.
      * \param i The index of which the excess value should be calculated.
      */
-    inline size_type excess(size_type i) const { return (m_rank_bp(i + 1) << 1) - i - 1; }
+    inline size_type excess(size_type i) const
+    {
+        return (m_rank_bp(i + 1) << 1) - i - 1;
+    }
 
     /*! Returns the number of opening parentheses up to and including index i.
      * \pre{ \f$ 0\leq i < size() \f$ }
      */
-    size_type rank(size_type i) const { return m_rank_bp(i + 1); }
+    size_type rank(size_type i) const
+    {
+        return m_rank_bp(i + 1);
+    }
 
     /*! Returns the index of the i-th opening parenthesis.
      * \param i Number of the parenthesis to select.
      * \pre{ \f$1\leq i < rank(size())\f$ }
      * \post{ \f$ 0\leq select(i) < size() \f$ }
      */
-    size_type select(size_type i) const { return m_select_bp(i); }
+    size_type select(size_type i) const
+    {
+        return m_select_bp(i);
+    }
 
     /*! Calculate the index of the matching closing parenthesis to the parenthesis at index i.
      * \param i Index of an parenthesis. 0 <= i < size().
@@ -333,7 +348,8 @@ class bp_support_gg
         assert(j < m_size);
         assert((*m_bp)[i] == 1 and (*m_bp)[j] == 1);
         const size_type mip1 = find_close(i) + 1;
-        if (mip1 >= j) return size();
+        if (mip1 >= j)
+            return size();
         return rmq_open(mip1, j);
     }
 
@@ -347,10 +363,14 @@ class bp_support_gg
      */
     size_type rmq_open(const size_type l, const size_type r) const
     {
-        if (l >= r) return size();
+        if (l >= r)
+            return size();
         size_type min_ex_pos = r;
 
-        if (l / t_bs == r / t_bs) { min_ex_pos = near_rmq_open(*m_bp, l, r); }
+        if (l / t_bs == r / t_bs)
+        {
+            min_ex_pos = near_rmq_open(*m_bp, l, r);
+        }
         else
         { // parentheses pair does not start in the same block
             // note: l and r are not in the same block
@@ -413,10 +433,12 @@ class bp_support_gg
         if (k == m_size or k < i) // there exists no opening parenthesis at position mi<k<j.
             return m_size;
         size_type kk;
-        do {
+        do
+        {
             kk = k;
             k = enclose(k);
-        } while (k != m_size and k > mi);
+        }
+        while (k != m_size and k > mi);
         return kk;
     }
 
@@ -463,7 +485,8 @@ class bp_support_gg
     size_type preceding_closing_parentheses(size_type i) const
     {
         assert(i < m_size);
-        if (!i) return 0;
+        if (!i)
+            return 0;
         size_type ones = m_rank_bp(i);
         if (ones)
         { // ones > 0
@@ -479,7 +502,10 @@ class bp_support_gg
     /*! The size of the supported balanced parentheses sequence.
      * \return the size of the supported balanced parentheses sequence.
      */
-    size_type size() const { return m_size; }
+    size_type size() const
+    {
+        return m_size;
+    }
 
     //! Serializes the bp_support_gg to a stream.
     /*!
@@ -509,7 +535,7 @@ class bp_support_gg
      * \param in The instream from which the data structure is read.
      * \param bp Bit vector representing the supported BP sequence.
      */
-    void load(std::istream & in, const bit_vector * bp)
+    void load(std::istream & in, bit_vector const * bp)
     {
         m_bp = bp;
         read_member(m_size, in);
@@ -550,20 +576,26 @@ class bp_support_gg
         ar(CEREAL_NVP(m_nnd));
         ar(CEREAL_NVP(m_pioneer_bp));
         ar(CEREAL_NVP(m_pioneer_bp_support));
-        if (m_pioneer_bp_support != nullptr) { m_pioneer_bp_support->set_vector(&m_pioneer_bp); }
+        if (m_pioneer_bp_support != nullptr)
+        {
+            m_pioneer_bp_support->set_vector(&m_pioneer_bp);
+        }
     }
 
     //! Equality operator.
     bool operator==(bp_support_gg const & other) const noexcept
     {
-        return (m_size == other.m_size) && (m_blocks == other.m_blocks) && (m_rank_bp == other.m_rank_bp) &&
-               (m_select_bp == other.m_select_bp) && (m_nnd == other.m_nnd) && (m_pioneer_bp == other.m_pioneer_bp) &&
-               ((m_pioneer_bp_support == other.m_pioneer_bp_support) ||
-                (*m_pioneer_bp_support == *other.m_pioneer_bp_support));
+        return (m_size == other.m_size) && (m_blocks == other.m_blocks) && (m_rank_bp == other.m_rank_bp)
+            && (m_select_bp == other.m_select_bp) && (m_nnd == other.m_nnd) && (m_pioneer_bp == other.m_pioneer_bp)
+            && ((m_pioneer_bp_support == other.m_pioneer_bp_support)
+                || (*m_pioneer_bp_support == *other.m_pioneer_bp_support));
     }
 
     //! Inequality operator.
-    bool operator!=(bp_support_gg const & other) const noexcept { return !(*this == other); }
+    bool operator!=(bp_support_gg const & other) const noexcept
+    {
+        return !(*this == other);
+    }
 };
 
 } // namespace sdsl

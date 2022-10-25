@@ -33,17 +33,16 @@ namespace sdsl
 template <uint8_t fixedIntWidth = 0>
 class int_vector_serialize_vbyte_wrapper
 {
-  public:
+public:
     typedef int_vector<fixedIntWidth> int_vector_type;
     typedef typename int_vector_type::size_type size_type;
     typedef typename int_vector_type::value_type value_type;
 
-  private:
-    const int_vector_type & m_vec;
+private:
+    int_vector_type const & m_vec;
 
-  public:
-    int_vector_serialize_vbyte_wrapper(const int_vector_type & vec)
-      : m_vec(vec)
+public:
+    int_vector_serialize_vbyte_wrapper(int_vector_type const & vec) : m_vec(vec)
     {}
 
     size_type serialize(std::ostream & out, structure_tree_node * v = nullptr, std::string name = "") const
@@ -61,12 +60,12 @@ class int_vector_serialize_vbyte_wrapper
             while (ww > 0)
             {
                 w |= 0x80;                                    // mark overflow bit
-                out.write((const char *)&w, sizeof(uint8_t)); // write byte
+                out.write((char const *)&w, sizeof(uint8_t)); // write byte
                 w = ww & 0x7F;
                 ww >>= 7;
                 ++written_bytes;
             }
-            out.write((const char *)&w, sizeof(uint8_t)); // write without overflow bit
+            out.write((char const *)&w, sizeof(uint8_t)); // write without overflow bit
             ++written_bytes;
         }
         structure_tree::add_size(child, written_bytes);
@@ -77,17 +76,16 @@ class int_vector_serialize_vbyte_wrapper
 template <uint8_t fixedIntWidth = 0>
 class int_vector_load_vbyte_wrapper
 {
-  public:
+public:
     typedef int_vector<fixedIntWidth> int_vector_type;
     typedef typename int_vector_type::size_type size_type;
     typedef typename int_vector_type::value_type value_type;
 
-  private:
+private:
     int_vector_type & m_vec;
 
-  public:
-    int_vector_load_vbyte_wrapper(int_vector_type & vec)
-      : m_vec(vec)
+public:
+    int_vector_load_vbyte_wrapper(int_vector_type & vec) : m_vec(vec)
     {}
 
     void load(std::istream & in)
@@ -106,11 +104,13 @@ class int_vector_load_vbyte_wrapper
             value_type ww = 0;
             uint8_t w = 0;
             value_type shift = 0;
-            do {
+            do
+            {
                 in.read((char *)&w, sizeof(uint8_t));
                 ww |= (((value_type)(w & 0x7F)) << shift);
                 shift += 7;
-            } while ((w & 0x80) > 0);
+            }
+            while ((w & 0x80) > 0);
             m_vec[i++] = ww;
         }
     }
@@ -119,17 +119,16 @@ class int_vector_load_vbyte_wrapper
 template <class coder_type = coder::elias_delta<>>
 class int_vector_serialize_vlen_wrapper
 {
-  public:
+public:
     typedef int_vector<> int_vector_type;
     typedef typename int_vector_type::size_type size_type;
     typedef typename int_vector_type::value_type value_type;
 
-  private:
-    const int_vector_type & m_vec;
+private:
+    int_vector_type const & m_vec;
 
-  public:
-    int_vector_serialize_vlen_wrapper(const int_vector_type & vec)
-      : m_vec(vec)
+public:
+    int_vector_serialize_vlen_wrapper(int_vector_type const & vec) : m_vec(vec)
     {}
 
     size_type serialize(std::ostream & out, structure_tree_node * v = nullptr, std::string name = "") const
@@ -147,17 +146,16 @@ class int_vector_serialize_vlen_wrapper
 template <class coder_type = coder::elias_delta<>>
 class int_vector_load_vlen_wrapper
 {
-  public:
+public:
     typedef int_vector<> int_vector_type;
     typedef typename int_vector_type::size_type size_type;
     typedef typename int_vector_type::value_type value_type;
 
-  private:
+private:
     int_vector_type & m_vec;
 
-  public:
-    int_vector_load_vlen_wrapper(int_vector_type & vec)
-      : m_vec(vec)
+public:
+    int_vector_load_vlen_wrapper(int_vector_type & vec) : m_vec(vec)
     {}
 
     void load(std::istream & in)
@@ -171,15 +169,14 @@ class int_vector_load_vlen_wrapper
 template <class int_vector_type = int_vector<>>
 class int_vector_serialize_wrapper
 {
-  public:
+public:
     typedef typename int_vector_type::size_type size_type;
 
-  private:
-    const int_vector_type & m_vec;
+private:
+    int_vector_type const & m_vec;
 
-  public:
-    int_vector_serialize_wrapper(const int_vector_type & vec)
-      : m_vec(vec)
+public:
+    int_vector_serialize_wrapper(int_vector_type const & vec) : m_vec(vec)
     {}
 
     size_type serialize(std::ostream & out, structure_tree_node * v = nullptr, std::string name = "") const
@@ -191,17 +188,19 @@ class int_vector_serialize_wrapper
 template <class int_vector_type = int_vector<>>
 class int_vector_load_wrapper
 {
-  public:
+public:
     typedef typename int_vector_type::size_type size_type;
 
-  private:
+private:
     int_vector_type & m_vec;
 
-  public:
-    int_vector_load_wrapper(int_vector_type & vec)
-      : m_vec(vec)
+public:
+    int_vector_load_wrapper(int_vector_type & vec) : m_vec(vec)
     {}
-    void load(std::istream & in) { m_vec.load(in); }
+    void load(std::istream & in)
+    {
+        m_vec.load(in);
+    }
 };
 
 template <class int_vector_serialize_wrapper_type = int_vector_serialize_wrapper<>>

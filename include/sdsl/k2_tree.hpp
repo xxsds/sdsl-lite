@@ -48,11 +48,11 @@ namespace sdsl
 template <uint8_t k, typename t_bv = bit_vector, typename t_rank = typename t_bv::rank_1_type>
 class k2_tree
 {
-  public:
+public:
     typedef k2_tree_ns::idx_type idx_type;
     typedef k2_tree_ns::size_type size_type;
 
-  private:
+private:
     //! Bit array to store all the bits of the tree, except those in the
     //! last level.
     t_bv k_t;
@@ -64,8 +64,8 @@ class k2_tree
     uint8_t k_k;
     uint16_t k_height;
 
-  protected:
-    void build_from_matrix(const std::vector<std::vector<int>> & matrix)
+protected:
+    void build_from_matrix(std::vector<std::vector<int>> const & matrix)
     {
         // Makes the size a power of k.
         int simulated_size = std::pow(k, k_height);
@@ -76,9 +76,11 @@ class k2_tree
         size_type t_size = 0;
         size_type l_size = 0;
         for (int i = 1; i < k_height; i++)
-            for (auto it = acc[i].begin(); it != acc[i].end(); it++) t_size += (*it).size();
+            for (auto it = acc[i].begin(); it != acc[i].end(); it++)
+                t_size += (*it).size();
 
-        for (auto it = acc[k_height].begin(); it != acc[k_height].end(); it++) l_size += (*it).size();
+        for (auto it = acc[k_height].begin(); it != acc[k_height].end(); it++)
+            l_size += (*it).size();
 
         bit_vector k_t_(t_size, 0);
         bit_vector k_l_(l_size, 0);
@@ -119,14 +121,16 @@ class k2_tree
     {
         if (level >= k_t.size())
         { // Last level
-            if (k_l[level - k_t.size()] == 1) acc.push_back(col);
+            if (k_l[level - k_t.size()] == 1)
+                acc.push_back(col);
             return;
         }
 
         if (k_t[level] == 1)
         {
             idx_type y = k_t_rank(level + 1) * std::pow(k_k, 2) + k_k * std::floor(row / static_cast<double>(n));
-            for (unsigned j = 0; j < k_k; j++) _neigh(n / k_k, row % n, col + n * j, y + j, acc);
+            for (unsigned j = 0; j < k_k; j++)
+                _neigh(n / k_k, row % n, col + n * j, y + j, acc);
         }
     }
 
@@ -145,14 +149,18 @@ class k2_tree
     {
         if (level >= k_t.size())
         { // Last level
-            if (k_l[level - k_t.size()] == 1) { acc.push_back(row); }
+            if (k_l[level - k_t.size()] == 1)
+            {
+                acc.push_back(row);
+            }
             return;
         }
 
         if (k_t[level] == 1)
         {
             idx_type y = k_t_rank(level + 1) * std::pow(k_k, 2) + std::floor(col / static_cast<double>(n));
-            for (unsigned j = 0; j < k_k; j++) _reverse_neigh(n / k_k, row + n * j, col % n, y + j * k_k, acc);
+            for (unsigned j = 0; j < k_k; j++)
+                _reverse_neigh(n / k_k, row + n * j, col % n, y + j * k_k, acc);
         }
     }
 
@@ -192,12 +200,8 @@ class k2_tree
             q.pop();
             // Get size for each chunk
             for (it = i; it < j; it++)
-                amount_by_chunk[k2_tree_ns::get_chunk_idx(std::get<0>(edges[it]),
-                                                          std::get<1>(edges[it]),
-                                                          c_0,
-                                                          r_0,
-                                                          l,
-                                                          k_k)] += 1;
+                amount_by_chunk
+                    [k2_tree_ns::get_chunk_idx(std::get<0>(edges[it]), std::get<1>(edges[it]), c_0, r_0, l, k_k)] += 1;
             if (l == 1)
             {
                 if (last_level == 0)
@@ -210,14 +214,16 @@ class k2_tree
                     t = 0;          // Restart counter as we're storing at k_l_ now.
                 }
                 for (it = 0; it < k_2; it++, t++)
-                    if (amount_by_chunk[it] != 0) k_l_[t] = 1;
+                    if (amount_by_chunk[it] != 0)
+                        k_l_[t] = 1;
                 // At l == 1 we do not put new elements at the queue.
                 continue;
             }
 
             // Set starting position in the vector for each chunk
             pos_by_chunk[0] = i;
-            for (it = 1; it < k_2; it++) pos_by_chunk[it] = pos_by_chunk[it - 1] + amount_by_chunk[it - 1];
+            for (it = 1; it < k_2; it++)
+                pos_by_chunk[it] = pos_by_chunk[it - 1] + amount_by_chunk[it - 1];
             // To handle the last case when it = k_2 - 1
             pos_by_chunk[k_2] = j;
             // Push to the queue every non zero elements chunk
@@ -255,7 +261,7 @@ class k2_tree
         k_t_rank = t_rank(&k_t);
     }
 
-  public:
+public:
     k2_tree() = default;
 
     //! Constructor
@@ -267,7 +273,10 @@ class k2_tree
      */
     k2_tree(std::vector<std::vector<int>> & matrix)
     {
-        if (matrix.size() < 1) { throw std::logic_error("Matrix has no elements"); }
+        if (matrix.size() < 1)
+        {
+            throw std::logic_error("Matrix has no elements");
+        }
         std::vector<bit_vector> t;
         k_k = k;
         if (matrix.size() < k_k)
@@ -324,28 +333,28 @@ class k2_tree
         if (size == 0)
         {
             size_type max = 0;
-            for (auto v : buf_x) max = std::max(static_cast<size_type>(v), max);
-            for (auto v : buf_y) max = std::max(static_cast<size_type>(v), max);
+            for (auto v : buf_x)
+                max = std::max(static_cast<size_type>(v), max);
+            for (auto v : buf_y)
+                max = std::max(static_cast<size_type>(v), max);
             size = max + 1;
         }
 
         for (uint64_t i = 0; i < buf_x.size(); i++)
-            edges.push_back(std::tuple<idx_type, idx_type>{ buf_x[i], buf_y[i] });
+            edges.push_back(std::tuple<idx_type, idx_type>{buf_x[i], buf_y[i]});
 
         build_from_edges(edges, size);
     }
 
-    k2_tree(const k2_tree & tr)
-      : k_t(tr.k_t)
-      , k_l(tr.k_l)
-      , k_k(tr.k_k)
-      , k_height(tr.k_height)
-      , k_t_rank(tr.k_t_rank)
+    k2_tree(k2_tree const & tr) : k_t(tr.k_t), k_l(tr.k_l), k_k(tr.k_k), k_height(tr.k_height), k_t_rank(tr.k_t_rank)
     {
         k_t_rank.set_vector(&k_t);
     }
 
-    k2_tree(k2_tree && tr) { *this = std::move(tr); }
+    k2_tree(k2_tree && tr)
+    {
+        *this = std::move(tr);
+    }
 
     //! Move assignment operator
     k2_tree & operator=(k2_tree && tr)
@@ -374,21 +383,31 @@ class k2_tree
     }
 
     //! Equal operator
-    bool operator==(const k2_tree & tr) const
+    bool operator==(k2_tree const & tr) const
     {
         // TODO check the rank support equality?
-        if (k_k != tr.k_k || k_height != tr.k_height) return false;
-        if (k_t.size() != tr.k_t.size() || k_l.size() != tr.k_l.size()) return false;
+        if (k_k != tr.k_k || k_height != tr.k_height)
+            return false;
+        if (k_t.size() != tr.k_t.size() || k_l.size() != tr.k_l.size())
+            return false;
         for (unsigned i = 0; i < k_t.size(); i++)
-            if (k_t[i] != tr.k_t[i]) return false;
+            if (k_t[i] != tr.k_t[i])
+                return false;
         for (unsigned i = 0; i < k_l.size(); i++)
-            if (k_l[i] != tr.k_l[i]) return false;
+            if (k_l[i] != tr.k_l[i])
+                return false;
         return true;
     }
 
-    t_bv get_t() { return k_t; }
+    t_bv get_t()
+    {
+        return k_t;
+    }
 
-    t_bv get_l() { return k_l; }
+    t_bv get_l()
+    {
+        return k_l;
+    }
 
     //! Indicates wheter node j is adjacent to node i or not.
     /*!
@@ -399,7 +418,8 @@ class k2_tree
      */
     bool adj(idx_type i, idx_type j) const
     {
-        if (k_t.size() == 0 && k_l.size() == 0) return false;
+        if (k_t.size() == 0 && k_l.size() == 0)
+            return false;
         size_type n = std::pow(k_k, k_height - 1);
         size_type k_2 = std::pow(k_k, 2);
         idx_type col, row;
@@ -416,7 +436,8 @@ class k2_tree
 
         while (level < k_t.size())
         {
-            if (k_t[level] == 0) return false;
+            if (k_t[level] == 0)
+                return false;
             row = std::floor(i / static_cast<double>(n));
             col = std::floor(j / static_cast<double>(n));
             i = i % n;
@@ -436,10 +457,12 @@ class k2_tree
     std::vector<idx_type> neigh(idx_type i) const
     {
         std::vector<idx_type> acc{};
-        if (k_l.size() == 0 && k_t.size() == 0) return acc;
+        if (k_l.size() == 0 && k_t.size() == 0)
+            return acc;
         size_type n = static_cast<size_type>(std::pow(k_k, k_height)) / k_k;
         idx_type y = k_k * std::floor(i / static_cast<double>(n));
-        for (unsigned j = 0; j < k_k; j++) _neigh(n / k_k, i % n, n * j, y + j, acc);
+        for (unsigned j = 0; j < k_k; j++)
+            _neigh(n / k_k, i % n, n * j, y + j, acc);
         return acc;
     }
 
@@ -451,11 +474,13 @@ class k2_tree
     std::vector<idx_type> reverse_neigh(idx_type i) const
     {
         std::vector<idx_type> acc{};
-        if (k_l.size() == 0 && k_t.size() == 0) return acc;
+        if (k_l.size() == 0 && k_t.size() == 0)
+            return acc;
         // Size of the first square division
         size_type n = static_cast<size_type>(std::pow(k_k, k_height)) / k_k;
         idx_type y = std::floor(i / static_cast<double>(n));
-        for (unsigned j = 0; j < k_k; j++) _reverse_neigh(n / k_k, n * j, i % n, y + j * k_k, acc);
+        for (unsigned j = 0; j < k_k; j++)
+            _reverse_neigh(n / k_k, n * j, i % n, y + j * k_k, acc);
 
         return acc;
     }

@@ -70,7 +70,7 @@ class rrr_vector
     static_assert(t_bs >= 3 and t_bs <= 256, "rrr_vector: block size t_bs must be 3 <= t_bs <= 256.");
     static_assert(t_k > 1, "rrr_vector: t_k must be > 0.");
 
-  public:
+public:
     typedef bit_vector::size_type size_type;
     typedef bit_vector::value_type value_type;
     typedef bit_vector::difference_type difference_type;
@@ -97,7 +97,7 @@ class rrr_vector
         block_size = t_bs
     };
 
-  private:
+private:
     size_type m_size = 0; // Size of the original bit_vector.
     rac_type m_bt;        // Vector for the block types (bt). bt equals the
     // number of set bits in the block.
@@ -108,23 +108,26 @@ class rrr_vector
                           // have to be considered as inverted i.e. 1 and
                           // 0 are swapped
 
-  public:
-    const rac_type & bt = m_bt;
-    const bit_vector & btnr = m_btnr;
+public:
+    rac_type const & bt = m_bt;
+    bit_vector const & btnr = m_btnr;
 
     //! Default constructor
     rrr_vector(){};
-    rrr_vector(const rrr_vector & v)
-      : m_size(v.m_size)
-      , m_bt(v.m_bt)
-      , m_btnr(v.m_btnr)
-      , m_btnrp(v.m_btnrp)
-      , m_rank(v.m_rank)
-      , m_invert(v.m_invert)
+    rrr_vector(rrr_vector const & v) :
+        m_size(v.m_size),
+        m_bt(v.m_bt),
+        m_btnr(v.m_btnr),
+        m_btnrp(v.m_btnrp),
+        m_rank(v.m_rank),
+        m_invert(v.m_invert)
     {}
 
-    rrr_vector(rrr_vector && v) { *this = std::move(v); }
-    rrr_vector & operator=(const rrr_vector & v)
+    rrr_vector(rrr_vector && v)
+    {
+        *this = std::move(v);
+    }
+    rrr_vector & operator=(rrr_vector const & v)
     {
         if (this != &v)
         {
@@ -152,7 +155,7 @@ class rrr_vector
      *  \param bv  Uncompressed bitvector.
      *  \param k   Store rank samples and pointers each k-th blocks.
      */
-    rrr_vector(const bit_vector & bv)
+    rrr_vector(bit_vector const & bv)
     {
         m_size = bv.size();
         int_vector<> bt_array;
@@ -179,9 +182,8 @@ class rrr_vector
         }
         m_btnr = bit_vector(std::max(btnr_pos, (size_type)64), 0); // max necessary for case: t_bs == 1
         m_btnrp = int_vector<>((bt_array.size() + t_k - 1) / t_k, 0, bits::hi(btnr_pos) + 1);
-        m_rank = int_vector<>((bt_array.size() + t_k - 1) / t_k + ((m_size % (t_k * t_bs)) > 0),
-                              0,
-                              bits::hi(sum_rank) + 1);
+        m_rank =
+            int_vector<>((bt_array.size() + t_k - 1) / t_k + ((m_size % (t_k * t_bs)) > 0), 0, bits::hi(sum_rank) + 1);
         //                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
         //   only add a finishing block, if the last block of the superblock is not a dummy block
         m_invert = bit_vector((bt_array.size() + t_k - 1) / t_k, 0);
@@ -203,12 +205,16 @@ class rrr_vector
                     size_type gt_half_t_bs = 0; // counter for blocks greater than half of the blocksize
                     for (size_type j = i; j < i + t_k; ++j)
                     {
-                        if (bt_array[j] > t_bs / 2) ++gt_half_t_bs;
+                        if (bt_array[j] > t_bs / 2)
+                            ++gt_half_t_bs;
                     }
                     if (gt_half_t_bs > (t_k / 2))
                     {
                         m_invert[i / t_k] = 1;
-                        for (size_type j = i; j < i + t_k; ++j) { bt_array[j] = t_bs - bt_array[j]; }
+                        for (size_type j = i; j < i + t_k; ++j)
+                        {
+                            bt_array[j] = t_bs - bt_array[j];
+                        }
                         invert = true;
                     }
                     else
@@ -272,7 +278,8 @@ class rrr_vector
         size_type bt_idx = i / t_bs;
         uint16_t bt = m_bt[bt_idx];
         size_type sample_pos = bt_idx / t_k;
-        if (m_invert[sample_pos]) bt = t_bs - bt;
+        if (m_invert[sample_pos])
+            bt = t_bs - bt;
 #ifndef RRR_NO_OPT
         if (bt == 0 or bt == t_bs)
         { // very effective optimization
@@ -281,7 +288,10 @@ class rrr_vector
 #endif
         uint16_t off = i % t_bs; // i - bt_idx*t_bs;
         size_type btnrp = m_btnrp[sample_pos];
-        for (size_type j = sample_pos * t_k; j < bt_idx; ++j) { btnrp += rrr_helper_type::space_for_bt(m_bt[j]); }
+        for (size_type j = sample_pos * t_k; j < bt_idx; ++j)
+        {
+            btnrp += rrr_helper_type::space_for_bt(m_bt[j]);
+        }
         uint16_t btnrlen = rrr_helper_type::space_for_bt(bt);
         number_type btnr = rrr_helper_type::decode_btnr(m_btnr, btnrp, btnrlen);
         return rrr_helper_type::decode_bit(bt, btnr, off);
@@ -305,7 +315,8 @@ class rrr_vector
         size_type eb_idx = (idx + len - 1) / t_bs; // end block index
         if (bb_idx == eb_idx)
         { // extract only in one block
-            if (m_invert[sample_pos]) bt = t_bs - bt;
+            if (m_invert[sample_pos])
+                bt = t_bs - bt;
             if (bt == 0)
             { // all bits are zero
                 res = 0;
@@ -330,20 +341,25 @@ class rrr_vector
         {                                   // solve multiple block case by recursion
             uint16_t b_len = t_bs - bb_off; // remaining bits in first block
             uint16_t b_len_sum = 0;
-            do {
+            do
+            {
                 res |= get_int(idx, b_len) << b_len_sum;
                 idx += b_len;
                 b_len_sum += b_len;
                 len -= b_len;
                 b_len = t_bs;
                 b_len = std::min((uint16_t)len, b_len);
-            } while (len > 0);
+            }
+            while (len > 0);
         }
         return res;
     }
 
     //! Returns the size of the original bit vector.
-    size_type size() const { return m_size; }
+    size_type size() const
+    {
+        return m_size;
+    }
 
     //! Answers select queries
     //! Serializes the data structure into the given ostream
@@ -394,31 +410,46 @@ class rrr_vector
         ar(CEREAL_NVP(m_invert));
     }
 
-    iterator begin() const { return iterator(this, 0); }
-
-    iterator end() const { return iterator(this, size()); }
-
-    bool operator==(const rrr_vector & v) const
+    iterator begin() const
     {
-        return m_size == v.m_size && m_bt == v.m_bt && m_btnr == v.m_btnr && m_btnrp == v.m_btnrp &&
-               m_rank == v.m_rank && m_invert == v.m_invert;
+        return iterator(this, 0);
     }
 
-    bool operator!=(const rrr_vector & v) const { return !(*this == v); }
+    iterator end() const
+    {
+        return iterator(this, size());
+    }
+
+    bool operator==(rrr_vector const & v) const
+    {
+        return m_size == v.m_size && m_bt == v.m_bt && m_btnr == v.m_btnr && m_btnrp == v.m_btnrp && m_rank == v.m_rank
+            && m_invert == v.m_invert;
+    }
+
+    bool operator!=(rrr_vector const & v) const
+    {
+        return !(*this == v);
+    }
 };
 
 template <uint8_t t_bit_pattern>
 struct rank_support_rrr_trait
 {
     typedef bit_vector::size_type size_type;
-    static size_type adjust_rank(size_type r, SDSL_UNUSED size_type n) { return r; }
+    static size_type adjust_rank(size_type r, SDSL_UNUSED size_type n)
+    {
+        return r;
+    }
 };
 
 template <>
 struct rank_support_rrr_trait<0>
 {
     typedef bit_vector::size_type size_type;
-    static size_type adjust_rank(size_type r, size_type n) { return n - r; }
+    static size_type adjust_rank(size_type r, size_type n)
+    {
+        return n - r;
+    }
 };
 
 //! rank_support for the rrr_vector class
@@ -437,7 +468,7 @@ class rank_support_rrr
 {
     static_assert(t_b == 1u or t_b == 0u, "rank_support_rrr: bit pattern must be `0` or `1`");
 
-  public:
+public:
     typedef rrr_vector<t_bs, t_rac, t_k> bit_vector_type;
     typedef typename bit_vector_type::size_type size_type;
     typedef typename bit_vector_type::rrr_helper_type rrr_helper_type;
@@ -451,14 +482,17 @@ class rank_support_rrr
         bit_pat_len = (uint8_t)1
     };
 
-  private:
-    const bit_vector_type * m_v; //!< Pointer to the rank supported rrr_vector
+private:
+    bit_vector_type const * m_v; //!< Pointer to the rank supported rrr_vector
 
-  public:
+public:
     //! Standard constructor
     /*!\param v Pointer to the rrr_vector, which should be supported
      */
-    explicit rank_support_rrr(const bit_vector_type * v = nullptr) { set_vector(v); }
+    explicit rank_support_rrr(bit_vector_type const * v = nullptr)
+    {
+        set_vector(v);
+    }
 
     //! Answers rank queries
     /*!\param i Argument for the length of the prefix v[0..i-1], with \f$0\leq i \leq size()\f$.
@@ -478,14 +512,17 @@ class rank_support_rrr
         {
             size_type diff_rank = m_v->m_rank[sample_pos + 1] - rank;
 #ifndef RRR_NO_OPT
-            if (diff_rank == (size_type)0) { return rank_support_rrr_trait<t_b>::adjust_rank(rank, i); }
+            if (diff_rank == (size_type)0)
+            {
+                return rank_support_rrr_trait<t_b>::adjust_rank(rank, i);
+            }
             else if (diff_rank == (size_type)t_bs * t_k)
             {
                 return rank_support_rrr_trait<t_b>::adjust_rank(rank + i - sample_pos * t_k * t_bs, i);
             }
 #endif
         }
-        const bool inv = m_v->m_invert[sample_pos];
+        bool const inv = m_v->m_invert[sample_pos];
         for (size_type j = sample_pos * t_k; j < bt_idx; ++j)
         {
             uint16_t r = m_v->m_bt[j];
@@ -507,22 +544,37 @@ class rank_support_rrr
     }
 
     //! Short hand for rank(i)
-    const size_type operator()(size_type i) const { return rank(i); }
+    const size_type operator()(size_type i) const
+    {
+        return rank(i);
+    }
 
     //! Returns the size of the original vector
-    const size_type size() const { return m_v->size(); }
+    const size_type size() const
+    {
+        return m_v->size();
+    }
 
     //! Set the supported vector.
-    void set_vector(const bit_vector_type * v = nullptr) { m_v = v; }
-
-    rank_support_rrr & operator=(const rank_support_rrr & rs)
+    void set_vector(bit_vector_type const * v = nullptr)
     {
-        if (this != &rs) { set_vector(rs.m_v); }
+        m_v = v;
+    }
+
+    rank_support_rrr & operator=(rank_support_rrr const & rs)
+    {
+        if (this != &rs)
+        {
+            set_vector(rs.m_v);
+        }
         return *this;
     }
 
     //! Load the data structure from a stream and set the supported vector.
-    void load(std::istream &, const bit_vector_type * v = nullptr) { set_vector(v); }
+    void load(std::istream &, bit_vector_type const * v = nullptr)
+    {
+        set_vector(v);
+    }
 
     //! Serializes the data structure into a stream.
     size_type serialize(std::ostream &, structure_tree_node * v = nullptr, std::string name = "") const
@@ -540,9 +592,15 @@ class rank_support_rrr
     void CEREAL_LOAD_FUNCTION_NAME(archive_t &)
     {}
 
-    bool operator==(const rank_support_rrr & other) const noexcept { return *m_v == *other.m_v; }
+    bool operator==(rank_support_rrr const & other) const noexcept
+    {
+        return *m_v == *other.m_v;
+    }
 
-    bool operator!=(const rank_support_rrr & other) const noexcept { return !(*this == other); }
+    bool operator!=(rank_support_rrr const & other) const noexcept
+    {
+        return !(*this == other);
+    }
 };
 
 //! Select support for the rrr_vector class.
@@ -561,7 +619,7 @@ class select_support_rrr
 {
     static_assert(t_b == 1u or t_b == 0u, "select_support_rrr: bit pattern must be `0` or `1`");
 
-  public:
+public:
     typedef rrr_vector<t_bs, t_rac, t_k> bit_vector_type;
     typedef typename bit_vector_type::size_type size_type;
     typedef typename bit_vector_type::rrr_helper_type rrr_helper_type;
@@ -575,12 +633,13 @@ class select_support_rrr
         bit_pat_len = (uint8_t)1
     };
 
-  private:
-    const bit_vector_type * m_v; //!< Pointer to the rank supported rrr_vector
+private:
+    bit_vector_type const * m_v; //!< Pointer to the rank supported rrr_vector
 
     size_type select1(size_type i) const
     {
-        if (m_v->m_rank[m_v->m_rank.size() - 1] < i) return size();
+        if (m_v->m_rank[m_v->m_rank.size() - 1] < i)
+            return size();
         //  (1) binary search for the answer in the rank_samples
         size_type begin = 0, end = m_v->m_rank.size() - 1; // min included, max excluded
         size_type idx, rank;
@@ -607,7 +666,7 @@ class select_support_rrr
             return idx * t_bs + i - rank - 1;
         }
 #endif
-        const bool inv = m_v->m_invert[begin];
+        bool const inv = m_v->m_invert[begin];
         size_type btnrp = m_v->m_btnrp[begin];
         uint16_t bt = 0, btnrlen = 0; // temp variables for block_type and space for block type
         while (i > rank)
@@ -624,7 +683,10 @@ class select_support_rrr
 
     size_type select0(size_type i) const
     {
-        if ((size() - m_v->m_rank[m_v->m_rank.size() - 1]) < i) { return size(); }
+        if ((size() - m_v->m_rank[m_v->m_rank.size() - 1]) < i)
+        {
+            return size();
+        }
         //  (1) binary search for the answer in the rank_samples
         size_type begin = 0, end = m_v->m_rank.size() - 1; // min included, max excluded
         size_type idx, rank;
@@ -648,7 +710,7 @@ class select_support_rrr
         { // only for select<0>
             return idx * t_bs + i - rank - 1;
         }
-        const bool inv = m_v->m_invert[begin];
+        bool const inv = m_v->m_invert[begin];
         size_type btnrp = m_v->m_btnrp[begin];
         uint16_t bt = 0, btnrlen = 0; // temp variables for block_type and space for block type
         while (i > rank)
@@ -663,25 +725,46 @@ class select_support_rrr
         return (idx - 1) * t_bs + rrr_helper_type::template decode_select_bitpattern<0, 1>(bt, btnr, i - rank);
     }
 
-  public:
-    explicit select_support_rrr(const bit_vector_type * v = nullptr) { set_vector(v); }
+public:
+    explicit select_support_rrr(bit_vector_type const * v = nullptr)
+    {
+        set_vector(v);
+    }
 
     //! Answers select queries
-    size_type select(size_type i) const { return t_b ? select1(i) : select0(i); }
-
-    const size_type operator()(size_type i) const { return select(i); }
-
-    const size_type size() const { return m_v->size(); }
-
-    void set_vector(const bit_vector_type * v = nullptr) { m_v = v; }
-
-    select_support_rrr & operator=(const select_support_rrr & rs)
+    size_type select(size_type i) const
     {
-        if (this != &rs) { set_vector(rs.m_v); }
+        return t_b ? select1(i) : select0(i);
+    }
+
+    const size_type operator()(size_type i) const
+    {
+        return select(i);
+    }
+
+    const size_type size() const
+    {
+        return m_v->size();
+    }
+
+    void set_vector(bit_vector_type const * v = nullptr)
+    {
+        m_v = v;
+    }
+
+    select_support_rrr & operator=(select_support_rrr const & rs)
+    {
+        if (this != &rs)
+        {
+            set_vector(rs.m_v);
+        }
         return *this;
     }
 
-    void load(std::istream &, const bit_vector_type * v = nullptr) { set_vector(v); }
+    void load(std::istream &, bit_vector_type const * v = nullptr)
+    {
+        set_vector(v);
+    }
 
     size_type serialize(std::ostream &, structure_tree_node * v = nullptr, std::string name = "") const
     {
@@ -698,9 +781,15 @@ class select_support_rrr
     void CEREAL_LOAD_FUNCTION_NAME(archive_t &)
     {}
 
-    bool operator==(const select_support_rrr & other) const noexcept { return *m_v == *other.m_v; }
+    bool operator==(select_support_rrr const & other) const noexcept
+    {
+        return *m_v == *other.m_v;
+    }
 
-    bool operator!=(const select_support_rrr & other) const noexcept { return !(*this == other); }
+    bool operator!=(select_support_rrr const & other) const noexcept
+    {
+        return !(*this == other);
+    }
 };
 
 } // end namespace sdsl

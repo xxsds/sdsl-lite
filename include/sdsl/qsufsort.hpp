@@ -24,7 +24,8 @@
 #define INCLUDED_SDSL_QSUFSORT
 
 #define DBG_OUT                                                                                                        \
-    if (0) std::cout
+    if (0)                                                                                                             \
+    std::cout
 
 #include <algorithm>
 #include <assert.h>
@@ -68,7 +69,7 @@ class sorter;
  */
 // TODO: problem when int_width==64!!!
 template <class int_vector_type>
-void construct_sa(int_vector_type & sa, const char * file, uint8_t num_bytes)
+void construct_sa(int_vector_type & sa, char const * file, uint8_t num_bytes)
 {
     sorter<int_vector_type> s;
     s.sort(sa, file, num_bytes);
@@ -88,25 +89,43 @@ class sorter
     typedef typename tIV::iterator int_iter;
     typedef typename tIV::size_type size_type;
 
-  private:
-    int_iter m_SA,                                          // group array, ultimately suffix array.
-                                                      m_VV; // inverse array, ultimately inverse of SA.
-    uint64_t m_rr,                                          // number of symbols aggregated by transform.
-                                                      m_hh; // length of already-sorted prefixes.
-    uint8_t m_msb;                                          // most significant bit position starting from 0
-    uint64_t m_msb_mask;                                    // mask for 1ULL<<msb
+private:
+    int_iter m_SA,       // group array, ultimately suffix array.
+        m_VV;            // inverse array, ultimately inverse of SA.
+    uint64_t m_rr,       // number of symbols aggregated by transform.
+        m_hh;            // length of already-sorted prefixes.
+    uint8_t m_msb;       // most significant bit position starting from 0
+    uint64_t m_msb_mask; // mask for 1ULL<<msb
 
-    inline int64_t to_sign(uint64_t x) const { return x & m_msb_mask ? -((int64_t)(x & ~m_msb_mask)) : x; }
+    inline int64_t to_sign(uint64_t x) const
+    {
+        return x & m_msb_mask ? -((int64_t)(x & ~m_msb_mask)) : x;
+    }
     // return the absolute value of integer x
-    inline int64_t mark_pos(uint64_t x) const { return (x & ~m_msb_mask); }
+    inline int64_t mark_pos(uint64_t x) const
+    {
+        return (x & ~m_msb_mask);
+    }
     // mark the number x as negative
-    inline int64_t mark_neg(uint64_t x) const { return x | m_msb_mask; }
+    inline int64_t mark_neg(uint64_t x) const
+    {
+        return x | m_msb_mask;
+    }
     // check if x is not negative
-    inline bool not_neg(uint64_t x) const { return !(x >> m_msb); }
+    inline bool not_neg(uint64_t x) const
+    {
+        return !(x >> m_msb);
+    }
     // check if x is negative
-    inline bool is_neg(uint64_t x) const { return x & m_msb_mask; }
+    inline bool is_neg(uint64_t x) const
+    {
+        return x & m_msb_mask;
+    }
     // returns the key of iterator p at the current sorting depth
-    inline uint64_t key(const int_iter & p) const { return m_VV[*p + m_hh]; }
+    inline uint64_t key(int_iter const & p) const
+    {
+        return m_VV[*p + m_hh];
+    }
     // swap the value of two iterators
     inline void swap(int_iter & p, int_iter & q) const
     {
@@ -115,7 +134,7 @@ class sorter
         *q = tmp;
     }
     // select the median out of 3 elements
-    inline const int_iter & med3(const int_iter & a, const int_iter & b, const int_iter & c) const
+    inline int_iter const & med3(int_iter const & a, int_iter const & b, int_iter const & c) const
     {
         return key(a) < key(b) ? (key(b) < key(c) ? b : (key(a) < key(c) ? c : a))
                                : (key(b) > key(c) ? b : (key(a) > key(c) ? c : a));
@@ -137,7 +156,7 @@ class sorter
 
     /* Quadratic sorting method to use for small subarrays. To be able to update
            group numbers consistently, a variant of selection sorting is used.*/
-    void select_sort_split(const int_iter & p, int64_t n)
+    void select_sort_split(int_iter const & p, int64_t n)
     {
         int_iter pa, pb, pi, pn;
         uint64_t f, v;
@@ -169,7 +188,7 @@ class sorter
     }
 
     /* Subroutine for sort_split, algorithm by Bentley & McIlroy.*/
-    uint64_t choose_pivot(const int_iter & p, int64_t n)
+    uint64_t choose_pivot(int_iter const & p, int64_t n)
     {
         int_iter pl, pm, pn;
         int64_t s;
@@ -196,7 +215,7 @@ class sorter
  * quicksort taken from Bentley & McIlroy, "Engineering a Sort Function",
  * Software -- Practice and Experience 23(11), 1249-1265 (November 1993). This
            function is based on Program 7.*/
-    void sort_split(const int_iter & p, int64_t n)
+    void sort_split(int_iter const & p, int64_t n)
     {
         int_iter pa, pb, pc, pd, pl, pm, pn;
         uint64_t f, v;
@@ -231,30 +250,43 @@ class sorter
                 }
                 --pc;
             }
-            if (pb > pc) break;
+            if (pb > pc)
+                break;
             swap(pb,
                  pc); // swap element > v (pb) to the third part and element < v (pc) to the second
             ++pb;
             --pc;
         }
         pn = p + n;
-        if ((s = pa - p) > (t = pb - pa)) s = t;
-        for (pl = p, pm = pb - s; s; --s, ++pl, ++pm) swap(pl, pm);
-        if ((s = pd - pc) > (t = pn - pd - 1)) s = t;
-        for (pl = pb, pm = pn - s; s; --s, ++pl, ++pm) swap(pl, pm);
+        if ((s = pa - p) > (t = pb - pa))
+            s = t;
+        for (pl = p, pm = pb - s; s; --s, ++pl, ++pm)
+            swap(pl, pm);
+        if ((s = pd - pc) > (t = pn - pd - 1))
+            s = t;
+        for (pl = pb, pm = pn - s; s; --s, ++pl, ++pm)
+            swap(pl, pm);
         s = pb - pa;
         t = pd - pc;
         if (pa > pb)
         {
-            if (s > 0) { std::cout << "s=" << s << ">0 but should be <0; n=" << n << std::endl; }
+            if (s > 0)
+            {
+                std::cout << "s=" << s << ">0 but should be <0; n=" << n << std::endl;
+            }
         }
         if (pc > pd)
         {
-            if (t > 0) { std::cout << "t=" << t << ">0 but should be <0; n=" << n << std::endl; }
+            if (t > 0)
+            {
+                std::cout << "t=" << t << ">0 but should be <0; n=" << n << std::endl;
+            }
         }
-        if (s > 0) sort_split(p, s);
+        if (s > 0)
+            sort_split(p, s);
         update_group(p + s, p + n - t - 1);
-        if (t > 0) sort_split(p + n - t, t);
+        if (t > 0)
+            sort_split(p + n - t, t);
     }
 
     /* Bucketsort for first iteration.
@@ -265,13 +297,14 @@ class sorter
  *
  * Output: x is m_VV and p is m_SA after the initial sorting stage of the refined
            suffix sorting algorithm.*/
-    void bucketsort(const int_iter & x, const int_iter & p, int64_t n, int64_t k)
+    void bucketsort(int_iter const & x, int_iter const & p, int64_t n, int64_t k)
     {
         int_iter pi;
         int64_t i, d, g;
         uint64_t c;
 
-        for (pi = p; pi < p + k; ++pi) *pi = mark_neg(1); /* mark linked lists empty.*/
+        for (pi = p; pi < p + k; ++pi)
+            *pi = mark_neg(1); /* mark linked lists empty.*/
         for (i = 0; i <= n; ++i)
         {
             x[i] = p[c = x[i]]; /* insert in linked list.*/
@@ -284,18 +317,20 @@ class sorter
             if (not_neg(d))
             {               /* if more than one element in group.*/
                 p[i--] = c; /* p is permutation for the sorted x.*/
-                do {
+                do
+                {
                     d = x[c = d]; /* next in linked list.*/
                     x[c] = g;     /* group number in x.*/
                     p[i--] = c;   /* permutation in p.*/
-                } while (not_neg(d));
+                }
+                while (not_neg(d));
             }
             else
                 p[i--] = mark_neg(1); /* one element, sorted group.*/
         }
     }
 
-  public:
+public:
     /* Transforms the alphabet of x by attempting to aggregate several symbols into
  * one, while preserving the suffix order of x. The alphabet may also be
  * compacted, so that x on output comprises all integers of the new alphabet
@@ -312,9 +347,12 @@ class sorter
  * new alphabet. If j<=n+1, the alphabet is compacted. The global variable r is
            set to the number of old symbols grouped into one. Only x[n] is 0.*/
 
-    int64_t transform(const int_iter & x, const int_iter & p, int64_t n, int64_t k, int64_t l, int64_t q)
+    int64_t transform(int_iter const & x, int_iter const & p, int64_t n, int64_t k, int64_t l, int64_t q)
     {
-        if (!(q >= k - l)) { std::cout << "q=" << q << " k-l=" << k - l << std::endl; }
+        if (!(q >= k - l))
+        {
+            std::cout << "q=" << q << " k-l=" << k - l << std::endl;
+        }
         assert(q >= k - l);
         DBG_OUT << "transform(n=" << n << ", k=" << k << ", l=" << l << ", q=" << q << ")" << std::endl;
         uint64_t bb, cc, dd;
@@ -333,8 +371,9 @@ class sorter
         uint64_t mm = (1ULL << (m_rr - 1) * s) - 1; /* mm masks off top old symbol from chunk.*/
         x[n] = l - 1;                               /* emulate zero terminator.*/
         if ((int64_t)dd <= n)
-        {                                             /* if bucketing possible, compact alphabet.*/
-            for (pi = p; pi <= p + dd; ++pi) *pi = 0; /* zero transformation table.*/
+        { /* if bucketing possible, compact alphabet.*/
+            for (pi = p; pi <= p + dd; ++pi)
+                *pi = 0; /* zero transformation table.*/
             for (pi = x + m_rr, cc = bb; pi <= x + n; ++pi)
             {
                 p[cc] = 1;                           /* mark used chunk symbol.*/
@@ -346,7 +385,8 @@ class sorter
                 cc = (cc & mm) << s; /* shift in next old symbol in chunk.*/
             }
             for (pi = p, jj = 1; pi <= p + dd; ++pi)
-                if (*pi) *pi = jj++; /* j is new alphabet size.*/
+                if (*pi)
+                    *pi = jj++; /* j is new alphabet size.*/
             for (pi = x, pj = x + m_rr, cc = bb; pj <= x + n; ++pi, ++pj)
             {
                 *pi = p[cc];                         /* transform to new alphabet.*/
@@ -381,7 +421,7 @@ class sorter
  * n+1. Contents of x[0...n-1] are integers in the range l...k-1. Original
  * contents of x[n] is disregarded, the n-th symbol being regarded as
            end-of-string smaller than all other symbols.*/
-    void sort(const int_iter & x, const int_iter & p, int64_t n, int64_t k, int64_t l)
+    void sort(int_iter const & x, int_iter const & p, int64_t n, int64_t k, int64_t l)
     {
         int_iter pi, pk;
         m_VV = x; /* set global values.*/
@@ -397,7 +437,8 @@ class sorter
         {
             transform(m_VV, m_SA, n, k, l, m_msb_mask - 1);
             DBG_OUT << "initialize SA begin" << std::endl;
-            for (int64_t i = 0; i <= n; ++i) m_SA[i] = i; /* initialize I with suffix numbers.*/
+            for (int64_t i = 0; i <= n; ++i)
+                m_SA[i] = i; /* initialize I with suffix numbers.*/
             DBG_OUT << "initialize SA end" << std::endl;
             m_hh = 0;
             sort_split(m_SA, n + 1); /* quicksort on first r positions.*/
@@ -424,7 +465,8 @@ class sorter
             pi = m_SA;      /* pi is first position of group.*/
             int64_t sl = 0; /* sl is length of sorted groups.*/
             DBG_OUT << "m_hh=" << m_hh << std::endl;
-            do {
+            do
+            {
                 uint64_t s = *pi;
                 if (to_sign(s) < (int64_t)0)
                 {
@@ -442,7 +484,8 @@ class sorter
                     sort_split(pi, pk - pi);
                     pi = pk; /* next group.*/
                 }
-            } while ((pi - m_SA) <= n);
+            }
+            while ((pi - m_SA) <= n);
             if (sl)                        /* if the array ends with a sorted group.*/
                 *(pi - sl) = mark_neg(sl); /* combine sorted groups at end of m_SA.*/
             m_hh = 2 * m_hh;               /* double sorted-depth.*/
@@ -475,7 +518,10 @@ class sorter
             min_symbol = std::min(min_symbol, (int64_t)x[i]);
         }
 
-        if (0 == min_symbol) { throw std::logic_error("Text contains 0-symbol. Suffix array can not be constructed."); }
+        if (0 == min_symbol)
+        {
+            throw std::logic_error("Text contains 0-symbol. Suffix array can not be constructed.");
+        }
         if (x[x.size() - 1] > 0)
         {
             throw std::logic_error("Last symbol is not 0-symbol. Suffix array can not be constructed.");
@@ -502,7 +548,7 @@ class sorter
         sort(x.begin(), sa.begin(), x.size() - 1, max_symbol + 1, min_symbol);
     }
 
-    void sort(tIV & sa, const char * file_name, uint8_t num_bytes)
+    void sort(tIV & sa, char const * file_name, uint8_t num_bytes)
     {
         DBG_OUT << "sorter: sort(" << file_name << ")" << std::endl;
         DBG_OUT << "sizeof(int_vector<>::difference_type)=" << sizeof(int_vector<>::difference_type) << std::endl;
@@ -514,7 +560,8 @@ class sorter
             int_vector<> temp;
             load_vector_from_file(temp, file_name, num_bytes);
             x.resize(temp.size());
-            for (size_type i = 0; i < temp.size(); ++i) x[i] = temp[i];
+            for (size_type i = 0; i < temp.size(); ++i)
+                x[i] = temp[i];
         }
         else
         {
@@ -529,7 +576,8 @@ class sorter
     {
         tIV x;
         x.resize(text.size());
-        for (size_type i = 0; i < text.size(); ++i) x[i] = text[i];
+        for (size_type i = 0; i < text.size(); ++i)
+            x[i] = text[i];
         do_sort(sa, x);
     }
 };

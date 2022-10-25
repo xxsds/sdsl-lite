@@ -87,7 +87,8 @@ struct excess
                     near_fwd_pos[i] = 8;
                     int8_t p = 0;
                     int8_t excess = 0;
-                    do {
+                    do
+                    {
                         excess += 1 - 2 * ((w & (1 << p)) == 0);
                         if (excess == x)
                         {
@@ -95,12 +96,14 @@ struct excess
                             break;
                         }
                         ++p;
-                    } while (p < 8);
+                    }
+                    while (p < 8);
 
                     near_bwd_pos[i] = 8;
                     p = 7;
                     excess = 0;
-                    do {
+                    do
+                    {
                         excess += 1 - 2 * ((w & (1 << p)) > 0);
                         if (excess == x)
                         {
@@ -108,7 +111,8 @@ struct excess
                             break;
                         }
                         --p;
-                    } while (p > -1);
+                    }
+                    while (p > -1);
                 }
             }
             int_vector<> packed_mins(1, 0, 32);
@@ -134,14 +138,20 @@ struct excess
                         min[w] = excess;
                         min_pos_max[w] = p;
                     }
-                    if (excess < 0 and packed_mins[-excess - 1] == 9) { packed_mins[-excess - 1] = p; }
+                    if (excess < 0 and packed_mins[-excess - 1] == 9)
+                    {
+                        packed_mins[-excess - 1] = p;
+                    }
                     if (w & (1 << p) and excess + 8 <= min_excess_of_open)
                     {
                         min_excess_of_open = excess + 8;
                         min_excess_of_open_pos = p;
                     }
                     rev_excess += 1 - 2 * ((w & (1 << (7 - p))) > 0);
-                    if (rev_excess < 0 and packed_maxs[-rev_excess - 1] == 9) { packed_maxs[-rev_excess - 1] = 7 - p; }
+                    if (rev_excess < 0 and packed_maxs[-rev_excess - 1] == 9)
+                    {
+                        packed_maxs[-rev_excess - 1] = 7 - p;
+                    }
                 }
                 word_sum[w] = excess;
                 packed_mins.width(32);
@@ -167,7 +177,7 @@ typename excess<T>::impl excess<T>::data;
  *  \par Space complexity
  *       \f$ \Order{2n + min(block\_size, \frac{n}{block\_size} )\cdot \log n } \f$
  */
-inline bit_vector calculate_pioneers_bitmap(const bit_vector & bp, uint64_t block_size)
+inline bit_vector calculate_pioneers_bitmap(bit_vector const & bp, uint64_t block_size)
 {
     bit_vector pioneer_bitmap(bp.size(), 0);
 
@@ -220,7 +230,7 @@ inline bit_vector calculate_pioneers_bitmap(const bit_vector & bp, uint64_t bloc
  *       output, and \f$n\f$ bits for a succinct stack.
  *  \pre The parentheses sequence represented by bp has to be balanced.
  */
-inline bit_vector calculate_pioneers_bitmap_succinct(const bit_vector & bp, uint64_t block_size)
+inline bit_vector calculate_pioneers_bitmap_succinct(bit_vector const & bp, uint64_t block_size)
 {
     bit_vector pioneer_bitmap(bp.size(), 0);
 
@@ -281,7 +291,7 @@ inline bit_vector calculate_pioneers_bitmap_succinct(const bit_vector & bp, uint
  *       \f$ \Order{n + 2n\log n } \f$
  */
 template <class int_vector>
-void calculate_matches(const bit_vector & bp, int_vector & matches)
+void calculate_matches(bit_vector const & bp, int_vector & matches)
 {
     matches = int_vector(bp.size(), 0, bits::hi(bp.size()) + 1);
     std::stack<uint64_t> opening_parenthesis;
@@ -316,7 +326,7 @@ void calculate_matches(const bit_vector & bp, int_vector & matches)
  *       \f$ \Order{n + 2n\log n } \f$
  */
 template <class int_vector>
-void calculate_enclose(const bit_vector & bp, int_vector & enclose)
+void calculate_enclose(bit_vector const & bp, int_vector & enclose)
 {
     enclose = int_vector(bp.size(), 0, bits::hi(bp.size()) + 1);
     std::stack<uint64_t> opening_parenthesis;
@@ -345,7 +355,7 @@ void calculate_enclose(const bit_vector & bp, int_vector & enclose)
     assert(opening_parenthesis.empty());
 }
 
-inline uint64_t near_find_close(const bit_vector & bp, const uint64_t i, const uint64_t block_size)
+inline uint64_t near_find_close(bit_vector const & bp, const uint64_t i, const uint64_t block_size)
 {
     typedef bit_vector::difference_type difference_type;
     difference_type excess_v = 1;
@@ -360,10 +370,13 @@ inline uint64_t near_find_close(const bit_vector & bp, const uint64_t i, const u
         else
         {
             --excess_v;
-            if (excess_v == 0) { return j; }
+            if (excess_v == 0)
+            {
+                return j;
+            }
         }
     }
-    const uint64_t * b = bp.data();
+    uint64_t const * b = bp.data();
     for (uint64_t j = l; j < r; j += 8)
     {
         if (excess_v <= 8)
@@ -371,7 +384,10 @@ inline uint64_t near_find_close(const bit_vector & bp, const uint64_t i, const u
             assert(excess_v > 0);
             uint32_t x = excess<>::data.min_match_pos_packed[((*(b + (j >> 6))) >> (j & 0x3F)) & 0xFF];
             uint8_t p = (x >> ((excess_v - 1) << 2)) & 0xF;
-            if (p < 9) { return j + p; }
+            if (p < 9)
+            {
+                return j + p;
+            }
         }
         excess_v += excess<>::data.word_sum[((*(b + (j >> 6))) >> (j & 0x3F)) & 0xFF];
     }
@@ -382,13 +398,16 @@ inline uint64_t near_find_close(const bit_vector & bp, const uint64_t i, const u
         else
         {
             --excess_v;
-            if (excess_v == 0) { return j; }
+            if (excess_v == 0)
+            {
+                return j;
+            }
         }
     }
     return i;
 }
 
-inline uint64_t near_find_closing(const bit_vector & bp, uint64_t i, uint64_t closings, const uint64_t block_size)
+inline uint64_t near_find_closing(bit_vector const & bp, uint64_t i, uint64_t closings, const uint64_t block_size)
 {
     typedef bit_vector::difference_type difference_type;
     difference_type excess_v = 0;
@@ -404,17 +423,23 @@ inline uint64_t near_find_closing(const bit_vector & bp, uint64_t i, uint64_t cl
         else
         {
             --excess_v;
-            if (excess_v == succ_excess) { return j; }
+            if (excess_v == succ_excess)
+            {
+                return j;
+            }
         }
     }
-    const uint64_t * b = bp.data();
+    uint64_t const * b = bp.data();
     for (uint64_t j = l; j < r; j += 8)
     {
         if (excess_v - succ_excess <= 8)
         {
             uint32_t x = excess<>::data.min_match_pos_packed[((*(b + (j >> 6))) >> (j & 0x3F)) & 0xFF];
             uint8_t p = (x >> (((excess_v - succ_excess) - 1) << 2)) & 0xF;
-            if (p < 9) { return j + p; }
+            if (p < 9)
+            {
+                return j + p;
+            }
         }
         excess_v += excess<>::data.word_sum[((*(b + (j >> 6))) >> (j & 0x3F)) & 0xFF];
     }
@@ -425,16 +450,17 @@ inline uint64_t near_find_closing(const bit_vector & bp, uint64_t i, uint64_t cl
         else
         {
             --excess_v;
-            if (excess_v == succ_excess) { return j; }
+            if (excess_v == succ_excess)
+            {
+                return j;
+            }
         }
     }
     return i - 1;
 }
 
-inline uint64_t near_fwd_excess(const bit_vector & bp,
-                                uint64_t i,
-                                bit_vector::difference_type rel,
-                                const uint64_t block_size)
+inline uint64_t
+near_fwd_excess(bit_vector const & bp, uint64_t i, bit_vector::difference_type rel, const uint64_t block_size)
 {
     typedef bit_vector::difference_type difference_type;
     difference_type excess_v = rel;
@@ -445,16 +471,22 @@ inline uint64_t near_fwd_excess(const bit_vector & bp,
     for (uint64_t j = i; j < std::min(end, l); ++j)
     {
         excess_v += 1 - 2 * bp[j];
-        if (!excess_v) { return j; }
+        if (!excess_v)
+        {
+            return j;
+        }
     }
     excess_v += 8;
-    const uint64_t * b = bp.data();
+    uint64_t const * b = bp.data();
     for (uint64_t j = l; j < r; j += 8)
     {
         if (excess_v >= 0 and excess_v <= 16)
         {
             uint32_t x = excess<>::data.near_fwd_pos[(excess_v << 8) + (((*(b + (j >> 6))) >> (j & 0x3F)) & 0xFF)];
-            if (x < 8) { return j + x; }
+            if (x < 8)
+            {
+                return j + x;
+            }
         }
         excess_v -= excess<>::data.word_sum[((*(b + (j >> 6))) >> (j & 0x3F)) & 0xFF];
     }
@@ -462,7 +494,10 @@ inline uint64_t near_fwd_excess(const bit_vector & bp,
     for (uint64_t j = std::max(l, r); j < end; ++j)
     {
         excess_v += 1 - 2 * bp[j];
-        if (!excess_v) { return j; }
+        if (!excess_v)
+        {
+            return j;
+        }
     }
     return i - 1;
 }
@@ -473,7 +508,7 @@ inline uint64_t near_fwd_excess(const bit_vector & bp,
  *	\param r  The right border of the interval.
  *  \param min_rel_ex Reference to the relative minimal excess value with regards to excess(bp[l])
  */
-inline uint64_t near_rmq(const bit_vector & bp, uint64_t l, uint64_t r, bit_vector::difference_type & min_rel_ex)
+inline uint64_t near_rmq(bit_vector const & bp, uint64_t l, uint64_t r, bit_vector::difference_type & min_rel_ex)
 {
     typedef bit_vector::difference_type difference_type;
     const uint64_t l8 = (((l + 1) + 7) / 8) * 8;
@@ -496,7 +531,7 @@ inline uint64_t near_rmq(const bit_vector & bp, uint64_t l, uint64_t r, bit_vect
         }
     }
 
-    const uint64_t * b = bp.data();
+    uint64_t const * b = bp.data();
     for (uint64_t j = l8; j < r8; j += 8)
     {
         int8_t x = excess<>::data.min[(((*(b + (j >> 6))) >> (j & 0x3F)) & 0xFF)];
@@ -528,10 +563,8 @@ inline uint64_t near_rmq(const bit_vector & bp, uint64_t l, uint64_t r, bit_vect
 /* This method searches the maximal parenthesis j, with \f$ j\leq i \f$,
  * such that \f$ excess(j) = excess(i+1)+rel \f$ and i < bp.size()-1
  */
-inline uint64_t near_bwd_excess(const bit_vector & bp,
-                                uint64_t i,
-                                bit_vector::difference_type rel,
-                                const uint64_t block_size)
+inline uint64_t
+near_bwd_excess(bit_vector const & bp, uint64_t i, bit_vector::difference_type rel, const uint64_t block_size)
 {
     typedef bit_vector::difference_type difference_type;
     difference_type excess_v = rel;
@@ -544,17 +577,21 @@ inline uint64_t near_bwd_excess(const bit_vector & bp,
             ++excess_v;
         else
             --excess_v;
-        if (!excess_v) return j - 1;
+        if (!excess_v)
+            return j - 1;
     }
 
     excess_v += 8;
-    const uint64_t * b = bp.data();
+    uint64_t const * b = bp.data();
     for (difference_type j = r - 8; j >= l; j -= 8)
     {
         if (excess_v >= 0 and excess_v <= 16)
         {
             uint32_t x = excess<>::data.near_bwd_pos[(excess_v << 8) + (((*(b + (j >> 6))) >> (j & 0x3F)) & 0xFF)];
-            if (x < 8) { return j + x - 1; }
+            if (x < 8)
+            {
+                return j + x - 1;
+            }
         }
         excess_v += excess<>::data.word_sum[((*(b + (j >> 6))) >> (j & 0x3F)) & 0xFF];
     }
@@ -565,13 +602,17 @@ inline uint64_t near_bwd_excess(const bit_vector & bp,
             ++excess_v;
         else
             --excess_v;
-        if (!excess_v) return j - 1;
+        if (!excess_v)
+            return j - 1;
     }
-    if (0 == begin and -1 == rel) { return -1; }
+    if (0 == begin and -1 == rel)
+    {
+        return -1;
+    }
     return i + 1;
 }
 
-inline uint64_t near_find_open(const bit_vector & bp, uint64_t i, const uint64_t block_size)
+inline uint64_t near_find_open(bit_vector const & bp, uint64_t i, const uint64_t block_size)
 {
     typedef bit_vector::difference_type difference_type;
     difference_type excess_v = -1;
@@ -582,12 +623,15 @@ inline uint64_t near_find_open(const bit_vector & bp, uint64_t i, const uint64_t
     {
         if (bp[j])
         {
-            if (++excess_v == 0) { return j; }
+            if (++excess_v == 0)
+            {
+                return j;
+            }
         }
         else
             --excess_v;
     }
-    const uint64_t * b = bp.data();
+    uint64_t const * b = bp.data();
     for (difference_type j = r - 8; j >= l; j -= 8)
     {
         if (excess_v >= -8)
@@ -595,7 +639,10 @@ inline uint64_t near_find_open(const bit_vector & bp, uint64_t i, const uint64_t
             assert(excess_v < 0);
             uint32_t x = excess<>::data.max_match_pos_packed[((*(b + (j >> 6))) >> (j & 0x3F)) & 0xFF];
             uint8_t p = (x >> ((-excess_v - 1) << 2)) & 0xF;
-            if (p < 9) { return j + p; }
+            if (p < 9)
+            {
+                return j + p;
+            }
         }
         excess_v += excess<>::data.word_sum[((*(b + (j >> 6))) >> (j & 0x3F)) & 0xFF];
     }
@@ -603,7 +650,10 @@ inline uint64_t near_find_open(const bit_vector & bp, uint64_t i, const uint64_t
     {
         if (bp[j])
         {
-            if (++excess_v == 0) { return j; }
+            if (++excess_v == 0)
+            {
+                return j;
+            }
         }
         else
             --excess_v;
@@ -611,7 +661,7 @@ inline uint64_t near_find_open(const bit_vector & bp, uint64_t i, const uint64_t
     return i;
 }
 
-inline uint64_t near_find_opening(const bit_vector & bp, uint64_t i, const uint64_t openings, const uint64_t block_size)
+inline uint64_t near_find_opening(bit_vector const & bp, uint64_t i, const uint64_t openings, const uint64_t block_size)
 {
     typedef bit_vector::difference_type difference_type;
     difference_type excess_v = 0;
@@ -624,12 +674,15 @@ inline uint64_t near_find_opening(const bit_vector & bp, uint64_t i, const uint6
     {
         if (bp[j])
         {
-            if (++excess_v == succ_excess) { return j; }
+            if (++excess_v == succ_excess)
+            {
+                return j;
+            }
         }
         else
             --excess_v;
     }
-    const uint64_t * b = bp.data();
+    uint64_t const * b = bp.data();
     for (difference_type j = r - 8; j >= l; j -= 8)
     {
         if (succ_excess - excess_v <= 8)
@@ -637,7 +690,10 @@ inline uint64_t near_find_opening(const bit_vector & bp, uint64_t i, const uint6
             assert(succ_excess - excess_v > 0);
             uint32_t x = excess<>::data.max_match_pos_packed[((*(b + (j >> 6))) >> (j & 0x3F)) & 0xFF];
             uint8_t p = (x >> ((succ_excess - excess_v - 1) << 2)) & 0xF;
-            if (p < 9) { return j + p; }
+            if (p < 9)
+            {
+                return j + p;
+            }
         }
         excess_v += excess<>::data.word_sum[((*(b + (j >> 6))) >> (j & 0x3F)) & 0xFF];
     }
@@ -645,7 +701,10 @@ inline uint64_t near_find_opening(const bit_vector & bp, uint64_t i, const uint6
     {
         if (bp[j])
         {
-            if (++excess_v == succ_excess) { return j; }
+            if (++excess_v == succ_excess)
+            {
+                return j;
+            }
         }
         else
             --excess_v;
@@ -662,7 +721,7 @@ inline uint64_t near_find_opening(const bit_vector & bp, uint64_t i, const uint6
  * parenthesis of the enclosing pair. \pre We assert that \f$ bp[i]=1 \f$
  */
 // TODO: implement a fast version using lookup-tables of size 8
-inline uint64_t near_enclose(const bit_vector & bp, uint64_t i, const uint64_t block_size)
+inline uint64_t near_enclose(bit_vector const & bp, uint64_t i, const uint64_t block_size)
 {
     uint64_t opening_parentheses = 1;
     for (uint64_t j = i; j + block_size - 1 > i and j > 0; --j)
@@ -670,7 +729,10 @@ inline uint64_t near_enclose(const bit_vector & bp, uint64_t i, const uint64_t b
         if (bp[j - 1])
         {
             ++opening_parentheses;
-            if (opening_parentheses == 2) { return j - 1; }
+            if (opening_parentheses == 2)
+            {
+                return j - 1;
+            }
         }
         else
             --opening_parentheses;
@@ -678,7 +740,7 @@ inline uint64_t near_enclose(const bit_vector & bp, uint64_t i, const uint64_t b
     return i;
 }
 
-inline uint64_t near_rmq_open(const bit_vector & bp, const uint64_t begin, const uint64_t end)
+inline uint64_t near_rmq_open(bit_vector const & bp, const uint64_t begin, const uint64_t end)
 {
     typedef bit_vector::difference_type difference_type;
     difference_type min_excess = end - begin + 1, ex = 0;
@@ -703,7 +765,7 @@ inline uint64_t near_rmq_open(const bit_vector & bp, const uint64_t begin, const
             --ex;
         }
     }
-    const uint64_t * b = bp.data();
+    uint64_t const * b = bp.data();
     for (uint64_t k = l; k < r; k += 8)
     {
         uint16_t x = excess<>::data.min_open_excess_info[((*(b + (k >> 6))) >> (k & 0x3F)) & 0xFF];
@@ -735,7 +797,8 @@ inline uint64_t near_rmq_open(const bit_vector & bp, const uint64_t begin, const
             --ex;
         }
     }
-    if (min_excess <= ex) return result;
+    if (min_excess <= ex)
+        return result;
     return end;
 }
 

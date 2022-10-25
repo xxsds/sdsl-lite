@@ -78,21 +78,19 @@ template <class t_csa = csa_wt<>,
           class t_lcp = lcp_dac<>,
           class t_bp_support = bp_support_sada<>,
           class t_bv = bit_vector,
-          class t_rank = typename std::conditional<std::is_same<t_bv, bit_vector>::value,
-                                                   rank_support_v5<>,
-                                                   typename t_bv::rank_1_type>::type,
-          class
-          t_sel = typename std::conditional<std::is_same<t_bv,
-                                                         bit_vector>::value and std::is_same<typename t_csa::alphabet_category,
-                                                                                             byte_alphabet_tag>::value,
-                                            select_support_scan<>,
-                                            typename t_bv::select_1_type>::type>
+          class t_rank = typename std::
+              conditional<std::is_same<t_bv, bit_vector>::value, rank_support_v5<>, typename t_bv::rank_1_type>::type,
+          class t_sel = typename std::conditional<
+              std::is_same<t_bv, bit_vector>::value
+                  and std::is_same<typename t_csa::alphabet_category, byte_alphabet_tag>::value,
+              select_support_scan<>,
+              typename t_bv::select_1_type>::type>
 class cst_sct3
 {
     static_assert(std::is_same<typename index_tag<t_csa>::type, csa_tag>::value,
                   "First template argument has to be a compressed suffix array.");
 
-  public:
+public:
     typedef cst_dfs_const_forward_iterator<cst_sct3> const_iterator;
     typedef cst_bottom_up_const_forward_iterator<cst_sct3> const_bottom_up_iterator;
     typedef typename t_csa::size_type size_type;
@@ -113,7 +111,7 @@ class cst_sct3
     typedef typename t_csa::alphabet_category alphabet_category;
     typedef cst_tag index_category;
 
-  private:
+private:
     csa_type m_csa;
     lcp_type m_lcp;
     bit_vector m_bp;
@@ -129,7 +127,7 @@ class cst_sct3
      * \par Time complexity
      *      \f$ \Order{1} \f$
      */
-    inline size_type first_l_index(const node_type & node, size_type & kpos, size_type & ckpos) const
+    inline size_type first_l_index(node_type const & node, size_type & kpos, size_type & ckpos) const
     {
         if (node.cipos > node.jp1pos)
         { // corresponds to m_lcp[i] <= m_lcp[j+1]
@@ -150,7 +148,7 @@ class cst_sct3
      * \param i l-index in [1..degree()]
      * \paran
      */
-    size_type select_l_index(const node_type & v, size_type i, size_type & kpos, size_type & ckpos) const
+    size_type select_l_index(node_type const & v, size_type i, size_type & kpos, size_type & ckpos) const
     {
         assert(i > 0);
         if (v.cipos > v.jp1pos)
@@ -196,7 +194,7 @@ class cst_sct3
     /* \par Time complexity
      *   \f$ \Order{1} \f$
      */
-    inline size_type closing_pos_of_first_l_index(const node_type & node) const
+    inline size_type closing_pos_of_first_l_index(node_type const & node) const
     {
         if (node.cipos > node.jp1pos)
         { // corresponds to m_lcp[i] <= m_lcp[j+1]
@@ -235,11 +233,8 @@ class cst_sct3
      *    \f$ \Order{\frac{\sigma}{w}} \f$, where w=64 is the word size,
      *    can be implemented in \f$\Order{1}\f$ with rank and select.
      */
-    inline size_type psv(SDSL_UNUSED size_type i,
-                         size_type ipos,
-                         size_type cipos,
-                         size_type & psvpos,
-                         size_type & psvcpos) const
+    inline size_type
+    psv(SDSL_UNUSED size_type i, size_type ipos, size_type cipos, size_type & psvpos, size_type & psvcpos) const
     {
         // if lcp[i]==0 => psv is the 0-th index by definition
         if ((cipos + (size_type)m_csa.sigma) >= m_bp.size())
@@ -257,7 +252,7 @@ class cst_sct3
         // r0 = index of clothing parenthesis in m_first_child
         size_type r0 = cipos - m_bp_support.rank(cipos);
         size_type next_first_child = 0;
-        const uint64_t * p = m_first_child.data() + (r0 >> 6);
+        uint64_t const * p = m_first_child.data() + (r0 >> 6);
         uint64_t w = (*p) >> (r0 & 0x3F);
         if (w)
         { // if w!=0
@@ -279,7 +274,10 @@ class cst_sct3
                 ++p;
                 delta += 64;
             }
-            if (w != 0) { delta += bits::lo(w) + 1; }
+            if (w != 0)
+            {
+                delta += bits::lo(w) + 1;
+            }
             else
             {
                 auto pos = m_first_child_select(m_first_child_rank(r0 + 1) + 1);
@@ -328,15 +326,15 @@ class cst_sct3
         }
     }
 
-  public:
-    const csa_type & csa = m_csa;
-    const lcp_type & lcp = m_lcp;
-    const bit_vector & bp = m_bp;
-    const bp_support_type & bp_support = m_bp_support;
+public:
+    csa_type const & csa = m_csa;
+    lcp_type const & lcp = m_lcp;
+    bit_vector const & bp = m_bp;
+    bp_support_type const & bp_support = m_bp_support;
 
-    const bv_type & first_child_bv = m_first_child;
-    const rank_type & first_child_rank = m_first_child_rank;
-    const sel_type & first_child_select = m_first_child_select;
+    bv_type const & first_child_bv = m_first_child;
+    rank_type const & first_child_rank = m_first_child_rank;
+    sel_type const & first_child_select = m_first_child_select;
 
     /*!\defgroup cst_sct3_constructors Constructors of cst_sct3 */
     /* @{ */
@@ -353,14 +351,14 @@ class cst_sct3
      *  \par Time complexity
      *       \f$ \Order{n} \f$, where \f$n=\f$cst_sct3.size()
      */
-    cst_sct3(const cst_sct3 & cst)
-      : m_csa(cst.m_csa)
-      , m_bp(cst.m_bp)
-      , m_bp_support(cst.m_bp_support)
-      , m_first_child(cst.m_first_child)
-      , m_first_child_rank(cst.m_first_child_rank)
-      , m_first_child_select(cst.m_first_child_select)
-      , m_nodes(cst.m_nodes)
+    cst_sct3(cst_sct3 const & cst) :
+        m_csa(cst.m_csa),
+        m_bp(cst.m_bp),
+        m_bp_support(cst.m_bp_support),
+        m_first_child(cst.m_first_child),
+        m_first_child_rank(cst.m_first_child_rank),
+        m_first_child_select(cst.m_first_child_select),
+        m_nodes(cst.m_nodes)
     {
         copy_lcp(m_lcp, cst.m_lcp, *this);
         m_bp_support.set_vector(&m_bp);
@@ -372,14 +370,14 @@ class cst_sct3
     /*!
      *  \param cst The cst_sct3 which should be moved.
      */
-    cst_sct3(cst_sct3 && cst)
-      : m_csa(std::move(cst.m_csa))
-      , m_bp(std::move(cst.m_bp))
-      , m_bp_support(std::move(cst.m_bp_support))
-      , m_first_child(std::move(cst.m_first_child))
-      , m_first_child_rank(std::move(cst.m_first_child_rank))
-      , m_first_child_select(std::move(cst.m_first_child_select))
-      , m_nodes(cst.m_nodes)
+    cst_sct3(cst_sct3 && cst) :
+        m_csa(std::move(cst.m_csa)),
+        m_bp(std::move(cst.m_bp)),
+        m_bp_support(std::move(cst.m_bp_support)),
+        m_first_child(std::move(cst.m_first_child)),
+        m_first_child_rank(std::move(cst.m_first_child_rank)),
+        m_first_child_select(std::move(cst.m_first_child_select)),
+        m_nodes(cst.m_nodes)
     {
         move_lcp(m_lcp, cst.m_lcp, *this);
         m_bp_support.set_vector(&m_bp);
@@ -393,19 +391,28 @@ class cst_sct3
     /*! Required for the Container Concept of the STL.
      *  \sa max_size, empty
      */
-    size_type size() const { return m_bp.size() >> 1; }
+    size_type size() const
+    {
+        return m_bp.size() >> 1;
+    }
 
     //! Returns the largest size that cst_sct3 can ever have.
     /*! Required for the Container Concept of the STL.
      *  \sa size
      */
-    static size_type max_size() { return t_csa::max_size(); }
+    static size_type max_size()
+    {
+        return t_csa::max_size();
+    }
 
     //! Returns if the data structure is empty.
     /*! Required for the Container Concept of the STL.
      * \sa size
      */
-    bool empty() const { return m_csa.empty(); }
+    bool empty() const
+    {
+        return m_csa.empty();
+    }
 
     //! Returns a const_iterator to the first element of a depth first traversal of the tree.
     /*! Required for the STL Container Concept.
@@ -419,9 +426,10 @@ class cst_sct3
     };
 
     //! Returns a const_iterator to the first element of a depth first traversal of the subtree rooted at node v.
-    const_iterator begin(const node_type & v) const
+    const_iterator begin(node_type const & v) const
     {
-        if (0 == m_bp.size() and root() == v) return end();
+        if (0 == m_bp.size() and root() == v)
+            return end();
         return const_iterator(this, v, false, true);
     }
 
@@ -429,12 +437,16 @@ class cst_sct3
     /*! Required for the STL Container Concept.
      *  \sa begin.
      */
-    const_iterator end() const { return const_iterator(this, root(), true, false); }
+    const_iterator end() const
+    {
+        return const_iterator(this, root(), true, false);
+    }
 
     //! Returns a const_iterator to the element past the end of a depth first traversal of the subtree rooted at node v.
-    const_iterator end(const node_type & v) const
+    const_iterator end(node_type const & v) const
     {
-        if (root() == v) return end();
+        if (root() == v)
+            return end();
         return ++const_iterator(this, v, true, true);
     }
 
@@ -447,13 +459,16 @@ class cst_sct3
     }
 
     //! Returns an iterator to the element after the last element of a bottom-up traversal of the tree.
-    const_bottom_up_iterator end_bottom_up() const { return const_bottom_up_iterator(this, root(), false); }
+    const_bottom_up_iterator end_bottom_up() const
+    {
+        return const_bottom_up_iterator(this, root(), false);
+    }
 
     //! Assignment Operator.
     /*!
      *    Required for the Assignable Concept of the STL.
      */
-    cst_sct3 & operator=(const cst_sct3 & cst)
+    cst_sct3 & operator=(cst_sct3 const & cst)
     {
         if (this != &cst)
         {
@@ -508,14 +523,17 @@ class cst_sct3
     //! Equality operator.
     bool operator==(cst_sct3 const & other) const noexcept
     {
-        return (m_csa == other.m_csa) && (m_lcp == other.m_lcp) && (m_bp == other.m_bp) &&
-               (m_bp_support == other.m_bp_support) && (m_first_child == other.m_first_child) &&
-               (m_first_child_rank == other.m_first_child_rank) &&
-               (m_first_child_select == other.m_first_child_select) /*&& (m_nodes == other.m_nodes)*/;
+        return (m_csa == other.m_csa) && (m_lcp == other.m_lcp) && (m_bp == other.m_bp)
+            && (m_bp_support == other.m_bp_support) && (m_first_child == other.m_first_child)
+            && (m_first_child_rank == other.m_first_child_rank)
+            && (m_first_child_select == other.m_first_child_select) /*&& (m_nodes == other.m_nodes)*/;
     }
 
     //! Inequality operator.
-    bool operator!=(cst_sct3 const & other) const noexcept { return !(*this == other); }
+    bool operator!=(cst_sct3 const & other) const noexcept
+    {
+        return !(*this == other);
+    }
 
     /*!\defgroup cst_sct3_tree_methods Tree methods of cst_sct3 */
     /* @{ */
@@ -525,7 +543,10 @@ class cst_sct3
      * \par Time complexity O(1)
      *      \f$ \Order{1} \f$
      */
-    node_type root() const { return node_type(0, size() - 1, 0, m_bp.size() - 1, m_bp.size()); }
+    node_type root() const
+    {
+        return node_type(0, size() - 1, 0, m_bp.size() - 1, m_bp.size());
+    }
 
     //! Decide if a node is a leaf.
     /*!
@@ -534,7 +555,10 @@ class cst_sct3
      * \par Time complexity
      *      \f$ \Order{1} \f$
      */
-    bool is_leaf(const node_type & v) const { return v.i == v.j; }
+    bool is_leaf(node_type const & v) const
+    {
+        return v.i == v.j;
+    }
 
     //! Return the i-th leaf (1-based from left to right).
     /*!
@@ -564,7 +588,10 @@ class cst_sct3
      *  \par Time complexity
      *    \f$ \Order{1} \f$
      */
-    size_type size(const node_type & v) const { return v.j - v.i + 1; }
+    size_type size(node_type const & v) const
+    {
+        return v.j - v.i + 1;
+    }
 
     //! Calculates the leftmost leaf in the subtree rooted at node v.
     /*!\param v A valid node of the suffix tree.
@@ -572,7 +599,10 @@ class cst_sct3
      *  \par Time complexity
      *    \f$ \Order{1} \f$
      */
-    node_type leftmost_leaf(const node_type & v) const { return select_leaf(v.i + 1); }
+    node_type leftmost_leaf(node_type const & v) const
+    {
+        return select_leaf(v.i + 1);
+    }
 
     //! Calculates the rightmost leaf in the subtree rooted at node v.
     /*!\param v A valid node of the suffix tree.
@@ -580,7 +610,10 @@ class cst_sct3
      *  \par Time complexity
      *    \f$ \Order{1} \f$
      */
-    node_type rightmost_leaf(const node_type & v) const { return select_leaf(v.j + 1); }
+    node_type rightmost_leaf(node_type const & v) const
+    {
+        return select_leaf(v.j + 1);
+    }
 
     //! Calculates the index of the leftmost leaf in the corresponding suffix array.
     /*!\param v A valid node of the suffix tree.
@@ -590,7 +623,10 @@ class cst_sct3
      *  \par Note
      *  lb is an abbreviation for ,,left bound''
      */
-    size_type lb(const node_type & v) const { return v.i; }
+    size_type lb(node_type const & v) const
+    {
+        return v.i;
+    }
 
     //! Calculates the index of the rightmost leaf in the corresponding suffix array.
     /*!\param v A valid node of the suffix tree.
@@ -600,7 +636,10 @@ class cst_sct3
      *  \par Note
      *   rb is an abbreviation for ,,right bound''
      */
-    size_type rb(const node_type & v) const { return v.j; }
+    size_type rb(node_type const & v) const
+    {
+        return v.j;
+    }
 
     //! Calculate the parent node of a node v.
     /*!\param v A valid node of the suffix tree.
@@ -608,14 +647,17 @@ class cst_sct3
      *  \par Time complexity
      *     \f$ \Order{1}\f$
      */
-    node_type parent(const node_type & v) const
+    node_type parent(node_type const & v) const
     {
         if (v.cipos > v.jp1pos)
         { // LCP[i] <= LCP[j+1]
             size_type psv_pos, psv_cpos, psv_v, nsv_v, nsv_p1pos;
             psv_v = psv(v.j + 1, v.jp1pos, m_bp_support.find_close(v.jp1pos), psv_pos, psv_cpos);
             nsv_v = nsv(v.j + 1, v.jp1pos) - 1;
-            if (nsv_v == size() - 1) { nsv_p1pos = m_bp.size(); }
+            if (nsv_v == size() - 1)
+            {
+                nsv_p1pos = m_bp.size();
+            }
             else
             { // nsv_v < size()-1
                 nsv_p1pos = m_bp_support.select(nsv_v + 2);
@@ -636,7 +678,7 @@ class cst_sct3
      *  \par Time complexity
      *     \f$ \Order{1}\f$
      */
-    cst_node_child_proxy<cst_sct3> children(const node_type & v) const
+    cst_node_child_proxy<cst_sct3> children(node_type const & v) const
     {
         return cst_node_child_proxy<cst_sct3>(this, v);
     }
@@ -648,7 +690,7 @@ class cst_sct3
      * \par Time complexity
      *   \f$ \Order{1} \f$
      */
-    node_type sibling(const node_type & v) const
+    node_type sibling(node_type const & v) const
     {
         // Procedure:(1) Determine, if v has a right sibling.
         if (v.cipos < v.jp1pos)
@@ -670,7 +712,10 @@ class cst_sct3
         if (last_child)
         {
             size_type nsv_v = nsv(v.j + 1, v.jp1pos) - 1, nsv_p1pos;
-            if (nsv_v == size() - 1) { nsv_p1pos = m_bp.size(); }
+            if (nsv_v == size() - 1)
+            {
+                nsv_p1pos = m_bp.size();
+            }
             else
             {
                 nsv_p1pos = m_bp_support.select(nsv_v + 2);
@@ -699,7 +744,7 @@ class cst_sct3
      * \pre \f$ 1 \leq i \leq degree(v) \f$
      */
 
-    node_type select_child(const node_type & v, size_type i) const
+    node_type select_child(node_type const & v, size_type i) const
     {
         assert(i > 0);
         if (is_leaf(v)) // if v is a leave, v has no child
@@ -715,7 +760,8 @@ class cst_sct3
         { // i > 1
             size_type k1, kpos1, k_find_close1;
             k1 = select_l_index(v, i - 1, kpos1, k_find_close1);
-            if (k1 == v.j + 1) return root();
+            if (k1 == v.j + 1)
+                return root();
             size_type k2, kpos2, k_find_close2;
             k2 = select_l_index(v, i, kpos2, k_find_close2);
             return node_type(k1, k2 - 1, kpos1, k_find_close1, kpos2);
@@ -730,14 +776,14 @@ class cst_sct3
      *    \f$ \Order{\frac{\sigma}{w}} \f$, where w=64 is the word size,
      *    can be implemented in \f$\Order{1}\f$ with rank and select.
      */
-    size_type degree(const node_type & v) const
+    size_type degree(node_type const & v) const
     {
         if (is_leaf(v)) // if v is a leave, v has no child
             return 0;
         // v is not a leave: v has at least two children
         size_type r = closing_pos_of_first_l_index(v);
         size_type r0 = r - m_bp_support.rank(r);
-        const uint64_t * p = m_first_child.data() + (r0 >> 6);
+        uint64_t const * p = m_first_child.data() + (r0 >> 6);
         uint8_t offset = r0 & 0x3F;
 
         uint64_t w = (*p) & bits::lo_set[offset];
@@ -766,7 +812,10 @@ class cst_sct3
             }
             // if not found: use rank + select to answer query
             auto goal_rank = m_first_child_rank(r0);
-            if (goal_rank == 0) { return r0 + 2; }
+            if (goal_rank == 0)
+            {
+                return r0 + 2;
+            }
             else
             {
                 return r0 - m_first_child_select(goal_rank) + 1;
@@ -785,7 +834,7 @@ class cst_sct3
      * \par Time complexity
      *   \f$ \Order{(\saaccess+\isaaccess) \cdot \log\sigma + \lcpaccess} \f$
      */
-    node_type child(const node_type & v, const char_type c, size_type & char_pos) const
+    node_type child(node_type const & v, const char_type c, size_type & char_pos) const
     {
         if (is_leaf(v)) // if v is a leaf = (), v has no child
             return root();
@@ -832,7 +881,10 @@ class cst_sct3
             l_index = select_l_index(v, mid - 1, kpos, ckpos);
             char_pos = get_char_pos(l_index, d, m_csa);
 
-            if (char_inc_min_pos > char_pos) { l_bound = mid + 1; }
+            if (char_inc_min_pos > char_pos)
+            {
+                l_bound = mid + 1;
+            }
             else if (char_ex_max_pos <= char_pos)
             {
                 r_bound = mid;
@@ -843,7 +895,10 @@ class cst_sct3
                 // find next l_index: we know that a new l_index exists: i.e. assert( 0 == m_bp[ckpos-1]);
                 size_type lp1_index = m_bp_support.rank(m_bp_support.find_open(ckpos - 1)) - 1;
                 size_type jp1pos = m_bp.size();
-                if (lp1_index - 1 < size() - 1) { jp1pos = m_bp_support.select(lp1_index + 1); }
+                if (lp1_index - 1 < size() - 1)
+                {
+                    jp1pos = m_bp_support.select(lp1_index + 1);
+                }
                 return node_type(l_index, lp1_index - 1, kpos, ckpos, jp1pos);
             }
         }
@@ -852,7 +907,7 @@ class cst_sct3
 
     //! Get the child w of node v which edge label (v,w) starts with character c.
     // \sa child(node_type v, const char_type c, size_type &char_pos)
-    node_type child(const node_type & v, const char_type c) const
+    node_type child(node_type const & v, const char_type c) const
     {
         size_type char_pos;
         return child(v, c, char_pos);
@@ -867,7 +922,7 @@ class cst_sct3
      *       \f$ \Order{ \log\sigma + (\saaccess+\isaaccess) } \f$
      * \pre \f$ 1 \leq d \leq depth(v)  \f$
      */
-    char_type edge(const node_type & v, size_type d) const
+    char_type edge(node_type const & v, size_type d) const
     {
         assert(1 <= d);
         assert(d <= depth(v));
@@ -876,7 +931,10 @@ class cst_sct3
         while (c_begin < c_end)
         {
             mid = (c_begin + c_end) >> 1;
-            if (m_csa.C[mid] <= order) { c_begin = mid + 1; }
+            if (m_csa.C[mid] <= order)
+            {
+                c_begin = mid + 1;
+            }
             else
             {
                 c_end = mid;
@@ -896,7 +954,10 @@ class cst_sct3
 
     node_type lca(node_type v, node_type w) const
     {
-        if (v.i > w.i or (v.i == w.i and v.j < w.j)) { std::swap(v, w); }
+        if (v.i > w.i or (v.i == w.i and v.j < w.j))
+        {
+            std::swap(v, w);
+        }
         if (v.j >= w.j)
         { // v encloses w or v==w
             return v;
@@ -915,7 +976,10 @@ class cst_sct3
             size_type new_ipos, new_icpos;
             size_type new_i = psv(min_index, min_index_pos, min_index_cpos, new_ipos, new_icpos);
             size_type jp1pos = m_bp.size();
-            if (new_j < size() - 1) { jp1pos = m_bp_support.select(new_j + 2); }
+            if (new_j < size() - 1)
+            {
+                jp1pos = m_bp_support.select(new_j + 2);
+            }
             return node_type(new_i, new_j, new_ipos, new_icpos, jp1pos);
         }
     }
@@ -927,9 +991,12 @@ class cst_sct3
      * \par Time complexity
      *  \f$ \Order{1} \f$ for non-leaves and \f$\Order{t_{SA}}\f$ for leaves
      */
-    size_type depth(const node_type & v) const
+    size_type depth(node_type const & v) const
     {
-        if (v == root()) { return 0; }
+        if (v == root())
+        {
+            return 0;
+        }
         else if (v.i == v.j)
         {
             return size() - m_csa[v.i];
@@ -972,9 +1039,10 @@ class cst_sct3
      * \par Time complexity
      *      \f$ \Order{ \rrenclose } \f$
      */
-    node_type sl(const node_type & v) const
+    node_type sl(node_type const & v) const
     {
-        if (v == root()) return root();
+        if (v == root())
+            return root();
         // get interval with first char deleted
         size_type i = m_csa.psi[v.i];
         if (is_leaf(v))
@@ -997,7 +1065,10 @@ class cst_sct3
         size_type new_ipos, new_icpos;
         size_type new_i = psv(min_index, min_index_pos, min_index_cpos, new_ipos, new_icpos);
         size_type jp1pos = m_bp.size();
-        if (new_j < size() - 1) { jp1pos = m_bp_support.select(new_j + 2); }
+        if (new_j < size() - 1)
+        {
+            jp1pos = m_bp_support.select(new_j + 2);
+        }
         return node_type(new_i, new_j, new_ipos, new_icpos, jp1pos);
     }
 
@@ -1010,7 +1081,7 @@ class cst_sct3
      *  \par Time complexity
      *        \f$ \Order{ t_{rank\_bwt} } \f$
      */
-    node_type wl(const node_type & v, const char_type c) const
+    node_type wl(node_type const & v, const char_type c) const
     {
         size_type c_left = m_csa.bwt.rank(v.i, c);
         size_type c_right = m_csa.bwt.rank(v.j + 1, c);
@@ -1026,7 +1097,10 @@ class cst_sct3
 
             size_type ipos = m_bp_support.select(left + 1);
             size_type jp1pos = m_bp.size();
-            if (right < size() - 1) { jp1pos = m_bp_support.select(right + 2); }
+            if (right < size() - 1)
+            {
+                jp1pos = m_bp_support.select(right + 2);
+            }
             return node_type(left, right, ipos, m_bp_support.find_close(ipos), jp1pos);
         }
     }
@@ -1037,7 +1111,7 @@ class cst_sct3
      * \par Time complexity
      *   \f$ \Order{ \saaccess } \f$
      */
-    size_type sn(const node_type & v) const
+    size_type sn(node_type const & v) const
     {
         assert(is_leaf(v));
         return m_csa[v.i];
@@ -1050,7 +1124,7 @@ class cst_sct3
      * \par Time complexity
      *    \f$ \Order{1} \f$
      */
-    size_type id(const node_type & v) const
+    size_type id(node_type const & v) const
     {
         if (is_leaf(v))
         { // return id in the range from 0..csa.size()-1
@@ -1097,7 +1171,10 @@ class cst_sct3
                 {
                     size_type mid = lb + (rb - lb) / 2;
                     size_type arg = m_first_child_rank(mid); // ones in the prefix [0..mid-1]
-                    if (arg < id) { lb = mid; }
+                    if (arg < id)
+                    {
+                        lb = mid;
+                    }
                     else
                     { // arg >= id
                         rb = mid;
@@ -1115,7 +1192,10 @@ class cst_sct3
                 {
                     size_type mid = lb + (rb - lb) / 2;
                     size_type arg = mid - m_bp_support.rank(mid - 1); // zeros in the prefix [0..mid-1]
-                    if (arg < r0ckpos + 1) { lb = mid; }
+                    if (arg < r0ckpos + 1)
+                    {
+                        lb = mid;
+                    }
                     else
                     { // arg >= x
                         rb = mid;
@@ -1123,7 +1203,10 @@ class cst_sct3
                 }
                 ckpos = lb;
             }
-            if (ckpos == m_bp.size() - 1) { return root(); }
+            if (ckpos == m_bp.size() - 1)
+            {
+                return root();
+            }
             if (m_bp[ckpos + 1])
             { // jp1pos < cipos
                 size_type jp1pos = ckpos + 1;
@@ -1141,14 +1224,20 @@ class cst_sct3
                 size_type i = m_bp_support.rank(ipos - 1);
                 size_type j = nsv(i, ipos) - 1;
                 size_type jp1pos = m_bp.size();
-                if (j != size() - 1) { jp1pos = m_bp_support.select(j + 2); }
+                if (j != size() - 1)
+                {
+                    jp1pos = m_bp_support.select(j + 2);
+                }
                 return node_type(i, j, ipos, cipos, jp1pos);
             }
         }
     }
 
     //! Get the number of nodes of the suffix tree.
-    size_type nodes() const { return m_nodes; }
+    size_type nodes() const
+    {
+        return m_nodes;
+    }
 
     //! Get the node in the suffix tree which corresponds to the lcp-interval [lb..rb]
     /* \param lb Left bound of the lcp-interval [lb..rb] (inclusive).
@@ -1161,7 +1250,10 @@ class cst_sct3
     {
         size_type ipos = m_bp_support.select(lb + 1);
         size_type jp1pos;
-        if (rb == size() - 1) { jp1pos = m_bp.size(); }
+        if (rb == size() - 1)
+        {
+            jp1pos = m_bp.size();
+        }
         else
         {
             jp1pos = m_bp_support.select(rb + 2);
@@ -1293,43 +1385,50 @@ struct bp_interval
     t_int jp1pos; // position of the j+2th opening parenthesis in the balanced parentheses sequence
 
     //! Constructor
-    bp_interval(t_int i = 0, t_int j = 0, t_int ipos = 0, t_int cipos = 0, t_int jp1pos = 0)
-      : i(i)
-      , j(j)
-      , ipos(ipos)
-      , cipos(cipos)
-      , jp1pos(jp1pos){};
+    bp_interval(t_int i = 0, t_int j = 0, t_int ipos = 0, t_int cipos = 0, t_int jp1pos = 0) :
+        i(i),
+        j(j),
+        ipos(ipos),
+        cipos(cipos),
+        jp1pos(jp1pos){};
 
     //! Copy constructor
-    bp_interval(const bp_interval & iv) = default;
+    bp_interval(bp_interval const & iv) = default;
     //! Move copy constructor
     bp_interval(bp_interval && iv) = default;
 
-    bool operator<(const bp_interval & interval) const
+    bool operator<(bp_interval const & interval) const
     {
-        if (i != interval.i) return i < interval.i;
+        if (i != interval.i)
+            return i < interval.i;
         return j < interval.j;
     }
 
     //! Equality operator.
     /*! Two lcp-intervals are equal if and only if all their corresponding member variables have the same values.
      */
-    bool operator==(const bp_interval & interval) const { return i == interval.i and j == interval.j; }
+    bool operator==(bp_interval const & interval) const
+    {
+        return i == interval.i and j == interval.j;
+    }
 
     //! Inequality operator.
     /*! Two lcp-intervals are not equal if and only if not all their corresponding member variables have the same
      * values.
      */
-    bool operator!=(const bp_interval & interval) const { return !(*this == interval); }
+    bool operator!=(bp_interval const & interval) const
+    {
+        return !(*this == interval);
+    }
 
     //! Assignment operator.
-    bp_interval & operator=(const bp_interval & interval) = default;
+    bp_interval & operator=(bp_interval const & interval) = default;
     //! Move assignment
     bp_interval & operator=(bp_interval && interval) = default;
 };
 
 template <class t_int>
-inline std::ostream & operator<<(std::ostream & os, const bp_interval<t_int> & interval)
+inline std::ostream & operator<<(std::ostream & os, bp_interval<t_int> const & interval)
 {
     os << "-[" << interval.i << "," << interval.j << "](" << interval.ipos << "," << interval.cipos << ","
        << interval.jp1pos << ")";

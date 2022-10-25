@@ -50,13 +50,13 @@ template <uint8_t alphabet_size>
 class rank_support_int
 {
 
-  public:
+public:
     typedef typename int_vector<>::size_type size_type;
     typedef typename int_vector<>::value_type value_type;
 
     static_assert(alphabet_size > 2, "Rank support is only implemented on int_vectors with an alphabet size of > 2.");
 
-  protected:
+protected:
     /*!\brief Constructs a bit mask with the pattern w of a given length.
      *        It is concatenated until the length of the bitmask reaches max_length.
      */
@@ -73,42 +73,45 @@ class rank_support_int
         for (value_type v = 0; v < alphabet_size; ++v)
         {
             masks[v] = v;
-            for (uint8_t i = sigma_bits * 2; i < 64; i <<= 1) masks[v] |= masks[v] << i;
+            for (uint8_t i = sigma_bits * 2; i < 64; i <<= 1)
+                masks[v] |= masks[v] << i;
         }
 
         uint64_t tmp_carry = masks[1];
-        for (value_type v = 0; v < alphabet_size; ++v) masks[v] |= tmp_carry << sigma_bits;
+        for (value_type v = 0; v < alphabet_size; ++v)
+            masks[v] |= tmp_carry << sigma_bits;
 
         return masks;
     }
 
-  protected:
-    static constexpr uint8_t sigma{ alphabet_size };
-    static constexpr uint8_t sigma_bits{ ceil_log2(alphabet_size) };
-    static constexpr uint8_t bits_per_word{ (64 / sigma_bits) * sigma_bits };
-    static constexpr uint64_t even_mask{ bm_rec<uint64_t>(bits::lo_set[sigma_bits], sigma_bits * 2, 64) };
-    static constexpr uint64_t carry_select_mask{ bm_rec<uint64_t>(1ULL << sigma_bits, sigma_bits * 2, 64) };
+protected:
+    static constexpr uint8_t sigma{alphabet_size};
+    static constexpr uint8_t sigma_bits{ceil_log2(alphabet_size)};
+    static constexpr uint8_t bits_per_word{(64 / sigma_bits) * sigma_bits};
+    static constexpr uint64_t even_mask{bm_rec<uint64_t>(bits::lo_set[sigma_bits], sigma_bits * 2, 64)};
+    static constexpr uint64_t carry_select_mask{bm_rec<uint64_t>(1ULL << sigma_bits, sigma_bits * 2, 64)};
     static const std::array<uint64_t, alphabet_size> masks;
 
-    const int_vector<> * m_v; //!< Pointer to the rank supported bit_vector
+    int_vector<> const * m_v; //!< Pointer to the rank supported bit_vector
 
-  public:
+public:
     /*!\brief Constructor
      * \param v The supported int_vector.
      */
-    rank_support_int(const int_vector<> * v = nullptr)
+    rank_support_int(int_vector<> const * v = nullptr)
     { // Check that the actual width of the vector has same size as sigma_bits.
         assert((v != nullptr) ? sigma_bits == v->width() : true);
         m_v = v;
     }
 
     //!\brief Copy constructor
-    rank_support_int(const rank_support_int &) = default;
+    rank_support_int(rank_support_int const &) = default;
     rank_support_int(rank_support_int &&) = default;
-    rank_support_int & operator=(const rank_support_int &) = default;
+    rank_support_int & operator=(rank_support_int const &) = default;
     rank_support_int & operator=(rank_support_int &&) = default;
     //!\brief Destructor
-    virtual ~rank_support_int() {}
+    virtual ~rank_support_int()
+    {}
 
     /*!\brief Answers rank queries for the supported int_vector.
      * \param i Argument for the length of the prefix v[0..i-1].
@@ -142,16 +145,16 @@ class rank_support_int
      * \param in In-Stream to load the rank_support_int data from.
      * \param v The supported int_vector.
      */
-    virtual void load(std::istream & in, const int_vector<> * v = nullptr) = 0;
+    virtual void load(std::istream & in, int_vector<> const * v = nullptr) = 0;
 
     /*!\brief Sets the supported int_vector to the given pointer.
      * \param v The new int_vector to support.
      * \note Method init has to be called before the next call of rank or prefix_rank.
      * \sa init, rank, prefix_rank
      */
-    virtual void set_vector(const int_vector<> * v = nullptr) = 0;
+    virtual void set_vector(int_vector<> const * v = nullptr) = 0;
 
-  protected:
+protected:
     //!\brief Mask the set prefix positions.
     static constexpr uint64_t mask_prefix(value_type const v, uint64_t const w_even, uint64_t const w_odd) noexcept
     {
@@ -187,16 +190,15 @@ class rank_support_int
 
     //!\brief Counts the occurrences of elements smaller or equal to v in the word starting at data up to position idx.
     template <typename... value_t>
-    static constexpr std::array<uint64_t, sizeof...(value_t)> word_prefix_rank(const uint64_t word,
-                                                                               const size_type bit_pos,
-                                                                               const value_t... values) noexcept
+    static constexpr std::array<uint64_t, sizeof...(value_t)>
+    word_prefix_rank(const uint64_t word, const size_type bit_pos, const value_t... values) noexcept
     {
         uint64_t const mask = bits::lo_set[(bit_pos % bits_per_word) + 1];
 
         uint64_t const w_even = even_mask & word;                // retrieve even positions
         uint64_t const w_odd = even_mask & (word >> sigma_bits); // retrieve odd positions
 
-        return { (bits::cnt(mask_prefix(values, w_even, w_odd) & mask))... };
+        return {(bits::cnt(mask_prefix(values, w_even, w_odd) & mask))...};
     }
 
     /*!\brief Counts the occurrences of elements smaller or equal to v in the word starting at data up to position idx.
@@ -223,7 +225,7 @@ class rank_support_int
     }
 
     //!\brief Returns the word a the given word position.
-    static constexpr uint64_t extract_word(const uint64_t * data, const size_type word_position) noexcept
+    static constexpr uint64_t extract_word(uint64_t const * data, const size_type word_position) noexcept
     {
         return *(data + word_position);
     }

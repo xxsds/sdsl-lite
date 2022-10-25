@@ -22,15 +22,16 @@
 #include <sdsl/select_support_mcl.hpp>
 #include <sdsl/util.hpp>
 
-#include <ext/alloc_traits.h>
-
 namespace sdsl
 {
 
 template <class int_vector_type>
 uint64_t _get_next_lms_position(int_vector_type & text, uint64_t i)
 {
-    if (i >= text.size() - 3) { return text.size() - 1; }
+    if (i >= text.size() - 3)
+    {
+        return text.size() - 1;
+    }
     // text[i] is S-TYP or L-TYP
     uint64_t ci = text[i], cip1 = text[i + 1];
     while (ci <= cip1)
@@ -45,7 +46,10 @@ uint64_t _get_next_lms_position(int_vector_type & text, uint64_t i)
     {
         if (ci > cip1)
         {
-            if (i + 1 == text.size() - 1) { return text.size() - 1; }
+            if (i + 1 == text.size() - 1)
+            {
+                return text.size() - 1;
+            }
             candidate = i + 1;
         }
         ++i;
@@ -73,15 +77,24 @@ inline void _construct_sa_IS(int_vector<> & text,
         std::vector<uint64_t> bkt(sigma, 0);
         // Step 1 - Count characters into c array
         // TODO: better create this in higher recursion-level
-        for (size_t i = 0; i < n; ++i) { ++bkt[text[text_offset + i]]; }
+        for (size_t i = 0; i < n; ++i)
+        {
+            ++bkt[text[text_offset + i]];
+        }
 
         // Step 1.5 save them into cached_external_array
         int_vector_buffer<> c_array(filename_c_array, std::ios::out, buffersize, 64);
-        for (size_t c = 0; c < sigma; ++c) { c_array[c] = bkt[c]; }
+        for (size_t c = 0; c < sigma; ++c)
+        {
+            c_array[c] = bkt[c];
+        }
 
         // Step 2 Calculate End-Pointer of Buckets
         bkt[0] = 0;
-        for (size_t c = 1; c < sigma; ++c) { bkt[c] = bkt[c - 1] + bkt[c]; }
+        for (size_t c = 1; c < sigma; ++c)
+        {
+            bkt[c] = bkt[c - 1] + bkt[c];
+        }
 
         // Step 3 - Insert S*-positions into correct bucket of SA but not in correct order inside the buckets
         for (size_t i = n - 2, was_s_typ = 1; i < n; --i)
@@ -103,7 +116,10 @@ inline void _construct_sa_IS(int_vector<> & text,
 
         // Step 4 - Calculate Begin-Pointer of Buckets
         bkt[0] = 0;
-        for (size_t c = 1; c < sigma; ++c) { bkt[c] = bkt[c - 1] + c_array[c - 1]; }
+        for (size_t c = 1; c < sigma; ++c)
+        {
+            bkt[c] = bkt[c - 1] + c_array[c - 1];
+        }
 
         // Step 5 - Scan from Left-To-Right to induce L-Types
         for (size_t i = 0; i < n; ++i)
@@ -117,7 +133,10 @@ inline void _construct_sa_IS(int_vector<> & text,
 
         // Step 6 - Scan from Right-To-Left to induce S-Types
         bkt[0] = 0;
-        for (size_t c = 1; c < sigma; ++c) { bkt[c] = bkt[c - 1] + c_array[c]; }
+        for (size_t c = 1; c < sigma; ++c)
+        {
+            bkt[c] = bkt[c - 1] + c_array[c];
+        }
         c_array.close();
 
         for (size_t i = n - 1, endpointer = n; i < n; --i)
@@ -163,8 +182,14 @@ inline void _construct_sa_IS(int_vector<> & text,
             if (cur_len == last_len)
             {
                 size_t l = 0;
-                while (l < cur_len and text[text_offset + cur_pos + l] == text[text_offset + last_pos + l]) { ++l; }
-                if (l >= cur_len) { --name; }
+                while (l < cur_len and text[text_offset + cur_pos + l] == text[text_offset + last_pos + l])
+                {
+                    ++l;
+                }
+                if (l >= cur_len)
+                {
+                    --name;
+                }
             }
             sa[(cur_pos >> 1)] = ++name;
             last_pos = cur_pos;
@@ -230,7 +255,10 @@ inline void _construct_sa_IS(int_vector<> & text,
             sa[n - number_of_lms_strings + i] = 0;
         }
         // Clear lex. names
-        for (size_t i = number_of_lms_strings; i < (n >> 1); ++i) { sa[i] = 0; }
+        for (size_t i = number_of_lms_strings; i < (n >> 1); ++i)
+        {
+            sa[i] = 0;
+        }
     }
 
     // Phase 3
@@ -240,7 +268,10 @@ inline void _construct_sa_IS(int_vector<> & text,
         // Step 11 - Calculate End-Pointer of Buckets
         int_vector_buffer<> c_array(filename_c_array, std::ios::in, buffersize, 64);
         std::vector<uint64_t> bkt(sigma, 0);
-        for (size_t c = 1; c < sigma; ++c) { bkt[c] = bkt[c - 1] + c_array[c]; }
+        for (size_t c = 1; c < sigma; ++c)
+        {
+            bkt[c] = bkt[c - 1] + c_array[c];
+        }
 
         // Step 12 - Move S*-positions in correct order into SA
         for (size_t i = number_of_lms_strings - 1; i < n; --i)
@@ -252,7 +283,10 @@ inline void _construct_sa_IS(int_vector<> & text,
 
         // Step 13 - Calculate Begin-Pointer of Buckets
         bkt[0] = 0;
-        for (size_t c = 1; c < sigma; ++c) { bkt[c] = bkt[c - 1] + c_array[c - 1]; }
+        for (size_t c = 1; c < sigma; ++c)
+        {
+            bkt[c] = bkt[c - 1] + c_array[c - 1];
+        }
 
         // Step 14 - Scan from Left-To-Right to induce L-Types
         for (size_t i = 0; i < n; ++i)
@@ -265,7 +299,10 @@ inline void _construct_sa_IS(int_vector<> & text,
 
         // Step 15 - Scan from Right-To-Left to induce S-Types
         bkt[0] = 0;
-        for (size_t c = 1; c < sigma; ++c) { bkt[c] = bkt[c - 1] + c_array[c]; }
+        for (size_t c = 1; c < sigma; ++c)
+        {
+            bkt[c] = bkt[c - 1] + c_array[c];
+        }
         for (size_t i = n - 1; i < n; --i)
         {
             if (sa[i] > 0 and text[text_offset + sa[i] - 1] <= text[text_offset + sa[i]])
@@ -327,7 +364,10 @@ void _construct_sa_se(int_vector_type & text, std::string filename_sa, uint64_t 
                 was_s_typ = 1;
             }
         }
-        if (was_s_typ) { ++bkt_s[ci]; }
+        if (was_s_typ)
+        {
+            ++bkt_s[ci];
+        }
         bkt_l[0] = C[0] - bkt_s[0];
         for (size_t i = 1; i < C.size(); ++i)
         {
@@ -417,11 +457,11 @@ void _construct_sa_se(int_vector_type & text, std::string filename_sa, uint64_t 
         std::vector<int_vector_buffer<>> cached_array(parts - 1);
         for (size_t i = 0; i < cached_array.size(); ++i)
         {
-            cached_array[i] = int_vector_buffer<>(tmp_file(filename_sa,
-                                                           "_rightbuffer" + util::to_string(i) + "_" + util::to_string(recursion)),
-                                                  std::ios::out,
-                                                  buffersize,
-                                                  nsize);
+            cached_array[i] = int_vector_buffer<>(
+                tmp_file(filename_sa, "_rightbuffer" + util::to_string(i) + "_" + util::to_string(recursion)),
+                std::ios::out,
+                buffersize,
+                nsize);
         }
 
         for (size_t c = 0, pos = 0, offset = 0; c < sigma; ++c)
@@ -443,7 +483,10 @@ void _construct_sa_se(int_vector_type & text, std::string filename_sa, uint64_t 
                 }
 
                 size_t idx = array[pos - offset];
-                if (idx == 0) { right[right_pointer++] = idx; }
+                if (idx == 0)
+                {
+                    right[right_pointer++] = idx;
+                }
                 else
                 {
                     size_t symbol = text[idx - 1];
@@ -452,7 +495,10 @@ void _construct_sa_se(int_vector_type & text, std::string filename_sa, uint64_t 
                         size_t val = idx - 1;
                         size_t src = bkt_l[symbol];
                         bkt_l[symbol] = bkt_l[symbol] + 1;
-                        if ((src - offset) / partsize == 0) { array[src - offset] = val; }
+                        if ((src - offset) / partsize == 0)
+                        {
+                            array[src - offset] = val;
+                        }
                         else
                         {
                             size_t part = src / partsize - 1;
@@ -476,7 +522,10 @@ void _construct_sa_se(int_vector_type & text, std::string filename_sa, uint64_t 
                 size_t val = idx;
                 size_t src = bkt_l[symbol];
                 bkt_l[symbol] = bkt_l[symbol] + 1;
-                if ((src - offset) / partsize == 0) { array[src - offset] = val; }
+                if ((src - offset) / partsize == 0)
+                {
+                    array[src - offset] = val;
+                }
                 else
                 {
                     size_t part = src / partsize - 1;
@@ -485,10 +534,16 @@ void _construct_sa_se(int_vector_type & text, std::string filename_sa, uint64_t 
                 }
             }
         }
-        for (size_t i = 0; i < cached_array.size(); ++i) { cached_array[i].close(true); }
+        for (size_t i = 0; i < cached_array.size(); ++i)
+        {
+            cached_array[i].close(true);
+        }
 
         // Restore bkt_l from bkt_lms
-        for (size_t i = 0; i < sigma; ++i) { bkt_l[i] = bkt_lms[i]; }
+        for (size_t i = 0; i < sigma; ++i)
+        {
+            bkt_l[i] = bkt_lms[i];
+        }
     }
     right_pointer--;
 
@@ -529,11 +584,11 @@ void _construct_sa_se(int_vector_type & text, std::string filename_sa, uint64_t 
         std::vector<int_vector_buffer<>> cached_array(parts - 1);
         for (size_t i = 0; i < cached_array.size(); ++i)
         {
-            cached_array[i] = int_vector_buffer<>(tmp_file(filename_sa,
-                                                           "_leftbuffer" + util::to_string(i) + "_" + util::to_string(recursion)),
-                                                  std::ios::out,
-                                                  buffersize,
-                                                  nsize);
+            cached_array[i] = int_vector_buffer<>(
+                tmp_file(filename_sa, "_leftbuffer" + util::to_string(i) + "_" + util::to_string(recursion)),
+                std::ios::out,
+                buffersize,
+                nsize);
         }
         for (size_t c = sigma - 1, pos = bkt_s_last - 1, offset = partsize * (parts - 1); c < sigma; --c)
         {
@@ -554,7 +609,10 @@ void _construct_sa_se(int_vector_type & text, std::string filename_sa, uint64_t 
                 }
 
                 size_t idx = array[pos - offset];
-                if (idx == 0) { idx = n; }
+                if (idx == 0)
+                {
+                    idx = n;
+                }
                 --idx;
                 size_t symbol = text[idx];
                 if (symbol <= c)
@@ -562,7 +620,10 @@ void _construct_sa_se(int_vector_type & text, std::string filename_sa, uint64_t 
                     bkt_s[symbol] = bkt_s[symbol] - 1;
                     size_t val = idx;
                     size_t src = bkt_s[symbol];
-                    if (src >= offset) { array[src - offset] = val; }
+                    if (src >= offset)
+                    {
+                        array[src - offset] = val;
+                    }
                     else
                     {
                         size_t part = src / partsize;
@@ -580,14 +641,20 @@ void _construct_sa_se(int_vector_type & text, std::string filename_sa, uint64_t 
             while (right_pointer < number_of_lms_strings and text[right[right_pointer]] == c)
             {
                 size_t idx = right[right_pointer--];
-                if (idx == 0) { idx = n; }
+                if (idx == 0)
+                {
+                    idx = n;
+                }
                 --idx;
                 size_t symbol = text[idx];
                 bkt_s[symbol] = bkt_s[symbol] - 1;
 
                 size_t val = idx;
                 size_t src = bkt_s[symbol];
-                if (src >= offset) { array[src - offset] = val; }
+                if (src >= offset)
+                {
+                    array[src - offset] = val;
+                }
                 else
                 {
                     size_t part = src / partsize;
@@ -596,9 +663,15 @@ void _construct_sa_se(int_vector_type & text, std::string filename_sa, uint64_t 
                 }
             }
         }
-        for (size_t i = 0; i < cached_array.size(); ++i) { cached_array[i].close(true); }
+        for (size_t i = 0; i < cached_array.size(); ++i)
+        {
+            cached_array[i].close(true);
+        }
         // Restore bkt_s from bkt_lms
-        for (size_t i = 0; i < sigma; ++i) { bkt_s[i] = bkt_lms[i]; }
+        for (size_t i = 0; i < sigma; ++i)
+        {
+            bkt_s[i] = bkt_lms[i];
+        }
     }
     right.buffersize(0);
     right.reset();
@@ -637,7 +710,10 @@ void _construct_sa_se(int_vector_type & text, std::string filename_sa, uint64_t 
 
     // Step 7 - Create renamed string
     int_vector<> text_rec;
-    if (recursion == 0) { text_rec.width((bits::hi(order + 1) + 1)); }
+    if (recursion == 0)
+    {
+        text_rec.width((bits::hi(order + 1) + 1));
+    }
     else
     {
         text_rec.width((bits::hi(number_of_lms_strings + 1) + 1));
@@ -653,14 +729,23 @@ void _construct_sa_se(int_vector_type & text, std::string filename_sa, uint64_t 
             order = 0;
             for (size_t i = number_of_lms_strings - 1; i < number_of_lms_strings; --i)
             {
-                if (!same_lms[i]) { ++order; }
-                if (left[i] / 2 >= size_of_part) { text_rec[(left[i] / 2) - size_of_part] = order; }
+                if (!same_lms[i])
+                {
+                    ++order;
+                }
+                if (left[i] / 2 >= size_of_part)
+                {
+                    text_rec[(left[i] / 2) - size_of_part] = order;
+                }
             }
             std::string filename_text_rec_part2 = tmp_file(filename_sa, "_text_rec_part2" + util::to_string(recursion));
             size_t pos = 0;
             for (size_t i = 0; i < size_of_part; ++i)
             {
-                if (text_rec[i] > 0) { text_rec[pos++] = text_rec[i]; }
+                if (text_rec[i] > 0)
+                {
+                    text_rec[pos++] = text_rec[i];
+                }
             }
             text_rec.resize(pos);
             store_to_file(text_rec, filename_text_rec_part2);
@@ -669,17 +754,29 @@ void _construct_sa_se(int_vector_type & text, std::string filename_sa, uint64_t 
             order = 0;
             for (size_t i = number_of_lms_strings - 1; i < number_of_lms_strings; --i)
             {
-                if (!same_lms[i]) { ++order; }
-                if (left[i] / 2 < size_of_part) { text_rec[left[i] / 2] = order; }
+                if (!same_lms[i])
+                {
+                    ++order;
+                }
+                if (left[i] / 2 < size_of_part)
+                {
+                    text_rec[left[i] / 2] = order;
+                }
             }
             pos = 0;
             for (size_t i = 0; i < size_of_part; ++i)
             {
-                if (text_rec[i] > 0) { text_rec[pos++] = text_rec[i]; }
+                if (text_rec[i] > 0)
+                {
+                    text_rec[pos++] = text_rec[i];
+                }
             }
             text_rec.resize(number_of_lms_strings);
             int_vector_buffer<> buf(filename_text_rec_part2, std::ios::in, 1024 * 1024);
-            for (size_t i = 0; i < buf.size(); ++i) { text_rec[pos++] = buf[i]; }
+            for (size_t i = 0; i < buf.size(); ++i)
+            {
+                text_rec[pos++] = buf[i];
+            }
             buf.close(true);
             text_rec[number_of_lms_strings - 1] = 0;
         }
@@ -690,12 +787,18 @@ void _construct_sa_se(int_vector_type & text, std::string filename_sa, uint64_t 
             order = 0;
             for (size_t i = number_of_lms_strings - 1; i < number_of_lms_strings; --i)
             {
-                if (!same_lms[i]) { ++order; }
+                if (!same_lms[i])
+                {
+                    ++order;
+                }
                 text_rec[left[left_pointer--] / 2] = order;
             }
             for (size_t i = 0, pos = 0; i < text_rec.size(); ++i)
             {
-                if (text_rec[i] > 0) { text_rec[pos++] = text_rec[i]; }
+                if (text_rec[i] > 0)
+                {
+                    text_rec[pos++] = text_rec[i];
+                }
             }
             text_rec[number_of_lms_strings - 1] = 0;
             text_rec.resize(number_of_lms_strings);
@@ -815,11 +918,11 @@ void _construct_sa_se(int_vector_type & text, std::string filename_sa, uint64_t 
         std::vector<int_vector_buffer<>> cached_array(parts - 1);
         for (size_t i = 0; i < cached_array.size(); ++i)
         {
-            cached_array[i] = int_vector_buffer<>(tmp_file(filename_sa,
-                                                           "_rightbuffer" + util::to_string(i) + "_" + util::to_string(recursion)),
-                                                  std::ios::out,
-                                                  buffersize,
-                                                  nsize);
+            cached_array[i] = int_vector_buffer<>(
+                tmp_file(filename_sa, "_rightbuffer" + util::to_string(i) + "_" + util::to_string(recursion)),
+                std::ios::out,
+                buffersize,
+                nsize);
         }
 
         for (size_t c = 0, pos = 0, offset = 0; c < sigma; ++c)
@@ -854,7 +957,10 @@ void _construct_sa_se(int_vector_type & text, std::string filename_sa, uint64_t 
                         size_t val = idx - 1;
                         size_t src = bkt_l[symbol];
                         bkt_l[symbol] = bkt_l[symbol] + 1;
-                        if ((src - offset) / partsize == 0) { array[src - offset] = val; }
+                        if ((src - offset) / partsize == 0)
+                        {
+                            array[src - offset] = val;
+                        }
                         else
                         {
                             size_t part = src / partsize - 1;
@@ -873,13 +979,19 @@ void _construct_sa_se(int_vector_type & text, std::string filename_sa, uint64_t 
             while (left_pointer < number_of_lms_strings and text[left[left_pointer]] == c)
             {
                 size_t idx = left[left_pointer--];
-                if (idx == 0) { idx = n; }
+                if (idx == 0)
+                {
+                    idx = n;
+                }
                 --idx;
                 size_t symbol = text[idx];
                 size_t val = idx;
                 size_t src = bkt_l[symbol];
                 bkt_l[symbol] = bkt_l[symbol] + 1;
-                if ((src - offset) / partsize == 0) { array[src - offset] = val; }
+                if ((src - offset) / partsize == 0)
+                {
+                    array[src - offset] = val;
+                }
                 else
                 {
                     size_t part = src / partsize - 1;
@@ -888,7 +1000,10 @@ void _construct_sa_se(int_vector_type & text, std::string filename_sa, uint64_t 
                 }
             }
         }
-        for (size_t i = 0; i < cached_array.size(); ++i) { cached_array[i].close(true); }
+        for (size_t i = 0; i < cached_array.size(); ++i)
+        {
+            cached_array[i].close(true);
+        }
     }
     left.close(true);
     right_pointer--;
@@ -901,11 +1016,11 @@ void _construct_sa_se(int_vector_type & text, std::string filename_sa, uint64_t 
         std::vector<int_vector_buffer<>> cached_array(parts - 1);
         for (size_t i = 0; i < cached_array.size(); ++i)
         {
-            cached_array[i] = int_vector_buffer<>(tmp_file(filename_sa,
-                                                           "_leftbuffer" + util::to_string(i) + "_" + util::to_string(recursion)),
-                                                  std::ios::out,
-                                                  buffersize,
-                                                  nsize);
+            cached_array[i] = int_vector_buffer<>(
+                tmp_file(filename_sa, "_leftbuffer" + util::to_string(i) + "_" + util::to_string(recursion)),
+                std::ios::out,
+                buffersize,
+                nsize);
             //		cached_array_pointer[i] = 0;
         }
         for (size_t c = sigma - 1, pos = bkt_s_last - 1, offset = partsize * (parts - 1); c < sigma; --c)
@@ -932,13 +1047,19 @@ void _construct_sa_se(int_vector_type & text, std::string filename_sa, uint64_t 
 
                 assert((pos - offset) < array.size());
                 size_t idx = array[pos - offset];
-                if (idx == 0) { idx = n; }
+                if (idx == 0)
+                {
+                    idx = n;
+                }
                 --idx;
                 assert((idx) < text.size());
                 size_t symbol = text[idx];
                 if (symbol <= c)
                 {
-                    if (idx == n - 1) { cached_sa[sa_pointer--] = 0; }
+                    if (idx == n - 1)
+                    {
+                        cached_sa[sa_pointer--] = 0;
+                    }
                     else
                     {
                         cached_sa[sa_pointer--] = idx + 1;
@@ -962,7 +1083,10 @@ void _construct_sa_se(int_vector_type & text, std::string filename_sa, uint64_t 
                 }
                 else
                 {
-                    if (idx == n - 1) { cached_sa[sa_pointer--] = 0; }
+                    if (idx == n - 1)
+                    {
+                        cached_sa[sa_pointer--] = 0;
+                    }
                     else
                     {
                         cached_sa[sa_pointer--] = idx + 1;
@@ -973,7 +1097,10 @@ void _construct_sa_se(int_vector_type & text, std::string filename_sa, uint64_t 
             while (right_pointer < number_of_lms_strings and text[right[right_pointer]] == c)
             {
                 size_t idx = right[right_pointer--];
-                if (idx == 0) { idx = n; }
+                if (idx == 0)
+                {
+                    idx = n;
+                }
                 --idx;
                 size_t symbol = text[idx];
                 assert((symbol) < bkt_s.size());
@@ -995,7 +1122,10 @@ void _construct_sa_se(int_vector_type & text, std::string filename_sa, uint64_t 
                 }
             }
         }
-        for (size_t i = 0; i < cached_array.size(); ++i) { cached_array[i].close(true); }
+        for (size_t i = 0; i < cached_array.size(); ++i)
+        {
+            cached_array[i].close(true);
+        }
     }
     right.close(true);
     cached_sa.close();

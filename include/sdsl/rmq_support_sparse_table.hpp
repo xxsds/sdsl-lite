@@ -50,31 +50,35 @@ using range_maximum_support_sparse_table = rmq_support_sparse_table<t_rac, false
 template <class t_rac, bool t_min>
 class rmq_support_sparse_table
 {
-    const t_rac * m_v;         // pointer to the supported random access container
+    t_rac const * m_v;         // pointer to the supported random access container
     bit_vector::size_type m_k; // size of m_table
     std::vector<int_vector<>> m_table;
     typedef min_max_trait<t_rac, t_min> mm_trait;
 
-  public:
+public:
     typedef typename t_rac::size_type size_type;
     typedef typename t_rac::size_type value_type;
 
-    rmq_support_sparse_table(const t_rac * v = nullptr)
-      : m_v(v)
-      , m_k(0)
+    rmq_support_sparse_table(t_rac const * v = nullptr) : m_v(v), m_k(0)
     {
-        if (m_v == nullptr) return;
+        if (m_v == nullptr)
+            return;
         const size_type n = m_v->size();
         if (n < 2) // for n<2 the queries could be answerd without any table
             return;
         size_type k = 0;
-        while (2 * (1ULL << k) < n) ++k; // calculate maximal
+        while (2 * (1ULL << k) < n)
+            ++k; // calculate maximal
         m_table.resize(k);
         m_k = k;
-        for (size_type i = 0; i < k; ++i) { m_table[i] = int_vector<>(n - (1ULL << (i + 1)) + 1, 0, i + 1); }
+        for (size_type i = 0; i < k; ++i)
+        {
+            m_table[i] = int_vector<>(n - (1ULL << (i + 1)) + 1, 0, i + 1);
+        }
         for (size_type i = 0; i < n - 1; ++i)
         {
-            if (!mm_trait::compare((*m_v)[i], (*m_v)[i + 1])) m_table[0][i] = 1;
+            if (!mm_trait::compare((*m_v)[i], (*m_v)[i + 1]))
+                m_table[0][i] = 1;
         }
         for (size_type i = 1; i < k; ++i)
         {
@@ -82,25 +86,26 @@ class rmq_support_sparse_table
             {
                 m_table[i][j] = mm_trait::compare((*m_v)[j + m_table[i - 1][j]],
                                                   (*m_v)[j + (1ULL << i) + m_table[i - 1][j + (1ULL << i)]])
-                                                                                  ? m_table[i - 1][j]
-                                                                                  : (1ULL
-                                                                                     << i) + m_table[i - 1]
-                                                                                                    [j + (1ULL << i)];
+                                  ? m_table[i - 1][j]
+                                  : (1ULL << i) + m_table[i - 1][j + (1ULL << i)];
             }
         }
     }
 
     //! Copy constructor
-    rmq_support_sparse_table(const rmq_support_sparse_table & rm) = default;
+    rmq_support_sparse_table(rmq_support_sparse_table const & rm) = default;
 
     //! Move constructor
     rmq_support_sparse_table(rmq_support_sparse_table && rm) = default;
 
-    rmq_support_sparse_table & operator=(const rmq_support_sparse_table & rm) = default;
+    rmq_support_sparse_table & operator=(rmq_support_sparse_table const & rm) = default;
 
     rmq_support_sparse_table & operator=(rmq_support_sparse_table && rm) = default;
 
-    void set_vector(const t_rac * v) { m_v = v; }
+    void set_vector(t_rac const * v)
+    {
+        m_v = v;
+    }
 
     //! Range minimum/maximum query for the supported random access container v.
     /*!
@@ -117,13 +122,15 @@ class rmq_support_sparse_table
     {
         assert(l <= r);
         assert(r < size());
-        if (l == r) return l;
-        if (l + 1 == r) return mm_trait::compare((*m_v)[l], (*m_v)[r]) ? l : r;
+        if (l == r)
+            return l;
+        if (l + 1 == r)
+            return mm_trait::compare((*m_v)[l], (*m_v)[r]) ? l : r;
         size_type k = bits::hi(r - l);
         const size_type rr = r - (1ULL << k) + 1;
         return mm_trait::compare((*m_v)[l + m_table[k - 1][l]], (*m_v)[rr + m_table[k - 1][rr]])
-                                                                 ? l + m_table[k - 1][l]
-                                                                 : rr + m_table[k - 1][rr];
+                 ? l + m_table[k - 1][l]
+                 : rr + m_table[k - 1][rr];
     }
 
     size_type size() const
@@ -141,20 +148,22 @@ class rmq_support_sparse_table
         written_bytes += write_member(m_k, out);
         if (m_k > 0)
         {
-            for (size_type i = 0; i < m_k; ++i) written_bytes += m_table[i].serialize(out);
+            for (size_type i = 0; i < m_k; ++i)
+                written_bytes += m_table[i].serialize(out);
         }
         structure_tree::add_size(child, written_bytes);
         return written_bytes;
     }
 
-    void load(std::istream & in, const t_rac * v)
+    void load(std::istream & in, t_rac const * v)
     {
         set_vector(v);
         read_member(m_k, in);
         if (m_k > 0)
         {
             m_table.resize(m_k);
-            for (size_type i = 0; i < m_k; ++i) m_table[i].load(in);
+            for (size_type i = 0; i < m_k; ++i)
+                m_table[i].load(in);
         }
     }
 
@@ -162,7 +171,10 @@ class rmq_support_sparse_table
     void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
     {
         ar(CEREAL_NVP(m_k));
-        for (size_type i = 0; i < m_k; ++i) { ar(CEREAL_NVP(m_table[i])); }
+        for (size_type i = 0; i < m_k; ++i)
+        {
+            ar(CEREAL_NVP(m_table[i]));
+        }
     }
 
     template <typename archive_t>
@@ -170,14 +182,23 @@ class rmq_support_sparse_table
     {
         ar(CEREAL_NVP(m_k));
         m_table.resize(m_k);
-        for (size_type i = 0; i < m_k; ++i) { ar(CEREAL_NVP(m_table[i])); }
+        for (size_type i = 0; i < m_k; ++i)
+        {
+            ar(CEREAL_NVP(m_table[i]));
+        }
     }
 
     //! Equality operator.
-    bool operator==(rmq_support_sparse_table const & other) const noexcept { return (m_table == other.m_table); }
+    bool operator==(rmq_support_sparse_table const & other) const noexcept
+    {
+        return (m_table == other.m_table);
+    }
 
     //! Inequality operator.
-    bool operator!=(rmq_support_sparse_table const & other) const noexcept { return !(*this == other); }
+    bool operator!=(rmq_support_sparse_table const & other) const noexcept
+    {
+        return !(*this == other);
+    }
 };
 
 } // namespace sdsl

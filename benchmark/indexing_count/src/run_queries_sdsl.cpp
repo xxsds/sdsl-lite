@@ -97,25 +97,27 @@ int main(int argc, char * argv[])
 
     switch (querytype)
     {
-        case COUNT:
-            if (argc > 3)
-                if (*argv[3] == VERBOSE)
-                {
-                    Verbose = 1;
-                    fprintf(stdout, "%c", COUNT);
-                }
-            do_count(csa);
-            break;
-        case LOCATE:
-            if (argc > 3)
-                if (*argv[3] == VERBOSE)
-                {
-                    Verbose = 1;
-                    fprintf(stdout, "%c", LOCATE);
-                }
-            do_locate(csa);
-            break;
-        default: fprintf(stderr, "Unknow option: main ru\n"); exit(1);
+    case COUNT:
+        if (argc > 3)
+            if (*argv[3] == VERBOSE)
+            {
+                Verbose = 1;
+                fprintf(stdout, "%c", COUNT);
+            }
+        do_count(csa);
+        break;
+    case LOCATE:
+        if (argc > 3)
+            if (*argv[3] == VERBOSE)
+            {
+                Verbose = 1;
+                fprintf(stdout, "%c", LOCATE);
+            }
+        do_locate(csa);
+        break;
+    default:
+        fprintf(stderr, "Unknow option: main ru\n");
+        exit(1);
     }
     return 0;
 }
@@ -243,7 +245,8 @@ void pfile_info(ulong * length, ulong * numpatt)
 
     while ((c = fgetc(stdin)) != 0)
     {
-        if (c == '\n') break;
+        if (c == '\n')
+            break;
         fprintf(stderr, "%d", c);
     }
 

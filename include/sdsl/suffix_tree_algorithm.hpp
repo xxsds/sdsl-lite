@@ -35,15 +35,14 @@ namespace sdsl
  *        \f$ \Order{ t_{\Psi} } \f$ or \f$ \Order{t_{cst.child}} \f$
  */
 template <class t_cst>
-typename t_cst::size_type
-forward_search(const t_cst & cst,
-               typename t_cst::node_type & v,
-               const typename t_cst::size_type d,
-               const typename t_cst::char_type c,
-               typename t_cst::size_type & char_pos,
-               SDSL_UNUSED
-               typename std::enable_if<std::is_same<cst_tag, typename t_cst::index_category>::value, cst_tag>::type x =
-                                                                 cst_tag())
+typename t_cst::size_type forward_search(
+    t_cst const & cst,
+    typename t_cst::node_type & v,
+    const typename t_cst::size_type d,
+    const typename t_cst::char_type c,
+    typename t_cst::size_type & char_pos,
+    SDSL_UNUSED
+    typename std::enable_if<std::is_same<cst_tag, typename t_cst::index_category>::value, cst_tag>::type x = cst_tag())
 {
     auto cc = cst.csa.char2comp[c]; // check if c occurs in the text of the csa
     if (cc == 0 and cc != c)        //   "    " "    "     "  "    "   "  "   "
@@ -52,7 +51,8 @@ forward_search(const t_cst & cst,
     if (d < depth_node)
     { // in an edge, no  branching
         char_pos = cst.csa.psi[char_pos];
-        if (char_pos < cst.csa.C[cc] or char_pos >= cst.csa.C[cc + 1]) return 0;
+        if (char_pos < cst.csa.C[cc] or char_pos >= cst.csa.C[cc + 1])
+            return 0;
         return cst.size(v);
     }
     else if (d == depth_node)
@@ -82,18 +82,18 @@ forward_search(const t_cst & cst,
  *        \f$ \Order{ t_{\Psi} } \f$ or \f$ \Order{t_{cst.child}} \f$
  */
 template <class t_cst, class t_pat_iter>
-typename t_cst::size_type
-forward_search(const t_cst & cst,
-               typename t_cst::node_type & v,
-               typename t_cst::size_type d,
-               t_pat_iter begin,
-               t_pat_iter end,
-               typename t_cst::size_type & char_pos,
-               SDSL_UNUSED
-               typename std::enable_if<std::is_same<cst_tag, typename t_cst::index_category>::value, cst_tag>::type x =
-                                                                 cst_tag())
+typename t_cst::size_type forward_search(
+    t_cst const & cst,
+    typename t_cst::node_type & v,
+    typename t_cst::size_type d,
+    t_pat_iter begin,
+    t_pat_iter end,
+    typename t_cst::size_type & char_pos,
+    SDSL_UNUSED
+    typename std::enable_if<std::is_same<cst_tag, typename t_cst::index_category>::value, cst_tag>::type x = cst_tag())
 {
-    if (begin == end) return cst.size(v);
+    if (begin == end)
+        return cst.size(v);
     typename t_cst::size_type size = 0;
     t_pat_iter it = begin;
     while (it != end and (size = forward_search(cst, v, d, *it, char_pos)))
@@ -118,7 +118,7 @@ forward_search(const t_cst & cst,
  *        \f$ \Order{ t_{backward\_search} } \f$
  */
 template <class t_cst, class t_pat_iter>
-typename t_cst::size_type count(const t_cst & cst, t_pat_iter begin, t_pat_iter end, cst_tag)
+typename t_cst::size_type count(t_cst const & cst, t_pat_iter begin, t_pat_iter end, cst_tag)
 {
     return count(cst.csa, begin, end);
 }
@@ -139,12 +139,12 @@ typename t_cst::size_type count(const t_cst & cst, t_pat_iter begin, t_pat_iter 
  *         occurrences of pattern in the CST.
  */
 template <class t_cst, class t_pat_iter, class t_rac = int_vector<64>>
-t_rac locate(const t_cst & cst,
+t_rac locate(t_cst const & cst,
              t_pat_iter begin,
              t_pat_iter end,
              SDSL_UNUSED
              typename std::enable_if<std::is_same<cst_tag, typename t_cst::index_category>::value, cst_tag>::type x =
-                                                               cst_tag())
+                 cst_tag())
 {
     return locate(cst.csa, begin, end);
 }
@@ -161,12 +161,12 @@ t_rac locate(const t_cst & cst,
  * cst.depth(v)+1\f$ bytes) to hold the extracted text.
  */
 template <class t_cst, class t_text_iter>
-typename t_cst::size_type extract(const t_cst & cst,
-                                  const typename t_cst::node_type & v,
-                                  t_text_iter text,
-                                  SDSL_UNUSED
-                                  typename std::enable_if<std::is_same<cst_tag, typename t_cst::index_category>::value,
-                                                          cst_tag>::type x = cst_tag())
+typename t_cst::size_type extract(
+    t_cst const & cst,
+    const typename t_cst::node_type & v,
+    t_text_iter text,
+    SDSL_UNUSED
+    typename std::enable_if<std::is_same<cst_tag, typename t_cst::index_category>::value, cst_tag>::type x = cst_tag())
 {
     if (v == cst.root())
     {
@@ -189,15 +189,17 @@ typename t_cst::size_type extract(const t_cst & cst,
  * \return The string of the concatenated edge labels from the root to the node v.
  */
 template <class t_cst>
-typename t_cst::csa_type::string_type
-extract(const t_cst & cst,
-        const typename t_cst::node_type & v,
-        SDSL_UNUSED
-        typename std::enable_if<std::is_same<cst_tag, typename t_cst::index_category>::value, cst_tag>::type x =
-                                                          cst_tag())
+typename t_cst::csa_type::string_type extract(
+    t_cst const & cst,
+    const typename t_cst::node_type & v,
+    SDSL_UNUSED
+    typename std::enable_if<std::is_same<cst_tag, typename t_cst::index_category>::value, cst_tag>::type x = cst_tag())
 {
     typedef typename t_cst::csa_type::string_type t_rac;
-    if (v == cst.root()) { return t_rac{}; }
+    if (v == cst.root())
+    {
+        return t_rac{};
+    }
     // first get the suffix array entry of the leftmost leaf in the subtree rooted at v
     typename t_cst::size_type begin = cst.csa[cst.lb(v)];
     // then call the extract method on the compressed suffix array
@@ -212,14 +214,17 @@ extract(const t_cst & cst,
  * s in the original text.
  */
 template <class t_cst>
-double H0(const typename t_cst::node_type & v, const t_cst & cst)
+double H0(const typename t_cst::node_type & v, t_cst const & cst)
 {
-    if (cst.is_leaf(v)) { return 0; }
+    if (cst.is_leaf(v))
+    {
+        return 0;
+    }
     else
     {
         double h0 = 0;
         auto n = cst.size(v);
-        for (const auto & child : cst.children(v))
+        for (auto const & child : cst.children(v))
         {
             double p = ((double)cst.size(child)) / n;
             h0 -= p * log2(p);
@@ -235,7 +240,7 @@ double H0(const typename t_cst::node_type & v, const t_cst & cst)
  * \return    H_k and the number of contexts.
  */
 template <class t_cst>
-std::pair<double, size_t> Hk(const t_cst & cst, typename t_cst::size_type k)
+std::pair<double, size_t> Hk(t_cst const & cst, typename t_cst::size_type k)
 {
     double hk = 0;
     size_t context = 0;
@@ -253,7 +258,10 @@ std::pair<double, size_t> Hk(const t_cst & cst, typename t_cst::size_type k)
                 typename t_cst::size_type d = cst.depth(*it);
                 if (d >= k)
                 {
-                    if (d == k) { hk += cst.size(*it) * H0(*it, cst); }
+                    if (d == k)
+                    {
+                        hk += cst.size(*it) * H0(*it, cst);
+                    }
                     ++context;
                     it.skip_subtree();
                 }
@@ -261,12 +269,15 @@ std::pair<double, size_t> Hk(const t_cst & cst, typename t_cst::size_type k)
             else
             {
                 // if d of leaf is >= k, add context
-                if (leafs_with_d_smaller_k.find(cst.lb(*it)) == leafs_with_d_smaller_k.end()) { ++context; }
+                if (leafs_with_d_smaller_k.find(cst.lb(*it)) == leafs_with_d_smaller_k.end())
+                {
+                    ++context;
+                }
             }
         }
     }
     hk /= cst.size();
-    return { hk, context };
+    return {hk, context};
 }
 
 } // namespace sdsl

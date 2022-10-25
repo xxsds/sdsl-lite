@@ -63,15 +63,13 @@ struct _hutu_shape
         heap_node *left, *right, *parent; // pointer to left/right child, parent
         int64_t rank;                     // rank of the heap node
         //! Constructor
-        heap_node(t_element * it = nullptr)
-          : item(it)
-          , left(nullptr)
-          , right(nullptr)
-          , parent(nullptr)
-          , rank(0)
+        heap_node(t_element * it = nullptr) : item(it), left(nullptr), right(nullptr), parent(nullptr), rank(0)
         {}
         //! Less then operator
-        bool operator<(const heap_node & other) { return *item < *(other.item); }
+        bool operator<(heap_node const & other)
+        {
+            return *item < *(other.item);
+        }
     };
 
     // Implementation of a leftist heap as needed in the first phase of
@@ -79,7 +77,7 @@ struct _hutu_shape
     template <class t_element>
     class l_heap
     {
-      private:
+    private:
         heap_node<t_element> * m_root; // pointer to the root
 
         // fixes node information after the deletion of elements
@@ -93,7 +91,8 @@ struct _hutu_shape
                     if (item->rank != 0)
                     {
                         item->rank = 0;
-                        if (item->parent) fix_node(item->parent);
+                        if (item->parent)
+                            fix_node(item->parent);
                     }
                 }
                 else
@@ -128,8 +127,10 @@ struct _hutu_shape
         // internal merge function
         heap_node<t_element> * merge(heap_node<t_element> * h1, heap_node<t_element> * h2)
         {
-            if (!h1) return h2;
-            if (!h2) return h1;
+            if (!h1)
+                return h2;
+            if (!h2)
+                return h1;
             if (*(h1->item) < *(h2->item))
                 return merge1(h1, h2);
             else
@@ -146,7 +147,10 @@ struct _hutu_shape
             else
             {
                 h1->right = merge(h1->right, h2);
-                if (h1->right) { h1->right->parent = h1; }
+                if (h1->right)
+                {
+                    h1->right->parent = h1;
+                }
 
                 if ((h1->left->rank) < (h1->right->rank))
                 {
@@ -159,20 +163,25 @@ struct _hutu_shape
             return h1;
         }
 
-      public:
+    public:
         //! Default constructor
-        l_heap()
-          : m_root(nullptr)
+        l_heap() : m_root(nullptr)
         {}
 
         //! Indicates if the heap is empty
-        bool empty() const { return (m_root == nullptr); }
+        bool empty() const
+        {
+            return (m_root == nullptr);
+        }
 
         //! Get the smallest element
         /*!\return The smallest element in the heap
          *          or nullptr if it does not exist.
          */
-        heap_node<t_element> * find_min() const { return m_root; }
+        heap_node<t_element> * find_min() const
+        {
+            return m_root;
+        }
 
         //! Get the second smallest element
         /*!\return The second smallest element in the heap
@@ -180,9 +189,12 @@ struct _hutu_shape
          */
         heap_node<t_element> * find_snd_min() const
         {
-            if (m_root == nullptr) return nullptr;
-            if (m_root->left == nullptr) return m_root->right;
-            if (m_root->right == nullptr) return m_root->left;
+            if (m_root == nullptr)
+                return nullptr;
+            if (m_root->left == nullptr)
+                return m_root->right;
+            if (m_root->right == nullptr)
+                return m_root->left;
 
             if (m_root->left->operator<(*m_root->right))
                 return m_root->left;
@@ -208,7 +220,8 @@ struct _hutu_shape
         {
             heap_node<t_element> * old_root = m_root;
             m_root = merge(m_root->left, m_root->right);
-            if (m_root) m_root->parent = nullptr;
+            if (m_root)
+                m_root->parent = nullptr;
             delete old_root;
         }
 
@@ -227,8 +240,12 @@ struct _hutu_shape
                     // otherwise we have to adapt the parent node and
                     // the children of item
                     heap_node<t_element> * h1 = merge(item->left, item->right);
-                    if (h1) h1->parent = item->parent;
-                    if (item == item->parent->left) { item->parent->left = h1; }
+                    if (h1)
+                        h1->parent = item->parent;
+                    if (item == item->parent->left)
+                    {
+                        item->parent->left = h1;
+                    }
                     else if (item == item->parent->right)
                     {
                         item->parent->right = h1;
@@ -276,21 +293,26 @@ struct _hutu_shape
         ht_node * lt; // pointer to the left- and rightmost leafs of the hpq
         ht_node * rt; // need for merge operations
 
-        m_node()
-          : qel(0)
-          , myhpq(0)
-          , lt(0)
-          , rt(0)
+        m_node() : qel(0), myhpq(0), lt(0), rt(0)
         {}
 
         bool operator<(const m_node other)
         {
-            if (min_sum != other.min_sum) { return min_sum < other.min_sum; }
-            if (i != other.i) { return i < other.i; }
+            if (min_sum != other.min_sum)
+            {
+                return min_sum < other.min_sum;
+            }
+            if (i != other.i)
+            {
+                return i < other.i;
+            }
             return j < other.j;
         }
 
-        bool operator>(const m_node other) { return other < *this; }
+        bool operator>(const m_node other)
+        {
+            return other < *this;
+        }
     };
 
     // Hu-Tucker node as used in the first phase of the Hu-Tucker algorithm
@@ -312,22 +334,22 @@ struct _hutu_shape
         ht_node * left;          // left child
         ht_node * right;         // right child
 
-        ht_node()
-          : mpql(0)
-          , mpqr(0)
-          , ql(0)
-          , qr(0)
-          , left(nullptr)
-          , right(nullptr)
+        ht_node() : mpql(0), mpqr(0), ql(0), qr(0), left(nullptr), right(nullptr)
         {}
 
-        bool operator<(const ht_node & other)
+        bool operator<(ht_node const & other)
         {
-            if (w != other.w) { return w < other.w; }
+            if (w != other.w)
+            {
+                return w < other.w;
+            }
             return pos < other.pos;
         }
 
-        bool operator>(const ht_node & other) { return other < *this; }
+        bool operator>(ht_node const & other)
+        {
+            return other < *this;
+        }
     };
 
     template <class t_rac>
@@ -406,9 +428,11 @@ struct _hutu_shape
             // delete old nodes from all hpqs
             if (l->t)
             {
-                if (l->mpql) l->mpql->myhpq->delete_element(l->ql);
+                if (l->mpql)
+                    l->mpql->myhpq->delete_element(l->ql);
                 l->ql = nullptr;
-                if (l->mpqr) l->mpqr->myhpq->delete_element(l->qr);
+                if (l->mpqr)
+                    l->mpqr->myhpq->delete_element(l->qr);
                 l->qr = nullptr;
             }
             else
@@ -418,10 +442,12 @@ struct _hutu_shape
             }
             if (r->t)
             {
-                if (r->mpql) r->mpql->myhpq->delete_element(r->ql);
+                if (r->mpql)
+                    r->mpql->myhpq->delete_element(r->ql);
                 l->ql = nullptr;
 
-                if (r->mpqr) r->mpqr->myhpq->delete_element(r->qr);
+                if (r->mpqr)
+                    r->mpqr->myhpq->delete_element(r->qr);
                 r->qr = nullptr;
             }
             else
@@ -439,8 +465,10 @@ struct _hutu_shape
                 if (l->mpql)
                 {
                     n_lt = l->mpql->lt;
-                    if (n_lt == l) n_lt = nullptr;
-                    if (n_lt) n_lt->mpqr = n_m;
+                    if (n_lt == l)
+                        n_lt = nullptr;
+                    if (n_lt)
+                        n_lt->mpqr = n_m;
 
                     h1 = l->mpql->myhpq;
                     h2 = l->mpqr->myhpq;
@@ -463,8 +491,10 @@ struct _hutu_shape
                 if (r->mpqr)
                 {
                     n_rt = r->mpqr->rt;
-                    if (n_rt == r) n_rt = nullptr;
-                    if (n_rt) n_rt->mpql = n_m;
+                    if (n_rt == r)
+                        n_rt = nullptr;
+                    if (n_rt)
+                        n_rt->mpql = n_m;
 
                     h3 = r->mpqr->myhpq;
                     h1->merge(h3);
@@ -472,7 +502,8 @@ struct _hutu_shape
                     delete r->mpqr;
 
                     n_hpq = h1;
-                    if (n_rt) n_rt->mpql = n_m;
+                    if (n_rt)
+                        n_rt->mpql = n_m;
                 }
                 else
                 {
@@ -485,9 +516,11 @@ struct _hutu_shape
                 if (l->mpql)
                 {
                     n_lt = l->mpql->lt;
-                    if (n_lt) n_lt->mpqr = n_m;
+                    if (n_lt)
+                        n_lt->mpqr = n_m;
                     n_rt = l->mpqr->rt;
-                    if (n_rt) n_rt->mpql = n_m;
+                    if (n_rt)
+                        n_rt->mpql = n_m;
 
                     l->mpql->myhpq->merge(l->mpqr->myhpq);
                     n_hpq = l->mpql->myhpq;
@@ -500,7 +533,8 @@ struct _hutu_shape
                 {
                     n_lt = nullptr;
                     n_rt = l->mpqr->rt;
-                    if (n_rt) n_rt->mpql = n_m;
+                    if (n_rt)
+                        n_rt->mpql = n_m;
 
                     n_hpq = l->mpqr->myhpq;
                     MPQ.delete_element(l->mpqr->qel);
@@ -512,9 +546,11 @@ struct _hutu_shape
                 if (r->mpqr)
                 {
                     n_lt = r->mpql->lt;
-                    if (n_lt) n_lt->mpqr = n_m;
+                    if (n_lt)
+                        n_lt->mpqr = n_m;
                     n_rt = r->mpqr->rt;
-                    if (n_rt) n_rt->mpql = n_m;
+                    if (n_rt)
+                        n_rt->mpql = n_m;
 
                     r->mpql->myhpq->merge(r->mpqr->myhpq);
                     n_hpq = r->mpql->myhpq;
@@ -526,7 +562,8 @@ struct _hutu_shape
                 else
                 {
                     n_lt = r->mpql->lt;
-                    if (n_lt) n_lt->mpqr = n_m;
+                    if (n_lt)
+                        n_lt->mpqr = n_m;
                     n_rt = nullptr;
 
                     n_hpq = r->mpql->myhpq;
@@ -544,8 +581,10 @@ struct _hutu_shape
                 n_lt = m->lt;
                 n_rt = m->rt;
 
-                if (n_lt) n_lt->mpqr = n_m;
-                if (n_rt) n_rt->mpql = n_m;
+                if (n_lt)
+                    n_lt->mpqr = n_m;
+                if (n_rt)
+                    n_rt->mpql = n_m;
 
                 delete m;
             }
@@ -626,14 +665,13 @@ struct _hutu_shape
                 n_node->pos = temp_nodes.size();
                 temp_nodes[stack[spointer - 1]->pos].parent = temp_nodes.size();
                 temp_nodes[stack[spointer]->pos].parent = temp_nodes.size();
-                temp_nodes.emplace_back(pc_node(n_node->w,
-                                                0,
-                                                pc_node::undef,
-                                                stack[spointer - 1]->pos,
-                                                stack[spointer]->pos));
+                temp_nodes.emplace_back(
+                    pc_node(n_node->w, 0, pc_node::undef, stack[spointer - 1]->pos, stack[spointer]->pos));
 
-                if (!stack[spointer - 1]->t) delete stack[spointer - 1];
-                if (!stack[spointer]->t) delete stack[spointer];
+                if (!stack[spointer - 1]->t)
+                    delete stack[spointer - 1];
+                if (!stack[spointer]->t)
+                    delete stack[spointer];
 
                 stack[--spointer] = n_node;
             }
@@ -653,7 +691,10 @@ struct _hutu_shape
             assign_level(n->left, lvl + 1);
             assign_level(n->right, lvl + 1);
 
-            if (!n->t) { delete n; }
+            if (!n->t)
+            {
+                delete n;
+            }
         }
     }
 };

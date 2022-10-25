@@ -13,7 +13,7 @@ int main()
 
     {
         ofstream out("data.sdsl");
-        bit_vector b = { 1, 0, 0, 0, 1, 1, 0 };
+        bit_vector b = {1, 0, 0, 0, 1, 1, 0};
         serialize(b, out);
     }
     {
@@ -39,6 +39,7 @@ int main()
         std::vector<uint32_t> x;
         load_from_file(x, "data.sdsl");
         cout << x.size() << endl;
-        for (size_t i = 0; i < x.size(); ++i) cout << x[i] << endl;
+        for (size_t i = 0; i < x.size(); ++i)
+            cout << x[i] << endl;
     }
 }

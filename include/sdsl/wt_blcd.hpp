@@ -17,8 +17,6 @@
 #include <sdsl/wt_helper.hpp>
 #include <sdsl/wt_pc.hpp>
 
-#include <ext/alloc_traits.h>
-
 //! Namespace for the succinct data structure library.
 namespace sdsl
 {
@@ -67,10 +65,16 @@ struct _balanced_shape
     {
         size_type c = 0;
         std::vector<uint64_t> symbols;
-        std::for_each(std::begin(C), std::end(C), [&](decltype(*std::begin(C)) & freq) {
-            if (freq > 0) { symbols.push_back(c); }
-            ++c;
-        });
+        std::for_each(std::begin(C),
+                      std::end(C),
+                      [&](decltype(*std::begin(C)) & freq)
+                      {
+                          if (freq > 0)
+                          {
+                              symbols.push_back(c);
+                          }
+                          ++c;
+                      });
         uint64_t sigma = symbols.size();
         if (sigma > 0)
         {
@@ -92,10 +96,10 @@ struct _balanced_shape
     // recursive construct_tree method returns node frequency and node pointer
     template <class t_rac>
     static tPII _construct_tree(uint64_t parent,
-                                const std::vector<uint64_t> & symbols,
+                                std::vector<uint64_t> const & symbols,
                                 uint64_t lb,
                                 uint64_t sigma,
-                                const t_rac & C,
+                                t_rac const & C,
                                 std::vector<pc_node> & temp_nodes)
     {
         if (sigma == 1)

@@ -19,10 +19,12 @@ std::string temp_dir;
 // The fixture for testing class int_vector.
 class int_vector_mapper_test : public ::testing::Test
 {
-  protected:
-    int_vector_mapper_test() {}
+protected:
+    int_vector_mapper_test()
+    {}
 
-    virtual ~int_vector_mapper_test() {}
+    virtual ~int_vector_mapper_test()
+    {}
 
     virtual void SetUp()
     {
@@ -30,13 +32,17 @@ class int_vector_mapper_test : public ::testing::Test
         {
             std::uniform_int_distribution<uint64_t> distribution(1, 100000);
             auto dice = bind(distribution, rng);
-            for (size_type i = 0; i < 10; ++i) { vec_sizes.push_back(dice()); }
+            for (size_type i = 0; i < 10; ++i)
+            {
+                vec_sizes.push_back(dice());
+            }
         }
     }
 
-    virtual void TearDown() {}
+    virtual void TearDown()
+    {}
 
-    std::vector<size_type> vec_sizes = { 1, 64, 65, 127, 128 }; // different sizes for the vectors
+    std::vector<size_type> vec_sizes = {1, 64, 65, 127, 128}; // different sizes for the vectors
 };
 
 TEST_F(int_vector_mapper_test, iterator)
@@ -45,7 +51,7 @@ TEST_F(int_vector_mapper_test, iterator)
     static_assert(std::is_move_assignable<sdsl::int_vector_mapper<>>::value, "Type is not move assignable");
 
     // test plain
-    for (const auto & size : vec_sizes)
+    for (auto const & size : vec_sizes)
     {
         std::vector<uint64_t> vec(size);
         sdsl::util::set_to_id(vec);
@@ -73,7 +79,7 @@ TEST_F(int_vector_mapper_test, iterator)
     }
 
     // test fixed width
-    for (const auto & size : vec_sizes)
+    for (auto const & size : vec_sizes)
     {
         sdsl::int_vector<25> vec(size);
         sdsl::util::set_to_id(vec);
@@ -97,7 +103,7 @@ TEST_F(int_vector_mapper_test, iterator)
     }
 
     // test variable width
-    for (const auto & size : vec_sizes)
+    for (auto const & size : vec_sizes)
     {
         sdsl::int_vector<> vec(size);
         sdsl::util::set_to_id(vec);
@@ -126,7 +132,7 @@ TEST_F(int_vector_mapper_test, iterator)
 TEST_F(int_vector_mapper_test, push_back)
 {
     // test plain
-    for (const auto & size : vec_sizes)
+    for (auto const & size : vec_sizes)
     {
         std::vector<uint64_t> vec(size);
         sdsl::util::set_to_id(vec);
@@ -154,7 +160,7 @@ TEST_F(int_vector_mapper_test, push_back)
     }
 
     // test fixed width
-    for (const auto & size : vec_sizes)
+    for (auto const & size : vec_sizes)
     {
         sdsl::int_vector<31> vec(size);
         std::vector<uint64_t> stdvec(size);
@@ -180,7 +186,7 @@ TEST_F(int_vector_mapper_test, push_back)
     }
 
     // test variable width
-    for (const auto & size : vec_sizes)
+    for (auto const & size : vec_sizes)
     {
         sdsl::int_vector<> vec(size);
         std::vector<uint64_t> stdvec(size);
@@ -209,7 +215,7 @@ TEST_F(int_vector_mapper_test, push_back)
 
 TEST_F(int_vector_mapper_test, bit_compress)
 {
-    for (const auto & size : vec_sizes)
+    for (auto const & size : vec_sizes)
     {
         sdsl::int_vector<> vec(size);
         sdsl::util::set_to_id(vec);
@@ -242,7 +248,7 @@ TEST_F(int_vector_mapper_test, bit_compress)
 
 TEST_F(int_vector_mapper_test, bitvector_mapping)
 {
-    for (const auto & size : vec_sizes)
+    for (auto const & size : vec_sizes)
     {
         sdsl::bit_vector bv(size);
         sdsl::util::set_random_bits(bv, 4711);
@@ -275,7 +281,7 @@ TEST_F(int_vector_mapper_test, bitvector_mapping)
 
 TEST_F(int_vector_mapper_test, temp_buffer_test)
 {
-    for (const auto & size : vec_sizes)
+    for (auto const & size : vec_sizes)
     {
         sdsl::int_vector<> vec(size);
         sdsl::util::set_to_id(vec);
@@ -286,7 +292,10 @@ TEST_F(int_vector_mapper_test, temp_buffer_test)
             ASSERT_EQ(tmp_buf.width(), (uint8_t)31);
             ASSERT_EQ(tmp_buf.size(), (size_t)0);
             ASSERT_TRUE(tmp_buf.empty());
-            for (const auto & val : vec) { tmp_buf.push_back(val); }
+            for (auto const & val : vec)
+            {
+                tmp_buf.push_back(val);
+            }
             ASSERT_EQ(tmp_buf.size(), vec.size());
             ASSERT_TRUE(std::equal(tmp_buf.begin(), tmp_buf.end(), vec.begin()));
         }

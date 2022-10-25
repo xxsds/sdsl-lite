@@ -58,7 +58,7 @@ typedef Types<select_support_mcl<>,
               select_support_rrr<0, 127>,
               select_support_il<0, 256>,
               select_support_il<0, 1024>>
-                                                  Implementations;
+    Implementations;
 
 #else
 
@@ -75,7 +75,7 @@ typedef Types<select_support_mcl<>,
               select_support_mcl<10, 2>,
               select_support_mcl<00, 2>,
               select_support_mcl<11, 2>>
-                                                  Implementations;
+    Implementations;
 
 #endif
 
@@ -109,15 +109,15 @@ template <typename in_archive_t, typename out_archive_t, typename TypeParam>
 void do_serialisation(TypeParam const & l, typename TypeParam::bit_vector_type const & bv)
 {
     {
-        std::ofstream os{ temp_file, std::ios::binary };
-        out_archive_t oarchive{ os };
+        std::ofstream os{temp_file, std::ios::binary};
+        out_archive_t oarchive{os};
         oarchive(l);
     }
 
     {
         TypeParam in_l{};
-        std::ifstream is{ temp_file, std::ios::binary };
-        in_archive_t iarchive{ is };
+        std::ifstream is{temp_file, std::ios::binary};
+        in_archive_t iarchive{is};
         iarchive(in_l);
         in_l.set_vector(&bv);
         EXPECT_EQ(l, in_l);
@@ -146,6 +146,9 @@ TYPED_TEST(select_support_test, cereal)
 int main(int argc, char ** argv)
 {
     ::testing::InitGoogleTest(&argc, argv);
-    if (init_2_arg_test(argc, argv, "SELECT_SUPPORT", test_file, temp_dir, temp_file) != 0) { return 1; }
+    if (init_2_arg_test(argc, argv, "SELECT_SUPPORT", test_file, temp_dir, temp_file) != 0)
+    {
+        return 1;
+    }
     return RUN_ALL_TESTS();
 }

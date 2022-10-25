@@ -23,27 +23,26 @@ namespace sdsl
 
 inline void output_tab(std::ostream & out, size_t level)
 {
-    for (size_t i = 0; i < level; i++) out << "\t";
+    for (size_t i = 0; i < level; i++)
+        out << "\t";
 }
 
 class structure_tree_node
 {
-  private:
+private:
     using map_type = std::unordered_map<std::string, std::unique_ptr<structure_tree_node>>;
     map_type m_children;
 
-  public:
-    const map_type & children = m_children;
+public:
+    map_type const & children = m_children;
     size_t size = 0;
     std::string name;
     std::string type;
 
-  public:
-    structure_tree_node(const std::string & n, const std::string & t)
-      : name(n)
-      , type(t)
+public:
+    structure_tree_node(std::string const & n, std::string const & t) : name(n), type(t)
     {}
-    structure_tree_node * add_child(const std::string & n, const std::string & t)
+    structure_tree_node * add_child(std::string const & n, std::string const & t)
     {
         auto hash = n + t;
         auto child_itr = m_children.find(hash);
@@ -60,28 +59,33 @@ class structure_tree_node
             return (*child_itr).second.get();
         }
     }
-    void add_size(size_t s) { size += s; }
+    void add_size(size_t s)
+    {
+        size += s;
+    }
 };
 
 class structure_tree
 {
-  public:
-    static structure_tree_node * add_child(structure_tree_node * v, const std::string & name, const std::string & type)
+public:
+    static structure_tree_node * add_child(structure_tree_node * v, std::string const & name, std::string const & type)
     {
-        if (v) return v->add_child(name, type);
+        if (v)
+            return v->add_child(name, type);
         return nullptr;
     };
     static void add_size(structure_tree_node * v, uint64_t value)
     {
-        if (v) v->add_size(value);
+        if (v)
+            v->add_size(value);
     };
 };
 
 template <format_type F>
-void write_structure_tree(const structure_tree_node * v, std::ostream & out, size_t level = 0);
+void write_structure_tree(structure_tree_node const * v, std::ostream & out, size_t level = 0);
 
 template <>
-inline void write_structure_tree<JSON_FORMAT>(const structure_tree_node * v, std::ostream & out, size_t level)
+inline void write_structure_tree<JSON_FORMAT>(structure_tree_node const * v, std::ostream & out, size_t level)
 {
     if (v)
     {
@@ -103,9 +107,12 @@ inline void write_structure_tree<JSON_FORMAT>(const structure_tree_node * v, std
             output_tab(out, level + 1);
             out << "\"children\":[" << std::endl;
             size_t written_child_elements = 0;
-            for (const auto & child : v->children)
+            for (auto const & child : v->children)
             {
-                if (written_child_elements++ > 0) { out << "," << std::endl; }
+                if (written_child_elements++ > 0)
+                {
+                    out << "," << std::endl;
+                }
                 write_structure_tree<JSON_FORMAT>(child.second.get(), out, level + 2);
             }
             out << std::endl;
@@ -121,7 +128,7 @@ inline void write_structure_tree<JSON_FORMAT>(const structure_tree_node * v, std
     }
 }
 
-inline std::string create_html_header(const char * file_name)
+inline std::string create_html_header(char const * file_name)
 {
     std::stringstream jsonheader;
     jsonheader << "<html>\n"
@@ -145,7 +152,7 @@ inline std::string create_html_header(const char * file_name)
     return jsonheader.str();
 }
 
-inline std::string create_js_body(const std::string & jsonsize)
+inline std::string create_js_body(std::string const & jsonsize)
 {
     std::stringstream jsonbody;
     jsonbody << "<script type=\"text/javascript\">" << std::endl
@@ -347,9 +354,8 @@ inline std::string create_js_body(const std::string & jsonsize)
 }
 
 template <>
-inline void write_structure_tree<HTML_FORMAT>(const structure_tree_node * v,
-                                              std::ostream & out,
-                                              SDSL_UNUSED size_t level)
+inline void
+write_structure_tree<HTML_FORMAT>(structure_tree_node const * v, std::ostream & out, SDSL_UNUSED size_t level)
 {
     std::stringstream json_data;
     write_structure_tree<JSON_FORMAT>(v, json_data);

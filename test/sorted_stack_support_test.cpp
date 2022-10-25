@@ -14,14 +14,18 @@ std::string temp_dir;
 // The fixture for testing class sorted_stack_support.
 class sorted_stack_support_test : public ::testing::Test
 {
-  protected:
-    sorted_stack_support_test() {}
+protected:
+    sorted_stack_support_test()
+    {}
 
-    virtual ~sorted_stack_support_test() {}
+    virtual ~sorted_stack_support_test()
+    {}
 
-    virtual void SetUp() {}
+    virtual void SetUp()
+    {}
 
-    virtual void TearDown() {}
+    virtual void TearDown()
+    {}
 };
 
 void compare_stacks(std::stack<uint64_t> & exp, sdsl::sorted_stack_support & sss)
@@ -162,15 +166,15 @@ template <typename in_archive_t, typename out_archive_t>
 void do_serialisation(sdsl::sorted_stack_support const & l, std::string const & temp_file)
 {
     {
-        std::ofstream os{ temp_file, std::ios::binary };
-        out_archive_t oarchive{ os };
+        std::ofstream os{temp_file, std::ios::binary};
+        out_archive_t oarchive{os};
         oarchive(l);
     }
 
     {
         sdsl::sorted_stack_support in_l(1000000 + 10);
-        std::ifstream is{ temp_file, std::ios::binary };
-        in_archive_t iarchive{ is };
+        std::ifstream is{temp_file, std::ios::binary};
+        in_archive_t iarchive{is};
         iarchive(in_l);
         EXPECT_EQ(l, in_l);
     }

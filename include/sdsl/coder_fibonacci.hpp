@@ -23,7 +23,7 @@ namespace coder
 template <typename T = void>
 class fibonacci
 {
-  public:
+public:
     static struct impl
     {
         uint64_t fib12bit_to_bin[(1 << 12) * 8];
@@ -49,7 +49,10 @@ class fibonacci
         {
             for (uint32_t x = 0; x <= 0x1FFF; ++x)
             {
-                if (bits::cnt11(x)) { fib2bin_shift[x] = bits::sel11(x, 1) + 1; }
+                if (bits::cnt11(x))
+                {
+                    fib2bin_shift[x] = bits::sel11(x, 1) + 1;
+                }
                 else
                 {
                     fib2bin_shift[x] = 0;
@@ -63,7 +66,8 @@ class fibonacci
                 {
                     uint32_t y = x;
                     uint32_t fib_pos = 1;
-                    do {
+                    do
+                    {
                         if (y & 1)
                         {
                             w += bits::lt_fib[fib_pos - 1];
@@ -78,7 +82,8 @@ class fibonacci
                         ++fib_pos;
                         ++offset;
                         y >>= 1;
-                    } while (cnt);
+                    }
+                    while (cnt);
                 }
                 fib2bin_16_greedy[x] = (offset << 11) | w;
             }
@@ -92,7 +97,10 @@ class fibonacci
                         if ((x >> j) & 1ULL)
                         {
                             w += bits::lt_fib[12 * p + j];
-                            if (x >> (j + 1) & 1ULL) { break; }
+                            if (x >> (j + 1) & 1ULL)
+                            {
+                                break;
+                            }
                         }
                     }
                     fib2bin_0_95[(p << 12) | x] = w;
@@ -115,13 +123,11 @@ class fibonacci
      * \param it Iterator
      */
     template <bool t_sumup, bool t_inc, class t_iter>
-    static uint64_t decode(const uint64_t * data, const size_type start_idx, size_type n, t_iter it = (t_iter) nullptr);
+    static uint64_t decode(uint64_t const * data, const size_type start_idx, size_type n, t_iter it = (t_iter) nullptr);
 
     template <bool t_sumup, bool t_inc, class t_iter>
-    static uint64_t decode1(const uint64_t * data,
-                            const size_type start_idx,
-                            size_type n,
-                            t_iter it = (t_iter) nullptr);
+    static uint64_t
+    decode1(uint64_t const * data, const size_type start_idx, size_type n, t_iter it = (t_iter) nullptr);
 
     //! Decode n Fibonacci encoded integers beginning at start_idx in the bitstring "data"  and return the sum of these
     //! values.
@@ -130,19 +136,17 @@ class fibonacci
      * \param n Number of values to decode from the bitstring. Attention: There have to be at least n encoded values in
      * the bitstring.
      */
-    static uint64_t decode_prefix_sum(const uint64_t * d, const size_type start_idx, size_type n);
+    static uint64_t decode_prefix_sum(uint64_t const * d, const size_type start_idx, size_type n);
 
     //! Decode n Fibonacci encoded integers beginning at start_idx and ending at end_idx (exclusive) in the bitstring
     //! "data" and return the sum of these values.
     /*!\sa decode_prefix_sum
      */
-    static uint64_t decode_prefix_sum(const uint64_t * d,
-                                      const size_type start_idx,
-                                      const size_type end_idx,
-                                      size_type n);
+    static uint64_t
+    decode_prefix_sum(uint64_t const * d, const size_type start_idx, const size_type end_idx, size_type n);
 
     template <class int_vector1, class int_vector2>
-    static bool encode(const int_vector1 & v, int_vector2 & z);
+    static bool encode(int_vector1 const & v, int_vector2 & z);
 
     template <class int_vector>
     static uint64_t * raw_data(int_vector & v)
@@ -158,13 +162,16 @@ class fibonacci
     static void encode(uint64_t x, uint64_t *& z, uint8_t & offset);
 
     template <class int_vector1, class int_vector2>
-    static bool decode(const int_vector1 & z, int_vector2 & v);
+    static bool decode(int_vector1 const & z, int_vector2 & v);
 };
 
 template <typename T>
 inline uint8_t fibonacci<T>::encoding_length(uint64_t w)
 {
-    if (w == 0) { return 93; }
+    if (w == 0)
+    {
+        return 93;
+    }
     // This limit for the leftmost 1bit in the resulting fib code could be improved using a table
     uint8_t len_1 = bits::hi(w); // len-1 of the fib code
     while (++len_1 < (uint8_t)(sizeof(bits::lt_fib) / sizeof(bits::lt_fib[0])) && w >= bits::lt_fib[len_1])
@@ -174,7 +181,7 @@ inline uint8_t fibonacci<T>::encoding_length(uint64_t w)
 
 template <typename T>
 template <class int_vector1, class int_vector2>
-inline bool fibonacci<T>::encode(const int_vector1 & v, int_vector2 & z)
+inline bool fibonacci<T>::encode(int_vector1 const & v, int_vector2 & z)
 {
     uint64_t z_bit_size = 0;
     uint64_t w;
@@ -183,7 +190,10 @@ inline bool fibonacci<T>::encode(const int_vector1 & v, int_vector2 & z)
     {
         if ((w = *it) == 0)
         {
-            if (v.width() < 64) { w = zero_val; }
+            if (v.width() < 64)
+            {
+                w = zero_val;
+            }
         }
         z_bit_size += encoding_length(w);
     }
@@ -200,7 +210,10 @@ inline bool fibonacci<T>::encode(const int_vector1 & v, int_vector2 & z)
     for (typename int_vector1::const_iterator it = v.begin(), end = v.end(); it != end; ++it)
     {
         w = *it;
-        if (w == 0) { w = zero_val; }
+        if (w == 0)
+        {
+            w = zero_val;
+        }
         int8_t len_1 = encoding_length(w) - 1, j;
         fibword_low = 0x0000000000000001ULL;
 
@@ -352,10 +365,10 @@ inline void fibonacci<T>::encode(uint64_t x, uint64_t *& z, uint8_t & offset)
 
 template <typename T>
 template <class int_vector1, class int_vector2>
-inline bool fibonacci<T>::decode(const int_vector1 & z, int_vector2 & v)
+inline bool fibonacci<T>::decode(int_vector1 const & z, int_vector2 & v)
 {
     uint64_t n = 0, carry = 0; // n = number of values to be decoded
-    const uint64_t * data = z.data();
+    uint64_t const * data = z.data();
     // Determine size of v
     if (z.empty())
     { // if z is empty we are ready with decoding
@@ -384,7 +397,7 @@ inline bool fibonacci<T>::decode(const int_vector1 & z, int_vector2 & v)
 
 template <typename T>
 template <bool t_sumup, bool t_inc, class t_iter>
-inline uint64_t fibonacci<T>::decode(const uint64_t * data, const size_type start_idx, size_type n, t_iter it)
+inline uint64_t fibonacci<T>::decode(uint64_t const * data, const size_type start_idx, size_type n, t_iter it)
 {
     data += (start_idx >> 6);
     uint64_t w = 0, value = 0;
@@ -415,8 +428,10 @@ inline uint64_t fibonacci<T>::decode(const uint64_t * data, const size_type star
         { // if end of decoding
             w >>= shift;
             buffered -= shift;
-            if (t_inc) *(it++) = value;
-            if (!t_sumup and n != 1) value = 0;
+            if (t_inc)
+                *(it++) = value;
+            if (!t_sumup and n != 1)
+                value = 0;
             fibtable = 0;
             --n;
         }
@@ -432,7 +447,7 @@ inline uint64_t fibonacci<T>::decode(const uint64_t * data, const size_type star
 
 template <typename T>
 template <bool t_sumup, bool t_inc, class t_iter>
-inline uint64_t fibonacci<T>::decode1(const uint64_t * d, const size_type start_idx, size_type n, t_iter it)
+inline uint64_t fibonacci<T>::decode1(uint64_t const * d, const size_type start_idx, size_type n, t_iter it)
 {
     d += (start_idx >> 6);
     uint64_t w = 0, value = 0;
@@ -470,8 +485,10 @@ inline uint64_t fibonacci<T>::decode1(const uint64_t * d, const size_type start_
         { // if end of decoding
             w >>= shift;
             buffered -= shift;
-            if (t_inc) *(it++) = value;
-            if (!t_sumup) value = 0;
+            if (t_inc)
+                *(it++) = value;
+            if (!t_sumup)
+                value = 0;
             fibtable = 0;
             --n;
         }
@@ -486,9 +503,10 @@ inline uint64_t fibonacci<T>::decode1(const uint64_t * d, const size_type start_
 }
 
 template <typename T>
-inline uint64_t fibonacci<T>::decode_prefix_sum(const uint64_t * d, const size_type start_idx, size_type n)
+inline uint64_t fibonacci<T>::decode_prefix_sum(uint64_t const * d, const size_type start_idx, size_type n)
 {
-    if (n == 0) return 0;
+    if (n == 0)
+        return 0;
     //	return decode<true,false,int*>(data, start_idx, n);
     d += (start_idx >> 6);
     size_type i = 0;
@@ -502,10 +520,12 @@ inline uint64_t fibonacci<T>::decode_prefix_sum(const uint64_t * d, const size_t
     {
         uint64_t oldcarry;
         w = 0;
-        do {
+        do
+        {
             oldcarry = carry;
             i += (temp = bits::cnt11(*(d + (++w)), carry));
-        } while (i < n);
+        }
+        while (i < n);
         bits_to_decode += ((w - 1) << 6) + bits::sel11(*(d + w), n - (i - temp), oldcarry) + 65 - read;
         w = 0;
     }
@@ -513,11 +533,14 @@ inline uint64_t fibonacci<T>::decode_prefix_sum(const uint64_t * d, const size_t
     { // i>=n
         bits_to_decode = bits::sel11(*d >> read, n) + 1;
     }
-    if (((size_type)bits_to_decode) == n << 1) return n;
-    if (((size_type)bits_to_decode) == (n << 1) + 1) return n + 1;
+    if (((size_type)bits_to_decode) == n << 1)
+        return n;
+    if (((size_type)bits_to_decode) == (n << 1) + 1)
+        return n + 1;
     i = 0;
     //	while( bits_to_decode > 0 or buffered > 0){// while not all values are decoded
-    do {
+    do
+    {
         while (buffered < 64 and bits_to_decode > 0)
         {
             w |= (((*d) >> read) << buffered);
@@ -555,7 +578,8 @@ inline uint64_t fibonacci<T>::decode_prefix_sum(const uint64_t * d, const size_t
                     buffered -= 24;
                 }
             }
-            do {
+            do
+            {
                 temp = fibonacci<T>::data.fib2bin_16_greedy[w & 0xFFFF];
                 if ((shift = (temp >> 11)) > 0)
                 {
@@ -571,7 +595,8 @@ inline uint64_t fibonacci<T>::decode_prefix_sum(const uint64_t * d, const size_t
                     i = 1;
                     break;
                 }
-            } while (buffered > 15);
+            }
+            while (buffered > 15);
         }
         else
         { // i > 0
@@ -590,12 +615,13 @@ inline uint64_t fibonacci<T>::decode_prefix_sum(const uint64_t * d, const size_t
                 ++i;
             }
         }
-    } while (bits_to_decode > 0 or buffered > 0);
+    }
+    while (bits_to_decode > 0 or buffered > 0);
     return value;
 }
 
 template <typename T>
-inline uint64_t fibonacci<T>::decode_prefix_sum(const uint64_t * d,
+inline uint64_t fibonacci<T>::decode_prefix_sum(uint64_t const * d,
                                                 const size_type start_idx,
                                                 SDSL_UNUSED const size_type end_idx,
                                                 size_type n)

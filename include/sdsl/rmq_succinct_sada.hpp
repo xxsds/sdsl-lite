@@ -65,7 +65,7 @@ class rmq_succinct_sada
     t_rank_10 m_ect_bp_rank10;     //!< A rank support for bit pattern `10`
     t_select_10 m_ect_bp_select10; //!< A select support for bit pattern `10`
 
-  public:
+public:
     typedef typename bit_vector::size_type size_type;
     typedef typename bit_vector::size_type value_type;
 
@@ -73,12 +73,12 @@ class rmq_succinct_sada
     typedef t_rank_10 rank_support10_type;
     typedef t_select_10 select_support10_type;
 
-    const bit_vector & ect_bp = m_ect_bp;
-    const bp_support_type & ect_bp_support = m_ect_bp_support;
-    const rank_support10_type & ect_bp_rank10 = m_ect_bp_rank10;
-    const select_support10_type & ect_bp_select10 = m_ect_bp_select10;
+    bit_vector const & ect_bp = m_ect_bp;
+    bp_support_type const & ect_bp_support = m_ect_bp_support;
+    rank_support10_type const & ect_bp_rank10 = m_ect_bp_rank10;
+    select_support10_type const & ect_bp_select10 = m_ect_bp_select10;
 
-  private:
+private:
     typedef rmq_succinct_sct<t_min> rmq_construct_helper_type;
 
     // helper class for the construction
@@ -87,11 +87,11 @@ class rmq_succinct_sada
         size_type l, r; // left and right interval
         size_type m;    // index of the rmq
         uint8_t visit;  // 1==first, 2==second, 3==third visit
-        state(size_type fl = 0, size_type fr = 0, size_type fm = 0, uint8_t fvisit = 0)
-          : l(fl)
-          , r(fr)
-          , m(fm)
-          , visit(fvisit)
+        state(size_type fl = 0, size_type fr = 0, size_type fm = 0, uint8_t fvisit = 0) :
+            l(fl),
+            r(fr),
+            m(fm),
+            visit(fvisit)
         {}
     };
 
@@ -100,7 +100,7 @@ class rmq_succinct_sada
      *  \param  v     Ponter to container object.
      */
     template <class t_rac>
-    void construct_bp_of_extended_cartesian_tree(const t_rac * v, const rmq_construct_helper_type & rmq_helper)
+    void construct_bp_of_extended_cartesian_tree(t_rac const * v, rmq_construct_helper_type const & rmq_helper)
     {
         m_ect_bp.resize(4 * v->size());
         if (v->size() > 0)
@@ -117,14 +117,20 @@ class rmq_succinct_sada
                 {
                     m_ect_bp[bp_cnt++] = 1; // write beginning of inner node
                     state_stack.push(state(s.l, s.r, s.m, 2));
-                    if (s.m > s.l) { state_stack.push(state(s.l, s.m - 1, rmq_helper(s.l, s.m - 1), 1)); }
+                    if (s.m > s.l)
+                    {
+                        state_stack.push(state(s.l, s.m - 1, rmq_helper(s.l, s.m - 1), 1));
+                    }
                 }
                 else if (2 == s.visit)
                 {
                     m_ect_bp[bp_cnt++] = 1; // write leaf
                     m_ect_bp[bp_cnt++] = 0;
                     state_stack.push(state(s.l, s.r, s.m, 3));
-                    if (s.m < s.r) { state_stack.push(state(s.m + 1, s.r, rmq_helper(s.m + 1, s.r), 1)); }
+                    if (s.m < s.r)
+                    {
+                        state_stack.push(state(s.m + 1, s.r, rmq_helper(s.m + 1, s.r), 1));
+                    }
                 }
                 else if (3 == s.visit)
                 {
@@ -135,13 +141,14 @@ class rmq_succinct_sada
         }
     }
 
-  public:
+public:
     //! Default Constructor
-    rmq_succinct_sada() {}
+    rmq_succinct_sada()
+    {}
 
     //! Constructor
     template <class t_rac>
-    rmq_succinct_sada(const t_rac * v = nullptr)
+    rmq_succinct_sada(t_rac const * v = nullptr)
     {
         if (v != nullptr)
         {
@@ -155,11 +162,11 @@ class rmq_succinct_sada
     }
 
     //! Copy constructor
-    rmq_succinct_sada(const rmq_succinct_sada & rm)
-      : m_ect_bp(rm.m_ect_bp)
-      , m_ect_bp_support(rm.m_ect_bp_support)
-      , m_ect_bp_rank10(rm.m_ect_bp_rank10)
-      , m_ect_bp_select10(rm.m_ect_bp_select10)
+    rmq_succinct_sada(rmq_succinct_sada const & rm) :
+        m_ect_bp(rm.m_ect_bp),
+        m_ect_bp_support(rm.m_ect_bp_support),
+        m_ect_bp_rank10(rm.m_ect_bp_rank10),
+        m_ect_bp_select10(rm.m_ect_bp_select10)
     {
         m_ect_bp_support.set_vector(&m_ect_bp);
         m_ect_bp_rank10.set_vector(&m_ect_bp);
@@ -167,12 +174,16 @@ class rmq_succinct_sada
     }
 
     //! Move constructor
-    rmq_succinct_sada(rmq_succinct_sada && rm) { *this = std::move(rm); }
+    rmq_succinct_sada(rmq_succinct_sada && rm)
+    {
+        *this = std::move(rm);
+    }
 
     //! Destructor
-    ~rmq_succinct_sada() {}
+    ~rmq_succinct_sada()
+    {}
 
-    rmq_succinct_sada & operator=(const rmq_succinct_sada & rm)
+    rmq_succinct_sada & operator=(rmq_succinct_sada const & rm)
     {
         if (this != &rm)
         {
@@ -212,7 +223,8 @@ class rmq_succinct_sada
     {
         assert(l <= r);
         assert(r < size());
-        if (l == r) return l;
+        if (l == r)
+            return l;
         size_type x = m_ect_bp_select10(l + 1);
         size_type y = m_ect_bp_select10(r + 1);
         size_type z = m_ect_bp_support.rmq(x, y);
@@ -220,7 +232,10 @@ class rmq_succinct_sada
         return m_ect_bp_rank10(f - 1);
     }
 
-    size_type size() const { return m_ect_bp.size() / 4; }
+    size_type size() const
+    {
+        return m_ect_bp.size() / 4;
+    }
 
     size_type serialize(std::ostream & out, structure_tree_node * v = nullptr, std::string name = "") const
     {
@@ -266,12 +281,15 @@ class rmq_succinct_sada
     //! Equality operator.
     bool operator==(rmq_succinct_sada const & other) const noexcept
     {
-        return (m_ect_bp == other.m_ect_bp) && (m_ect_bp_support == other.m_ect_bp_support) &&
-               (m_ect_bp_rank10 == other.m_ect_bp_rank10) && (m_ect_bp_select10 == other.m_ect_bp_select10);
+        return (m_ect_bp == other.m_ect_bp) && (m_ect_bp_support == other.m_ect_bp_support)
+            && (m_ect_bp_rank10 == other.m_ect_bp_rank10) && (m_ect_bp_select10 == other.m_ect_bp_select10);
     }
 
     //! Inequality operator.
-    bool operator!=(rmq_succinct_sada const & other) const noexcept { return !(*this == other); }
+    bool operator!=(rmq_succinct_sada const & other) const noexcept
+    {
+        return !(*this == other);
+    }
 };
 
 } // end namespace sdsl

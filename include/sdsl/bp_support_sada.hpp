@@ -18,7 +18,7 @@
 #include <sdsl/rank_support_v5.hpp>
 #include <sdsl/select_support_mcl.hpp>
 #ifndef NDEBUG
-#include <algorithm>
+#    include <algorithm>
 #endif
 #include <iostream>
 #include <string>
@@ -66,7 +66,7 @@ template <uint32_t t_sml_blk = 256,
           class t_select = select_support_mcl<>>
 class bp_support_sada
 {
-  public:
+public:
     typedef bit_vector::size_type size_type;
     typedef bit_vector::difference_type difference_type;
     typedef int_vector<> sml_block_array_type;
@@ -74,9 +74,9 @@ class bp_support_sada
     typedef t_rank rank_type;
     typedef t_select select_type;
 
-  private:
+private:
     static_assert(0 < t_sml_blk, "bp_support_sada: t_sml_blk should be greater than 0!");
-    const bit_vector * m_bp = nullptr; // the supported balanced parentheses sequence as bit_vector
+    bit_vector const * m_bp = nullptr; // the supported balanced parentheses sequence as bit_vector
     rank_type m_bp_rank;               // RS for the BP sequence => see excess() and rank()
     select_type m_bp_select;           // SS for the BP sequence => see select()
 
@@ -94,48 +94,78 @@ class bp_support_sada
     mutable fast_cache select_cache;
 #endif
 
-    inline static size_type sml_block_idx(size_type i) { return i / t_sml_blk; }
+    static inline size_type sml_block_idx(size_type i)
+    {
+        return i / t_sml_blk;
+    }
 
-    inline static size_type med_block_idx(size_type i) { return i / (t_sml_blk * t_med_deg); }
+    static inline size_type med_block_idx(size_type i)
+    {
+        return i / (t_sml_blk * t_med_deg);
+    }
 
-    inline static bool is_root(size_type v) { return v == 0; }
+    static inline bool is_root(size_type v)
+    {
+        return v == 0;
+    }
 
-    inline static bool is_left_child(size_type v)
+    static inline bool is_left_child(size_type v)
     {
         assert(!is_root(v));
         return v % 2;
     }
 
-    inline static bool is_right_child(size_type v)
+    static inline bool is_right_child(size_type v)
     {
         assert(!is_root(v));
         return !(v % 2);
     }
 
-    inline static size_type parent(size_type v)
+    static inline size_type parent(size_type v)
     {
         assert(!is_root(v));
         return (v - 1) / 2;
     }
 
-    inline static size_type left_child(size_type v) { return 2 * v + 1; }
+    static inline size_type left_child(size_type v)
+    {
+        return 2 * v + 1;
+    }
 
-    inline static size_type right_child(size_type v) { return 2 * v + 2; }
+    static inline size_type right_child(size_type v)
+    {
+        return 2 * v + 2;
+    }
 
-    inline bool node_exists(size_type v) const { return v < (m_med_inner_blocks + m_med_blocks); }
+    inline bool node_exists(size_type v) const
+    {
+        return v < (m_med_inner_blocks + m_med_blocks);
+    }
 
-    inline static size_type right_sibling(size_type v) { return ++v; }
+    static inline size_type right_sibling(size_type v)
+    {
+        return ++v;
+    }
 
-    inline static size_type left_sibling(size_type v) { return --v; }
+    static inline size_type left_sibling(size_type v)
+    {
+        return --v;
+    }
 
-    inline bool is_leaf(size_type v) const { return v >= m_med_inner_blocks; }
+    inline bool is_leaf(size_type v) const
+    {
+        return v >= m_med_inner_blocks;
+    }
 
     inline difference_type min_value(size_type v) const
     {
         return m_size - ((difference_type)m_med_block_min_max[2 * v]);
     }
 
-    inline difference_type max_value(size_type v) const { return m_med_block_min_max[2 * v + 1] - m_size; }
+    inline difference_type max_value(size_type v) const
+    {
+        return m_med_block_min_max[2 * v + 1] - m_size;
+    }
 
     inline difference_type sml_min_value(size_type sml_block) const
     {
@@ -169,10 +199,16 @@ class bp_support_sada
     {
         size_type j;
         // (1) search the small block for the answer
-        if ((j = near_fwd_excess(*m_bp, i + 1, rel, t_sml_blk)) > i) { return j; }
+        if ((j = near_fwd_excess(*m_bp, i + 1, rel, t_sml_blk)) > i)
+        {
+            return j;
+        }
         difference_type desired_excess = excess(i) + rel;
         // (2) scan the small blocks of the current median block for an answer
-        if ((j = fwd_excess_in_med_block(sml_block_idx(i) + 1, desired_excess)) != size()) { return j; }
+        if ((j = fwd_excess_in_med_block(sml_block_idx(i) + 1, desired_excess)) != size())
+        {
+            return j;
+        }
         // (3) search the min-max tree of the medium blocks for the right med block
         if (med_block_idx(i) == m_med_blocks) // if we are already in the last medium block => we are done
             return size();
@@ -215,16 +251,26 @@ class bp_support_sada
     size_type bwd_excess(size_type i, difference_type rel) const
     {
         size_type j;
-        if (i == 0) { return rel == 0 ? -1 : size(); }
+        if (i == 0)
+        {
+            return rel == 0 ? -1 : size();
+        }
         // (1) search the small block for the answer
-        if ((j = near_bwd_excess(*m_bp, i - 1, rel, t_sml_blk)) < i or j == (size_type)-1) { return j; }
+        if ((j = near_bwd_excess(*m_bp, i - 1, rel, t_sml_blk)) < i or j == (size_type)-1)
+        {
+            return j;
+        }
         difference_type desired_excess = excess(i) + rel;
         // (2) scan the small blocks of the current median block for an answer
-        if ((j = bwd_excess_in_med_block(sml_block_idx(i) - 1, desired_excess)) != size()) { return j; }
+        if ((j = bwd_excess_in_med_block(sml_block_idx(i) - 1, desired_excess)) != size())
+        {
+            return j;
+        }
         // (3) search the min-max tree of the medium blocks for the right med block
         if (med_block_idx(i) == 0)
         { // if we are already in the first medium block => we are done
-            if (desired_excess == 0) return -1;
+            if (desired_excess == 0)
+                return -1;
             return size();
         }
         size_type v = m_med_inner_blocks + med_block_idx(i);
@@ -284,7 +330,8 @@ class bp_support_sada
             }
             --sml_block_idx;
         }
-        if (sml_block_idx == 0 and desired_excess == 0) return -1;
+        if (sml_block_idx == 0 and desired_excess == 0)
+            return -1;
         return size();
     }
 
@@ -294,7 +341,8 @@ class bp_support_sada
     {
         // get the first small block in the medium block right to the current med block
         size_type first_sml_block_nr_in_next_med_block = (med_block_idx(sml_block_idx * t_sml_blk) + 1) * t_med_deg;
-        if (first_sml_block_nr_in_next_med_block > m_sml_blocks) first_sml_block_nr_in_next_med_block = m_sml_blocks;
+        if (first_sml_block_nr_in_next_med_block > m_sml_blocks)
+            first_sml_block_nr_in_next_med_block = m_sml_blocks;
 
         assert(sml_block_idx > 0);
         while (sml_block_idx < first_sml_block_nr_in_next_med_block)
@@ -312,34 +360,38 @@ class bp_support_sada
         return size();
     }
 
-  public:
-    const rank_type & bp_rank = m_bp_rank;                                //!< RS for the underlying BP sequence.
-    const select_type & bp_select = m_bp_select;                          //!< SS for the underlying BP sequence.
-    const sml_block_array_type & sml_block_min_max = m_sml_block_min_max; //!< Small blocks array. Rel. min/max for the
+public:
+    rank_type const & bp_rank = m_bp_rank;                                //!< RS for the underlying BP sequence.
+    select_type const & bp_select = m_bp_select;                          //!< SS for the underlying BP sequence.
+    sml_block_array_type const & sml_block_min_max = m_sml_block_min_max; //!< Small blocks array. Rel. min/max for the
                                                                           //!< small blocks.
-    const med_block_array_type & med_block_min_max = m_med_block_min_max; //!< Array containing the min max tree of the
+    med_block_array_type const & med_block_min_max = m_med_block_min_max; //!< Array containing the min max tree of the
                                                                           //!< medium blocks.
 
-    bp_support_sada() {}
+    bp_support_sada()
+    {}
 
     //! Copy constructor
-    bp_support_sada(const bp_support_sada & v)
-      : m_bp(v.m_bp)
-      , m_bp_rank(v.m_bp_rank)
-      , m_bp_select(v.m_bp_select)
-      , m_sml_block_min_max(v.m_sml_block_min_max)
-      , m_med_block_min_max(v.m_med_block_min_max)
-      , m_size(v.m_size)
-      , m_sml_blocks(v.m_sml_blocks)
-      , m_med_blocks(v.m_med_blocks)
-      , m_med_inner_blocks(v.m_med_inner_blocks)
+    bp_support_sada(bp_support_sada const & v) :
+        m_bp(v.m_bp),
+        m_bp_rank(v.m_bp_rank),
+        m_bp_select(v.m_bp_select),
+        m_sml_block_min_max(v.m_sml_block_min_max),
+        m_med_block_min_max(v.m_med_block_min_max),
+        m_size(v.m_size),
+        m_sml_blocks(v.m_sml_blocks),
+        m_med_blocks(v.m_med_blocks),
+        m_med_inner_blocks(v.m_med_inner_blocks)
     {
         m_bp_rank.set_vector(m_bp);
         m_bp_select.set_vector(m_bp);
     }
 
     //! Move constructor
-    bp_support_sada(bp_support_sada && bp_support) { *this = std::move(bp_support); }
+    bp_support_sada(bp_support_sada && bp_support)
+    {
+        *this = std::move(bp_support);
+    }
 
     //! Assignment operator
     bp_support_sada & operator=(bp_support_sada && bp_support)
@@ -364,7 +416,7 @@ class bp_support_sada
     }
 
     //! Assignment operator
-    bp_support_sada & operator=(const bp_support_sada & v)
+    bp_support_sada & operator=(bp_support_sada const & v)
     {
         if (this != &v)
         {
@@ -375,14 +427,15 @@ class bp_support_sada
     }
 
     //! Constructor
-    explicit bp_support_sada(const bit_vector * bp)
-      : m_bp(bp)
-      , m_size(bp == nullptr ? 0 : bp->size())
-      , m_sml_blocks((m_size + t_sml_blk - 1) / t_sml_blk)
-      , m_med_blocks((m_size + t_sml_blk * t_med_deg - 1) / (t_sml_blk * t_med_deg))
-      , m_med_inner_blocks(0)
+    explicit bp_support_sada(bit_vector const * bp) :
+        m_bp(bp),
+        m_size(bp == nullptr ? 0 : bp->size()),
+        m_sml_blocks((m_size + t_sml_blk - 1) / t_sml_blk),
+        m_med_blocks((m_size + t_sml_blk * t_med_deg - 1) / (t_sml_blk * t_med_deg)),
+        m_med_inner_blocks(0)
     {
-        if (bp == nullptr or bp->size() == 0) return;
+        if (bp == nullptr or bp->size() == 0)
+            return;
         // initialize rank and select
         util::init_support(m_bp_rank, bp);
         util::init_support(m_bp_select, bp);
@@ -408,8 +461,10 @@ class bp_support_sada
                 ++curr_rel_ex;
             else
                 --curr_rel_ex;
-            if (curr_rel_ex > max_ex) max_ex = curr_rel_ex;
-            if (curr_rel_ex < min_ex) min_ex = curr_rel_ex;
+            if (curr_rel_ex > max_ex)
+                max_ex = curr_rel_ex;
+            if (curr_rel_ex < min_ex)
+                min_ex = curr_rel_ex;
             if ((i + 1) % t_sml_blk == 0 or i + 1 == m_size)
             {
                 size_type sidx = i / t_sml_blk;
@@ -444,7 +499,7 @@ class bp_support_sada
         }
     }
 
-    void set_vector(const bit_vector * bp)
+    void set_vector(bit_vector const * bp)
     {
         m_bp = bp;
         m_bp_rank.set_vector(bp);
@@ -454,12 +509,18 @@ class bp_support_sada
     /*! Calculates the excess value at index i.
      * \param i The index of which the excess value should be calculated.
      */
-    inline difference_type excess(size_type i) const { return (m_bp_rank(i + 1) << 1) - i - 1; }
+    inline difference_type excess(size_type i) const
+    {
+        return (m_bp_rank(i + 1) << 1) - i - 1;
+    }
 
     /*! Returns the number of opening parentheses up to and including index i.
      * \pre{ \f$ 0\leq i < size() \f$ }
      */
-    size_type rank(size_type i) const { return m_bp_rank(i + 1); }
+    size_type rank(size_type i) const
+    {
+        return m_bp_rank(i + 1);
+    }
 
     /*! Returns the index of the i-th opening parenthesis.
      * \param i Number of the parenthesis to select.
@@ -470,7 +531,10 @@ class bp_support_sada
     {
 #ifdef USE_CACHE
         size_type a = 0;
-        if (select_cache.exists(i, a)) { return a; }
+        if (select_cache.exists(i, a))
+        {
+            return a;
+        }
         else
         {
             a = m_bp_select(i);
@@ -496,7 +560,10 @@ class bp_support_sada
         }
 #ifdef USE_CACHE
         size_type a = 0;
-        if (find_close_cache.exists(i, a)) { return a; }
+        if (find_close_cache.exists(i, a))
+        {
+            return a;
+        }
         else
         {
             a = fwd_excess(i, -1);
@@ -522,7 +589,10 @@ class bp_support_sada
         }
 #ifdef USE_CACHE
         size_type a = 0;
-        if (find_open_cache.exists(i, a)) { return a; }
+        if (find_open_cache.exists(i, a))
+        {
+            return a;
+        }
         else
         {
             size_type bwd_ex = bwd_excess(i, 0);
@@ -574,7 +644,8 @@ class bp_support_sada
         assert(j < m_size);
         assert((*m_bp)[i] == 1 and (*m_bp)[j] == 1);
         const size_type mip1 = find_close(i) + 1;
-        if (mip1 >= j) return size();
+        if (mip1 >= j)
+            return size();
         return rmq_open(mip1, j);
     }
 
@@ -589,7 +660,8 @@ class bp_support_sada
     size_type rmq_open(const size_type l, const size_type r) const
     {
         assert(r < m_bp->size());
-        if (l >= r) return size();
+        if (l >= r)
+            return size();
         size_type res = rmq(l, r - 1);
         assert(res >= l and res <= r - 1);
         if ((*m_bp)[res] == 1)
@@ -771,7 +843,8 @@ class bp_support_sada
                     while (!is_leaf(min_pos))
                     {
                         min_pos = right_child(min_pos);
-                        if (!node_exists(min_pos) or min_value(min_pos) > min_ex) min_pos = left_sibling(min_pos);
+                        if (!node_exists(min_pos) or min_value(min_pos) > min_ex)
+                            min_pos = left_sibling(min_pos);
                     }
                 }
             }
@@ -830,10 +903,12 @@ class bp_support_sada
         if (k == m_size or k < i) // there exists no opening parenthesis at position mi<k<j.
             return m_size;
         size_type kk;
-        do {
+        do
+        {
             kk = k;
             k = enclose(k);
-        } while (k != m_size and k > mi);
+        }
+        while (k != m_size and k > mi);
         return kk;
     }
 
@@ -860,7 +935,8 @@ class bp_support_sada
     size_type preceding_closing_parentheses(size_type i) const
     {
         assert(i < m_size);
-        if (!i) return 0;
+        if (!i)
+            return 0;
         size_type ones = m_bp_rank(i);
         if (ones)
         { // ones > 0
@@ -891,7 +967,10 @@ class bp_support_sada
     /*! The size of the supported balanced parentheses sequence.
      * \return the size of the supported balanced parentheses sequence.
      */
-    size_type size() const { return m_size; }
+    size_type size() const
+    {
+        return m_size;
+    }
 
     //! Serializes the bp_support_sada to a stream.
     /*!
@@ -922,7 +1001,7 @@ class bp_support_sada
      * \param in The instream from which the data strucutre is read.
      * \param bp Bit vector representing a balanced parentheses sequence that is supported by this data structure.
      */
-    void load(std::istream & in, const bit_vector * bp)
+    void load(std::istream & in, bit_vector const * bp)
     {
         m_bp = bp;
         read_member(m_size, in);
@@ -967,15 +1046,17 @@ class bp_support_sada
     //! Equality operator.
     bool operator==(bp_support_sada const & other) const noexcept
     {
-        return (m_bp_rank == other.m_bp_rank) && (m_bp_select == other.m_bp_select) &&
-               (m_sml_block_min_max == other.m_sml_block_min_max) &&
-               (m_med_block_min_max == other.m_med_block_min_max) && (m_size == other.m_size) &&
-               (m_sml_blocks == other.m_sml_blocks) && (m_med_blocks == other.m_med_blocks) &&
-               (m_med_inner_blocks == other.m_med_inner_blocks);
+        return (m_bp_rank == other.m_bp_rank) && (m_bp_select == other.m_bp_select)
+            && (m_sml_block_min_max == other.m_sml_block_min_max) && (m_med_block_min_max == other.m_med_block_min_max)
+            && (m_size == other.m_size) && (m_sml_blocks == other.m_sml_blocks) && (m_med_blocks == other.m_med_blocks)
+            && (m_med_inner_blocks == other.m_med_inner_blocks);
     }
 
     //! Inequality operator.
-    bool operator!=(bp_support_sada const & other) const noexcept { return !(*this == other); }
+    bool operator!=(bp_support_sada const & other) const noexcept
+    {
+        return !(*this == other);
+    }
 };
 
 } // namespace sdsl

@@ -9,7 +9,7 @@ using namespace sdsl;
 using namespace std;
 
 template <typename t_wt>
-void visualize_wt_rec(const t_wt & wt, typename t_wt::node_type v, size_t level, vector<string> & out)
+void visualize_wt_rec(t_wt const & wt, typename t_wt::node_type v, size_t level, vector<string> & out)
 {
     if (!wt.is_leaf(v))
     {
@@ -25,13 +25,19 @@ void visualize_wt_rec(const t_wt & wt, typename t_wt::node_type v, size_t level,
         }
 
         auto vs = wt.expand(v);
-        if (!wt.empty(vs[0])) { visualize_wt_rec(wt, vs[0], level + 2, out); }
+        if (!wt.empty(vs[0]))
+        {
+            visualize_wt_rec(wt, vs[0], level + 2, out);
+        }
         if (!wt.empty(vs[0]) and !wt.empty(vs[1]))
         {
             out[level + 2] += " ";
             out[level + 3] += " ";
         }
-        if (!wt.empty(vs[1])) { visualize_wt_rec(wt, vs[1], level + 2, out); }
+        if (!wt.empty(vs[1]))
+        {
+            visualize_wt_rec(wt, vs[1], level + 2, out);
+        }
 
         size_t begin = out[level].size();
         size_t end = out[level + 2].size();
@@ -76,14 +82,18 @@ void visualize_wt(string s, string label)
     vector<string> vs(2, "");
     visualize_wt_rec(wt, wt.root(), 0, vs);
     cout << label << endl << endl;
-    for (size_t i = 0; i < vs.size(); ++i) cout << vs[i] << endl;
+    for (size_t i = 0; i < vs.size(); ++i)
+        cout << vs[i] << endl;
 }
 
 int main(int argc, char * argv[])
 {
     //    string s = "barbarabierbarbarbar";
     string s = "rhabarberbarbarabarbarbar";
-    if (argc > 1) { s = argv[1]; }
+    if (argc > 1)
+    {
+        s = argv[1];
+    }
     cout << "T=" << s << endl;
     cout << "--" << endl;
     visualize_wt<wt_blcd<>>(s, "Balanced shape");

@@ -71,7 +71,7 @@ inline void insert_lcp_values(int_vector<> & partial_lcp,
 }
 
 template <class tWT>
-void create_C_array(std::vector<uint64_t> & C, const tWT & wt)
+void create_C_array(std::vector<uint64_t> & C, tWT const & wt)
 {
     uint64_t quantity;                        // quantity of characters in interval
     std::vector<unsigned char> cs(wt.sigma);  // list of characters in the interval
@@ -85,7 +85,10 @@ void create_C_array(std::vector<uint64_t> & C, const tWT & wt)
         unsigned char c = cs[i];
         C[c + 1] = rank_c_j[i];
     }
-    for (uint64_t i = 1; i < C.size() - 1; ++i) { C[i + 1] += C[i]; }
+    for (uint64_t i = 1; i < C.size() - 1; ++i)
+    {
+        C[i + 1] += C[i];
+    }
 }
 
 class buffered_char_queue
@@ -93,7 +96,7 @@ class buffered_char_queue
     typedef bit_vector::size_type size_type;
     typedef std::queue<uint8_t> tQ;
 
-  private:
+private:
     static const uint32_t m_buffer_size = 10000; // 409600;
     uint8_t m_write_buf[m_buffer_size];
     uint8_t m_read_buf[m_buffer_size];
@@ -109,18 +112,11 @@ class buffered_char_queue
 
     std::fstream m_stream;
 
-  public:
-    buffered_char_queue()
-      : m_widx(0)
-      , m_ridx(0)
-      , m_sync(true)
-      , m_disk_buffered_blocks(0)
-      , m_c('?')
-      , m_rb(0)
-      , m_wb(0)
+public:
+    buffered_char_queue() : m_widx(0), m_ridx(0), m_sync(true), m_disk_buffered_blocks(0), m_c('?'), m_rb(0), m_wb(0)
     {}
 
-    void init(const std::string & dir, char c)
+    void init(std::string const & dir, char c)
     {
         m_c = c;
         m_file_name = dir + "buffered_char_queue_" + util::to_string(util::pid());
@@ -136,7 +132,10 @@ class buffered_char_queue
     void push_back(uint8_t x)
     {
         m_write_buf[m_widx] = x;
-        if (m_sync) { m_read_buf[m_widx] = x; }
+        if (m_sync)
+        {
+            m_read_buf[m_widx] = x;
+        }
         ++m_widx;
         if (m_widx == m_buffer_size)
         {
@@ -188,7 +187,10 @@ void push_front_m_index(size_type_class i,
                         uint8_t (&m_chars)[256],
                         size_type_class & m_char_count)
 {
-    if (m_list[c].empty()) { m_chars[m_char_count++] = c; }
+    if (m_list[c].empty())
+    {
+        m_chars[m_char_count++] = c;
+    }
     m_list[c].push_front(i);
 }
 
@@ -199,7 +201,10 @@ void push_back_m_index(size_type_class i,
                        uint8_t (&m_chars)[256],
                        size_type_class & m_char_count)
 {
-    if (m_list[c].empty()) { m_chars[m_char_count++] = c; }
+    if (m_list[c].empty())
+    {
+        m_chars[m_char_count++] = c;
+    }
     m_list[c].push_back(i);
 }
 

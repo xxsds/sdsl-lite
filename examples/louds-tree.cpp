@@ -11,10 +11,11 @@ using namespace sdsl;
 typedef cst_sct3<> cst_t;
 typedef cst_t::node_type node_t;
 
-void print_tree(const louds_tree<> & tree, const louds_tree<>::node_type & v, int depth, bit_vector & visited)
+void print_tree(louds_tree<> const & tree, louds_tree<>::node_type const & v, int depth, bit_vector & visited)
 {
     typedef louds_tree<>::node_type louds_node_t;
-    for (int i = 0; i < depth; ++i) cout << " ";
+    for (int i = 0; i < depth; ++i)
+        cout << " ";
     cout << v << "  tree.id(v) = " << tree.id(v) << endl;
     visited[tree.id(v)] = 1;
     for (uint64_t i = 1; i <= tree.degree(v); ++i)
@@ -39,7 +40,10 @@ int main(int argc, char * argv[])
     cst_t cst;
     construct(cst, file, 1);
     uint64_t max_print = 80;
-    if (argc > 2) { max_print = stoull(argv[2]); }
+    if (argc > 2)
+    {
+        max_print = stoull(argv[2]);
+    }
 
     typedef cst_bfs_iterator<cst_t> iterator;
     iterator begin = iterator(&cst, cst.root());

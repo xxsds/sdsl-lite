@@ -10,7 +10,7 @@ int main()
     rmq_succinct_sct<> rmq;
     {
         // initilaize int_vector object A
-        int_vector<> A = { 6, 7, 3, 2, 4, 2, 1, 5, 8, 2 };
+        int_vector<> A = {6, 7, 3, 2, 4, 2, 1, 5, 8, 2};
         // output a
         cout << "A = " << A << endl;
 

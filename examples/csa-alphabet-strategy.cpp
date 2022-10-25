@@ -10,7 +10,7 @@ using namespace sdsl;
 using namespace std;
 
 template <class csa_t>
-void csa_info(csa_t & csa, const char * file, bool json)
+void csa_info(csa_t & csa, char const * file, bool json)
 {
     cout << "file          : " << file << endl;
     construct(csa, file, 1);
@@ -38,7 +38,10 @@ int main(int argc, char * argv[])
         return 1;
     }
     bool json = false;
-    if (argc > 2) { json = true; }
+    if (argc > 2)
+    {
+        json = true;
+    }
     csa_sada<enc_vector<>, 32, 32, sa_order_sa_sampling<>, isa_sampling<>, byte_alphabet> csa1;
     csa_sada<enc_vector<>, 32, 32, sa_order_sa_sampling<>, isa_sampling<>, succinct_byte_alphabet<>> csa2;
     csa_wt<wt_huff<>, 32, 32, sa_order_sa_sampling<>, isa_sampling<>, byte_alphabet> csa3;

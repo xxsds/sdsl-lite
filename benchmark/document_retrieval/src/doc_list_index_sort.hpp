@@ -23,7 +23,7 @@ namespace sdsl
 template <class t_csa = csa_wt<wt_huff<rrr_vector<63>>, 1000000, 1000000>, typename t_csa::char_type t_doc_delim = 1>
 class doc_list_index_sort
 {
-  public:
+public:
     typedef t_csa csa_type;
     typedef int_vector<> d_type;
     typedef int_vector<>::size_type size_type;
@@ -37,27 +37,23 @@ class doc_list_index_sort
 
     class result : public list_type
     {
-      private:
+    private:
         size_type m_sp, m_ep;
 
-      public:
+    public:
         // Number of occurrences
-        size_type count() { return m_ep - m_sp + 1; }
+        size_type count()
+        {
+            return m_ep - m_sp + 1;
+        }
 
-        result(size_type sp, size_type ep, list_type && l)
-          : list_type(l)
-          , m_sp(1)
-          , m_ep(0)
+        result(size_type sp, size_type ep, list_type && l) : list_type(l), m_sp(1), m_ep(0)
         {}
-        result()
-          : m_sp(1)
-          , m_ep(0)
+        result() : m_sp(1), m_ep(0)
         {}
-        result(size_type sp, size_type ep)
-          : m_sp(sp)
-          , m_ep(ep)
+        result(size_type sp, size_type ep) : m_sp(sp), m_ep(ep)
         {}
-        result & operator=(const result & res)
+        result & operator=(result const & res)
         {
             if (this != &res)
             {
@@ -69,19 +65,21 @@ class doc_list_index_sort
         }
     };
 
-  protected:
+protected:
     size_type m_doc_cnt; // number of documents in the collection
     csa_type m_csa_full; // CSA built from the collection text
     d_type m_d;          // wtd build from the collection text
-  public:
+
+public:
     //! Default constructor
-    doc_list_index_sort() {}
+    doc_list_index_sort()
+    {}
 
     doc_list_index_sort(std::string file_name, sdsl::cache_config & cconfig, uint8_t num_bytes)
     {
         construct(m_csa_full, file_name, cconfig, num_bytes);
 
-        const char * KEY_TEXT = key_text_trait<WIDTH>::KEY_TEXT;
+        char const * KEY_TEXT = key_text_trait<WIDTH>::KEY_TEXT;
         std::string text_file = cache_file_name(KEY_TEXT, cconfig);
 
         bit_vector doc_border;
@@ -98,9 +96,15 @@ class doc_list_index_sort
         return m_doc_cnt; // subtract one, since zero does not count
     }
 
-    size_type word_cnt() const { return m_d.size() - doc_cnt(); }
+    size_type word_cnt() const
+    {
+        return m_d.size() - doc_cnt();
+    }
 
-    size_type sigma() const { return m_csa_full.sigma; }
+    size_type sigma() const
+    {
+        return m_csa_full.sigma;
+    }
 
     size_type serialize(std::ostream & out, structure_tree_node * v = NULL, std::string name = "") const
     {
@@ -153,9 +157,13 @@ class doc_list_index_sort
                 }
             }
             res.emplace_back(last, f_dt);
-            if (res.size() < k) k = res.size();
-            static auto freq_cmp = [](const std::pair<size_type, size_type> & a,
-                                      const std::pair<size_type, size_type> & b) { return a.second > b.second; };
+            if (res.size() < k)
+                k = res.size();
+            static auto freq_cmp =
+                [](std::pair<size_type, size_type> const & a, std::pair<size_type, size_type> const & b)
+            {
+                return a.second > b.second;
+            };
             std::partial_sort(res.begin(), res.begin() + k, res.end(), freq_cmp);
             res.resize(k);
 
@@ -163,15 +171,18 @@ class doc_list_index_sort
         }
     }
 
-  private:
+private:
     //! Construct the doc_border bitvector by streaming the text file
-    void construct_doc_border(const std::string & text_file, bit_vector & doc_border)
+    void construct_doc_border(std::string const & text_file, bit_vector & doc_border)
     {
         int_vector_buffer<WIDTH> text_buf(text_file);
         doc_border = bit_vector(text_buf.size(), 0);
         for (size_type i = 0; i < text_buf.size(); ++i)
         {
-            if (t_doc_delim == text_buf[i]) { doc_border[i] = 1; }
+            if (t_doc_delim == text_buf[i])
+            {
+                doc_border[i] = 1;
+            }
         }
     }
 

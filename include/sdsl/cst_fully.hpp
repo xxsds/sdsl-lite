@@ -44,7 +44,7 @@ struct cache_config;
 template <typename t_cst>
 class lcp_fully
 {
-  public:
+public:
     typedef typename t_cst::size_type size_type;
     typedef size_type value_type;
     typedef random_access_const_iterator<lcp_fully> const_iterator;
@@ -59,25 +59,30 @@ class lcp_fully
         sa_order = 0
     };
 
-  private:
-    const t_cst * m_cst;
+private:
+    t_cst const * m_cst;
 
-  public:
+public:
     lcp_fully() = default;
-    lcp_fully(const t_cst * cst)
-      : m_cst(cst){};
+    lcp_fully(t_cst const * cst) : m_cst(cst){};
 
-    lcp_fully(const lcp_fully &) = default;
+    lcp_fully(lcp_fully const &) = default;
     lcp_fully(lcp_fully &&) = default;
-    lcp_fully & operator=(const lcp_fully &) = default;
+    lcp_fully & operator=(lcp_fully const &) = default;
     lcp_fully & operator=(lcp_fully &&) = default;
     ~lcp_fully() = default;
 
-    size_type size() const { return m_cst->size(); }
+    size_type size() const
+    {
+        return m_cst->size();
+    }
 
     value_type operator[](size_type i) const
     {
-        if (0 == i) { return 0; }
+        if (0 == i)
+        {
+            return 0;
+        }
         else
         {
             using leaf_type = typename t_cst::leaf_type;
@@ -92,10 +97,16 @@ class lcp_fully
     }
 
     //! Returns a const_iterator to the first element.
-    const_iterator begin() const { return const_iterator(this, 0); }
+    const_iterator begin() const
+    {
+        return const_iterator(this, 0);
+    }
 
     //! Returns a const_iterator to the element after the last element.
-    const_iterator end() const { return const_iterator(this, size()); }
+    const_iterator end() const
+    {
+        return const_iterator(this, size());
+    }
 };
 
 //! A class for the Fully-Compressed Suffix Tree (FCST) proposed by Russo et al.
@@ -139,7 +150,7 @@ template <class t_csa = csa_wt<>,
           bool t_sample_leaves = false>
 class cst_fully
 {
-  public:
+public:
     typedef cst_dfs_const_forward_iterator<cst_fully> const_iterator;
     typedef typename t_csa::size_type size_type;
     typedef t_csa csa_type;
@@ -157,7 +168,7 @@ class cst_fully
     typedef typename t_csa::alphabet_category alphabet_category;
     typedef cst_tag index_category;
 
-  private:
+private:
     size_type m_delta;
     size_type m_nodes;
     csa_type m_csa;
@@ -169,31 +180,31 @@ class cst_fully
     depth_type m_depth;
     lcp_type m_lcp = lcp_type(this);
 
-  public:
-    const size_type & delta = m_delta;
-    const csa_type & csa = m_csa;
-    const bit_vector & s = m_s;
-    const s_support_type & s_support = m_s_support;
-    const b_type & b = m_b;
-    const b_select_0_type & b_select_0 = m_b_select0;
-    const b_select_1_type & b_select_1 = m_b_select1;
-    const depth_type & depth_sampling = m_depth;
-    const lcp_type & lcp = m_lcp;
+public:
+    size_type const & delta = m_delta;
+    csa_type const & csa = m_csa;
+    bit_vector const & s = m_s;
+    s_support_type const & s_support = m_s_support;
+    b_type const & b = m_b;
+    b_select_0_type const & b_select_0 = m_b_select0;
+    b_select_1_type const & b_select_1 = m_b_select1;
+    depth_type const & depth_sampling = m_depth;
+    lcp_type const & lcp = m_lcp;
 
     //! Default constructor
     cst_fully() = default;
 
     //! Copy constructor
-    cst_fully(const cst_fully & cst)
-      : m_delta(cst.m_delta)
-      , m_nodes(cst.m_nodes)
-      , m_csa(cst.m_csa)
-      , m_s(cst.m_s)
-      , m_s_support(cst.m_s_support)
-      , m_b(cst.m_b)
-      , m_b_select0(cst.m_b_select0)
-      , m_b_select1(cst.m_b_select1)
-      , m_depth(cst.m_depth)
+    cst_fully(cst_fully const & cst) :
+        m_delta(cst.m_delta),
+        m_nodes(cst.m_nodes),
+        m_csa(cst.m_csa),
+        m_s(cst.m_s),
+        m_s_support(cst.m_s_support),
+        m_b(cst.m_b),
+        m_b_select0(cst.m_b_select0),
+        m_b_select1(cst.m_b_select1),
+        m_depth(cst.m_depth)
     {
         m_s_support.set_vector(&m_s);
         m_b_select0.set_vector(&m_b);
@@ -201,27 +212,45 @@ class cst_fully
     }
 
     //! Move constructor
-    cst_fully(cst_fully && cst) { *this = std::move(cst); }
+    cst_fully(cst_fully && cst)
+    {
+        *this = std::move(cst);
+    }
 
     //! Construct CST from file_map
     cst_fully(cache_config & config);
 
-    size_type size() const { return m_csa.size(); }
+    size_type size() const
+    {
+        return m_csa.size();
+    }
 
-    static size_type max_size() { return t_csa::max_size(); }
+    static size_type max_size()
+    {
+        return t_csa::max_size();
+    }
 
-    bool empty() const { return m_csa.empty(); }
+    bool empty() const
+    {
+        return m_csa.empty();
+    }
 
     const_iterator begin() const
     {
-        if (m_b.size() == 0) { return end(); }
+        if (m_b.size() == 0)
+        {
+            return end();
+        }
         return const_iterator(this, root(), false, true);
     }
 
-    const_iterator end() const { return const_iterator(this, root(), true, false); }
+    const_iterator end() const
+    {
+        return const_iterator(this, root(), true, false);
+    }
 
     //! Copy Assignment Operator.
-    cst_fully & operator=(const cst_fully & cst)
+    cst_fully & operator=(cst_fully const & cst)
     {
         if (this != &cst)
         {
@@ -323,22 +352,34 @@ class cst_fully
     //! Equality operator.
     bool operator==(cst_fully const & other) const noexcept
     {
-        return (m_delta == other.m_delta) && (m_nodes == other.m_nodes) && (m_csa == other.m_csa) &&
-               (m_s == other.m_s) && (m_s_support == other.m_s_support) && (m_b == other.m_b) &&
-               (m_b_select0 == other.m_b_select0) && (m_b_select1 == other.m_b_select1) && (m_depth == other.m_depth);
+        return (m_delta == other.m_delta) && (m_nodes == other.m_nodes) && (m_csa == other.m_csa) && (m_s == other.m_s)
+            && (m_s_support == other.m_s_support) && (m_b == other.m_b) && (m_b_select0 == other.m_b_select0)
+            && (m_b_select1 == other.m_b_select1) && (m_depth == other.m_depth);
     }
 
     //! Inequality operator.
-    bool operator!=(cst_fully const & other) const noexcept { return !(*this == other); }
+    bool operator!=(cst_fully const & other) const noexcept
+    {
+        return !(*this == other);
+    }
 
     //! Returns the root of the suffix tree.
-    node_type root() const { return node_type(0, m_csa.size() - 1); }
+    node_type root() const
+    {
+        return node_type(0, m_csa.size() - 1);
+    }
 
     //! Returns the root of the sampled tree.
-    sampled_node_type sampled_root() const { return 0; }
+    sampled_node_type sampled_root() const
+    {
+        return 0;
+    }
 
     //! Returns true iff node v is a leaf.
-    bool is_leaf(node_type v) const { return v.first == v.second; }
+    bool is_leaf(node_type v) const
+    {
+        return v.first == v.second;
+    }
 
     //! Return the i-th leaf (1-based from left to right) of the suffix tree.
     /*!
@@ -355,13 +396,22 @@ class cst_fully
     }
 
     //! Get the node in the suffix tree which corresponds to the sa-interval [lb..rb]
-    node_type node(size_type lb, size_type rb) const { return node_type(lb, rb); }
+    node_type node(size_type lb, size_type rb) const
+    {
+        return node_type(lb, rb);
+    }
 
     //! Returns the leftmost leaf (left boundary) of a node.
-    leaf_type lb(node_type v) const { return v.first; }
+    leaf_type lb(node_type v) const
+    {
+        return v.first;
+    }
 
     //! Returns the rightmost leaf (right boundary) of a node.
-    leaf_type rb(node_type v) const { return v.second; }
+    leaf_type rb(node_type v) const
+    {
+        return v.second;
+    }
 
     //! Calculate the number of leaves in the subtree rooted at node v.
     /*!\param v A valid node of the suffix tree.
@@ -369,7 +419,10 @@ class cst_fully
      *  \par Time complexity
      *    \f$ \Order{1} \f$
      */
-    size_type size(const node_type & v) const { return v.second - v.first + 1; }
+    size_type size(node_type const & v) const
+    {
+        return v.second - v.first + 1;
+    }
 
     //! Calculates the leftmost leaf in the subtree rooted at node v.
     /*!\param v A valid node of the suffix tree.
@@ -377,7 +430,10 @@ class cst_fully
      *  \par Time complexity
      *    \f$ \Order{1} \f$
      */
-    node_type leftmost_leaf(const node_type v) const { return node_type(v.first, v.first); }
+    node_type leftmost_leaf(const node_type v) const
+    {
+        return node_type(v.first, v.first);
+    }
 
     //! Calculates the rightmost leaf in the subtree rooted at node v.
     /*!\param v A valid node of the suffix tree.
@@ -385,17 +441,26 @@ class cst_fully
      * \par Time complexity
      *   \f$ \Order{1} \f$
      */
-    node_type rightmost_leaf(const node_type v) const { return node_type(v.second, v.second); }
+    node_type rightmost_leaf(const node_type v) const
+    {
+        return node_type(v.second, v.second);
+    }
 
     //! Returns true iff v is an ancestor of w.
-    bool ancestor(node_type v, node_type w) const { return v.first <= w.first && v.second >= w.second; }
+    bool ancestor(node_type v, node_type w) const
+    {
+        return v.first <= w.first && v.second >= w.second;
+    }
 
     //! Returns the index of the last bracket in S before the leaf with index l.
     /*!
      * \param v The index of leaf l.
      * \return The index of the last bracket in S before the leaf with index l.
      */
-    sampled_node_type pred(leaf_type v) const { return m_b_select0.select(v + 1) - v - 1; }
+    sampled_node_type pred(leaf_type v) const
+    {
+        return m_b_select0.select(v + 1) - v - 1;
+    }
 
     //! Returns the LSA (lowest sampled ancestor) for a leaf with index l.
     /*!
@@ -407,7 +472,10 @@ class cst_fully
     sampled_node_type lsa_leaf(leaf_type l) const
     {
         sampled_node_type p = pred(l);
-        if (m_s[p]) { return p; }
+        if (m_s[p])
+        {
+            return p;
+        }
         else
         {
             return m_s_support.enclose(m_s_support.find_open(p));
@@ -442,13 +510,22 @@ class cst_fully
     sampled_node_type sampled_lca(sampled_node_type u, sampled_node_type q) const
     {
         assert(m_s[u] == 1 and m_s[q] == 1);
-        if (u > q) { std::swap(u, q); }
+        if (u > q)
+        {
+            std::swap(u, q);
+        }
         else if (u == q)
         {
             return u;
         }
-        if (u == sampled_root()) { return sampled_root(); }
-        if (m_s_support.find_close(u) > q) { return u; }
+        if (u == sampled_root())
+        {
+            return sampled_root();
+        }
+        if (m_s_support.find_close(u) > q)
+        {
+            return u;
+        }
 
         return m_s_support.double_enclose(u, q);
     }
@@ -503,7 +580,10 @@ class cst_fully
         leaf_type l = std::min(v.first, w.first);
         leaf_type r = std::max(v.second, w.second);
 
-        if (l == r) { return node_type(l, r); }
+        if (l == r)
+        {
+            return node_type(l, r);
+        }
         else
         {
             return lca(l, r);
@@ -531,7 +611,10 @@ class cst_fully
         leaf_type lb = v.first;
         leaf_type rb = v.second;
 
-        for (size_type k = 0; k < i; k++) { backward_search(m_csa, lb, rb, c[i - k - 1], lb, rb); }
+        for (size_type k = 0; k < i; k++)
+        {
+            backward_search(m_csa, lb, rb, c[i - k - 1], lb, rb);
+        }
 
         return node_type(lb, rb);
     }
@@ -577,7 +660,10 @@ class cst_fully
             res_label[i] = c;
 
             // break if LCA of lb and rb is root
-            if (l < m_csa.C[comp] || r >= m_csa.C[comp + 1]) { break; }
+            if (l < m_csa.C[comp] || r >= m_csa.C[comp + 1])
+            {
+                break;
+            }
 
             l = m_csa.psi[l];
             r = m_csa.psi[r];
@@ -614,7 +700,10 @@ class cst_fully
             char_type comp = csa.char2comp[c];
 
             // break if LCA of lb and rb is root
-            if (l < m_csa.C[comp] || r >= m_csa.C[comp + 1]) { break; }
+            if (l < m_csa.C[comp] || r >= m_csa.C[comp + 1])
+            {
+                break;
+            }
 
             l = m_csa.psi[l];
             r = m_csa.psi[r];
@@ -635,7 +724,10 @@ class cst_fully
      */
     node_type sl(node_type v) const
     {
-        if (v == root()) { return root(); }
+        if (v == root())
+        {
+            return root();
+        }
         else if (is_leaf(v))
         {
             size_t leaf = m_csa.psi[v.first];
@@ -688,8 +780,14 @@ class cst_fully
         node_type left_parent = root();
         node_type right_parent = root();
 
-        if (l > 0) { left_parent = lca(l - 1, r); }
-        if (r < m_csa.size() - 1) { right_parent = lca(l, r + 1); }
+        if (l > 0)
+        {
+            left_parent = lca(l - 1, r);
+        }
+        if (r < m_csa.size() - 1)
+        {
+            right_parent = lca(l, r + 1);
+        }
         return ancestor(right_parent, left_parent) ? left_parent : right_parent;
     }
 
@@ -704,7 +802,10 @@ class cst_fully
      */
     node_type child(node_type v, char_type c) const
     {
-        if (is_leaf(v)) { return root(); }
+        if (is_leaf(v))
+        {
+            return root();
+        }
         size_type d = depth(v);
         return child(v, c, d);
     }
@@ -723,7 +824,10 @@ class cst_fully
                 leaf_type sample_pos = (begin + end) / 2;
                 size_type char_pos = get_char_pos(sample_pos, d, m_csa);
                 char_type sample = m_csa.F[char_pos];
-                if (sample < c) { begin = sample_pos + 1; }
+                if (sample < c)
+                {
+                    begin = sample_pos + 1;
+                }
                 else
                 {
                     end = sample_pos;
@@ -742,7 +846,10 @@ class cst_fully
                 leaf_type sample_pos = (begin + end) / 2;
                 size_type char_pos = get_char_pos(sample_pos, d, m_csa);
                 char_type sample = m_csa.F[char_pos];
-                if (sample <= c) { begin = sample_pos + 1; }
+                if (sample <= c)
+                {
+                    begin = sample_pos + 1;
+                }
                 else
                 {
                     end = sample_pos;
@@ -752,7 +859,10 @@ class cst_fully
             upper = begin;
         }
 
-        if (lower == upper) { return root(); }
+        if (lower == upper)
+        {
+            return root();
+        }
 
         return node_type(lower, upper - 1);
     }
@@ -765,7 +875,10 @@ class cst_fully
      */
     node_type select_child(node_type v, size_type i) const
     {
-        if (is_leaf(v)) { return root(); }
+        if (is_leaf(v))
+        {
+            return root();
+        }
 
         size_type d = depth(v);
         size_type char_pos = get_char_pos(v.first, d, m_csa);
@@ -773,7 +886,10 @@ class cst_fully
         node_type res = child(v, c, d);
         while (i > 1)
         {
-            if (res.second >= v.second) { return root(); }
+            if (res.second >= v.second)
+            {
+                return root();
+            }
             char_pos = get_char_pos(res.second + 1, d, m_csa);
             c = m_csa.F[char_pos];
             res = child(v, c, d);
@@ -788,9 +904,12 @@ class cst_fully
      * \param v A valid node v.
      * \returns The number of children of node v.
      */
-    size_type degree(const node_type & v) const
+    size_type degree(node_type const & v) const
     {
-        if (is_leaf(v)) { return 0; }
+        if (is_leaf(v))
+        {
+            return 0;
+        }
         else
         {
             size_type res = 1;
@@ -813,7 +932,7 @@ class cst_fully
     /*!\param v A valid node of the suffix tree.
      *  \return The proxy object of v containing all children
      */
-    cst_node_child_proxy<cst_fully> children(const node_type & v) const
+    cst_node_child_proxy<cst_fully> children(node_type const & v) const
     {
         return cst_node_child_proxy<cst_fully>(this, v);
     }
@@ -826,7 +945,10 @@ class cst_fully
     node_type sibling(node_type v) const
     {
         node_type p = parent(v);
-        if (v.second >= p.second) { return root(); }
+        if (v.second >= p.second)
+        {
+            return root();
+        }
         size_type d = depth(p);
         size_type char_pos = get_char_pos(v.second + 1, d, m_csa);
         char_type c = m_csa.F[char_pos];
@@ -857,7 +979,10 @@ class cst_fully
     }
 
     //! Get the number of nodes of the suffix tree.
-    size_type nodes() const { return m_nodes; }
+    size_type nodes() const
+    {
+        return m_nodes;
+    }
 
     //! Get the number of nodes in the sampled tree.
     /*!
@@ -865,7 +990,10 @@ class cst_fully
      * \par Time complexity
      *   \f$ \Order{1} \f$
      */
-    size_type sampled_nodes() const { return m_s.size() / 2; }
+    size_type sampled_nodes() const
+    {
+        return m_s.size() / 2;
+    }
 };
 
 template <class t_csa, uint32_t t_delta, class t_s_support, class t_b, class t_depth, bool t_sample_leaves>
@@ -875,12 +1003,18 @@ cst_fully<t_csa, t_delta, t_s_support, t_b, t_depth, t_sample_leaves>::cst_fully
     cst_sada<csa_type, lcp_dac<>> cst(config);
     m_nodes = cst.nodes();
 
-    if (t_delta > 0) { m_delta = t_delta; }
+    if (t_delta > 0)
+    {
+        m_delta = t_delta;
+    }
     else
     {
         const size_type n = cst.size();
         m_delta = (bits::hi(n - 1) + 1) * (bits::hi(bits::hi(n - 1)) + 1);
-        if (m_delta < 2) { m_delta = 2; }
+        if (m_delta < 2)
+        {
+            m_delta = 2;
+        }
     }
 
     size_type delta_half = m_delta / 2;
@@ -899,7 +1033,7 @@ cst_fully<t_csa, t_delta, t_s_support, t_b, t_depth, t_sample_leaves>::cst_fully
             const size_type d = i + 1;
             if (d + delta_half <= cst.size() and d % delta_half == 0)
             {
-                const auto node = cst.select_leaf(leaf_idx + 1);
+                auto const node = cst.select_leaf(leaf_idx + 1);
                 const size_type id = cst.id(node);
                 if (!is_sampled[id])
                 {
@@ -918,7 +1052,7 @@ cst_fully<t_csa, t_delta, t_s_support, t_b, t_depth, t_sample_leaves>::cst_fully
         {
             if (it.visit() == 1 and cst.is_leaf(*it) == false)
             {
-                const auto node = *it;
+                auto const node = *it;
                 const size_type d = cst.depth(node);
                 if (d % delta_half == 0)
                 {
@@ -958,7 +1092,10 @@ cst_fully<t_csa, t_delta, t_s_support, t_b, t_depth, t_sample_leaves>::cst_fully
                 tmp_b[b_idx++] = 1;
                 tmp_depth[sample_idx++] = cst.depth(node) / delta_half;
             }
-            if (cst.is_leaf(node)) { b_idx++; }
+            if (cst.is_leaf(node))
+            {
+                b_idx++;
+            }
             if ((cst.is_leaf(node) || it.visit() == 2) && is_sampled[cst.id(node)])
             {
                 s_idx++;
