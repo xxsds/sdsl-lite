@@ -1,6 +1,8 @@
 #include <iostream>
 
-#include <sdsl/wavelet_trees.hpp>
+#include <sdsl/construct.hpp>
+#include <sdsl/wt_algorithm.hpp>
+#include <sdsl/wt_int.hpp>
 
 using namespace sdsl;
 using namespace std;

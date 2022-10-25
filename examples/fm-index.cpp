@@ -3,6 +3,7 @@
 #include <iostream>
 #include <string>
 
+#include <sdsl/suffix_array_algorithm.hpp>
 #include <sdsl/suffix_arrays.hpp>
 
 using namespace sdsl;

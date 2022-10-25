@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include <sdsl/rmq_support.hpp>
+#include <sdsl/rmq_succinct_sct.hpp>
 
 using namespace std;
 using namespace sdsl;

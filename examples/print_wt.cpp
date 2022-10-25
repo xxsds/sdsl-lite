@@ -3,7 +3,11 @@
 #include <string>
 #include <vector>
 
-#include <sdsl/wavelet_trees.hpp>
+#include <sdsl/construct.hpp>
+#include <sdsl/wt_blcd.hpp>
+#include <sdsl/wt_huff.hpp>
+#include <sdsl/wt_hutu.hpp>
+#include <sdsl/wt_int.hpp>
 
 using namespace sdsl;
 using namespace std;

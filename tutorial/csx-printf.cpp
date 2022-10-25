@@ -2,7 +2,8 @@
 #include <regex>
 #include <sstream>
 
-#include <sdsl/suffix_trees.hpp>
+#include <sdsl/csa_bitcompressed.hpp>
+#include <sdsl/cst_sct3.hpp>
 
 using namespace sdsl;
 using namespace std;

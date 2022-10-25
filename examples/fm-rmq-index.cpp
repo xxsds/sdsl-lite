@@ -4,7 +4,8 @@
 #include <queue>
 #include <string>
 
-#include <sdsl/rmq_support.hpp>
+#include <sdsl/rmq_succinct_sct.hpp>
+#include <sdsl/suffix_array_algorithm.hpp>
 #include <sdsl/suffix_arrays.hpp>
 
 using namespace sdsl;

@@ -1,5 +1,7 @@
 #include <iostream>
 
+#include <sdsl/construct.hpp>
+#include <sdsl/rrr_vector.hpp>
 #include <sdsl/wavelet_trees.hpp>
 
 using namespace std;

@@ -1,6 +1,8 @@
 #include <iostream>
 
-#include <sdsl/vectors.hpp>
+#include <sdsl/coder_comma.hpp>
+#include <sdsl/enc_vector.hpp>
+#include <sdsl/int_vector.hpp>
 
 using namespace std;
 using namespace sdsl;

@@ -2,7 +2,7 @@
 #include <iostream>
 #include <random>
 
-#include <sdsl/bit_vectors.hpp>
+#include <sdsl/sd_vector.hpp>
 
 using namespace sdsl;
 using namespace std;

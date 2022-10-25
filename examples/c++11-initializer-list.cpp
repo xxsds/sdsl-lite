@@ -1,7 +1,7 @@
 #include <algorithm>
 #include <iostream>
 
-#include <sdsl/suffix_trees.hpp>
+#include <sdsl/int_vector.hpp>
 
 using namespace sdsl;
 using namespace std;

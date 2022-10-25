@@ -1,4 +1,5 @@
-#include <sdsl/wavelet_trees.hpp>
+#include <sdsl/construct.hpp>
+#include <sdsl/wt_ap.hpp>
 
 using namespace sdsl;
 using namespace std;

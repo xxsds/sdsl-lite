@@ -1,7 +1,10 @@
 #include <iostream>
 #include <random>
 
-#include <sdsl/suffix_trees.hpp>
+#include <sdsl/csa_wt.hpp>
+#include <sdsl/rrr_vector.hpp>
+#include <sdsl/sd_vector.hpp>
+#include <sdsl/wt_huff.hpp>
 
 using namespace sdsl;
 using namespace std;

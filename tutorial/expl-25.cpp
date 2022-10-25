@@ -1,7 +1,7 @@
 
 #include <iostream>
 
-#include <sdsl/bp_support.hpp>
+#include <sdsl/bp_support_sada.hpp>
 
 using namespace std;
 using namespace sdsl;

@@ -1,9 +1,8 @@
 #include <iostream>
 #include <string>
 
+#include <sdsl/cst_sct3.hpp>
 #include <sdsl/louds_tree.hpp>
-#include <sdsl/suffix_trees.hpp>
-#include <sdsl/util.hpp>
 
 using namespace std;
 using namespace sdsl;

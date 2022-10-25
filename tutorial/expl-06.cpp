@@ -1,6 +1,7 @@
 #include <iostream>
 
-#include <sdsl/bit_vectors.hpp>
+#include <sdsl/int_vector.hpp>
+#include <sdsl/sd_vector.hpp>
 
 using namespace std;
 using namespace sdsl;

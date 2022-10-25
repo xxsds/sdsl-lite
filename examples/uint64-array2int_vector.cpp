@@ -7,8 +7,7 @@
 #include <iostream>
 #include <string>
 
-#include <sdsl/int_vector.hpp>
-#include <sdsl/util.hpp>
+#include <sdsl/int_vector_buffer.hpp>
 
 using namespace sdsl;
 using namespace std;

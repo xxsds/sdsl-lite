@@ -1,6 +1,7 @@
 #include <iostream>
 
-#include <sdsl/wavelet_trees.hpp>
+#include <sdsl/construct.hpp>
+#include <sdsl/wt_blcd.hpp>
 
 using namespace std;
 using namespace sdsl;

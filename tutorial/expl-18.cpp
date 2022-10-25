@@ -1,7 +1,9 @@
 #include <algorithm>
 #include <iostream>
 
-#include <sdsl/suffix_arrays.hpp>
+#include <sdsl/csa_wt.hpp>
+#include <sdsl/suffix_array_algorithm.hpp>
+#include <sdsl/wt_huff.hpp>
 
 using namespace std;
 using namespace sdsl;

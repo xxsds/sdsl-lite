@@ -1,6 +1,8 @@
 #include <iostream>
 
-#include <sdsl/wavelet_trees.hpp>
+#include <sdsl/construct.hpp>
+#include <sdsl/rrr_vector.hpp>
+#include <sdsl/wt_hutu.hpp>
 
 using namespace std;
 using namespace sdsl;

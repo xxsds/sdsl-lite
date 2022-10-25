@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include <sdsl/vectors.hpp>
+#include <sdsl/int_vector_buffer.hpp>
 
 using namespace sdsl;
 using namespace std;

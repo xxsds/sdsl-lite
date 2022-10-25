@@ -1,6 +1,7 @@
 #include <iostream>
 
-#include <sdsl/suffix_trees.hpp>
+#include <sdsl/cst_sada.hpp>
+#include <sdsl/cst_sct3.hpp>
 
 using namespace sdsl;
 using namespace std;

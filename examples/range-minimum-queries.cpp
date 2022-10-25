@@ -1,7 +1,7 @@
 #include <cstdlib>
 #include <iostream>
 
-#include <sdsl/rmq_support.hpp> // include header for range minimum queries
+#include <sdsl/rmq_succinct_sct.hpp> // include header for range minimum queries
 
 using namespace sdsl;
 using namespace std;

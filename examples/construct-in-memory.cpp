@@ -1,6 +1,6 @@
-#include <string>
-
-#include <sdsl/suffix_trees.hpp>
+#include <sdsl/csa_wt.hpp>
+#include <sdsl/cst_sada.hpp>
+#include <sdsl/wt_huff.hpp>
 
 using namespace sdsl;
 using namespace std;

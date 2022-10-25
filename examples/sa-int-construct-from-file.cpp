@@ -1,7 +1,8 @@
 #include <fstream>
 #include <iostream>
 
-#include <sdsl/suffix_trees.hpp>
+#include <sdsl/int_vector.hpp>
+#include <sdsl/qsufsort.hpp>
 
 using namespace sdsl;
 using namespace std;

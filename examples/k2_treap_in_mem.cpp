@@ -4,8 +4,9 @@
 #include <tuple>
 #include <vector>
 
-#include <sdsl/bit_vectors.hpp>
 #include <sdsl/k2_treap.hpp>
+#include <sdsl/k2_treap_algorithm.hpp>
+#include <sdsl/rrr_vector.hpp>
 
 using namespace sdsl;
 using namespace std;
