@@ -1,8 +1,8 @@
 name: Linting
 
 on:
-  push:
-    branches:
+  # push:
+  #   branches:
       # Push events to branches matching refs/heads/master
       # - 'master'
   # Enables a manual trigger, may run on any branch
