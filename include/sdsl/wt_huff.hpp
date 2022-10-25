@@ -9,6 +9,13 @@
 #ifndef INCLUDED_SDSL_WT_HUFF
 #define INCLUDED_SDSL_WT_HUFF
 
+#include <functional>
+#include <queue>
+#include <utility>
+#include <vector>
+
+#include <sdsl/int_vector.hpp>
+#include <sdsl/wt_helper.hpp>
 #include <sdsl/wt_pc.hpp>
 
 //! Namespace for the succinct data structure library.
@@ -78,17 +85,20 @@ struct _huff_shape
         tMPQPII pq;
         size_type i = 0;
         // add leaves of Huffman tree
-        std::for_each(std::begin(C), std::end(C), [&](decltype(*std::begin(C)) & freq) {
-            if (freq > 0)
-            {
-                pq.push(tPII(freq, temp_nodes.size())); // push (frequency, node pointer)
-                // initial bv_pos with number of occurrences and bv_pos_rank
-                // value with the code of the corresponding char, parent,
-                // child[0], and child[1] are set to undef
-                temp_nodes.emplace_back(pc_node(freq, i));
-            }
-            ++i;
-        });
+        std::for_each(std::begin(C),
+                      std::end(C),
+                      [&](decltype(*std::begin(C)) & freq)
+                      {
+                          if (freq > 0)
+                          {
+                              pq.push(tPII(freq, temp_nodes.size())); // push (frequency, node pointer)
+                              // initial bv_pos with number of occurrences and bv_pos_rank
+                              // value with the code of the corresponding char, parent,
+                              // child[0], and child[1] are set to undef
+                              temp_nodes.emplace_back(pc_node(freq, i));
+                          }
+                          ++i;
+                      });
         while (pq.size() > 1)
         {
             tPII v1, v2;

@@ -9,7 +9,7 @@ struct doc_list_tag
 {};
 
 template <class t_index>
-void construct(t_index & idx, const std::string & file, sdsl::cache_config & config, uint8_t num_bytes, doc_list_tag)
+void construct(t_index & idx, std::string const & file, sdsl::cache_config & config, uint8_t num_bytes, doc_list_tag)
 {
     idx = t_index(file, config, num_bytes);
 }

@@ -30,7 +30,10 @@ int main(int argc, char * argv[])
                                 false);        // use int_vector format
 
         // write sequentially random values to disk
-        for (uint64_t i = 0; i < size; ++i) { ivb[i] = rng(); }
+        for (uint64_t i = 0; i < size; ++i)
+        {
+            ivb[i] = rng();
+        }
     }
 
     // (2) Streams the content of tmp_file

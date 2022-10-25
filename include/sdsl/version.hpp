@@ -32,8 +32,8 @@ constexpr uint8_t sdsl_version_minor = SDSL_VERSION_MINOR;
 constexpr uint8_t sdsl_version_patch = SDSL_VERSION_PATCH;
 
 //!\brief The full version as `std::string`.
-std::string const sdsl_version = std::to_string(sdsl_version_major) + "." + std::to_string(sdsl_version_minor) + "." +
-                                 std::to_string(sdsl_version_patch);
+std::string const sdsl_version = std::to_string(sdsl_version_major) + "." + std::to_string(sdsl_version_minor) + "."
+                               + std::to_string(sdsl_version_patch);
 
 } // namespace sdsl
 

@@ -4,9 +4,13 @@
 #ifndef INCLUDED_SDSL_RAM_FSTREAMBUF
 #define INCLUDED_SDSL_RAM_FSTREAMBUF
 
+#include <algorithm>
 #include <fstream>
+#include <limits>
+#include <string>
 #include <vector>
 
+#include <sdsl/memory_tracking.hpp>
 #include <sdsl/ram_fs.hpp>
 
 namespace sdsl
@@ -14,7 +18,7 @@ namespace sdsl
 
 class ram_filebuf : public std::streambuf
 {
-  private:
+private:
     // TODO:  also store filename/descriptor to implement is_open ???
     ram_fs::content_type * m_ram_file = nullptr; // file handle
     void pbump64(std::ptrdiff_t x)
@@ -27,13 +31,12 @@ class ram_filebuf : public std::streambuf
         pbump(x);
     }
 
-  public:
+public:
     virtual ~ram_filebuf(){};
 
     ram_filebuf(){};
 
-    ram_filebuf(ram_fs::content_type & ram_file)
-      : m_ram_file(&ram_file)
+    ram_filebuf(ram_fs::content_type & ram_file) : m_ram_file(&ram_file)
     {
         char * begin = m_ram_file->data();
         char * end = begin + m_ram_file->size();
@@ -46,7 +49,10 @@ class ram_filebuf : public std::streambuf
         if ((mode & std::ios_base::in) and !(mode & std::ios_base::trunc))
         {
             // file must exist, initial position at the start
-            if (!ram_fs::exists(name)) { m_ram_file = nullptr; }
+            if (!ram_fs::exists(name))
+            {
+                m_ram_file = nullptr;
+            }
             else
             {
                 m_ram_file = &ram_fs::content(name);
@@ -60,10 +66,16 @@ class ram_filebuf : public std::streambuf
                 ram_fs::store(name, ram_fs::content_type()); // TODO: create method in ram_fs?? or store w 1 arg?
             }
             m_ram_file = &ram_fs::content(name);
-            if ((mode & std::ios_base::out) and !(mode & std::ios_base::app)) { m_ram_file->clear(); }
+            if ((mode & std::ios_base::out) and !(mode & std::ios_base::app))
+            {
+                m_ram_file->clear();
+            }
         }
 
-        if (m_ram_file and (mode & std::ios_base::trunc)) { m_ram_file->clear(); }
+        if (m_ram_file and (mode & std::ios_base::trunc))
+        {
+            m_ram_file->clear();
+        }
         if (m_ram_file)
         {
             if (mode & std::ios_base::ate)
@@ -79,11 +91,15 @@ class ram_filebuf : public std::streambuf
         return m_ram_file ? this : nullptr;
     }
 
-    bool is_open() { return m_ram_file != nullptr; }
+    bool is_open()
+    {
+        return m_ram_file != nullptr;
+    }
 
     ram_filebuf * close()
     {
-        if (!this->is_open()) return nullptr;
+        if (!this->is_open())
+            return nullptr;
         m_ram_file = nullptr;
         setg(nullptr, nullptr, nullptr);
         setp(nullptr, nullptr);
@@ -123,33 +139,48 @@ class ram_filebuf : public std::streambuf
     {
         if (std::ios_base::beg == way)
         {
-            if (seekpos(off, which) == pos_type(-1)) { return pos_type(-1); }
+            if (seekpos(off, which) == pos_type(-1))
+            {
+                return pos_type(-1);
+            }
         }
         else if (std::ios_base::cur == way)
         {
-            if (seekpos(gptr() - eback() + off, which) == pos_type(-1)) { return pos_type(-1); }
+            if (seekpos(gptr() - eback() + off, which) == pos_type(-1))
+            {
+                return pos_type(-1);
+            }
         }
         else if (std::ios_base::end == way)
         {
-            if (seekpos(egptr() - eback() + off, which) == pos_type(-1)) { return pos_type(-1); }
+            if (seekpos(egptr() - eback() + off, which) == pos_type(-1))
+            {
+                return pos_type(-1);
+            }
         }
         return gptr() - eback();
     }
 
     pos_type pubseekpos(pos_type sp, std::ios_base::openmode which = std::ios_base::in | std::ios_base::out)
     {
-        if (seekpos(sp, which) == pos_type(-1)) { return pos_type(-1); }
+        if (seekpos(sp, which) == pos_type(-1))
+        {
+            return pos_type(-1);
+        }
         else
         {
             return gptr() - eback();
         }
     }
 
-    std::streamsize xsputn(const char_type * s, std::streamsize n) override
+    std::streamsize xsputn(char_type const * s, std::streamsize n) override
     {
         //    std::cout<<"xsputn( , of size "<<n<<")"<<std::endl;
         //    std::cout<<"epptr()-pptr()="<<epptr()-pptr()<<std::endl;
-        if (!m_ram_file) { return 0; }
+        if (!m_ram_file)
+        {
+            return 0;
+        }
 
         if (n < epptr() - pptr())
         {
@@ -172,7 +203,10 @@ class ram_filebuf : public std::streambuf
             {
                 for (std::streamsize i = 0; i < n; ++i)
                 {
-                    if (traits_type::eq_int_type(sputc(s[i]), traits_type::eof())) { return i; }
+                    if (traits_type::eq_int_type(sputc(s[i]), traits_type::eof()))
+                    {
+                        return i;
+                    }
                 }
                 return n;
             }

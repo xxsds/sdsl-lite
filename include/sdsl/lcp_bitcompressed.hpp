@@ -8,9 +8,20 @@
 #ifndef INCLUDED_SDSL_LCP_BITCOMPRESSED
 #define INCLUDED_SDSL_LCP_BITCOMPRESSED
 
+#include <iosfwd>
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
+
+#include <sdsl/cereal.hpp>
+#include <sdsl/config.hpp>
 #include <sdsl/int_vector.hpp>
+#include <sdsl/int_vector_buffer.hpp>
+#include <sdsl/io.hpp>
 #include <sdsl/iterators.hpp>
-#include <sdsl/lcp.hpp>
+#include <sdsl/sdsl_concepts.hpp>
+#include <sdsl/structure_tree.hpp>
+#include <sdsl/util.hpp>
 
 namespace sdsl
 {
@@ -18,7 +29,7 @@ namespace sdsl
 template <uint8_t t_width = 0>
 class lcp_bitcompressed
 {
-  public:
+public:
     typedef typename int_vector<t_width>::value_type value_type;
     typedef typename int_vector<t_width>::size_type size_type;
     typedef random_access_const_iterator<lcp_bitcompressed> const_iterator;
@@ -42,15 +53,16 @@ class lcp_bitcompressed
     template <class Cst>
     using type = lcp_bitcompressed;
 
-  private:
+private:
     int_vector<t_width> m_lcp;
 
-  public:
+public:
     //! Default Constructor
-    lcp_bitcompressed() {}
-    lcp_bitcompressed(const lcp_bitcompressed &) = default;
+    lcp_bitcompressed()
+    {}
+    lcp_bitcompressed(lcp_bitcompressed const &) = default;
     lcp_bitcompressed(lcp_bitcompressed &&) = default;
-    lcp_bitcompressed & operator=(const lcp_bitcompressed &) = default;
+    lcp_bitcompressed & operator=(lcp_bitcompressed const &) = default;
     lcp_bitcompressed & operator=(lcp_bitcompressed &&) = default;
 
     //! Constructor taking a cache_config
@@ -59,28 +71,49 @@ class lcp_bitcompressed
         std::string lcp_file = cache_file_name(conf::KEY_LCP, config);
         int_vector_buffer<> lcp_buf(lcp_file);
         m_lcp = int_vector<t_width>(lcp_buf.size(), 0, lcp_buf.width());
-        for (size_type i = 0; i < m_lcp.size(); ++i) { m_lcp[i] = lcp_buf[i]; }
+        for (size_type i = 0; i < m_lcp.size(); ++i)
+        {
+            m_lcp[i] = lcp_buf[i];
+        }
     }
 
     //! Number of elements in the instance.
-    size_type size() const { return m_lcp.size(); }
+    size_type size() const
+    {
+        return m_lcp.size();
+    }
 
     //! Returns the largest size that lcp_bitcompressed can ever have.
-    static size_type max_size() { return int_vector<t_width>::max_size(); }
+    static size_type max_size()
+    {
+        return int_vector<t_width>::max_size();
+    }
 
     //! Returns if the data structure is empty.
-    bool empty() const { return m_lcp.empty(); }
+    bool empty() const
+    {
+        return m_lcp.empty();
+    }
 
     //! Returns a const_iterator to the first element.
-    const_iterator begin() const { return const_iterator(this, 0); }
+    const_iterator begin() const
+    {
+        return const_iterator(this, 0);
+    }
 
     //! Returns a const_iterator to the element after the last element.
-    const_iterator end() const { return const_iterator(this, size()); }
+    const_iterator end() const
+    {
+        return const_iterator(this, size());
+    }
 
     //! Access operator
     /*!\param i Index of the value. \f$ i \in [0..size()-1]\f$.
      */
-    value_type operator[](size_type i) const { return m_lcp[i]; }
+    value_type operator[](size_type i) const
+    {
+        return m_lcp[i];
+    }
 
     template <typename archive_t>
     void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
@@ -105,13 +138,22 @@ class lcp_bitcompressed
     }
 
     //! Equality operator.
-    bool operator==(lcp_bitcompressed const & other) const noexcept { return (m_lcp == other.m_lcp); }
+    bool operator==(lcp_bitcompressed const & other) const noexcept
+    {
+        return (m_lcp == other.m_lcp);
+    }
 
     //! Inequality operator.
-    bool operator!=(lcp_bitcompressed const & other) const noexcept { return !(*this == other); }
+    bool operator!=(lcp_bitcompressed const & other) const noexcept
+    {
+        return !(*this == other);
+    }
 
     //! Load from a stream.
-    void load(std::istream & in) { m_lcp.load(in); }
+    void load(std::istream & in)
+    {
+        m_lcp.load(in);
+    }
 };
 
 } // end namespace sdsl

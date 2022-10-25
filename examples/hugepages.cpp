@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include <sdsl/suffix_trees.hpp>
+#include <sdsl/cst_sct3.hpp>
 
 using namespace sdsl;
 using namespace std;
@@ -9,11 +9,14 @@ using namespace std::chrono;
 using timer = std::chrono::high_resolution_clock;
 
 template <class t_cst>
-void do_something(const t_cst & cst)
+void do_something(t_cst const & cst)
 {
     uint64_t sum = 0;
     auto start = timer::now();
-    for (size_t i = 0; i < cst.csa.size() and i < 50000000; ++i) { sum += cst.csa.lf[i]; }
+    for (size_t i = 0; i < cst.csa.size() and i < 50000000; ++i)
+    {
+        sum += cst.csa.lf[i];
+    }
     auto stop = timer::now();
     cout << "runtime in seconds: " << duration_cast<seconds>(stop - start).count() << endl;
     cout << "sum=" << sum << endl;

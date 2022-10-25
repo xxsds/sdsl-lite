@@ -8,13 +8,21 @@
 #ifndef INCLUDED_SDSL_LCP_SUPPORT_SADA
 #define INCLUDED_SDSL_LCP_SUPPORT_SADA
 
-#include <cassert>
+#include <iosfwd>
+#include <stddef.h>
+#include <string>
 
+#include <sdsl/cereal.hpp>
+#include <sdsl/config.hpp>
+#include <sdsl/construct_isa.hpp>
 #include <sdsl/csa_sada.hpp> // for default template initialization
 #include <sdsl/int_vector.hpp>
+#include <sdsl/int_vector_buffer.hpp>
+#include <sdsl/io.hpp>
 #include <sdsl/iterators.hpp>
-#include <sdsl/lcp.hpp>
-#include <sdsl/select_support.hpp> // for default template initialization
+#include <sdsl/sdsl_concepts.hpp>
+#include <sdsl/structure_tree.hpp>
+#include <sdsl/util.hpp>
 
 namespace sdsl
 {
@@ -40,7 +48,7 @@ namespace sdsl
 template <class t_csa = csa_sada<>, class t_bitvec = bit_vector, class t_select = typename t_bitvec::select_1_type>
 class _lcp_support_sada
 {
-  public:
+public:
     typedef typename t_csa::value_type value_type;
     typedef random_access_const_iterator<_lcp_support_sada> const_iterator;
     typedef const_iterator iterator;
@@ -70,30 +78,34 @@ class _lcp_support_sada
         typedef _lcp_support_sada lcp_type;
     };
 
-  private:
-    const csa_type * m_csa = nullptr;
+private:
+    csa_type const * m_csa = nullptr;
     bit_vector_type m_data;
     select_type m_select_support;
 
-  public:
-    const t_csa *& csa = m_csa;
+public:
+    t_csa const *& csa = m_csa;
     //! Default Constructor
-    _lcp_support_sada() {}
+    _lcp_support_sada()
+    {}
 
     //! Copy constructor
-    _lcp_support_sada(const _lcp_support_sada & lcp_c)
-      : m_csa(lcp_c.m_csa)
-      , m_data(lcp_c.m_data)
-      , m_select_support(lcp_c.m_select_support)
+    _lcp_support_sada(_lcp_support_sada const & lcp_c) :
+        m_csa(lcp_c.m_csa),
+        m_data(lcp_c.m_data),
+        m_select_support(lcp_c.m_select_support)
     {
         m_select_support.set_vector(&m_data);
     }
 
     //! Move constructor
-    _lcp_support_sada(_lcp_support_sada && lcp_c) { *this = std::move(lcp_c); }
+    _lcp_support_sada(_lcp_support_sada && lcp_c)
+    {
+        *this = std::move(lcp_c);
+    }
 
     //! Assignment Operator.
-    _lcp_support_sada & operator=(const _lcp_support_sada & lcp_c)
+    _lcp_support_sada & operator=(_lcp_support_sada const & lcp_c)
     {
         if (this != &lcp_c)
         {
@@ -117,11 +129,14 @@ class _lcp_support_sada
     }
 
     //! Constructor
-    _lcp_support_sada(cache_config & config, const t_csa * f_csa)
+    _lcp_support_sada(cache_config & config, t_csa const * f_csa)
     {
         typedef typename t_csa::size_type size_type;
         set_csa(f_csa);
-        if (!cache_file_exists(conf::KEY_ISA, config)) { construct_isa(config); }
+        if (!cache_file_exists(conf::KEY_ISA, config))
+        {
+            construct_isa(config);
+        }
         int_vector<> lcp;
         load_from_file(lcp, cache_file_name(conf::KEY_LCP, config));
         std::string isa_file = cache_file_name(conf::KEY_ISA, config);
@@ -142,22 +157,40 @@ class _lcp_support_sada
         util::init_support(m_select_support, &m_data);
     }
 
-    void set_csa(const t_csa * f_csa) { m_csa = f_csa; }
+    void set_csa(t_csa const * f_csa)
+    {
+        m_csa = f_csa;
+    }
 
     //! Number of elements in the instance.
-    size_type size() const { return m_csa->size(); }
+    size_type size() const
+    {
+        return m_csa->size();
+    }
 
     //! Returns the largest size that _lcp_support_sada can ever have.
-    static size_type max_size() { return t_csa::max_size(); }
+    static size_type max_size()
+    {
+        return t_csa::max_size();
+    }
 
     //! Returns if the data structure is empty.
-    bool empty() const { return m_csa->empty(); }
+    bool empty() const
+    {
+        return m_csa->empty();
+    }
 
     //! Returns a const_iterator to the first element.
-    const_iterator begin() const { return const_iterator(this, 0); }
+    const_iterator begin() const
+    {
+        return const_iterator(this, 0);
+    }
 
     //! Returns a const_iterator to the element after the last element.
-    const_iterator end() const { return const_iterator(this, size()); }
+    const_iterator end() const
+    {
+        return const_iterator(this, size());
+    }
 
     //! []-operator
     /*!\param i Index of the value. \f$ i \in [0..size()-1]\f$.
@@ -182,7 +215,7 @@ class _lcp_support_sada
     }
 
     //! Load from a stream.
-    void load(std::istream & in, const t_csa * ccsa = nullptr)
+    void load(std::istream & in, t_csa const * ccsa = nullptr)
     {
         m_csa = ccsa;
         m_data.load(in);
@@ -211,7 +244,10 @@ class _lcp_support_sada
     }
 
     //! Inequality operator.
-    bool operator!=(_lcp_support_sada const & other) const noexcept { return !(*this == other); }
+    bool operator!=(_lcp_support_sada const & other) const noexcept
+    {
+        return !(*this == other);
+    }
 };
 
 //! Helper class which provides _lcp_support_sada the context of a CSA.

@@ -5,14 +5,13 @@
 #define SDSL_CONFIG
 
 #include <map>
+#include <stdint.h>
 #include <string>
 
-#include <sdsl/uintx_t.hpp>
-
 #ifndef MSVC_COMPILER
-#define SDSL_UNUSED __attribute__((unused))
+#    define SDSL_UNUSED __attribute__((unused))
 #else
-#define SDSL_UNUSED
+#    define SDSL_UNUSED
 #endif
 
 namespace sdsl
@@ -22,7 +21,7 @@ namespace sdsl
 namespace util
 {
 template <typename T>
-std::string to_string(const T & t, int w = 1);
+std::string to_string(T const & t, int w = 1);
 uint64_t pid();
 uint64_t id();
 } // namespace util
@@ -74,14 +73,20 @@ struct cache_config
     // a concatenation of PID and a unique ID inside the
     // current process.
     tMSS file_map; // Files stored during the construction process.
-    cache_config(bool f_delete_files = true, std::string f_dir = "./", std::string f_id = "", tMSS f_file_map = tMSS())
-      : delete_files(f_delete_files)
-      , delete_data(false)
-      , dir(f_dir)
-      , id(f_id)
-      , file_map(f_file_map)
+    cache_config(bool f_delete_files = true,
+                 std::string f_dir = "./",
+                 std::string f_id = "",
+                 tMSS f_file_map = tMSS()) :
+        delete_files(f_delete_files),
+        delete_data(false),
+        dir(f_dir),
+        id(f_id),
+        file_map(f_file_map)
     {
-        if ("" == id) { id = sdsl::util::to_string(sdsl::util::pid()) + "_" + sdsl::util::to_string(sdsl::util::id()); }
+        if ("" == id)
+        {
+            id = sdsl::util::to_string(sdsl::util::pid()) + "_" + sdsl::util::to_string(sdsl::util::id());
+        }
     }
 };
 
@@ -89,51 +94,51 @@ struct cache_config
 template <uint8_t width, typename T = void>
 struct key_text_trait_impl
 {
-    static const char * KEY_TEXT;
+    static char const * KEY_TEXT;
 };
 
 template <typename T>
 struct key_text_trait_impl<0, T>
 {
-    static const char * KEY_TEXT;
+    static char const * KEY_TEXT;
 };
 
 template <typename T>
 struct key_text_trait_impl<8, T>
 {
-    static const char * KEY_TEXT;
+    static char const * KEY_TEXT;
 };
 
 //! Helper classes to transform width=0 and width=8 to corresponding bwt key
 template <uint8_t width, typename T = void>
 struct key_bwt_trait_impl
 {
-    static const char * KEY_BWT;
+    static char const * KEY_BWT;
 };
 
 template <typename T>
 struct key_bwt_trait_impl<0, T>
 {
-    static const char * KEY_BWT;
+    static char const * KEY_BWT;
 };
 
 template <typename T>
 struct key_bwt_trait_impl<8, T>
 {
-    static const char * KEY_BWT;
+    static char const * KEY_BWT;
 };
 
 template <typename T>
-const char * key_text_trait_impl<0, T>::KEY_TEXT = conf::KEY_TEXT_INT;
+char const * key_text_trait_impl<0, T>::KEY_TEXT = conf::KEY_TEXT_INT;
 
 template <typename T>
-const char * key_text_trait_impl<8, T>::KEY_TEXT = conf::KEY_TEXT;
+char const * key_text_trait_impl<8, T>::KEY_TEXT = conf::KEY_TEXT;
 
 template <typename T>
-const char * key_bwt_trait_impl<0, T>::KEY_BWT = conf::KEY_BWT_INT;
+char const * key_bwt_trait_impl<0, T>::KEY_BWT = conf::KEY_BWT_INT;
 
 template <typename T>
-const char * key_bwt_trait_impl<8, T>::KEY_BWT = conf::KEY_BWT;
+char const * key_bwt_trait_impl<8, T>::KEY_BWT = conf::KEY_BWT;
 
 template <uint8_t width>
 using key_text_trait = key_text_trait_impl<width, void>;

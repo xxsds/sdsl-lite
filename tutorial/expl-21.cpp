@@ -1,6 +1,8 @@
 #include <iostream>
 
-#include <sdsl/suffix_trees.hpp>
+#include <sdsl/cst_sct3.hpp>
+#include <sdsl/suffix_array_algorithm.hpp>
+#include <sdsl/suffix_tree_algorithm.hpp>
 
 using namespace sdsl;
 using namespace std;

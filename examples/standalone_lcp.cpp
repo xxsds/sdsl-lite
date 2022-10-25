@@ -1,7 +1,7 @@
 #include <iostream>
 
-#include <sdsl/lcp.hpp>
-#include <sdsl/suffix_arrays.hpp>
+#include <sdsl/csa_wt.hpp>
+#include <sdsl/lcp_wt.hpp>
 
 using namespace std;
 using namespace sdsl;

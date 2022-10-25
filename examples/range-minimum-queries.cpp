@@ -1,7 +1,7 @@
 #include <cstdlib>
 #include <iostream>
 
-#include <sdsl/rmq_support.hpp> // include header for range minimum queries
+#include <sdsl/rmq_succinct_sct.hpp> // include header for range minimum queries
 
 using namespace sdsl;
 using namespace std;
@@ -9,7 +9,10 @@ using namespace std;
 int main(int argc, char ** argv)
 {
     uint64_t len = 50;
-    if (argc > 1) { len = stoull(argv[1]); }
+    if (argc > 1)
+    {
+        len = stoull(argv[1]);
+    }
     int_vector<> v(len, 7); // create a vector of length 50
     for (uint64_t i = 1; i < v.size(); ++i)
     {
@@ -40,7 +43,10 @@ int main(int argc, char ** argv)
             cout << "minimum of v[" << left << "..." << right << "] at index ";
             cout << min_pos << endl;
         }
-        if (min_pos - left > right - min_pos) { right = min_pos - 1; }
+        if (min_pos - left > right - min_pos)
+        {
+            right = min_pos - 1;
+        }
         else
         {
             left = min_pos + 1;

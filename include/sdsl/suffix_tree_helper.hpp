@@ -5,13 +5,16 @@
 #define INCLUDED_SDSL_SUFFIX_TREE_HELPER
 
 #include <cassert>
-#include <cstdlib>
+#include <iterator>
 #include <stack>
 #include <stdint.h>
+#include <type_traits>
 
-#include <sdsl/iterators.hpp>
+#include <sdsl/int_vector.hpp>
+#include <sdsl/int_vector_buffer.hpp>
 #include <sdsl/sorted_multi_stack_support.hpp>
 #include <sdsl/sorted_stack_support.hpp>
+#include <sdsl/util.hpp>
 
 namespace sdsl
 {
@@ -19,7 +22,7 @@ namespace sdsl
 template <class t_cst>
 class cst_node_child_proxy_iterator
 {
-  public:
+public:
     using iterator_category = std::forward_iterator_tag;
     using value_type = typename t_cst::node_type;
     using difference_type = std::ptrdiff_t;
@@ -30,24 +33,22 @@ class cst_node_child_proxy_iterator
     using const_reference = const node_type;
     using iterator_type = cst_node_child_proxy_iterator<t_cst>;
 
-  private:
-    const t_cst * m_cst;
+private:
+    t_cst const * m_cst;
     node_type m_cur_node;
 
-  public:
-    cst_node_child_proxy_iterator()
-      : m_cst(nullptr){};
-    cst_node_child_proxy_iterator(const t_cst * cst, node_type v)
-      : m_cst(cst)
-      , m_cur_node(v)
+public:
+    cst_node_child_proxy_iterator() : m_cst(nullptr){};
+    cst_node_child_proxy_iterator(t_cst const * cst, node_type v) : m_cst(cst), m_cur_node(v)
     {}
-    cst_node_child_proxy_iterator(const iterator_type & it)
-      : m_cst(it.m_cst)
-      , m_cur_node(it.m_cur_node)
+    cst_node_child_proxy_iterator(iterator_type const & it) : m_cst(it.m_cst), m_cur_node(it.m_cur_node)
     {}
 
-  public:
-    const_reference operator*() const { return m_cur_node; }
+public:
+    const_reference operator*() const
+    {
+        return m_cur_node;
+    }
     iterator_type & operator++()
     {
         m_cur_node = m_cst->sibling(m_cur_node);
@@ -59,39 +60,50 @@ class cst_node_child_proxy_iterator
         ++(*this);
         return it;
     }
-    bool operator==(const iterator_type & it) const { return it.m_cur_node == m_cur_node; }
-    bool operator!=(const iterator_type & it) const { return !(*this == it); }
+    bool operator==(iterator_type const & it) const
+    {
+        return it.m_cur_node == m_cur_node;
+    }
+    bool operator!=(iterator_type const & it) const
+    {
+        return !(*this == it);
+    }
 };
 
 template <class t_cst>
 class cst_node_child_proxy
 {
-  public: // types
+public: // types
     using iterator_type = cst_node_child_proxy_iterator<t_cst>;
     using node_type = typename t_cst::node_type;
     using size_type = typename t_cst::size_type;
 
-  private: // data
+private: // data
     node_type m_parent;
-    const t_cst * m_cst;
+    t_cst const * m_cst;
 
-  public: // constructors
+public: // constructors
     cst_node_child_proxy() = delete;
-    explicit cst_node_child_proxy(const t_cst * cst, node_type v)
-      : m_parent(v)
-      , m_cst(cst){};
-    cst_node_child_proxy(const cst_node_child_proxy & p)
-      : m_parent(p.m_parent)
-      , m_cst(p.m_cst){};
+    explicit cst_node_child_proxy(t_cst const * cst, node_type v) : m_parent(v), m_cst(cst){};
+    cst_node_child_proxy(cst_node_child_proxy const & p) : m_parent(p.m_parent), m_cst(p.m_cst){};
 
-  public: // methods
+public: // methods
     node_type operator[](size_type i) const
     {
         return m_cst->select_child(m_parent, i + 1);
     } // enumeration starts with 1 not 0
-    size_type size() { return m_cst->degree(m_parent); }
-    iterator_type begin() const { return iterator_type(m_cst, m_cst->select_child(m_parent, 1)); }
-    iterator_type end() const { return iterator_type(m_cst, m_cst->root()); }
+    size_type size()
+    {
+        return m_cst->degree(m_parent);
+    }
+    iterator_type begin() const
+    {
+        return iterator_type(m_cst, m_cst->select_child(m_parent, 1));
+    }
+    iterator_type end() const
+    {
+        return iterator_type(m_cst, m_cst->root());
+    }
 };
 
 //! Calculate the balanced parentheses of the Super-Cartesian tree, described in Ohlebusch and Gog (SPIRE 2009).
@@ -105,7 +117,7 @@ class cst_node_child_proxy
  *       \f$ \Order{n \cdot \log n } \f$ bits.
  */
 template <class t_rac>
-void construct_supercartesian_tree_bp(const t_rac & vec, bit_vector & bp, const bool minimum = true)
+void construct_supercartesian_tree_bp(t_rac const & vec, bit_vector & bp, bool const minimum = true)
 {
     typedef typename t_rac::size_type size_type;
     bp.resize(2 * vec.size()); // resize bit vector for balanaced parantheses to 2 n bits
@@ -156,7 +168,7 @@ void construct_supercartesian_tree_bp(const t_rac & vec, bit_vector & bp, const 
  *       \f$\Order{n}\f$ bits
  */
 template <class t_rac>
-bit_vector construct_supercartesian_tree_bp_succinct(const t_rac & vec, const bool minimum = true)
+bit_vector construct_supercartesian_tree_bp_succinct(t_rac const & vec, bool const minimum = true)
 {
     typedef typename t_rac::size_type size_type;
     bit_vector bp(2 * vec.size(), 0); // initialize result
@@ -215,7 +227,7 @@ bit_vector construct_supercartesian_tree_bp_succinct(const t_rac & vec, const bo
  *  The largest value in lcp_buf has to be smaller than lcp_buf.size().
  */
 template <uint8_t t_width>
-bit_vector construct_supercartesian_tree_bp_succinct(int_vector_buffer<t_width> & lcp_buf, const bool minimum = true)
+bit_vector construct_supercartesian_tree_bp_succinct(int_vector_buffer<t_width> & lcp_buf, bool const minimum = true)
 {
     typedef bit_vector::size_type size_type;
     bit_vector bp(2 * lcp_buf.size(), 0); // initialize result
@@ -282,7 +294,7 @@ template <uint8_t t_width>
 bit_vector::size_type construct_supercartesian_tree_bp_succinct_and_first_child(int_vector_buffer<t_width> & lcp_buf,
                                                                                 bit_vector & bp,
                                                                                 bit_vector & bp_fc,
-                                                                                const bool minimum = true)
+                                                                                bool const minimum = true)
 {
     typedef bit_vector::size_type size_type;
     size_type n = lcp_buf.size();
@@ -354,15 +366,17 @@ bit_vector::size_type construct_supercartesian_tree_bp_succinct_and_first_child(
 // Gets ISA[SA[idx]+d]
 // d = depth of the character 0 = first position
 template <class t_csa>
-typename t_csa::size_type get_char_pos(typename t_csa::size_type idx, typename t_csa::size_type d, const t_csa & csa)
+typename t_csa::size_type get_char_pos(typename t_csa::size_type idx, typename t_csa::size_type d, t_csa const & csa)
 {
-    if (d == 0) return idx;
+    if (d == 0)
+        return idx;
     // if we have to apply \f$\LF\f$ or \f$\Phi\f$ more
     // than 2*d times to calc csa(csa[idx]+d), we opt to
     // apply \f$ \Phi \f$ d times
     if (csa.sa_sample_dens + csa.isa_sample_dens > 2 * d + 2)
     {
-        for (typename t_csa::size_type i = 0; i < d; ++i) idx = csa.psi[idx];
+        for (typename t_csa::size_type i = 0; i < d; ++i)
+            idx = csa.psi[idx];
         return idx;
     }
     return csa.isa[csa[idx] + d];
@@ -376,9 +390,9 @@ template <typename t_wt>
 struct has_id
 {
     template <typename T>
-    static constexpr auto
-    check(T *) -> typename std::is_same<decltype(std::declval<T>().id(std::declval<typename T::node_type &>())),
-                                        typename T::size_type>::type
+    static constexpr auto check(T *) ->
+        typename std::is_same<decltype(std::declval<T>().id(std::declval<typename T::node_type &>())),
+                              typename T::size_type>::type
     {
         return std::true_type();
     }

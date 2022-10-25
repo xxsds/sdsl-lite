@@ -1,11 +1,15 @@
-#include <sdsl/wavelet_trees.hpp>
+#include <sdsl/construct.hpp>
+#include <sdsl/wt_ap.hpp>
 
 using namespace sdsl;
 using namespace std;
 
 int main(int argc, char * argv[])
 {
-    if (argc < 2) { return 1; }
+    if (argc < 2)
+    {
+        return 1;
+    }
     wt_ap<> wt;
     memory_monitor::start();
     construct(wt, argv[1], 1);

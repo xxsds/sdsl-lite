@@ -2,13 +2,13 @@
 /* General interface for using the compressed index libraries */
 
 #ifndef uchar
-#define uchar unsigned char
+#    define uchar unsigned char
 #endif
 #ifndef uint
-#define uint unsigned int
+#    define uint unsigned int
 #endif
 #ifndef ulong
-#define ulong unsigned long
+#    define ulong unsigned long
 #endif
 
 /* Error management */

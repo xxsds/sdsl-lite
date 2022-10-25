@@ -8,18 +8,24 @@
 #ifndef INCLUDED_SDSL_LCP_WT
 #define INCLUDED_SDSL_LCP_WT
 
-#include <algorithm> // for lower_bound
-#include <cassert>
-#include <cstring> // for strlen
-#include <iomanip>
 #include <iostream>
-#include <iterator>
-#include <stdexcept>
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
 #include <utility> // for pair
 #include <vector>
 
+#include <sdsl/bits.hpp>
+#include <sdsl/cereal.hpp>
+#include <sdsl/config.hpp>
 #include <sdsl/int_vector.hpp>
+#include <sdsl/int_vector_buffer.hpp>
+#include <sdsl/io.hpp>
 #include <sdsl/iterators.hpp>
+#include <sdsl/ram_fs.hpp>
+#include <sdsl/sdsl_concepts.hpp>
+#include <sdsl/select_support_scan.hpp>
+#include <sdsl/structure_tree.hpp>
 #include <sdsl/util.hpp>
 #include <sdsl/wt_huff.hpp>
 
@@ -37,7 +43,7 @@ namespace sdsl
 template <uint8_t t_width = 0>
 class lcp_wt
 {
-  public:
+public:
     typedef typename int_vector<t_width>::value_type value_type;
     typedef random_access_const_iterator<lcp_wt> const_iterator;
     typedef const_iterator iterator;
@@ -62,20 +68,20 @@ class lcp_wt
     template <class Cst>
     using type = lcp_wt;
 
-  private:
+private:
     small_lcp_type m_small_lcp;    // vector for lcp values < 255
     int_vector<t_width> m_big_lcp; // vector for lcp values > 254
 
     typedef std::pair<size_type, size_type> tPII;
     typedef std::vector<tPII> tVPII;
 
-  public:
+public:
     //! Default Constructor
     lcp_wt() = default;
     //! Copy / Move constructor
-    lcp_wt(const lcp_wt &) = default;
+    lcp_wt(lcp_wt const &) = default;
     lcp_wt(lcp_wt &&) = default;
-    lcp_wt & operator=(const lcp_wt &) = default;
+    lcp_wt & operator=(lcp_wt const &) = default;
     lcp_wt & operator=(lcp_wt &&) = default;
 
     //! Constructor
@@ -83,18 +89,25 @@ class lcp_wt
     {
         std::string temp_file = tmp_file(config, "_lcp_sml");
         std::string lcp_key = conf::KEY_LCP;
-        if ("" != other_key) { lcp_key = other_key; }
+        if ("" != other_key)
+        {
+            lcp_key = other_key;
+        }
         int_vector_buffer<> lcp_buf(cache_file_name(lcp_key, config));
         size_type l = 0, max_l = 0, big_sum = 0, n = lcp_buf.size();
         {
             int_vector<8> small_lcp = int_vector<8>(n);
             for (size_type i = 0; i < n; ++i)
             {
-                if ((l = lcp_buf[i]) < 255) { small_lcp[i] = l; }
+                if ((l = lcp_buf[i]) < 255)
+                {
+                    small_lcp[i] = l;
+                }
                 else
                 {
                     small_lcp[i] = 255;
-                    if (l > max_l) max_l = l;
+                    if (l > max_l)
+                        max_l = l;
                     ++big_sum;
                 }
             }
@@ -109,32 +122,53 @@ class lcp_wt
         {
             for (size_type i = 0, ii = 0; i < n; ++i)
             {
-                if (lcp_buf[i] >= 255) { m_big_lcp[ii++] = lcp_buf[i]; }
+                if (lcp_buf[i] >= 255)
+                {
+                    m_big_lcp[ii++] = lcp_buf[i];
+                }
             }
         }
     }
 
     //! Number of elements in the instance.
-    size_type size() const { return m_small_lcp.size(); }
+    size_type size() const
+    {
+        return m_small_lcp.size();
+    }
 
     //! Returns the largest size that lcp_wt can ever have.
-    static size_type max_size() { return int_vector<8>::max_size(); }
+    static size_type max_size()
+    {
+        return int_vector<8>::max_size();
+    }
 
     //! Returns if the data structure is empty.
-    bool empty() const { return 0 == m_small_lcp.size(); }
+    bool empty() const
+    {
+        return 0 == m_small_lcp.size();
+    }
 
     //! Returns a const_iterator to the first element.
-    const_iterator begin() const { return const_iterator(this, 0); }
+    const_iterator begin() const
+    {
+        return const_iterator(this, 0);
+    }
 
     //! Returns a const_iterator to the element after the last element.
-    const_iterator end() const { return const_iterator(this, size()); }
+    const_iterator end() const
+    {
+        return const_iterator(this, size());
+    }
 
     //! []-operator
     /*!\param i Index of the value. \f$ i \in [0..size()-1]\f$.
      */
     inline value_type operator[](size_type i) const
     {
-        if (m_small_lcp[i] != 255) { return m_small_lcp[i]; }
+        if (m_small_lcp[i] != 255)
+        {
+            return m_small_lcp[i];
+        }
         else
         {
             return m_big_lcp[m_small_lcp.rank(i, 255)];
@@ -180,7 +214,10 @@ class lcp_wt
     }
 
     //! Inequality operator.
-    bool operator!=(lcp_wt const & other) const noexcept { return !(*this == other); }
+    bool operator!=(lcp_wt const & other) const noexcept
+    {
+        return !(*this == other);
+    }
 };
 
 } // end namespace sdsl

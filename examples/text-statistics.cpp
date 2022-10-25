@@ -1,6 +1,7 @@
 #include <iostream>
 
-#include <sdsl/suffix_trees.hpp>
+#include <sdsl/cst_sct3.hpp>
+#include <sdsl/suffix_tree_algorithm.hpp>
 
 using namespace std;
 using namespace sdsl;
@@ -28,12 +29,18 @@ int main(int argc, char * argv[])
         for (uint64_t i = 1; i < cst.csa.size(); ++i)
         {
             char_type bwt = cst.csa.bwt[i];
-            if (prev_bwt != bwt) { runs += 1.0; }
+            if (prev_bwt != bwt)
+            {
+                runs += 1.0;
+            }
             prev_bwt = bwt;
             avg_lcp += cst.lcp[i];
         }
         avg_lcp /= cst.csa.size();
-        for (size_t k = 0; k <= 5; k++) { cout << "H_" << k << ": " << Hk(cst, k).first << endl; }
+        for (size_t k = 0; k <= 5; k++)
+        {
+            cout << "H_" << k << ": " << Hk(cst, k).first << endl;
+        }
         cout << "avg LCP: " << avg_lcp << endl;
         cout << "runs in BWT: " << runs << endl;
     }

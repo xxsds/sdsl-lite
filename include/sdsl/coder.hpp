@@ -8,11 +8,8 @@
 #ifndef SDSL_CODER
 #define SDSL_CODER
 
-#include <sdsl/coder_comma.hpp>
-#include <sdsl/coder_elias_delta.hpp>
-#include <sdsl/coder_elias_gamma.hpp>
-#include <sdsl/coder_fibonacci.hpp>
-#include <sdsl/int_vector.hpp>
+#include <assert.h>
+#include <stdint.h>
 
 namespace sdsl
 {
@@ -24,16 +21,15 @@ namespace coder
 template <class Coder>
 class run_length
 {
-  public:
+public:
     typedef uint64_t size_type;
     static void encode(uint64_t x, uint64_t *& z, uint8_t offset);
-    static uint64_t encoding_length(const uint64_t * s, uint8_t s_offset, size_type bit_length);
+    static uint64_t encoding_length(uint64_t const * s, uint8_t s_offset, size_type bit_length);
 };
 
 template <class Coder>
-typename run_length<Coder>::size_type run_length<Coder>::encoding_length(const uint64_t * s,
-                                                                         uint8_t s_offset,
-                                                                         size_type bit_length)
+typename run_length<Coder>::size_type
+run_length<Coder>::encoding_length(uint64_t const * s, uint8_t s_offset, size_type bit_length)
 {
     assert(s_offset < 64);
     size_type i = 0;

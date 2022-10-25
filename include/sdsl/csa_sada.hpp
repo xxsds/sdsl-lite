@@ -8,18 +8,28 @@
 #ifndef INCLUDED_SDSL_CSA_SADA
 #define INCLUDED_SDSL_CSA_SADA
 
-#include <algorithm>
 #include <cassert>
-#include <cstring> // for strlen
-#include <iomanip>
 #include <iostream>
-#include <iterator>
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
+#include <type_traits>
+#include <vector>
 
+#include <sdsl/bits.hpp>
+#include <sdsl/cereal.hpp>
+#include <sdsl/config.hpp>
 #include <sdsl/csa_alphabet_strategy.hpp>
 #include <sdsl/csa_sampling_strategy.hpp>
 #include <sdsl/enc_vector.hpp>
 #include <sdsl/int_vector.hpp>
+#include <sdsl/int_vector_buffer.hpp>
+#include <sdsl/int_vector_mapper.hpp>
+#include <sdsl/io.hpp>
 #include <sdsl/iterators.hpp>
+#include <sdsl/memory_tracking.hpp>
+#include <sdsl/sdsl_concepts.hpp>
+#include <sdsl/structure_tree.hpp>
 #include <sdsl/suffix_array_helper.hpp>
 #include <sdsl/util.hpp>
 
@@ -58,7 +68,7 @@ class csa_sada
 
     friend class bwt_of_csa_psi<csa_sada>;
 
-  public:
+public:
     enum
     {
         sa_sample_dens = t_dens,
@@ -99,7 +109,7 @@ class csa_sada
 
     static const uint32_t linear_decode_limit = 100000;
 
-  private:
+private:
     enc_vector_type m_psi;        // psi function
     sa_sample_type m_sa_sample;   // suffix array samples
     isa_sample_type m_isa_sample; // inverse suffix array samples
@@ -115,43 +125,47 @@ class csa_sada
         }
     }
 
-  public:
+public:
     const typename alphabet_type::char2comp_type & char2comp = m_alphabet.char2comp;
     const typename alphabet_type::comp2char_type & comp2char = m_alphabet.comp2char;
     const typename alphabet_type::C_type & C = m_alphabet.C;
     const typename alphabet_type::sigma_type & sigma = m_alphabet.sigma;
-    const psi_type & psi = m_psi;
+    psi_type const & psi = m_psi;
     const lf_type lf = lf_type(*this);
     const bwt_type bwt = bwt_type(*this);
     const isa_type isa = isa_type(*this);
     const bwt_type L = bwt_type(*this);
     const first_row_type F = first_row_type(*this);
     const text_type text = text_type(*this);
-    const sa_sample_type & sa_sample = m_sa_sample;
-    const isa_sample_type & isa_sample = m_isa_sample;
+    sa_sample_type const & sa_sample = m_sa_sample;
+    isa_sample_type const & isa_sample = m_isa_sample;
 
     //! Default Constructor
-    csa_sada() { create_buffer(); }
+    csa_sada()
+    {
+        create_buffer();
+    }
     //! Default Destructor
-    ~csa_sada() {}
+    ~csa_sada()
+    {}
 
     //! Copy constructor
-    csa_sada(const csa_sada & csa)
-      : m_psi(csa.m_psi)
-      , m_sa_sample(csa.m_sa_sample)
-      , m_isa_sample(csa.m_isa_sample)
-      , m_alphabet(csa.m_alphabet)
+    csa_sada(csa_sada const & csa) :
+        m_psi(csa.m_psi),
+        m_sa_sample(csa.m_sa_sample),
+        m_isa_sample(csa.m_isa_sample),
+        m_alphabet(csa.m_alphabet)
     {
         create_buffer();
         m_isa_sample.set_vector(&m_sa_sample);
     }
 
     //! Move constructor
-    csa_sada(csa_sada && csa)
-      : m_psi(std::move(csa.m_psi))
-      , m_sa_sample(std::move(csa.m_sa_sample))
-      , m_isa_sample(std::move(csa.m_isa_sample))
-      , m_alphabet(std::move(csa.m_alphabet))
+    csa_sada(csa_sada && csa) :
+        m_psi(std::move(csa.m_psi)),
+        m_sa_sample(std::move(csa.m_sa_sample)),
+        m_isa_sample(std::move(csa.m_isa_sample)),
+        m_alphabet(std::move(csa.m_alphabet))
     {
         create_buffer();
         m_isa_sample.set_vector(&m_sa_sample);
@@ -165,31 +179,46 @@ class csa_sada
      *  \par Time complexity
      *      \f$ \Order{1} \f$
      */
-    size_type size() const { return m_psi.size(); }
+    size_type size() const
+    {
+        return m_psi.size();
+    }
 
     //! Returns the largest size that csa_sada can ever have.
     /*! Required for the Container Concept of the STL.
      *  \sa size
      */
-    static size_type max_size() { return t_enc_vec::max_size(); }
+    static size_type max_size()
+    {
+        return t_enc_vec::max_size();
+    }
 
     //! Returns if the data strucutre is empty.
     /*! Required for the Container Concept of the STL.A
      * \sa size
      */
-    bool empty() const { return m_psi.empty(); }
+    bool empty() const
+    {
+        return m_psi.empty();
+    }
 
     //! Returns a const_iterator to the first element.
     /*! Required for the STL Container Concept.
      *  \sa end
      */
-    const_iterator begin() const { return const_iterator(this, 0); }
+    const_iterator begin() const
+    {
+        return const_iterator(this, 0);
+    }
 
     //! Returns a const_iterator to the element after the last element.
     /*! Required for the STL Container Concept.
      *  \sa begin.
      */
-    const_iterator end() const { return const_iterator(this, size()); }
+    const_iterator end() const
+    {
+        return const_iterator(this, size());
+    }
 
     //! []-operator
     /*!\param i Index of the value. \f$ i \in [0..size()-1]\f$.
@@ -204,7 +233,7 @@ class csa_sada
     /*!
      *    Required for the Assignable Concept of the STL.
      */
-    csa_sada & operator=(const csa_sada & csa)
+    csa_sada & operator=(csa_sada const & csa)
     {
         if (this != &csa)
         {
@@ -235,12 +264,15 @@ class csa_sada
     //! Equality operator.
     bool operator==(csa_sada const & other) const noexcept
     {
-        return (m_psi == other.m_psi) && (m_sa_sample == other.m_sa_sample) && (m_isa_sample == other.m_isa_sample) &&
-               (m_alphabet == other.m_alphabet);
+        return (m_psi == other.m_psi) && (m_sa_sample == other.m_sa_sample) && (m_isa_sample == other.m_isa_sample)
+            && (m_alphabet == other.m_alphabet);
     }
 
     //! Inequality operator.
-    bool operator!=(csa_sada const & other) const noexcept { return !(*this == other); }
+    bool operator!=(csa_sada const & other) const noexcept
+    {
+        return !(*this == other);
+    }
 
     //! Serialize to a stream.
     /*!\param out Outstream to write the data structure.
@@ -259,9 +291,12 @@ class csa_sada
     template <typename archive_t>
     void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar);
 
-    uint32_t get_sample_dens() const { return t_dens; }
+    uint32_t get_sample_dens() const
+    {
+        return t_dens;
+    }
 
-  private:
+private:
     // Calculates how many symbols c are in the prefix [0..i-1] of the BWT of the original text.
     /*
      *  \param i The exclusive index of the prefix range [0..i-1], so \f$i\in [0..size()]\f$.
@@ -275,7 +310,8 @@ class csa_sada
         comp_char_type cc = char2comp[c];
         if (cc == 0 and c != 0) // character is not in the text => return 0
             return 0;
-        if (i == 0) return 0;
+        if (i == 0)
+            return 0;
         assert(i <= size());
 
         size_type lower_b, upper_b; // lower_b inclusive, upper_b exclusive
@@ -370,7 +406,10 @@ class csa_sada
         if (cc == 0 and c != 0) // character is not in the text => return 0
             return size();
         assert(cc != 255);
-        if (C[cc] + i - 1 < C[cc + 1]) { return m_psi[C[cc] + i - 1]; }
+        if (C[cc] + i - 1 < C[cc + 1])
+        {
+            return m_psi[C[cc] + i - 1];
+        }
         else
             return size();
     }
@@ -387,11 +426,14 @@ template <class t_enc_vec,
 csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::csa_sada(cache_config & config)
 {
     create_buffer();
-    if (!cache_file_exists(key_bwt<alphabet_type::int_width>(), config)) { return; }
+    if (!cache_file_exists(key_bwt<alphabet_type::int_width>(), config))
+    {
+        return;
+    }
     size_type n = 0;
     {
         int_vector_buffer<alphabet_type::int_width> bwt_buf(
-                                                          cache_file_name(key_bwt<alphabet_type::int_width>(), config));
+            cache_file_name(key_bwt<alphabet_type::int_width>(), config));
         n = bwt_buf.size();
         auto event = memory_monitor::event("construct csa-alpbabet");
         m_alphabet = alphabet_type(bwt_buf, n);
@@ -403,22 +445,28 @@ csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_str
     {
         auto event = memory_monitor::event("sample ISA");
         isa_sample_type isa_s(config, &m_sa_sample);
-        util::swap_support(m_isa_sample, isa_s, &m_sa_sample, (const sa_sample_type *)nullptr);
+        util::swap_support(m_isa_sample, isa_s, &m_sa_sample, (sa_sample_type const *)nullptr);
     }
     // if ( config.delete_files ) {
     //     remove_from_cache<int_vector<>>(conf::KEY_SA, config);
     // }
 
     int_vector<> cnt_chr(sigma, 0, bits::hi(n) + 1);
-    for (typename alphabet_type::sigma_type i = 0; i < sigma; ++i) { cnt_chr[i] = C[i]; }
+    for (typename alphabet_type::sigma_type i = 0; i < sigma; ++i)
+    {
+        cnt_chr[i] = C[i];
+    }
     // calculate psi
     {
         auto event = memory_monitor::event("construct PSI");
         int_vector_buffer<alphabet_type::int_width> bwt_buf(
-                                                          cache_file_name(key_bwt<alphabet_type::int_width>(), config));
+            cache_file_name(key_bwt<alphabet_type::int_width>(), config));
         std::string psi_file = cache_file_name(conf::KEY_PSI, config);
         auto psi = write_out_mapper<>::create(psi_file, n, bits::hi(n) + 1);
-        for (size_type i = 0; i < n; ++i) { psi[cnt_chr[char2comp[bwt_buf[i]]]++] = i; }
+        for (size_type i = 0; i < n; ++i)
+        {
+            psi[cnt_chr[char2comp[bwt_buf[i]]]++] = i;
+        }
         register_cache_file(conf::KEY_PSI, config);
     }
     {
@@ -434,8 +482,9 @@ template <class t_enc_vec,
           class t_sa_sample_strat,
           class t_isa,
           class t_alphabet_strat>
-inline auto csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::operator[](
-                                                  size_type i) const -> value_type
+inline auto
+csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::operator[](size_type i) const
+    -> value_type
 {
     size_type off = 0;
     while (!m_sa_sample.is_sampled(i))
@@ -444,7 +493,10 @@ inline auto csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_
         ++off;      // add 1 to the offset
     }
     value_type result = m_sa_sample[i];
-    if (result < off) { return m_psi.size() - (off - result); }
+    if (result < off)
+    {
+        return m_psi.size() - (off - result);
+    }
     else
         return result - off;
 }
@@ -456,9 +508,9 @@ template <class t_enc_vec,
           class t_isa,
           class t_alphabet_strat>
 auto csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::serialize(
-                                                  std::ostream & out,
-                                                  structure_tree_node * v,
-                                                  std::string name) const -> size_type
+    std::ostream & out,
+    structure_tree_node * v,
+    std::string name) const -> size_type
 {
     structure_tree_node * child = structure_tree::add_child(v, name, util::class_name(*this));
     size_type written_bytes = 0;
@@ -492,7 +544,7 @@ template <class t_enc_vec,
           class t_alphabet_strat>
 template <typename archive_t>
 void csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::CEREAL_SAVE_FUNCTION_NAME(
-                                                  archive_t & ar) const
+    archive_t & ar) const
 {
     ar(CEREAL_NVP(m_psi));
     ar(CEREAL_NVP(m_sa_sample));
@@ -508,7 +560,7 @@ template <class t_enc_vec,
           class t_alphabet_strat>
 template <typename archive_t>
 void csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::CEREAL_LOAD_FUNCTION_NAME(
-                                                  archive_t & ar)
+    archive_t & ar)
 {
     ar(CEREAL_NVP(m_psi));
     ar(CEREAL_NVP(m_sa_sample));

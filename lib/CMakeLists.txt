@@ -15,7 +15,7 @@
 #        RUNTIME DESTINATION bin
 #        LIBRARY DESTINATION lib
 #        ARCHIVE DESTINATION lib)
-#        
+#
 #math(EXPR SOVERSION "${LIBRARY_VERSION_MAJOR}+1")
 #
 #set_target_properties(sdsl PROPERTIES

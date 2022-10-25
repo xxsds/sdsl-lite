@@ -42,7 +42,10 @@ int main(int argc, char * argv[])
         stringstream ss;
         ss << string(buffer);
         uint64_t w;
-        while (ss >> w) { cout << i2w[w] << " "; }
+        while (ss >> w)
+        {
+            cout << i2w[w] << " ";
+        }
         cout << "\n";
     }
 }

@@ -4,15 +4,22 @@
 #ifndef INCLUDED_SDSL_WT_HELPER
 #define INCLUDED_SDSL_WT_HELPER
 
-#include <algorithm>
 #include <array>
 #include <deque>
-#include <limits>
-#include <queue>
+#include <istream>
+#include <stddef.h>
+#include <stdexcept>
+#include <stdint.h>
+#include <string>
 #include <utility>
 #include <vector>
 
+#include <sdsl/cereal.hpp>
 #include <sdsl/int_vector.hpp>
+#include <sdsl/io.hpp>
+#include <sdsl/sdsl_concepts.hpp>
+#include <sdsl/structure_tree.hpp>
+#include <sdsl/util.hpp>
 
 namespace sdsl
 {
@@ -24,13 +31,13 @@ typedef std::vector<range_type> range_vec_type;
 /*!\param r Range to check
  *  \returns True if the range is empty, false otherwise.
  */
-bool empty(const range_type & r);
+bool empty(range_type const & r);
 
 //! Size of a range
 /*!\param r Range to check
  *  \returns True if the range is empty, false otherwise.
  */
-int_vector<>::size_type size(const range_type & r);
+int_vector<>::size_type size(range_type const & r);
 
 //! Count for each character the number of occurrences in rac[0..size-1]
 /*!
@@ -43,15 +50,23 @@ void calculate_character_occurences(t_it begin, t_it end, t_rac & C)
     for (auto it = begin; it != end; ++it)
     {
         uint64_t c = *it;
-        if (c >= C.size()) { C.resize(c + 1, 0); }
+        if (c >= C.size())
+        {
+            C.resize(c + 1, 0);
+        }
         ++C[c];
     }
 }
 
 template <typename t_rac, typename sigma_type>
-void calculate_effective_alphabet_size(const t_rac & C, sigma_type & sigma)
+void calculate_effective_alphabet_size(t_rac const & C, sigma_type & sigma)
 {
-    sigma = std::count_if(begin(C), end(C), [](decltype(*begin(C)) & x) { return x > 0; });
+    sigma = std::count_if(begin(C),
+                          end(C),
+                          [](decltype(*begin(C)) & x)
+                          {
+                              return x > 0;
+                          });
 }
 
 struct pc_node
@@ -81,24 +96,24 @@ struct _node
     uint64_t bv_pos = 0;                        // pointer into the bit_vector, which represents the wavelet tree
     uint64_t bv_pos_rank = 0;                   // pre-calculated rank for the prefix up to but not including bv_pos
     node_type parent = t_tree_strat_fat::undef; // pointer to the parent
-    node_type child[2] = { t_tree_strat_fat::undef, t_tree_strat_fat::undef }; // pointer to the children
+    node_type child[2] = {t_tree_strat_fat::undef, t_tree_strat_fat::undef}; // pointer to the children
 
     _node(uint64_t bv_pos = 0,
           uint64_t bv_pos_rank = 0,
           node_type parent = t_tree_strat_fat::undef,
           node_type child_left = t_tree_strat_fat::undef,
-          node_type child_right = t_tree_strat_fat::undef)
-      : bv_pos(bv_pos)
-      , bv_pos_rank(bv_pos_rank)
-      , parent(parent)
+          node_type child_right = t_tree_strat_fat::undef) :
+        bv_pos(bv_pos),
+        bv_pos_rank(bv_pos_rank),
+        parent(parent)
     {
         child[0] = child_left;
         child[1] = child_right;
     }
 
-    _node(const _node &) = default;
+    _node(_node const &) = default;
 
-    _node & operator=(const _node & v)
+    _node & operator=(_node const & v)
     {
         if (this != &v)
         {
@@ -111,7 +126,7 @@ struct _node
         return *this;
     }
 
-    _node & operator=(const pc_node & v)
+    _node & operator=(pc_node const & v)
     {
         bv_pos = v.freq;
         bv_pos_rank = v.sym;
@@ -165,12 +180,15 @@ struct _node
     //! Equality operator.
     bool operator==(_node const & other) const noexcept
     {
-        return (bv_pos == other.bv_pos) && (bv_pos_rank == other.bv_pos_rank) && (parent == other.parent) &&
-               (child[0] == other.child[0]) && (child[1] == other.child[1]);
+        return (bv_pos == other.bv_pos) && (bv_pos_rank == other.bv_pos_rank) && (parent == other.parent)
+            && (child[0] == other.child[0]) && (child[1] == other.child[1]);
     }
 
     //! Inequality operator.
-    bool operator!=(_node const & other) const noexcept { return !(*this == other); }
+    bool operator!=(_node const & other) const noexcept
+    {
+        return !(*this == other);
+    }
 };
 
 // TODO: version of _byte_tree for lex_ordered tree shapes
@@ -206,9 +224,10 @@ struct _byte_tree
     // 0..55 hold path information; bits 56..63 the length
     // of the path in binary representation
 
-    _byte_tree() {}
+    _byte_tree()
+    {}
 
-    _byte_tree(const std::vector<pc_node> & temp_nodes, uint64_t & bv_size, const t_wt *)
+    _byte_tree(std::vector<pc_node> const & temp_nodes, uint64_t & bv_size, t_wt const *)
     {
         m_nodes.resize(temp_nodes.size());
         m_nodes[0] = temp_nodes.back(); // insert root at index 0
@@ -282,7 +301,10 @@ struct _byte_tree
                     ++pl;
                     v = m_nodes[v].parent; // go up the tree
                 }
-                if (pl > 56) { throw std::logic_error("Code depth greater than 56!!!"); }
+                if (pl > 56)
+                {
+                    throw std::logic_error("Code depth greater than 56!!!");
+                }
                 m_path[c] = pw | (pl << 56);
                 prev_c = c;
             }
@@ -295,7 +317,7 @@ struct _byte_tree
     }
 
     template <typename t_rank_type>
-    void init_node_ranks(const t_rank_type & rank)
+    void init_node_ranks(t_rank_type const & rank)
     {
         for (uint64_t i = 0; i < m_nodes.size(); ++i)
         {
@@ -304,15 +326,16 @@ struct _byte_tree
         }
     }
 
-    _byte_tree(const _byte_tree & bt)
-      : m_nodes(bt.m_nodes)
+    _byte_tree(_byte_tree const & bt) : m_nodes(bt.m_nodes)
     {
 
-        for (uint32_t i = 0; i < fixed_sigma; ++i) m_c_to_leaf[i] = bt.m_c_to_leaf[i];
-        for (uint32_t i = 0; i < fixed_sigma; ++i) m_path[i] = bt.m_path[i];
+        for (uint32_t i = 0; i < fixed_sigma; ++i)
+            m_c_to_leaf[i] = bt.m_c_to_leaf[i];
+        for (uint32_t i = 0; i < fixed_sigma; ++i)
+            m_path[i] = bt.m_path[i];
     }
 
-    _byte_tree & operator=(const _byte_tree & bt)
+    _byte_tree & operator=(_byte_tree const & bt)
     {
         if (this != &bt)
         {
@@ -327,8 +350,10 @@ struct _byte_tree
         if (this != &bt)
         {
             m_nodes = std::move(bt.m_nodes);
-            for (uint32_t i = 0; i < fixed_sigma; ++i) m_c_to_leaf[i] = bt.m_c_to_leaf[i];
-            for (uint32_t i = 0; i < fixed_sigma; ++i) m_path[i] = bt.m_path[i];
+            for (uint32_t i = 0; i < fixed_sigma; ++i)
+                m_c_to_leaf[i] = bt.m_c_to_leaf[i];
+            for (uint32_t i = 0; i < fixed_sigma; ++i)
+                m_path[i] = bt.m_path[i];
         }
         return *this;
     }
@@ -380,27 +405,49 @@ struct _byte_tree
     bool operator==(_byte_tree const & other) const noexcept
     {
         return (m_nodes == other.m_nodes) /* && (m_c_to_leaf == other.m_c_to_leaf) &&
-                (m_path == other.m_path)*/;
+                (m_path == other.m_path)*/
+            ;
     }
 
     //! Inequality operator.
-    bool operator!=(_byte_tree const & other) const noexcept { return !(*this == other); }
+    bool operator!=(_byte_tree const & other) const noexcept
+    {
+        return !(*this == other);
+    }
 
     //! Get corresponding leaf for symbol c.
-    inline node_type c_to_leaf(value_type c) const { return m_c_to_leaf[c]; }
+    inline node_type c_to_leaf(value_type c) const
+    {
+        return m_c_to_leaf[c];
+    }
     //! Return the root node of the tree.
-    inline static node_type root() { return 0; }
+    static inline node_type root()
+    {
+        return 0;
+    }
 
     //! Return the number of nodes in the tree.
-    uint64_t size() const { return m_nodes.size(); }
+    uint64_t size() const
+    {
+        return m_nodes.size();
+    }
 
     //! Return the parent node of v.
-    inline node_type parent(node_type v) const { return m_nodes[v].parent; }
+    inline node_type parent(node_type v) const
+    {
+        return m_nodes[v].parent;
+    }
     //! Return left (i=0) or right (i=1) child node of v.
-    inline node_type child(node_type v, uint8_t i) const { return m_nodes[v].child[i]; }
+    inline node_type child(node_type v, uint8_t i) const
+    {
+        return m_nodes[v].child[i];
+    }
 
     //! Return if v is a leaf node.
-    inline bool is_leaf(node_type v) const { return m_nodes[v].child[0] == undef; }
+    inline bool is_leaf(node_type v) const
+    {
+        return m_nodes[v].child[0] == undef;
+    }
 
     //! Return size of an inner node
     inline uint64_t size(node_type v) const
@@ -410,25 +457,40 @@ struct _byte_tree
     }
 
     //! Return the path as left/right bit sequence in a uint64_t
-    inline uint64_t bit_path(value_type c) const { return m_path[c]; }
+    inline uint64_t bit_path(value_type c) const
+    {
+        return m_path[c];
+    }
 
     //! Return the start of the node in the WT's bit vector
-    inline uint64_t bv_pos(node_type v) const { return m_nodes[v].bv_pos; }
+    inline uint64_t bv_pos(node_type v) const
+    {
+        return m_nodes[v].bv_pos;
+    }
 
     //! Returns for node v the rank of 1's up to bv_pos(v)
-    inline uint64_t bv_pos_rank(node_type v) const { return m_nodes[v].bv_pos_rank; }
+    inline uint64_t bv_pos_rank(node_type v) const
+    {
+        return m_nodes[v].bv_pos_rank;
+    }
 
     //! Return if the node is a valid node
-    inline bool is_valid(node_type v) const { return v != undef; }
+    inline bool is_valid(node_type v) const
+    {
+        return v != undef;
+    }
 
     //! Return symbol c or the next larger symbol in the wt
     inline std::pair<bool, value_type> symbol_gte(value_type c) const
     {
         for (uint32_t i = c; i < fixed_sigma; i++)
         {
-            if (m_c_to_leaf[i] != undef) { return { true, i }; }
+            if (m_c_to_leaf[i] != undef)
+            {
+                return {true, i};
+            }
         }
-        return { false, 0 };
+        return {false, 0};
     }
 
     //! Return symbol c or the next smaller symbol in the wt
@@ -436,10 +498,14 @@ struct _byte_tree
     {
         for (uint32_t i = c; i > 0; i--)
         {
-            if (m_c_to_leaf[i] != undef) { return { true, i }; }
+            if (m_c_to_leaf[i] != undef)
+            {
+                return {true, i};
+            }
         }
-        if (m_c_to_leaf[0] != undef) return { true, 0 };
-        return { false, 0 };
+        if (m_c_to_leaf[0] != undef)
+            return {true, 0};
+        return {false, 0};
     }
 };
 
@@ -478,7 +544,7 @@ struct _int_tree
 
     _int_tree() = default;
 
-    _int_tree(const std::vector<pc_node> & temp_nodes, uint64_t & bv_size, const t_wt *)
+    _int_tree(std::vector<pc_node> const & temp_nodes, uint64_t & bv_size, t_wt const *)
     {
         m_nodes.resize(temp_nodes.size());
         m_nodes[0] = temp_nodes.back(); // insert root at index 0
@@ -540,7 +606,8 @@ struct _int_tree
             { // if node is a leaf
                 uint64_t c = m_nodes[v].bv_pos_rank;
                 m_c_to_leaf[c] = v; // calculate value
-                if (c > max_c) max_c = c;
+                if (c > max_c)
+                    max_c = c;
             }
         }
         m_path = std::vector<uint64_t>(m_c_to_leaf.size(), 0);
@@ -564,7 +631,10 @@ struct _int_tree
                     ++l;
                     v = m_nodes[v].parent; // go up the tree
                 }
-                if (l > 56) { throw std::logic_error("Code depth greater than 56!!!"); }
+                if (l > 56)
+                {
+                    throw std::logic_error("Code depth greater than 56!!!");
+                }
                 m_path[c] = w | (l << 56);
                 prev_c = c;
             }
@@ -577,7 +647,7 @@ struct _int_tree
     }
 
     template <typename t_rank_type>
-    void init_node_ranks(const t_rank_type & rank)
+    void init_node_ranks(t_rank_type const & rank)
     {
         for (uint64_t i = 0; i < m_nodes.size(); ++i)
         {
@@ -586,10 +656,10 @@ struct _int_tree
         }
     }
 
-    _int_tree(const _int_tree & bt) = default;
+    _int_tree(_int_tree const & bt) = default;
     _int_tree(_int_tree && bt) = default;
 
-    _int_tree & operator=(const _int_tree & bt) = default;
+    _int_tree & operator=(_int_tree const & bt) = default;
     _int_tree & operator=(_int_tree && bt) = default;
 
     //! Serializes the data structure into the given ostream
@@ -634,7 +704,10 @@ struct _int_tree
     }
 
     //! Inequality operator.
-    bool operator!=(_int_tree const & other) const noexcept { return !(*this == other); }
+    bool operator!=(_int_tree const & other) const noexcept
+    {
+        return !(*this == other);
+    }
 
     template <typename archive_t>
     void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
@@ -661,18 +734,33 @@ struct _int_tree
             return m_c_to_leaf[c];
     }
     //! Return the root node of the tree.
-    inline static node_type root() { return 0; }
+    static inline node_type root()
+    {
+        return 0;
+    }
 
     //! Return the number of nodes in the tree.
-    uint64_t size() const { return m_nodes.size(); }
+    uint64_t size() const
+    {
+        return m_nodes.size();
+    }
 
     //! Return the parent node of v.
-    inline node_type parent(node_type v) const { return m_nodes[v].parent; }
+    inline node_type parent(node_type v) const
+    {
+        return m_nodes[v].parent;
+    }
     //! Return left (i=0) or right (i=1) child node of v.
-    inline node_type child(node_type v, uint8_t i) const { return m_nodes[v].child[i]; }
+    inline node_type child(node_type v, uint8_t i) const
+    {
+        return m_nodes[v].child[i];
+    }
 
     //! Return if v is a leaf node.
-    inline bool is_leaf(node_type v) const { return m_nodes[v].child[0] == undef; }
+    inline bool is_leaf(node_type v) const
+    {
+        return m_nodes[v].child[0] == undef;
+    }
 
     //! Return size of an inner node
     inline uint64_t size(node_type v) const
@@ -684,28 +772,46 @@ struct _int_tree
     //! Return the path as left/right bit sequence in a uint64_t
     inline uint64_t bit_path(value_type c) const
     {
-        if (c >= m_path.size()) { return m_path.size() - 1; }
+        if (c >= m_path.size())
+        {
+            return m_path.size() - 1;
+        }
         return m_path[c];
     }
 
     //! Return the start of the node in the WT's bit vector
-    inline uint64_t bv_pos(node_type v) const { return m_nodes[v].bv_pos; }
+    inline uint64_t bv_pos(node_type v) const
+    {
+        return m_nodes[v].bv_pos;
+    }
 
     //! Returns for node v the rank of 1's up to bv_pos(v)
-    inline uint64_t bv_pos_rank(node_type v) const { return m_nodes[v].bv_pos_rank; }
+    inline uint64_t bv_pos_rank(node_type v) const
+    {
+        return m_nodes[v].bv_pos_rank;
+    }
 
     //! Return if the node is a valid node
-    inline bool is_valid(node_type v) const { return v != undef; }
+    inline bool is_valid(node_type v) const
+    {
+        return v != undef;
+    }
 
     //! Return symbol c or the next larger symbol in the wt
     inline std::pair<bool, value_type> symbol_gte(value_type c) const
     {
-        if (c >= m_c_to_leaf.size()) { return { false, 0 }; }
+        if (c >= m_c_to_leaf.size())
+        {
+            return {false, 0};
+        }
         for (value_type i = c; i < m_c_to_leaf.size(); i++)
         {
-            if (m_c_to_leaf[i] != undef) { return { true, i }; }
+            if (m_c_to_leaf[i] != undef)
+            {
+                return {true, i};
+            }
         }
-        return { false, 0 };
+        return {false, 0};
     }
 
     //! Return symbol c or the next smaller symbol in the wt
@@ -718,10 +824,14 @@ struct _int_tree
         }
         for (value_type i = c; i > 0; i--)
         {
-            if (m_c_to_leaf[i] != undef) { return { true, i }; }
+            if (m_c_to_leaf[i] != undef)
+            {
+                return {true, i};
+            }
         }
-        if (m_c_to_leaf[0] != undef) return { true, 0 };
-        return { false, 0 };
+        if (m_c_to_leaf[0] != undef)
+            return {true, 0};
+        return {false, 0};
     }
 };
 
@@ -736,63 +846,83 @@ struct int_tree
 template <typename t_bv>
 class node_bv_container
 {
-  public:
+public:
     typedef typename t_bv::value_type value_type;
     typedef typename t_bv::size_type size_type;
     typedef typename t_bv::difference_type difference_type;
     typedef typename t_bv::const_iterator iterator;
 
-  private:
+private:
     iterator m_begin, m_end;
 
-  public:
-    node_bv_container(iterator b, iterator e)
-      : m_begin(b)
-      , m_end(e)
+public:
+    node_bv_container(iterator b, iterator e) : m_begin(b), m_end(e)
     {}
-    value_type operator[](size_type i) const { return *(m_begin + i); }
-    size_type size() const { return m_end - m_begin; }
-    iterator begin() const { return m_begin; }
-    iterator end() const { return m_end; }
+    value_type operator[](size_type i) const
+    {
+        return *(m_begin + i);
+    }
+    size_type size() const
+    {
+        return m_end - m_begin;
+    }
+    iterator begin() const
+    {
+        return m_begin;
+    }
+    iterator end() const
+    {
+        return m_end;
+    }
 };
 
 template <typename t_bv>
 class node_seq_container
 {
-  public:
+public:
     typedef typename t_bv::value_type value_type;
     typedef typename t_bv::size_type size_type;
     typedef typename t_bv::difference_type difference_type;
     typedef typename t_bv::const_iterator iterator;
 
-  private:
+private:
     iterator m_begin, m_end;
 
-  public:
-    node_seq_container(iterator b, iterator e)
-      : m_begin(b)
-      , m_end(e)
+public:
+    node_seq_container(iterator b, iterator e) : m_begin(b), m_end(e)
     {}
-    value_type operator[](size_type i) const { return *(m_begin + i); }
-    size_type size() const { return m_end - m_begin; }
-    iterator begin() const { return m_begin; }
-    iterator end() const { return m_end; }
+    value_type operator[](size_type i) const
+    {
+        return *(m_begin + i);
+    }
+    size_type size() const
+    {
+        return m_end - m_begin;
+    }
+    iterator begin() const
+    {
+        return m_begin;
+    }
+    iterator end() const
+    {
+        return m_end;
+    }
 };
 
-inline bool empty(const range_type & r)
+inline bool empty(range_type const & r)
 {
     return std::get<0>(r) == (std::get<1>(r) + 1);
 }
 
-inline int_vector<>::size_type size(const range_type & r)
+inline int_vector<>::size_type size(range_type const & r)
 {
     return std::get<1>(r) - std::get<0>(r) + 1;
 }
 
-inline pc_node::pc_node(uint64_t freq, uint64_t sym, uint64_t parent, uint64_t child_left, uint64_t child_right)
-  : freq(freq)
-  , sym(sym)
-  , parent(parent)
+inline pc_node::pc_node(uint64_t freq, uint64_t sym, uint64_t parent, uint64_t child_left, uint64_t child_right) :
+    freq(freq),
+    sym(sym),
+    parent(parent)
 {
     child[0] = child_left;
     child[1] = child_right;

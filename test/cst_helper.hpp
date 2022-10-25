@@ -4,12 +4,12 @@
 #include <iostream>
 #include <sstream>
 #ifdef WIN32
-#include <iso646.h>
+#    include <iso646.h>
 #endif
 
 // this has to be declared before gtest is included
 template <class T>
-std::ostream & operator<<(std::ostream & os, const std::pair<T, T> & v)
+std::ostream & operator<<(std::ostream & os, std::pair<T, T> const & v)
 {
     os << "[" << v.first << ", " << v.second << "]";
     return os;
@@ -18,7 +18,7 @@ std::ostream & operator<<(std::ostream & os, const std::pair<T, T> & v)
 #include <gtest/gtest.h>
 
 template <class Cst>
-std::string format_node(const Cst & cst, const typename Cst::node_type & v)
+std::string format_node(Cst const & cst, const typename Cst::node_type & v)
 {
     std::stringstream ss;
     ss << cst.depth(v) << "-[" << cst.lb(v) << "," << cst.rb(v) << "]";
@@ -26,7 +26,7 @@ std::string format_node(const Cst & cst, const typename Cst::node_type & v)
 }
 
 template <class tCst>
-void check_node_method(const tCst & cst)
+void check_node_method(tCst const & cst)
 {
     typedef typename tCst::const_iterator const_iterator;
     typedef typename tCst::node_type node_type;
@@ -43,10 +43,8 @@ void check_node_method(const tCst & cst)
 }
 
 template <class Cst>
-typename Cst::node_type naive_lca(const Cst & cst,
-                                  typename Cst::node_type v,
-                                  typename Cst::node_type w,
-                                  bool output = false)
+typename Cst::node_type
+naive_lca(Cst const & cst, typename Cst::node_type v, typename Cst::node_type w, bool output = false)
 {
     typedef typename Cst::size_type size_type;
     size_type steps = 0;
@@ -55,12 +53,18 @@ typename Cst::node_type naive_lca(const Cst & cst,
         if (cst.depth(v) > cst.depth(w))
         {
             v = cst.parent(v);
-            if (output) { std::cout << "v=" << format_node(cst, v) << std::endl; }
+            if (output)
+            {
+                std::cout << "v=" << format_node(cst, v) << std::endl;
+            }
         }
         else
         {
             w = cst.parent(w);
-            if (output) { std::cout << "w=" << format_node(cst, v) << std::endl; }
+            if (output)
+            {
+                std::cout << "w=" << format_node(cst, v) << std::endl;
+            }
         }
         steps++;
     }

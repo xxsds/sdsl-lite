@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 
-#include <sdsl/wavelet_trees.hpp>
+#include <sdsl/wt_epr.hpp>
 
 #include "common.hpp"
 
@@ -23,22 +23,23 @@ string temp_dir;
 template <class T>
 class wt_byte_epr_test : public ::testing::Test
 {
-  protected:
+protected:
     // Needs to be a member instead of a global since the static sdsl::memory_manager might call its destructor
     // before the vector.
     static int_vector<8> text;
 };
 
 template <class T>
-int_vector<8> wt_byte_epr_test<T>::text{ []() {
-    int_vector<8> result;
-    result.resize(std::rand() % 10000);
-    for (uint32_t i = 0; i < result.size(); ++i)
-    {
-        result[i] = (std::rand() % 3) + 1; // no 0s allowed. produces 1, 2 or 3.
-    }
-    return result;
-}() };
+int_vector<8> wt_byte_epr_test<T>::text{[]()
+                                        {
+                                            int_vector<8> result;
+                                            result.resize(std::rand() % 10000);
+                                            for (uint32_t i = 0; i < result.size(); ++i)
+                                            {
+                                                result[i] = (std::rand() % 3) + 1; // no 0s allowed. produces 1, 2 or 3.
+                                            }
+                                            return result;
+                                        }()};
 
 using testing::Types;
 
@@ -75,10 +76,13 @@ TYPED_TEST(wt_byte_epr_test, sigma)
 }
 
 template <class t_wt>
-void compare_wt(const int_vector<8> & text, const t_wt & wt)
+void compare_wt(int_vector<8> const & text, t_wt const & wt)
 {
     ASSERT_EQ(text.size(), wt.size());
-    for (size_type j = 0; j < text.size(); ++j) { ASSERT_EQ((typename t_wt::value_type)text[j], wt[j]) << " j=" << j; }
+    for (size_type j = 0; j < text.size(); ++j)
+    {
+        ASSERT_EQ((typename t_wt::value_type)text[j], wt[j]) << " j=" << j;
+    }
 }
 
 //! Test Access method, Copy-construtor, Move-constructor, Copy-assign and Move-assign
@@ -116,12 +120,13 @@ TYPED_TEST(wt_byte_epr_test, rank)
     ASSERT_EQ(this->text.size(), wt.size());
 
     // Test rank(i, c) for each character c and position i
-    unsigned cnt_prefix_rank[4] = { 0 };
+    unsigned cnt_prefix_rank[4] = {0};
     for (unsigned i = 0; i < this->text.size() + 1; ++i)
     {
         for (unsigned v = 0; v < wt.sigma; ++v)
         {
-            if (i > 0 && this->text[i - 1] <= v) ++cnt_prefix_rank[v];
+            if (i > 0 && this->text[i - 1] <= v)
+                ++cnt_prefix_rank[v];
 
             // auto const rank = rb(i, v);
             if (v > 0)
@@ -143,15 +148,15 @@ template <typename in_archive_t, typename out_archive_t, typename TypeParam>
 void do_serialisation(TypeParam const & l)
 {
     {
-        std::ofstream os{ temp_file, std::ios::binary };
-        out_archive_t oarchive{ os };
+        std::ofstream os{temp_file, std::ios::binary};
+        out_archive_t oarchive{os};
         oarchive(l);
     }
 
     {
         TypeParam in_l{};
-        std::ifstream is{ temp_file, std::ios::binary };
-        in_archive_t iarchive{ is };
+        std::ifstream is{temp_file, std::ios::binary};
+        in_archive_t iarchive{is};
         iarchive(in_l);
         EXPECT_EQ(l, in_l);
     }
@@ -192,7 +197,7 @@ int main(int argc, char ** argv)
     temp_dir = argv[1];
     temp_file = temp_dir + "/wt_epr";
 
-    auto const seed{ time(NULL) };
+    auto const seed{time(NULL)};
     srand(seed);
 
     return RUN_ALL_TESTS();

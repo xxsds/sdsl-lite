@@ -10,13 +10,12 @@
 #define SDSL_RRR_HELPER
 
 #ifdef RRR_NO_OPT
-#ifndef RRR_NO_BS
-#define RRR_NO_BS
-#endif
+#    ifndef RRR_NO_BS
+#        define RRR_NO_BS
+#    endif
 #endif
 
-#include <algorithm> // for next permutation
-#include <iostream>
+#include <stdint.h>
 
 #include <sdsl/bits.hpp>
 #include <sdsl/uint128_t.hpp>
@@ -32,7 +31,10 @@ template <uint16_t log_n>
 struct binomial_coefficients_trait
 {
     typedef uint64_t number_type;
-    static inline uint16_t hi(number_type x) { return bits::hi(x); }
+    static inline uint16_t hi(number_type x)
+    {
+        return bits::hi(x);
+    }
 
     //! Read a \f$len\f$-bit integer of type number_type from a bitvector.
     /*!
@@ -42,7 +44,7 @@ struct binomial_coefficients_trait
      * \return The len-bit integer.
      */
     template <class bit_vector_type>
-    static inline number_type get_int(const bit_vector_type & bv, typename bit_vector_type::size_type pos, uint16_t len)
+    static inline number_type get_int(bit_vector_type const & bv, typename bit_vector_type::size_type pos, uint16_t len)
     {
         return bv.get_int(pos, len);
     }
@@ -64,7 +66,10 @@ struct binomial_coefficients_trait
     /*!
      *  \param x The integer x.
      */
-    static inline uint16_t popcount(number_type x) { return bits::cnt(x); }
+    static inline uint16_t popcount(number_type x)
+    {
+        return bits::cnt(x);
+    }
 };
 
 //! Specialization of binomial_coefficients_trait for 128-bit integers.
@@ -74,7 +79,10 @@ struct binomial_coefficients_trait<7>
     typedef uint128_t number_type;
     static inline uint16_t hi(number_type x)
     {
-        if ((x >> 64)) { return bits::hi(x >> 64) + 64; }
+        if ((x >> 64))
+        {
+            return bits::hi(x >> 64) + 64;
+        }
         else
         {
             return bits::hi(x);
@@ -82,9 +90,12 @@ struct binomial_coefficients_trait<7>
     }
 
     template <class bit_vector_type>
-    static inline number_type get_int(const bit_vector_type & bv, typename bit_vector_type::size_type pos, uint16_t len)
+    static inline number_type get_int(bit_vector_type const & bv, typename bit_vector_type::size_type pos, uint16_t len)
     {
-        if (len <= 64) { return bv.get_int(pos, len); }
+        if (len <= 64)
+        {
+            return bv.get_int(pos, len);
+        }
         else
         {
             return ((((number_type)bv.get_int(pos + 64, len - 64)) << 64) + bv.get_int(pos, 64));
@@ -94,7 +105,10 @@ struct binomial_coefficients_trait<7>
     template <class bit_vector_type>
     static void set_int(bit_vector_type & bv, typename bit_vector_type::size_type pos, number_type x, uint16_t len)
     {
-        if (len <= 64) { bv.set_int(pos, x, len); }
+        if (len <= 64)
+        {
+            bv.set_int(pos, x, len);
+        }
         else
         {
             bv.set_int(pos, (uint64_t)x, 64);
@@ -102,7 +116,10 @@ struct binomial_coefficients_trait<7>
         }
     }
 
-    static inline uint16_t popcount(number_type x) { return bits::cnt(x >> 64) + bits::cnt(x); }
+    static inline uint16_t popcount(number_type x)
+    {
+        return bits::cnt(x >> 64) + bits::cnt(x);
+    }
 };
 
 //! Specialization of binomial_coefficients_trait for 256-bit integers.
@@ -110,12 +127,18 @@ template <>
 struct binomial_coefficients_trait<8>
 {
     typedef uint256_t number_type;
-    static inline uint16_t hi(number_type x) { return x.hi(); }
+    static inline uint16_t hi(number_type x)
+    {
+        return x.hi();
+    }
 
     template <class bit_vector_type>
-    static inline number_type get_int(const bit_vector_type & bv, typename bit_vector_type::size_type pos, uint16_t len)
+    static inline number_type get_int(bit_vector_type const & bv, typename bit_vector_type::size_type pos, uint16_t len)
     {
-        if (len <= 64) { return number_type(bv.get_int(pos, len)); }
+        if (len <= 64)
+        {
+            return number_type(bv.get_int(pos, len));
+        }
         else if (len <= 128)
         {
             return number_type(bv.get_int(pos, 64), bv.get_int(pos + 64, len - 64));
@@ -137,7 +160,10 @@ struct binomial_coefficients_trait<8>
     template <class bit_vector_type>
     static void set_int(bit_vector_type & bv, typename bit_vector_type::size_type pos, number_type x, uint16_t len)
     {
-        if (len <= 64) { bv.set_int(pos, x, len); }
+        if (len <= 64)
+        {
+            bv.set_int(pos, x, len);
+        }
         else if (len <= 128)
         {
             bv.set_int(pos, x, 64);
@@ -158,7 +184,10 @@ struct binomial_coefficients_trait<8>
         }
     }
 
-    static inline uint16_t popcount(number_type x) { return x.popcount(); }
+    static inline uint16_t popcount(number_type x)
+    {
+        return x.popcount();
+    }
 };
 
 template <uint16_t n, class number_type>
@@ -187,7 +216,10 @@ struct binomial_table
             }
             for (int nn = 1; nn <= n; ++nn)
             {
-                for (int k = 1; k <= n; ++k) { table[nn][k] = table[nn - 1][k - 1] + table[nn - 1][k]; }
+                for (int k = 1; k <= n; ++k)
+                {
+                    table[nn][k] = table[nn - 1][k - 1] + table[nn - 1][k];
+                }
             }
             L1Mask[0] = 0;
             number_type mask = 1;
@@ -195,7 +227,8 @@ struct binomial_table
             for (int i = 1; i <= n; ++i)
             {
                 L1Mask[i] = mask;
-                if (i < n) O1Mask[i] = O1Mask[i - 1] << 1;
+                if (i < n)
+                    O1Mask[i] = O1Mask[i - 1] << 1;
                 mask = (mask << 1);
                 mask |= (number_type)1;
             }
@@ -240,8 +273,8 @@ struct binomial_coefficients
     static struct impl
     {
         const number_type (&table)[MAX_SIZE + 1][MAX_SIZE + 1] =
-                                                          tBinom::data.table; // table for the binomial coefficients
-        uint16_t space[n + 1]; // for entry i,j \lceil \log( {i \choose j}+1 ) \rceil
+            tBinom::data.table; // table for the binomial coefficients
+        uint16_t space[n + 1];  // for entry i,j \lceil \log( {i \choose j}+1 ) \rceil
 #ifndef RRR_NO_BS
         static const uint16_t BINARY_SEARCH_THRESHOLD = n / MAX_LOG;
 #else
@@ -284,29 +317,28 @@ struct rrr_helper
     typedef typename binomial::trait trait;             //!< The number trait
 
     //! Returns the space usage in bits of the binary representation of the number \f${n \choose k}\f$
-    static inline uint16_t space_for_bt(uint16_t i) { return binomial::data.space[i]; }
+    static inline uint16_t space_for_bt(uint16_t i)
+    {
+        return binomial::data.space[i];
+    }
 
     template <class bit_vector_type>
-    static inline number_type decode_btnr(const bit_vector_type & bv,
-                                          typename bit_vector_type::size_type btnrp,
-                                          uint16_t btnrlen)
+    static inline number_type
+    decode_btnr(bit_vector_type const & bv, typename bit_vector_type::size_type btnrp, uint16_t btnrlen)
     {
         return trait::get_int(bv, btnrp, btnrlen);
     }
 
     template <class bit_vector_type>
-    static void set_bt(bit_vector_type & bv,
-                       typename bit_vector_type::size_type pos,
-                       number_type bt,
-                       uint16_t space_for_bt)
+    static void
+    set_bt(bit_vector_type & bv, typename bit_vector_type::size_type pos, number_type bt, uint16_t space_for_bt)
     {
         trait::set_int(bv, pos, bt, space_for_bt);
     }
 
     template <class bit_vector_type>
-    static inline uint16_t get_bt(const bit_vector_type & bv,
-                                  typename bit_vector_type::size_type pos,
-                                  uint16_t block_size)
+    static inline uint16_t
+    get_bt(bit_vector_type const & bv, typename bit_vector_type::size_type pos, uint16_t block_size)
     {
         return trait::popcount(trait::get_int(bv, pos, block_size));
     }
@@ -361,14 +393,20 @@ struct rrr_helper
                 while (nn_lb < nn_rb)
                 {
                     uint16_t nn_mid = (nn_lb + nn_rb) / 2;
-                    if (nr >= binomial::data.table[nn_mid - 1][k]) { nn_lb = nn_mid + 1; }
+                    if (nr >= binomial::data.table[nn_mid - 1][k])
+                    {
+                        nn_lb = nn_mid + 1;
+                    }
                     else
                     {
                         nn_rb = nn_mid;
                     }
                 }
                 nn = nn_lb - 1;
-                if (n - nn >= off) { return (n - nn) == off; }
+                if (n - nn >= off)
+                {
+                    return (n - nn) == off;
+                }
                 nr -= binomial::data.table[nn - 1][k];
                 --k;
                 --nn;
@@ -379,12 +417,16 @@ struct rrr_helper
             int i = 0;
             while (k > 1)
             {
-                if (i > off) { return 0; }
+                if (i > off)
+                {
+                    return 0;
+                }
                 if (nr >= binomial::data.table[nn - 1][k])
                 {
                     nr -= binomial::data.table[nn - 1][k];
                     --k;
-                    if (i == off) return 1;
+                    if (i == off)
+                        return 1;
                 }
                 --nn;
                 ++i;
@@ -420,12 +462,16 @@ struct rrr_helper
         int i = 0;
         while (k > 1)
         {
-            if (i > off + len - 1) { return res; }
+            if (i > off + len - 1)
+            {
+                return res;
+            }
             if (nr >= binomial::data.table[nn - 1][k])
             {
                 nr -= binomial::data.table[nn - 1][k];
                 --k;
-                if (i >= off) res |= 1ULL << (i - off);
+                if (i >= off)
+                    res |= 1ULL << (i - off);
             }
             --nn;
             ++i;
@@ -466,14 +512,20 @@ struct rrr_helper
                 while (nn_lb < nn_rb)
                 {
                     uint16_t nn_mid = (nn_lb + nn_rb) / 2;
-                    if (nr >= binomial::data.table[nn_mid - 1][k]) { nn_lb = nn_mid + 1; }
+                    if (nr >= binomial::data.table[nn_mid - 1][k])
+                    {
+                        nn_lb = nn_mid + 1;
+                    }
                     else
                     {
                         nn_rb = nn_mid;
                     }
                 }
                 nn = nn_lb - 1;
-                if (n - nn >= off) { return result; }
+                if (n - nn >= off)
+                {
+                    return result;
+                }
                 ++result;
                 nr -= binomial::data.table[nn - 1][k];
                 --k;
@@ -485,7 +537,10 @@ struct rrr_helper
             int i = 0;
             while (k > 1)
             {
-                if (i >= off) { return result; }
+                if (i >= off)
+                {
+                    return result;
+                }
                 if (nr >= binomial::data.table[nn - 1][k])
                 {
                     nr -= binomial::data.table[nn - 1][k];
@@ -523,7 +578,10 @@ struct rrr_helper
                 while (nn_lb < nn_rb)
                 {
                     uint16_t nn_mid = (nn_lb + nn_rb) / 2;
-                    if (nr >= binomial::data.table[nn_mid - 1][k]) { nn_lb = nn_mid + 1; }
+                    if (nr >= binomial::data.table[nn_mid - 1][k])
+                    {
+                        nn_lb = nn_mid + 1;
+                    }
                     else
                     {
                         nn_rb = nn_mid;

@@ -8,9 +8,22 @@
 #ifndef SDSL_ENC_VECTOR
 #define SDSL_ENC_VECTOR
 
-#include <sdsl/coder.hpp>
+#include <assert.h>
+#include <iosfwd>
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
+
+#include <sdsl/bits.hpp>
+#include <sdsl/cereal.hpp>
+#include <sdsl/coder_elias_delta.hpp>
 #include <sdsl/int_vector.hpp>
+#include <sdsl/int_vector_buffer.hpp>
+#include <sdsl/io.hpp>
 #include <sdsl/iterators.hpp>
+#include <sdsl/sdsl_concepts.hpp>
+#include <sdsl/structure_tree.hpp>
+#include <sdsl/util.hpp>
 
 //! Namespace for the succinct data structure library.
 namespace sdsl
@@ -48,16 +61,16 @@ struct enc_vector_trait<64>
 template <class t_coder = coder::elias_delta<>, uint32_t t_dens = 128, uint8_t t_width = 0>
 class enc_vector
 {
-  private:
+private:
     static_assert(t_dens > 1, "enc_vector: sample density must be larger than `1`");
 
-  public:
+public:
     typedef uint64_t value_type;
     typedef random_access_const_iterator<enc_vector> iterator;
     typedef iterator const_iterator;
     typedef const value_type reference;
     typedef const value_type const_reference;
-    typedef const value_type * const_pointer;
+    typedef value_type const * const_pointer;
     typedef ptrdiff_t difference_type;
     typedef int_vector<>::size_type size_type;
     typedef t_coder coder;
@@ -67,7 +80,8 @@ class enc_vector
     typedef enc_vector enc_vec_type;
 
     int_vector<0> m_z; // storage for encoded deltas
-  private:
+
+private:
     int_vector_type m_sample_vals_and_pointer; // samples and pointers
     size_type m_size = 0;                      // number of vector elements
 
@@ -80,18 +94,18 @@ class enc_vector
         m_sample_vals_and_pointer.shrink_to_fit();
     }
 
-  public:
+public:
     enc_vector() = default;
-    enc_vector(const enc_vector &) = default;
+    enc_vector(enc_vector const &) = default;
     enc_vector(enc_vector &&) = default;
-    enc_vector & operator=(const enc_vector &) = default;
+    enc_vector & operator=(enc_vector const &) = default;
     enc_vector & operator=(enc_vector &&) = default;
 
     //! Constructor for a Container of unsigned integers.
     /*!\param c A container of unsigned integers.
      */
     template <class Container>
-    enc_vector(const Container & c);
+    enc_vector(Container const & c);
 
     //! Constructor for an int_vector_buffer of unsigned integers.
     /*
@@ -101,29 +115,48 @@ class enc_vector
     enc_vector(int_vector_buffer<int_width> & v_buf);
 
     //! Default Destructor
-    ~enc_vector() {}
+    ~enc_vector()
+    {}
 
     //! The number of elements in the enc_vector.
-    size_type size() const { return m_size; }
+    size_type size() const
+    {
+        return m_size;
+    }
 
     //! Return the largest size that this container can ever have.
-    static size_type max_size() { return int_vector<>::max_size() / 2; }
+    static size_type max_size()
+    {
+        return int_vector<>::max_size() / 2;
+    }
 
     //!    Returns if the enc_vector is empty.
-    bool empty() const { return 0 == m_size; }
+    bool empty() const
+    {
+        return 0 == m_size;
+    }
 
     //! Iterator that points to the first element of the enc_vector.
-    const const_iterator begin() const { return const_iterator(this, 0); }
+    const const_iterator begin() const
+    {
+        return const_iterator(this, 0);
+    }
 
     //! Iterator that points to the position after the last element of the enc_vector.
-    const const_iterator end() const { return const_iterator(this, this->m_size); }
+    const const_iterator end() const
+    {
+        return const_iterator(this, this->m_size);
+    }
 
-    bool operator==(const enc_vector & v) const
+    bool operator==(enc_vector const & v) const
     {
         return m_size && v.m_size && m_z == v.m_z && m_sample_vals_and_pointer == v.m_sample_vals_and_pointer;
     }
 
-    bool operator!=(const enc_vector & v) const { return !(*this == v); }
+    bool operator!=(enc_vector const & v) const
+    {
+        return !(*this == v);
+    }
 
     //! operator[]
     /*!\param i Index. \f$ i \in [0..size()-1]\f$.
@@ -151,7 +184,10 @@ class enc_vector
      */
     value_type sample(const size_type i) const;
 
-    uint32_t get_sample_dens() const { return t_dens; }
+    uint32_t get_sample_dens() const
+    {
+        return t_dens;
+    }
 
     /*!
      * \param i The index of the sample for which all values till the next sample should be decoded. 0 <= i <
@@ -176,19 +212,19 @@ class enc_vector
 };
 
 template <class t_coder, uint32_t t_dens, uint8_t t_width>
-inline typename enc_vector<t_coder, t_dens, t_width>::value_type enc_vector<t_coder, t_dens, t_width>::operator[](
-                                                  const size_type i) const
+inline typename enc_vector<t_coder, t_dens, t_width>::value_type
+enc_vector<t_coder, t_dens, t_width>::operator[](const size_type i) const
 {
     assert(i + 1 != 0);
     assert(i < m_size);
     size_type idx = i / get_sample_dens();
-    return m_sample_vals_and_pointer[idx << 1] +
-           t_coder::decode_prefix_sum(m_z.data(), m_sample_vals_and_pointer[(idx << 1) + 1], i - t_dens * idx);
+    return m_sample_vals_and_pointer[idx << 1]
+         + t_coder::decode_prefix_sum(m_z.data(), m_sample_vals_and_pointer[(idx << 1) + 1], i - t_dens * idx);
 }
 
 template <class t_coder, uint32_t t_dens, uint8_t t_width>
-inline typename enc_vector<t_coder, t_dens, t_width>::value_type enc_vector<t_coder, t_dens, t_width>::sample(
-                                                  const size_type i) const
+inline typename enc_vector<t_coder, t_dens, t_width>::value_type
+enc_vector<t_coder, t_dens, t_width>::sample(const size_type i) const
 {
     assert(i * get_sample_dens() + 1 != 0);
     assert(i * get_sample_dens() < m_size);
@@ -197,7 +233,7 @@ inline typename enc_vector<t_coder, t_dens, t_width>::value_type enc_vector<t_co
 
 template <class t_coder, uint32_t t_dens, uint8_t t_width>
 template <class Container>
-enc_vector<t_coder, t_dens, t_width>::enc_vector(const Container & c)
+enc_vector<t_coder, t_dens, t_width>::enc_vector(Container const & c)
 {
     // clear bit_vectors
     clear();
@@ -215,7 +251,8 @@ enc_vector<t_coder, t_dens, t_width>::enc_vector(const Container & c)
         if (!no_sample)
         { // add a sample
             no_sample = get_sample_dens();
-            if (max_sample_value < v2) max_sample_value = v2;
+            if (max_sample_value < v2)
+                max_sample_value = v2;
             ++samples;
         }
         else
@@ -298,7 +335,8 @@ enc_vector<t_coder, t_dens, t_width>::enc_vector(int_vector_buffer<int_width> & 
         if (!no_sample)
         { // is sample
             no_sample = sd;
-            if (max_sample_value < v2) max_sample_value = v2;
+            if (max_sample_value < v2)
+                max_sample_value = v2;
             ++samples;
         }
         else
@@ -344,9 +382,8 @@ enc_vector<t_coder, t_dens, t_width>::enc_vector(int_vector_buffer<int_width> & 
 }
 
 template <class t_coder, uint32_t t_dens, uint8_t t_width>
-enc_vector<>::size_type enc_vector<t_coder, t_dens, t_width>::serialize(std::ostream & out,
-                                                                        structure_tree_node * v,
-                                                                        std::string name) const
+enc_vector<>::size_type
+enc_vector<t_coder, t_dens, t_width>::serialize(std::ostream & out, structure_tree_node * v, std::string name) const
 {
     structure_tree_node * child = structure_tree::add_child(v, name, util::class_name(*this));
     size_type written_bytes = 0;

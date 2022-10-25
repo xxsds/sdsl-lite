@@ -1,8 +1,7 @@
 #include <chrono>
 #include <iostream>
 
-#include <sdsl/io.hpp>
-#include <sdsl/suffix_trees.hpp>
+#include <sdsl/cst_sct3.hpp>
 
 using timer = std::chrono::high_resolution_clock;
 using namespace std::chrono;

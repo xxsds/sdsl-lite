@@ -8,11 +8,11 @@ using namespace std;
 using namespace sdsl;
 
 #ifndef BLOCK_SIZE
-#define BLOCK_SIZE 31
+#    define BLOCK_SIZE 31
 #endif
 
 #ifndef RANK_SAMPLE_DENS
-#define RANK_SAMPLE_DENS 32
+#    define RANK_SAMPLE_DENS 32
 #endif
 
 using namespace std::chrono;
@@ -27,21 +27,25 @@ using timer = std::chrono::high_resolution_clock;
  *               run through several times.
  */
 template <class t_vec>
-uint64_t test_random_access(const t_vec & v, const int_vector<64> & rands, uint64_t mask, uint64_t times = 100000000)
+uint64_t test_random_access(t_vec const & v, int_vector<64> const & rands, uint64_t mask, uint64_t times = 100000000)
 {
     uint64_t cnt = 0;
-    for (uint64_t i = 0; i < times; ++i) { cnt += v[rands[i & mask]]; }
+    for (uint64_t i = 0; i < times; ++i)
+    {
+        cnt += v[rands[i & mask]];
+    }
     return cnt;
 }
 
 template <class t_vec>
-uint64_t test_inv_random_access(const t_vec & v,
-                                const int_vector<64> & rands,
-                                uint64_t mask,
-                                uint64_t times = 100000000)
+uint64_t
+test_inv_random_access(t_vec const & v, int_vector<64> const & rands, uint64_t mask, uint64_t times = 100000000)
 {
     uint64_t cnt = 0;
-    for (uint64_t i = 0; i < times; ++i) { cnt += v(rands[i & mask]); }
+    for (uint64_t i = 0; i < times; ++i)
+    {
+        cnt += v(rands[i & mask]);
+    }
     return cnt;
 }
 
@@ -95,7 +99,8 @@ int main(int argc, char * argv[])
         cout << "# rank_time = " << duration_cast<nanoseconds>(stop - start).count() / (double)reps << endl;
         cout << "# rank_check = " << check << endl;
         rands = util::rnd_positions<int_vector<64>>(20, mask, args, 17);
-        for (uint64_t i = 0; i < rands.size(); ++i) rands[i] = rands[i] + 1;
+        for (uint64_t i = 0; i < rands.size(); ++i)
+            rands[i] = rands[i] + 1;
         stop = timer::now();
         check = test_inv_random_access(rrr_sel, rands, mask, reps);
         stop = timer::now();

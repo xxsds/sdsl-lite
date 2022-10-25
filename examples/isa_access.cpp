@@ -1,7 +1,10 @@
 #include <iostream>
 #include <random>
 
-#include <sdsl/suffix_trees.hpp>
+#include <sdsl/csa_wt.hpp>
+#include <sdsl/rrr_vector.hpp>
+#include <sdsl/sd_vector.hpp>
+#include <sdsl/wt_huff.hpp>
 
 using namespace sdsl;
 using namespace std;
@@ -10,7 +13,7 @@ using namespace std::chrono;
 using timer = std::chrono::high_resolution_clock;
 
 template <class t_csa>
-void run(const char * file)
+void run(char const * file)
 {
     mt19937_64 rng;
     rng.seed(424242);
@@ -31,7 +34,10 @@ void run(const char * file)
     uint64_t check = 0;
     auto start = timer::now();
     size_t iterations = 1000000;
-    for (size_t i = 0; i < iterations; ++i) { check += csa.isa[dice()]; }
+    for (size_t i = 0; i < iterations; ++i)
+    {
+        check += csa.isa[dice()];
+    }
     auto stop = timer::now();
     cout << "check = " << check << endl;
     cout << "time_in_us_per_isa_access  = " << duration_cast<microseconds>(stop - start).count() / iterations << endl;
@@ -39,7 +45,10 @@ void run(const char * file)
     check = 0;
     start = timer::now();
     iterations = 1000000;
-    for (size_t i = 0; i < iterations; ++i) { check += csa[dice()]; }
+    for (size_t i = 0; i < iterations; ++i)
+    {
+        check += csa[dice()];
+    }
     stop = timer::now();
     cout << "check = " << check << endl;
     cout << "time_in_us_per_sa_access  = " << duration_cast<microseconds>(stop - start).count() / iterations << endl;

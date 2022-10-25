@@ -1,4 +1,4 @@
-#include <sdsl/bit_vectors.hpp>
+#include <sdsl/rrr_vector.hpp>
 #include <sdsl/sd_vector.hpp>
 
 #include <gtest/gtest.h>
@@ -37,7 +37,10 @@ TYPED_TEST(sd_vector_test, iterator_constructor)
         }
     }
     TypeParam sdv(pos.begin(), pos.end());
-    for (size_t i = 0; i < bv.size(); ++i) { ASSERT_EQ((bool)sdv[i], (bool)bv[i]); }
+    for (size_t i = 0; i < bv.size(); ++i)
+    {
+        ASSERT_EQ((bool)sdv[i], (bool)bv[i]);
+    }
 }
 
 TYPED_TEST(sd_vector_test, builder_constructor)
@@ -58,16 +61,25 @@ TYPED_TEST(sd_vector_test, builder_constructor)
         }
     }
     sd_vector_builder builder(BV_SIZE, ones);
-    for (auto i : pos) { builder.set(i); }
+    for (auto i : pos)
+    {
+        builder.set(i);
+    }
     TypeParam sdv(builder);
-    for (size_t i = 0; i < bv.size(); ++i) { ASSERT_EQ((bool)sdv[i], (bool)bv[i]); }
+    for (size_t i = 0; i < bv.size(); ++i)
+    {
+        ASSERT_EQ((bool)sdv[i], (bool)bv[i]);
+    }
 }
 
 TYPED_TEST(sd_vector_test, builder_empty_constructor)
 {
     sd_vector_builder builder(BV_SIZE, 0UL);
     TypeParam sdv(builder);
-    for (size_t i = 0; i < BV_SIZE; ++i) { ASSERT_FALSE((bool)sdv[i]); }
+    for (size_t i = 0; i < BV_SIZE; ++i)
+    {
+        ASSERT_FALSE((bool)sdv[i]);
+    }
 }
 
 } // end namespace

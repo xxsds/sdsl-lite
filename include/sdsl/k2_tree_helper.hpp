@@ -9,9 +9,12 @@
 #define INCLUDED_SDSL_K2_TREE_HELPER
 
 #include <cmath>
-#include <iostream>
+#include <deque>
+#include <stdint.h>
+#include <utility>
+#include <vector>
 
-#include <sdsl/bit_vectors.hpp>
+#include <sdsl/int_vector.hpp>
 
 //! Namespace for the succinct data structure library.
 namespace sdsl
@@ -25,10 +28,10 @@ typedef int_vector<>::size_type idx_type;
 typedef int_vector<>::size_type size_type;
 
 template <typename t_bv = bit_vector>
-int _build_from_matrix(const std::vector<std::vector<int>> & matrix,
+int _build_from_matrix(std::vector<std::vector<int>> const & matrix,
                        const uint8_t k,
                        int n,
-                       const int height,
+                       int const height,
                        int l,
                        int p,
                        int q,
@@ -42,19 +45,21 @@ int _build_from_matrix(const std::vector<std::vector<int>> & matrix,
     {
         for (i = 0; i < k; i++)
             for (j = 0; j < k; j++)
-                if (p + i < matrix.size() && q + j < matrix.size() && matrix[p + i][q + j] == 1) b[i * k + j] = 1;
+                if (p + i < matrix.size() && q + j < matrix.size() && matrix[p + i][q + j] == 1)
+                    b[i * k + j] = 1;
     }
     else
     { // Internal node
         for (i = 0; i < k; i++)
             for (j = 0; j < k; j++)
-                b[i * k +
-                  j] = _build_from_matrix(matrix, k, n / k, height, l + 1, p + i * (n / k), q + j * (n / k), acc);
+                b[i * k + j] =
+                    _build_from_matrix(matrix, k, n / k, height, l + 1, p + i * (n / k), q + j * (n / k), acc);
     }
 
     // TODO There must be a better way to check if there is a 1 at b.
     for (i = 0; i < b_size; i++)
-        if (b[i] == 1) break;
+        if (b[i] == 1)
+            break;
     if (i == b_size) // If there are not 1s at b.
         return 0;
 

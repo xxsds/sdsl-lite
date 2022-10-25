@@ -2,7 +2,12 @@
 #include <string>
 #include <vector>
 
-#include <sdsl/suffix_arrays.hpp>
+#include <sdsl/bit_vector_il.hpp>
+#include <sdsl/csa_alphabet_strategy.hpp>
+#include <sdsl/csa_wt.hpp>
+#include <sdsl/suffix_array_algorithm.hpp>
+#include <sdsl/wt_blcd.hpp>
+#include <sdsl/wt_hutu.hpp>
 
 #include <gtest/gtest.h>
 
@@ -30,7 +35,7 @@ typedef Types<csa_wt<wt_blcd<>, 32, 32, sa_order_sa_sampling<>, isa_sampling<>, 
               csa_wt<wt_hutu<>, 32, 32, sa_order_sa_sampling<>, isa_sampling<>, succinct_byte_alphabet<>>,
               csa_wt<wt_hutu<>, 32, 32, sa_order_sa_sampling<>, isa_sampling<>, plain_byte_alphabet>,
               csa_wt<wt_hutu<bit_vector_il<>>, 32, 32, sa_order_sa_sampling<>, isa_sampling<>, byte_alphabet>>
-                                                  Implementations;
+    Implementations;
 
 TYPED_TEST_SUITE(search_bidirectional_test, Implementations, );
 
@@ -73,7 +78,10 @@ TYPED_TEST(search_bidirectional_test, bidirectional_search)
                 // forward
                 i = 0;
                 pos = end;
-                for (size_type j = 0; j < x; ++j) { newpat.push_back(csa1.text[pos + j]); }
+                for (size_type j = 0; j < x; ++j)
+                {
+                    newpat.push_back(csa1.text[pos + j]);
+                }
                 occ = bidirectional_search_forward(csa1,
                                                    csa1_rev,
                                                    l,
@@ -94,7 +102,10 @@ TYPED_TEST(search_bidirectional_test, bidirectional_search)
                 // backward
                 i = 0;
                 pos = start - 1;
-                for (size_type j = 0; j < x; ++j) { newpat.push_back(csa1.text[pos - x + 1 + j]); }
+                for (size_type j = 0; j < x; ++j)
+                {
+                    newpat.push_back(csa1.text[pos - x + 1 + j]);
+                }
                 occ = bidirectional_search_backward(csa1,
                                                     csa1_rev,
                                                     l,
@@ -115,7 +126,10 @@ TYPED_TEST(search_bidirectional_test, bidirectional_search)
             if (debug)
             {
                 cout << "pattern (at text[" << start << ".." << end - 1 << "]):" << endl;
-                for (size_type j = start; j < end; ++j) { cout << csa1.text[j]; }
+                for (size_type j = start; j < end; ++j)
+                {
+                    cout << csa1.text[j];
+                }
                 cout << endl;
                 if (occ)
                 {
@@ -125,13 +139,17 @@ TYPED_TEST(search_bidirectional_test, bidirectional_search)
                 cout << endl;
             }
             ASSERT_LT((size_type)0,
-                      occ) << "Pattern not found in input."; // make sure pattern was found in input (it has to be
-                                                             // because we took part of the input as pattern)
+                      occ)
+                << "Pattern not found in input."; // make sure pattern was found in input (it has to be
+                                                  // because we took part of the input as pattern)
 
             {
                 // check using backward_search
                 string pat = "";
-                for (size_type j = 0; j < end - start; ++j) { pat.push_back(csa1.text[start + j]); }
+                for (size_type j = 0; j < end - start; ++j)
+                {
+                    pat.push_back(csa1.text[start + j]);
+                }
                 size_type b_l, b_r;
                 size_type b_occ = backward_search(csa1, 0, csa1.size() - 1, pat.begin(), pat.end(), b_l, b_r);
                 ASSERT_EQ(b_occ, occ) << "Bidirectional_search and backward_search found different number of "
@@ -169,7 +187,10 @@ int main(int argc, char ** argv)
         load_vector_from_file(text, test_file, 1);
         size_type n = text.size();
         int_vector<8> text_rev(n);
-        for (size_type i = 0; i < n; i++) { text_rev[n - 1 - i] = text[i]; }
+        for (size_type i = 0; i < n; i++)
+        {
+            text_rev[n - 1 - i] = text[i];
+        }
         char * text2 = (char *)text_rev.data();
         ofstream of(test_file_rev, ofstream::binary);
         of.write(text2, n);

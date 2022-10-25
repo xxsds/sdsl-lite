@@ -8,10 +8,19 @@
 #ifndef INCLUDED_SDSL_RANK_SUPPORT_SCAN
 #define INCLUDED_SDSL_RANK_SUPPORT_SCAN
 
+#include <assert.h>
+#include <iosfwd>
+#include <stdint.h>
+#include <string>
+
+#include <sdsl/cereal.hpp>
+#include <sdsl/int_vector.hpp>
+#include <sdsl/io.hpp>
 #include <sdsl/rank_support.hpp>
 
 namespace sdsl
 {
+class structure_tree_node;
 
 /*!\brief A class supporting rank queries in linear time.
  * \ingroup rank_support_group
@@ -26,12 +35,12 @@ namespace sdsl
 template <uint8_t t_b = 1, uint8_t t_pat_len = 1>
 class rank_support_scan : public rank_support
 {
-  private:
+private:
     static_assert(t_b == 1u or t_b == 0u or t_b == 10u or t_b == 11u,
                   "rank_support_scan: bit pattern must be `0`,`1`,`10` or `01`");
     static_assert(t_pat_len == 1u or t_pat_len == 2u, "rank_support_scan: bit pattern length must be 1 or 2");
 
-  public:
+public:
     typedef bit_vector bit_vector_type;
     enum
     {
@@ -42,22 +51,33 @@ class rank_support_scan : public rank_support
         bit_pat_len = t_pat_len
     };
 
-  public:
-    explicit rank_support_scan(const bit_vector * v = nullptr)
-      : rank_support(v){};
-    rank_support_scan(const rank_support_scan & rs) = default;
+public:
+    explicit rank_support_scan(bit_vector const * v = nullptr) : rank_support(v){};
+    rank_support_scan(rank_support_scan const & rs) = default;
     rank_support_scan(rank_support_scan && rs) = default;
-    rank_support_scan & operator=(const rank_support_scan & rs) = default;
+    rank_support_scan & operator=(rank_support_scan const & rs) = default;
     rank_support_scan & operator=(rank_support_scan && rs) = default;
     size_type rank(size_type idx) const;
-    size_type operator()(size_type idx) const { return rank(idx); };
-    size_type size() const { return m_v->size(); };
+    size_type operator()(size_type idx) const
+    {
+        return rank(idx);
+    };
+    size_type size() const
+    {
+        return m_v->size();
+    };
     size_type serialize(std::ostream & out, structure_tree_node * v = nullptr, std::string name = "") const
     {
         return serialize_empty_object(out, v, name, this);
     }
-    void load(std::istream &, const int_vector<1> * v = nullptr) { set_vector(v); }
-    void set_vector(const bit_vector * v = nullptr) { m_v = v; }
+    void load(std::istream &, int_vector<1> const * v = nullptr)
+    {
+        set_vector(v);
+    }
+    void set_vector(bit_vector const * v = nullptr)
+    {
+        m_v = v;
+    }
     template <typename archive_t>
     void CEREAL_SAVE_FUNCTION_NAME(archive_t &) const
     {}
@@ -66,19 +86,25 @@ class rank_support_scan : public rank_support
     {}
 
     //!\brief Equality operator.
-    bool operator==(rank_support_scan const & other) const noexcept { return (*m_v == *other.m_v); }
+    bool operator==(rank_support_scan const & other) const noexcept
+    {
+        return (*m_v == *other.m_v);
+    }
 
     //!\brief Inequality operator.
-    bool operator!=(rank_support_scan const & other) const noexcept { return !(*this == other); }
+    bool operator!=(rank_support_scan const & other) const noexcept
+    {
+        return !(*this == other);
+    }
 };
 
 template <uint8_t t_b, uint8_t t_pat_len>
-inline typename rank_support_scan<t_b, t_pat_len>::size_type rank_support_scan<t_b, t_pat_len>::rank(
-                                                  size_type idx) const
+inline typename rank_support_scan<t_b, t_pat_len>::size_type
+rank_support_scan<t_b, t_pat_len>::rank(size_type idx) const
 {
     assert(m_v != nullptr);
     assert(idx <= m_v->size());
-    const uint64_t * p = m_v->data();
+    uint64_t const * p = m_v->data();
     size_type i = 0;
     size_type result = 0;
     while (i + 64 <= idx)

@@ -3,7 +3,11 @@
 #include <string>
 #include <vector>
 
-#include <sdsl/suffix_arrays.hpp>
+#include <sdsl/csa_bitcompressed.hpp>
+#include <sdsl/csa_sada.hpp>
+#include <sdsl/csa_wt.hpp>
+#include <sdsl/enc_vector.hpp>
+#include <sdsl/suffix_array_algorithm.hpp>
 
 #include "common.hpp"
 
@@ -36,14 +40,14 @@ typedef Types<csa_wt<wt_int<>, 32, 32, sa_order_sa_sampling<>, isa_sampling<>, i
               csa_wt<wt_int<rrr_vector<63>>, 8, 8, sa_order_sa_sampling<>, isa_sampling<>, int_alphabet<>>,
               csa_wt<wt_int<>, 16, 16, text_order_sa_sampling<>, text_order_isa_sampling_support<>, int_alphabet<>>,
               csa_sada<enc_vector<>, 32, 32, text_order_sa_sampling<>, isa_sampling<>, int_alphabet<>>>
-                                                  Implementations;
+    Implementations;
 
 #else
 
 typedef Types<csa_wt<wt_int<>, 32, 32, sa_order_sa_sampling<>, isa_sampling<>, int_alphabet<>>,
               csa_sada<enc_vector<>, 32, 32, sa_order_sa_sampling<>, isa_sampling<>, int_alphabet<>>,
               csa_bitcompressed<int_alphabet<>>>
-                                                  Implementations;
+    Implementations;
 
 #endif
 
@@ -93,7 +97,10 @@ TYPED_TEST(csa_int_test, sa_access)
     load_from_file(sa, test_case_file_map[conf::KEY_SA]);
     size_type n = sa.size();
     ASSERT_EQ(n, csa.size());
-    for (size_type j = 0; j < n; ++j) { ASSERT_EQ(sa[j], csa[j]) << " j=" << j; }
+    for (size_type j = 0; j < n; ++j)
+    {
+        ASSERT_EQ(sa[j], csa[j]) << " j=" << j;
+    }
 }
 
 //! Test inverse suffix access methods
@@ -114,7 +121,10 @@ TYPED_TEST(csa_int_test, isa_access)
             isa[sa[j]] = j; // calculate inverse suffix array
         }
     }
-    for (size_type j = 0; j < n; ++j) { ASSERT_EQ(isa[j], csa.isa[j]) << " j=" << j; }
+    for (size_type j = 0; j < n; ++j)
+    {
+        ASSERT_EQ(isa[j], csa.isa[j]) << " j=" << j;
+    }
 }
 
 //! Test Burrows-Wheeler access methods
@@ -128,7 +138,10 @@ TYPED_TEST(csa_int_test, bwt_access)
         load_from_file(bwt, test_case_file_map[conf::KEY_BWT_INT]);
         size_type n = bwt.size();
         ASSERT_EQ(n, csa.size());
-        for (size_type j = 0; j < n; ++j) { ASSERT_EQ(bwt[j], csa.bwt[j]) << " j=" << j; }
+        for (size_type j = 0; j < n; ++j)
+        {
+            ASSERT_EQ(bwt[j], csa.bwt[j]) << " j=" << j;
+        }
     }
 }
 
@@ -143,7 +156,10 @@ TYPED_TEST(csa_int_test, f_access)
         std::sort(begin(text), end(text));
         size_type n = text.size();
         ASSERT_EQ(n, csa.size());
-        for (size_type j = 0; j < n; j += 200) { ASSERT_EQ(text[j], csa.F[j]) << " j=" << j; }
+        for (size_type j = 0; j < n; j += 200)
+        {
+            ASSERT_EQ(text[j], csa.F[j]) << " j=" << j;
+        }
     }
 }
 
@@ -158,14 +174,20 @@ TYPED_TEST(csa_int_test, text_access)
         load_from_file(text, test_case_file_map[conf::KEY_TEXT_INT]);
         size_type n = text.size();
         ASSERT_EQ(n, csa.size());
-        for (size_type j = 0; j < n; ++j) { ASSERT_EQ(text[j], csa.text[j]) << " j=" << j; }
+        for (size_type j = 0; j < n; ++j)
+        {
+            ASSERT_EQ(text[j], csa.text[j]) << " j=" << j;
+        }
         auto len = std::min(csa.size(), std::max(csa.size() / 10, (decltype(csa.size()))20));
         auto ex_text = extract(csa, 0, len - 1);
-        for (size_type j = 0; j < len; ++j) { ASSERT_EQ(text[j], ex_text[j]) << " j=" << j; }
+        for (size_type j = 0; j < len; ++j)
+        {
+            ASSERT_EQ(text[j], ex_text[j]) << " j=" << j;
+        }
         if (n > 0)
         {
             auto c_out_of_range = (*std::max_element(text.begin(), text.end())) + 1;
-            auto cnt = count(csa, { c_out_of_range });
+            auto cnt = count(csa, {c_out_of_range});
             ASSERT_EQ(0ULL, cnt) << " c_out_of_range=" << c_out_of_range << " text=" << csa.text;
         }
     }
@@ -182,7 +204,10 @@ TYPED_TEST(csa_int_test, psi_access)
         load_from_file(psi, test_case_file_map[conf::KEY_PSI]);
         size_type n = psi.size();
         ASSERT_EQ(n, csa.size());
-        for (size_type j = 0; j < n; ++j) { ASSERT_EQ(psi[j], csa.psi[j]) << " j=" << j; }
+        for (size_type j = 0; j < n; ++j)
+        {
+            ASSERT_EQ(psi[j], csa.psi[j]) << " j=" << j;
+        }
     }
 }
 
@@ -210,7 +235,10 @@ TYPED_TEST(csa_int_test, swap_test)
     load_from_file(sa, test_case_file_map[conf::KEY_SA]);
     size_type n = sa.size();
     ASSERT_EQ(n, csa2.size());
-    for (size_type j = 0; j < n; ++j) { ASSERT_EQ((typename TypeParam::value_type)sa[j], csa2[j]); }
+    for (size_type j = 0; j < n; ++j)
+    {
+        ASSERT_EQ((typename TypeParam::value_type)sa[j], csa2[j]);
+    }
 }
 
 #if SDSL_HAS_CEREAL
@@ -218,15 +246,15 @@ template <typename in_archive_t, typename out_archive_t, typename TypeParam>
 void do_serialisation(TypeParam const & l)
 {
     {
-        std::ofstream os{ temp_file, std::ios::binary };
-        out_archive_t oarchive{ os };
+        std::ofstream os{temp_file, std::ios::binary};
+        out_archive_t oarchive{os};
         oarchive(l);
     }
 
     TypeParam in_l{};
     {
-        std::ifstream is{ temp_file, std::ios::binary };
-        in_archive_t iarchive{ is };
+        std::ifstream is{temp_file, std::ios::binary};
+        in_archive_t iarchive{is};
         iarchive(in_l);
     }
     EXPECT_EQ(l, in_l);
@@ -258,6 +286,9 @@ TYPED_TEST(csa_int_test, delete_)
 int main(int argc, char ** argv)
 {
     ::testing::InitGoogleTest(&argc, argv);
-    if (init_3_arg_test(argc, argv, "CSA_INT", test_file, num_bytes, temp_dir, temp_file) == 1) { return 1; }
+    if (init_3_arg_test(argc, argv, "CSA_INT", test_file, num_bytes, temp_dir, temp_file) == 1)
+    {
+        return 1;
+    }
     return RUN_ALL_TESTS();
 }

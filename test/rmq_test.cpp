@@ -2,7 +2,8 @@
 #include <string>
 #include <vector>
 
-#include <sdsl/rmq_support.hpp>
+#include <sdsl/rmq_succinct_sada.hpp>
+#include <sdsl/rmq_succinct_sct.hpp>
 
 #include "common.hpp"
 
@@ -42,15 +43,11 @@ TYPED_TEST(rmq_test, construct_and_store)
 // helper class for next test
 class state
 {
-  public:
+public:
     uint64_t l, r; // left and right border of interval
     uint64_t idx;  // index of the min value
     uint64_t min;  // min value in the interval
-    state(uint64_t fl = 0, uint64_t fr = 0, uint64_t fidx = 0, uint64_t fmin = 0)
-      : l(fl)
-      , r(fr)
-      , idx(fidx)
-      , min(fmin)
+    state(uint64_t fl = 0, uint64_t fr = 0, uint64_t fidx = 0, uint64_t fmin = 0) : l(fl), r(fr), idx(fidx), min(fmin)
     {}
 };
 
@@ -144,15 +141,15 @@ template <typename in_archive_t, typename out_archive_t, typename TypeParam>
 void do_serialisation(TypeParam const & l)
 {
     {
-        std::ofstream os{ temp_file, std::ios::binary };
-        out_archive_t oarchive{ os };
+        std::ofstream os{temp_file, std::ios::binary};
+        out_archive_t oarchive{os};
         oarchive(l);
     }
 
     TypeParam in_l{};
     {
-        std::ifstream is{ temp_file, std::ios::binary };
-        in_archive_t iarchive{ is };
+        std::ifstream is{temp_file, std::ios::binary};
+        in_archive_t iarchive{is};
         iarchive(in_l);
     }
     EXPECT_EQ(l, in_l);

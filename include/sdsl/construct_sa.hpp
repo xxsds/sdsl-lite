@@ -9,11 +9,20 @@
 #ifndef INCLUDED_SDSL_CONSTRUCT_SA
 #define INCLUDED_SDSL_CONSTRUCT_SA
 
+#include <iostream>
+#include <stdexcept>
+#include <stdint.h>
+#include <string>
+
+#include <sdsl/bits.hpp>
 #include <sdsl/config.hpp>
 #include <sdsl/construct_config.hpp>
 #include <sdsl/construct_sa_se.hpp>
 #include <sdsl/divsufsort.hpp>
 #include <sdsl/int_vector.hpp>
+#include <sdsl/int_vector_buffer.hpp>
+#include <sdsl/int_vector_mapper.hpp>
+#include <sdsl/io.hpp>
 #include <sdsl/qsufsort.hpp>
 
 namespace sdsl
@@ -50,7 +59,10 @@ inline void construct_sa_se(cache_config & config)
     {
         // If text is c$ or $ write suffix array [1, 0] or [0]
         int_vector_buffer<> sa(cache_file_name(conf::KEY_SA, config), std::ios::out, 8, 2);
-        if (text.size() == 2) { sa.push_back(1); }
+        if (text.size() == 2)
+        {
+            sa.push_back(1);
+        }
         sa.push_back(0);
     }
     else
@@ -76,7 +88,7 @@ namespace algorithm
  */
 
 template <typename t_int_vec>
-void calculate_sa(const unsigned char * c, typename t_int_vec::size_type len, t_int_vec & sa)
+void calculate_sa(unsigned char const * c, typename t_int_vec::size_type len, t_int_vec & sa)
 {
     typedef typename t_int_vec::size_type size_type;
     constexpr uint8_t t_width = t_int_vec::fixed_int_width;
@@ -84,7 +96,8 @@ void calculate_sa(const unsigned char * c, typename t_int_vec::size_type len, t_
     { // handle special case
         sa.width(1);
         sa.resize(len);
-        if (len > 0) sa[0] = 0;
+        if (len > 0)
+            sa[0] = 0;
         return;
     }
     bool small_file = (sizeof(len) <= 4 or len < 0x7FFFFFFFULL);
@@ -116,7 +129,10 @@ void calculate_sa(const unsigned char * c, typename t_int_vec::size_type len, t_
             int_vector<> sufarray(len, 0, 32);
             divsufsort(c, (int32_t *)sufarray.data(), (int32_t)len);
             sa.resize(len);
-            for (size_type i = 0; i < len; ++i) { sa[i] = sufarray[i]; }
+            for (size_type i = 0; i < len; ++i)
+            {
+                sa[i] = sufarray[i];
+            }
         }
     }
     else
@@ -161,7 +177,7 @@ void construct_sa(cache_config & config)
 {
     static_assert(t_width == 0 or t_width == 8,
                   "construct_sa: width must be `0` for integer alphabet and `8` for byte alphabet");
-    const char * KEY_TEXT = key_text_trait<t_width>::KEY_TEXT;
+    char const * KEY_TEXT = key_text_trait<t_width>::KEY_TEXT;
     if (t_width == 8)
     {
         if (construct_config().byte_algo_sa == LIBDIVSUFSORT)
@@ -169,7 +185,7 @@ void construct_sa(cache_config & config)
             read_only_mapper<t_width> text(KEY_TEXT, config);
             auto sa = write_out_mapper<0>::create(cache_file_name(conf::KEY_SA, config), 0, bits::hi(text.size()) + 1);
             // call divsufsort
-            algorithm::calculate_sa((const unsigned char *)text.data(), text.size(), sa);
+            algorithm::calculate_sa((unsigned char const *)text.data(), text.size(), sa);
         }
         else if (construct_config().byte_algo_sa == SE_SAIS)
         {

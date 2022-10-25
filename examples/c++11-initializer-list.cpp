@@ -1,20 +1,29 @@
 #include <algorithm>
 #include <iostream>
 
-#include <sdsl/suffix_trees.hpp>
+#include <sdsl/int_vector.hpp>
 
 using namespace sdsl;
 using namespace std;
 
 int main()
 {
-    int_vector<8> b = { 'c', 'd', 'a', 'b', 'd' };
-    int_vector<> a = { 1, 8, 3, 15, 5 };
+    int_vector<8> b = {'c', 'd', 'a', 'b', 'd'};
+    int_vector<> a = {1, 8, 3, 15, 5};
 
-    for (auto c : b) { cout << c; }
+    for (auto c : b)
+    {
+        cout << c;
+    }
     cout << endl;
-    for (auto x : a) { cout << x << ","; }
+    for (auto x : a)
+    {
+        cout << x << ",";
+    }
     cout << endl;
     sort(a.begin(), a.end());
-    for (auto x : a) { cout << x << ","; }
+    for (auto x : a)
+    {
+        cout << x << ",";
+    }
 }

@@ -8,13 +8,18 @@
 #ifndef INCLUDED_SDSL_NEAREST_NEIGHBOUR_DICTIONARY
 #define INCLUDED_SDSL_NEAREST_NEIGHBOUR_DICTIONARY
 
-#include <stdexcept>
+#include <assert.h>
+#include <iosfwd>
+#include <stdint.h>
 #include <string>
 
+#include <sdsl/bits.hpp>
+#include <sdsl/cereal.hpp>
 #include <sdsl/int_vector.hpp>
-#include <sdsl/rank_support.hpp>
+#include <sdsl/io.hpp>
+#include <sdsl/rank_support_v.hpp>
+#include <sdsl/structure_tree.hpp>
 #include <sdsl/util.hpp>
-#include <sdsl/wm_int.hpp>
 
 //! Namespace for the succinct data structure library.
 namespace sdsl
@@ -38,13 +43,13 @@ namespace sdsl
 template <uint8_t t_sample_dens>
 class nearest_neighbour_dictionary
 {
-  private:
+private:
     static_assert(t_sample_dens != 0, "nearest_neighbour_dictionary: t_sample_dens should not be equal 0!");
 
-  public:
+public:
     typedef bit_vector::size_type size_type;
 
-  private:
+private:
     int_vector<> m_abs_samples; // absolute samples array corresponds to array \f$ A_1 \f$ in the paper
     int_vector<> m_differences; // vector for the differences in between the samples; corresponds to array \f$ A_2 \f$
                                 // in the paper
@@ -57,19 +62,15 @@ class nearest_neighbour_dictionary
                                                  // \f$ in the paper.
     // NOTE: A faster version should store the absolute samples and the differences interleaved
 
-  public:
+public:
     //! Default constructor
-    nearest_neighbour_dictionary()
-      : m_ones(0)
-      , m_size(0)
+    nearest_neighbour_dictionary() : m_ones(0), m_size(0)
     {}
 
     //! Constructor
     /*!\param v The supported bit_vector.
      */
-    nearest_neighbour_dictionary(const bit_vector & v)
-      : m_ones(0)
-      , m_size(0)
+    nearest_neighbour_dictionary(bit_vector const & v) : m_ones(0), m_size(0)
     {
         size_type max_distance_between_two_ones = 0;
         size_type ones = 0; // counter for the ones in v
@@ -117,24 +118,28 @@ class nearest_neighbour_dictionary
     }
 
     //! Copy constructor
-    nearest_neighbour_dictionary(const nearest_neighbour_dictionary & nnd)
-      : m_abs_samples(nnd.m_abs_samples)
-      , m_differences(nnd.m_differences)
-      , m_ones(nnd.m_ones)
-      , m_size(nnd.m_size)
-      , m_contains_abs_sample(nnd.m_contains_abs_sample)
-      , m_rank_contains_abs_sample(nnd.m_rank_contains_abs_sample)
+    nearest_neighbour_dictionary(nearest_neighbour_dictionary const & nnd) :
+        m_abs_samples(nnd.m_abs_samples),
+        m_differences(nnd.m_differences),
+        m_ones(nnd.m_ones),
+        m_size(nnd.m_size),
+        m_contains_abs_sample(nnd.m_contains_abs_sample),
+        m_rank_contains_abs_sample(nnd.m_rank_contains_abs_sample)
     {
         m_rank_contains_abs_sample.set_vector(&m_contains_abs_sample);
     }
 
     //! Move constructor
-    nearest_neighbour_dictionary(nearest_neighbour_dictionary && nnd) { *this = std::move(nnd); }
+    nearest_neighbour_dictionary(nearest_neighbour_dictionary && nnd)
+    {
+        *this = std::move(nnd);
+    }
 
     //! Destructor
-    ~nearest_neighbour_dictionary() {}
+    ~nearest_neighbour_dictionary()
+    {}
 
-    nearest_neighbour_dictionary & operator=(const nearest_neighbour_dictionary & nnd)
+    nearest_neighbour_dictionary & operator=(nearest_neighbour_dictionary const & nnd)
     {
         if (*this != &nnd)
         {
@@ -172,12 +177,16 @@ class nearest_neighbour_dictionary
         size_type i = m_abs_samples[r];
         while (++result <= m_ones)
         {
-            if ((result % t_sample_dens) == 0) { i = m_abs_samples[result / t_sample_dens]; }
+            if ((result % t_sample_dens) == 0)
+            {
+                i = m_abs_samples[result / t_sample_dens];
+            }
             else
             {
                 i = i + m_differences[result - result / t_sample_dens - 1];
             }
-            if (i >= idx) return result - 1;
+            if (i >= idx)
+                return result - 1;
         }
         return result - 1;
     };
@@ -193,7 +202,10 @@ class nearest_neighbour_dictionary
         size_type j = i / t_sample_dens;
         size_type result = m_abs_samples[j];
         j = j * t_sample_dens - j;
-        for (size_type end = j + (i % t_sample_dens); j < end; ++j) { result += m_differences[j]; }
+        for (size_type end = j + (i % t_sample_dens); j < end; ++j)
+        {
+            result += m_differences[j];
+        }
         return result;
     }
 
@@ -222,9 +234,15 @@ class nearest_neighbour_dictionary
         return select(r + 1);
     }
 
-    size_type size() const { return m_size; }
+    size_type size() const
+    {
+        return m_size;
+    }
 
-    size_type ones() const { return m_ones; }
+    size_type ones() const
+    {
+        return m_ones;
+    }
 
     //! Serializes the nearest_neighbour_dictionary.
     /*!\param out Out-Stream to serialize the data to.
@@ -282,13 +300,16 @@ class nearest_neighbour_dictionary
     //! Equality operator.
     bool operator==(nearest_neighbour_dictionary const & other) const noexcept
     {
-        return (m_ones == other.m_ones) && (m_size == other.m_size) && (m_abs_samples == other.m_abs_samples) &&
-               (m_differences == other.m_differences) && (m_contains_abs_sample == other.m_contains_abs_sample) &&
-               (m_rank_contains_abs_sample == other.m_rank_contains_abs_sample);
+        return (m_ones == other.m_ones) && (m_size == other.m_size) && (m_abs_samples == other.m_abs_samples)
+            && (m_differences == other.m_differences) && (m_contains_abs_sample == other.m_contains_abs_sample)
+            && (m_rank_contains_abs_sample == other.m_rank_contains_abs_sample);
     }
 
     //! Inequality operator.
-    bool operator!=(nearest_neighbour_dictionary const & other) const noexcept { return !(*this == other); }
+    bool operator!=(nearest_neighbour_dictionary const & other) const noexcept
+    {
+        return !(*this == other);
+    }
 };
 
 } // end namespace sdsl

@@ -41,7 +41,7 @@ int main(int argc, char * argv[])
 
     // (2) open readonly! memory map the content of tmp_file
     {
-        const int_vector_mapper<0, std::ios_base::in> ivm(tmp_file);
+        int_vector_mapper<0, std::ios_base::in> const ivm(tmp_file);
         if (ivm.size() != size)
         {
             std::cerr << "ERROR: ivm.size()=" << ivm.size() << " != " << size << std::endl;
@@ -64,9 +64,18 @@ int main(int argc, char * argv[])
             }
         }
 
-        if (ivm != stdv) { std::cerr << "ERROR: std::vector CMP failed."; }
-        if (ivm != iv) { std::cerr << "ERROR: iv CMP failed."; }
-        if (ivm != ivf) { std::cerr << "ERROR: ivf CMP failed."; }
+        if (ivm != stdv)
+        {
+            std::cerr << "ERROR: std::vector CMP failed.";
+        }
+        if (ivm != iv)
+        {
+            std::cerr << "ERROR: iv CMP failed.";
+        }
+        if (ivm != ivf)
+        {
+            std::cerr << "ERROR: ivf CMP failed.";
+        }
     }
 
     // (2) open read+write! memory map the content of tmp_file
@@ -94,9 +103,18 @@ int main(int argc, char * argv[])
             }
         }
 
-        if (ivm != stdv) { std::cerr << "ERROR: std::vector CMP failed."; }
-        if (ivm != iv) { std::cerr << "ERROR: iv CMP failed."; }
-        if (ivm != ivf) { std::cerr << "ERROR: ivf CMP failed."; }
+        if (ivm != stdv)
+        {
+            std::cerr << "ERROR: std::vector CMP failed.";
+        }
+        if (ivm != iv)
+        {
+            std::cerr << "ERROR: iv CMP failed.";
+        }
+        if (ivm != ivf)
+        {
+            std::cerr << "ERROR: ivf CMP failed.";
+        }
     }
 
     // (3) remove the file as the mapper does not do that if we don't specify it
@@ -106,8 +124,14 @@ int main(int argc, char * argv[])
 
     {
         auto tmp_buf = temp_file_buffer<64>::create();
-        for (const auto & val : stdv) { tmp_buf.push_back(val); }
-        if (tmp_buf != stdv) { std::cerr << "ERROR: tmp_buf CMP failed." << std::endl; }
+        for (auto const & val : stdv)
+        {
+            tmp_buf.push_back(val);
+        }
+        if (tmp_buf != stdv)
+        {
+            std::cerr << "ERROR: tmp_buf CMP failed." << std::endl;
+        }
 
         // tmp buf file is deleted automatically
     }

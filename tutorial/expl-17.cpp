@@ -1,6 +1,7 @@
 #include <iostream>
 
-#include <sdsl/suffix_arrays.hpp>
+#include <sdsl/csa_bitcompressed.hpp>
+#include <sdsl/suffix_array_algorithm.hpp>
 
 using namespace std;
 using namespace sdsl;

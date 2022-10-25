@@ -19,12 +19,12 @@
 
 // assert that needed macros are defined
 #ifndef VTYPES
-#error "Macro VTYPES with comma - separated list of vector types has to be \
+#    error "Macro VTYPES with comma - separated list of vector types has to be \
 	defined for compiling benchmark"
 #endif
 
 #ifndef VNAMES
-#error "Macro VNAMES with an array of characters has to be \
+#    error "Macro VNAMES with an array of characters has to be \
 	defined for compiling benchmark"
 #endif
 
@@ -33,7 +33,7 @@ using namespace sdsl;
 using namespace std::chrono;
 using timer = std::chrono::high_resolution_clock;
 
-const char *(vectornames[]) = VNAMES;
+char const *(vectornames[]) = VNAMES;
 const size_t vectorcount = sizeof(vectornames) / sizeof(vectornames[0]);
 
 struct iv_testresult
@@ -46,14 +46,14 @@ struct iv_testresult
 
 // benchmark method declaration
 template <class... Vectors> // used vectors for benchmark
-bool runTestcase(const int_vector<> & iv, iv_testresult * result);
+bool runTestcase(int_vector<> const & iv, iv_testresult * result);
 
 // stuff for nice printing
-void displayUsage(const char * pname);
+void displayUsage(char const * pname);
 void displayHeading();
-void displayResult(const char * testcase, const iv_testresult * result);
+void displayResult(char const * testcase, iv_testresult const * result);
 
-int main(const int argc, const char ** argv)
+int main(int const argc, char const ** argv)
 {
     // check args
     if ((argc - 1) % 3 != 0)
@@ -78,9 +78,9 @@ int main(const int argc, const char ** argv)
     displayHeading();
     for (size_t i = 0; i < testcasecount; i++)
     {
-        const char * testcase = argv[3 * i + 1];
-        const char * file = argv[3 * i + 2]; // file of saved vector
-        const char * type = argv[3 * i + 3]; // type of saved vector
+        char const * testcase = argv[3 * i + 1];
+        char const * file = argv[3 * i + 2]; // file of saved vector
+        char const * type = argv[3 * i + 3]; // type of saved vector
         uint8_t v_type = type[0] == 'd' ? 'd' : type[0] - '0';
 
         // load vector
@@ -127,7 +127,7 @@ int main(const int argc, const char ** argv)
 
 //// BENCHMARK METHODS ////////////////////////////////////////////////////////
 template <class Vector> // used compression vector type
-bool runSingleTest(const int_vector<> & testcase, iv_testresult & result)
+bool runSingleTest(int_vector<> const & testcase, iv_testresult & result)
 {
     // test encoding rate by constructing Vector
     auto start = timer::now();
@@ -153,21 +153,22 @@ bool runSingleTest(const int_vector<> & testcase, iv_testresult & result)
             test[i]; // acess element right before next sample entry
         }
         // and finally access last element if not done yet
-        if (i != test.size() + sample_dens - 1) test[test.size() - 1];
+        if (i != test.size() + sample_dens - 1)
+            test[test.size() - 1];
     }
     stop = timer::now();
-    result.dec_MBperSec = size_in_mega_bytes(testcase) / duration_cast<seconds>(stop - start).count() *
-                          5.0; // multiply with 5 since vector was decoded 5 times
+    result.dec_MBperSec = size_in_mega_bytes(testcase) / duration_cast<seconds>(stop - start).count()
+                        * 5.0; // multiply with 5 since vector was decoded 5 times
 
     return true; // may use this return type for error detection in future
 }
 
 template <class... Vectors> // used vectors for benchmark
-bool runTestcase(const int_vector<> & testcase, iv_testresult * result)
+bool runTestcase(int_vector<> const & testcase, iv_testresult * result)
 {
     size_t i = 0;
     // do variadic template pack expansion
-    bool testfine[] = { runSingleTest<Vectors>(testcase, result[i++])... };
+    bool testfine[] = {runSingleTest<Vectors>(testcase, result[i++])...};
     bool testsfine = true;
     for (i = 0; i < vectorcount; i++)
     {
@@ -182,7 +183,7 @@ bool runTestcase(const int_vector<> & testcase, iv_testresult * result)
 
 //// DISPLAYING OF RESULTS ////////////////////////////////////////////////////
 
-void displayUsage(const char * pname)
+void displayUsage(char const * pname)
 {
     cerr << "USAGE: " << pname << " [testcase file vectortype]*" << endl;
     cerr << "DESCRIPTION:" << endl;
@@ -214,7 +215,10 @@ void displayUsage(const char * pname)
          << "\t\t\t8: 64-bit word sequence" << endl
          << "\t\t\td: Parse decimal numbers" << endl;
     cerr << "TESTET COMPRESSION VECTORS:" << endl;
-    for (size_t i = 0; i < vectorcount; i++) { cerr << "\t- " << vectornames[i] << endl; }
+    for (size_t i = 0; i < vectorcount; i++)
+    {
+        cerr << "\t- " << vectornames[i] << endl;
+    }
 }
 void displayHeading()
 {
@@ -229,7 +233,7 @@ void displayHeading()
          << "compressionrate" << endl;
 }
 
-void displayResult(const char * testcase, const iv_testresult * result)
+void displayResult(char const * testcase, iv_testresult const * result)
 {
     cout << left << fixed; // prepare cout
     for (size_t i = 0; i < vectorcount; i++)

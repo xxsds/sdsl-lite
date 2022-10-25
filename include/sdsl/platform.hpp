@@ -13,26 +13,26 @@ namespace sdsl
 {
 
 #if defined(__clang__)
-#define COMPILER_CLANG
+#    define COMPILER_CLANG
 #endif
 
 #if defined(__GNUC__) && !defined(COMPILER_CLANG)
-#define COMPILER_GCC
+#    define COMPILER_GCC
 #endif
 
 // eliminate fallthrough warnings
 #define SDSL_FALLTHROUGH
 #if defined(__has_cpp_attribute)
-#if __has_cpp_attribute(fallthrough)
-#undef SDSL_FALLTHROUGH
-#if __cplusplus < 201500 && defined(COMPILER_GCC)
-#define SDSL_FALLTHROUGH [[gnu::fallthrough]];
-#elif __cplusplus < 201500 && defined(COMPILER_CLANG)
-#define SDSL_FALLTHROUGH [[clang::fallthrough]];
-#else
-#define SDSL_FALLTHROUGH [[fallthrough]];
-#endif
-#endif
+#    if __has_cpp_attribute(fallthrough)
+#        undef SDSL_FALLTHROUGH
+#        if __cplusplus < 201500 && defined(COMPILER_GCC)
+#            define SDSL_FALLTHROUGH [[gnu::fallthrough]];
+#        elif __cplusplus < 201500 && defined(COMPILER_CLANG)
+#            define SDSL_FALLTHROUGH [[clang::fallthrough]];
+#        else
+#            define SDSL_FALLTHROUGH [[fallthrough]];
+#        endif
+#    endif
 #endif
 
 } // end namespace sdsl

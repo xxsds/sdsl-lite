@@ -33,54 +33,66 @@
  *   since there is code which will perform a binary search on array `C`.
  */
 
+#include <assert.h>
+#include <iosfwd>
+#include <map>
+#include <stdint.h>
 #include <string>
+#include <utility>
+#include <vector>
 
+#include <sdsl/bits.hpp>
+#include <sdsl/cereal.hpp>
 #include <sdsl/config.hpp>
 #include <sdsl/int_vector.hpp>
-#include <sdsl/rank_support.hpp>
+#include <sdsl/int_vector_buffer.hpp>
+#include <sdsl/io.hpp>
+#include <sdsl/rank_support_scan.hpp>
 #include <sdsl/sd_vector.hpp>
 #include <sdsl/sdsl_concepts.hpp>
-#include <sdsl/select_support.hpp>
+#include <sdsl/select_support_scan.hpp>
+#include <sdsl/structure_tree.hpp>
+#include <sdsl/util.hpp>
 
 namespace sdsl
 {
 
 // forward declarations
 
-class byte_alphabet;
+class byte_alphabet; // IWYU pragma: keep
 
 template <class bit_vector_type = bit_vector,
           class rank_support_type = rank_support_scan<>,
           class select_support_type = select_support_scan<>,
           class C_array_type = int_vector<>>
-class succinct_byte_alphabet;
+class succinct_byte_alphabet; // IWYU pragma: keep
 
 template <class bit_vector_type = sd_vector<>,
           class rank_support_type = typename bit_vector_type::rank_1_type,
           class select_support_type = typename bit_vector_type::select_1_type,
           class C_array_type = int_vector<>>
-class int_alphabet;
+class int_alphabet; // IWYU pragma: keep
 
 template <uint8_t int_width>
-constexpr const char * key_text()
+constexpr char const * key_text()
 {
     return conf::KEY_TEXT_INT;
 }
 
 template <uint8_t int_width>
-constexpr const char * key_bwt()
+constexpr char const * key_bwt()
 {
     return conf::KEY_BWT_INT;
 }
 
 template <>
-inline constexpr const char * key_text<8>()
+inline constexpr char const * key_text<8>()
 {
     return conf::KEY_TEXT;
 }
 
 template <>
-inline constexpr const char * key_bwt<8>()
+inline constexpr char const * key_bwt<8>()
 {
     return conf::KEY_BWT;
 }
@@ -123,7 +135,7 @@ struct wt_alphabet_trait<t_wt, typename enable_if_type<typename t_wt::alphabet_c
  */
 class byte_alphabet
 {
-  public:
+public:
     typedef int_vector<>::size_type size_type;
     typedef int_vector<8> char2comp_type;
     typedef int_vector<8> comp2char_type;
@@ -139,24 +151,20 @@ class byte_alphabet
 
     typedef byte_alphabet_tag alphabet_category;
 
-    const char2comp_type & char2comp;
-    const comp2char_type & comp2char;
-    const C_type & C;
-    const sigma_type & sigma;
+    char2comp_type const & char2comp;
+    comp2char_type const & comp2char;
+    C_type const & C;
+    sigma_type const & sigma;
 
-  private:
+private:
     char2comp_type m_char2comp; // Mapping from a character into the compact alphabet.
     comp2char_type m_comp2char; // Inverse mapping of m_char2comp.
     C_type m_C;                 // Cumulative counts for the compact alphabet [0..sigma].
     sigma_type m_sigma;         // Effective size of the alphabet.
-  public:
+
+public:
     //! Default constructor
-    byte_alphabet()
-      : char2comp(m_char2comp)
-      , comp2char(m_comp2char)
-      , C(m_C)
-      , sigma(m_sigma)
-      , m_sigma(0)
+    byte_alphabet() : char2comp(m_char2comp), comp2char(m_comp2char), C(m_C), sigma(m_sigma), m_sigma(0)
     {}
 
     //! Construct from a byte-stream
@@ -164,21 +172,25 @@ class byte_alphabet
      *  \param text_buf Byte stream.
      *  \param len      Length of the byte stream.
      */
-    byte_alphabet(int_vector_buffer<8> & text_buf, int_vector_size_type len)
-      : char2comp(m_char2comp)
-      , comp2char(m_comp2char)
-      , C(m_C)
-      , sigma(m_sigma)
+    byte_alphabet(int_vector_buffer<8> & text_buf, int_vector_size_type len) :
+        char2comp(m_char2comp),
+        comp2char(m_comp2char),
+        C(m_C),
+        sigma(m_sigma)
     {
         m_sigma = 0;
-        if (0 == len or 0 == text_buf.size()) return;
+        if (0 == len or 0 == text_buf.size())
+            return;
         assert(len <= text_buf.size());
         // initialize vectors
         m_C = int_vector<64>(257, 0);
         m_char2comp = int_vector<8>(256, 0);
         m_comp2char = int_vector<8>(256, 0);
         // count occurrences of each symbol
-        for (size_type i = 0; i < len; ++i) { ++m_C[text_buf[i]]; }
+        for (size_type i = 0; i < len; ++i)
+        {
+            ++m_C[text_buf[i]];
+        }
         assert(1 == m_C[0]); // null-byte should occur exactly once
         m_sigma = 0;
         for (int i = 0; i < 256; ++i)
@@ -191,35 +203,37 @@ class byte_alphabet
             }
         m_comp2char.resize(m_sigma);
         m_C.resize(m_sigma + 1);
-        for (int i = (int)m_sigma; i > 0; --i) m_C[i] = m_C[i - 1];
+        for (int i = (int)m_sigma; i > 0; --i)
+            m_C[i] = m_C[i - 1];
         m_C[0] = 0;
-        for (int i = 1; i <= (int)m_sigma; ++i) m_C[i] += m_C[i - 1];
+        for (int i = 1; i <= (int)m_sigma; ++i)
+            m_C[i] += m_C[i - 1];
         assert(C[sigma] == len);
     }
 
-    byte_alphabet(const byte_alphabet & bas)
-      : char2comp(m_char2comp)
-      , comp2char(m_comp2char)
-      , C(m_C)
-      , sigma(m_sigma)
-      , m_char2comp(bas.m_char2comp)
-      , m_comp2char(bas.m_comp2char)
-      , m_C(bas.m_C)
-      , m_sigma(bas.m_sigma)
+    byte_alphabet(byte_alphabet const & bas) :
+        char2comp(m_char2comp),
+        comp2char(m_comp2char),
+        C(m_C),
+        sigma(m_sigma),
+        m_char2comp(bas.m_char2comp),
+        m_comp2char(bas.m_comp2char),
+        m_C(bas.m_C),
+        m_sigma(bas.m_sigma)
     {}
 
-    byte_alphabet(byte_alphabet && bas)
-      : char2comp(m_char2comp)
-      , comp2char(m_comp2char)
-      , C(m_C)
-      , sigma(m_sigma)
-      , m_char2comp(std::move(bas.m_char2comp))
-      , m_comp2char(std::move(bas.m_comp2char))
-      , m_C(std::move(bas.m_C))
-      , m_sigma(bas.m_sigma)
+    byte_alphabet(byte_alphabet && bas) :
+        char2comp(m_char2comp),
+        comp2char(m_comp2char),
+        C(m_C),
+        sigma(m_sigma),
+        m_char2comp(std::move(bas.m_char2comp)),
+        m_comp2char(std::move(bas.m_comp2char)),
+        m_C(std::move(bas.m_C)),
+        m_sigma(bas.m_sigma)
     {}
 
-    byte_alphabet & operator=(const byte_alphabet & bas)
+    byte_alphabet & operator=(byte_alphabet const & bas)
     {
         if (this != &bas)
         {
@@ -264,12 +278,15 @@ class byte_alphabet
     //! Equality operator.
     bool operator==(byte_alphabet const & other) const noexcept
     {
-        return (m_char2comp == other.m_char2comp) && (m_comp2char == other.m_comp2char) && (m_C == other.m_C) &&
-               (m_sigma == other.m_sigma);
+        return (m_char2comp == other.m_char2comp) && (m_comp2char == other.m_comp2char) && (m_C == other.m_C)
+            && (m_sigma == other.m_sigma);
     }
 
     //! Inequality operator.
-    bool operator!=(byte_alphabet const & other) const noexcept { return !(*this == other); }
+    bool operator!=(byte_alphabet const & other) const noexcept
+    {
+        return !(*this == other);
+    }
 
     template <typename archive_t>
     void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
@@ -303,9 +320,10 @@ class byte_alphabet
 template <class bit_vector_type, class rank_support_type, class select_support_type, class C_array_type>
 class succinct_byte_alphabet
 {
-  public:
+public:
     class char2comp_wrapper;
     class comp2char_wrapper;
+
     friend class char2comp_wrapper;
     friend class comp2char_wrapper;
 
@@ -326,16 +344,16 @@ class succinct_byte_alphabet
     //! Helper class for the char2comp mapping
     class char2comp_wrapper
     {
-      private:
-        const succinct_byte_alphabet * m_strat;
+    private:
+        succinct_byte_alphabet const * m_strat;
 
-      public:
-        char2comp_wrapper(const succinct_byte_alphabet * strat)
-          : m_strat(strat)
+    public:
+        char2comp_wrapper(succinct_byte_alphabet const * strat) : m_strat(strat)
         {}
         comp_char_type operator[](char_type c) const
         {
-            if (c >= m_strat->m_char.size() or !m_strat->m_char[c]) return (comp_char_type)0;
+            if (c >= m_strat->m_char.size() or !m_strat->m_char[c])
+                return (comp_char_type)0;
             return (comp_char_type)m_strat->m_char_rank((size_type)c);
         }
     };
@@ -343,36 +361,33 @@ class succinct_byte_alphabet
     //! Helper class for the comp2char mapping
     class comp2char_wrapper
     {
-      private:
-        const succinct_byte_alphabet * m_strat;
+    private:
+        succinct_byte_alphabet const * m_strat;
 
-      public:
-        comp2char_wrapper(const succinct_byte_alphabet * strat)
-          : m_strat(strat)
+    public:
+        comp2char_wrapper(succinct_byte_alphabet const * strat) : m_strat(strat)
         {}
-        char_type operator[](comp_char_type c) const { return (char_type)m_strat->m_char_select(((size_type)c) + 1); }
+        char_type operator[](comp_char_type c) const
+        {
+            return (char_type)m_strat->m_char_select(((size_type)c) + 1);
+        }
     };
 
     const char2comp_type char2comp;
     const comp2char_type comp2char;
-    const C_type & C;
-    const sigma_type & sigma;
+    C_type const & C;
+    sigma_type const & sigma;
 
-  private:
+private:
     bit_vector_type m_char;            // `m_char[i]` indicates if character with code i is present or not
     rank_support_type m_char_rank;     // rank data structure for `m_char` to answer char2comp
     select_support_type m_char_select; // select data structure for `m_char` to answer comp2char
     C_type m_C;                        // cumulative counts for the compact alphabet [0..sigma]
     sigma_type m_sigma;                // effective size of the alphabet
 
-  public:
+public:
     //! Default constructor
-    succinct_byte_alphabet()
-      : char2comp(this)
-      , comp2char(this)
-      , C(m_C)
-      , sigma(m_sigma)
-      , m_sigma(0)
+    succinct_byte_alphabet() : char2comp(this), comp2char(this), C(m_C), sigma(m_sigma), m_sigma(0)
     {}
 
     //! Construct from a byte-stream
@@ -380,20 +395,24 @@ class succinct_byte_alphabet
      *  \param text_buf Byte stream.
      *  \param len      Length of the byte stream.
      */
-    succinct_byte_alphabet(int_vector_buffer<8> & text_buf, int_vector_size_type len)
-      : char2comp(this)
-      , comp2char(this)
-      , C(m_C)
-      , sigma(m_sigma)
+    succinct_byte_alphabet(int_vector_buffer<8> & text_buf, int_vector_size_type len) :
+        char2comp(this),
+        comp2char(this),
+        C(m_C),
+        sigma(m_sigma)
     {
         m_sigma = 0;
-        if (0 == len or 0 == text_buf.size()) return;
+        if (0 == len or 0 == text_buf.size())
+            return;
         assert(len <= text_buf.size());
         // initialize vectors
         int_vector<64> D(257, 0);
         bit_vector tmp_char(256, 0);
         // count occurrences of each symbol
-        for (size_type i = 0; i < len; ++i) { ++D[text_buf[i]]; }
+        for (size_type i = 0; i < len; ++i)
+        {
+            ++D[text_buf[i]];
+        }
         assert(1 == D[0]); // null-byte should occur exactly once
         m_sigma = 0;
         for (int i = 0; i < 256; ++i)
@@ -406,9 +425,11 @@ class succinct_byte_alphabet
         // resize to sigma+1, since CSAs also need the sum of all elements
         m_C = C_type(m_sigma + 1, 0, bits::hi(len) + 1);
 
-        for (int i = (int)m_sigma; i > 0; --i) m_C[i] = D[i - 1];
+        for (int i = (int)m_sigma; i > 0; --i)
+            m_C[i] = D[i - 1];
         m_C[0] = 0;
-        for (int i = 1; i <= (int)m_sigma; ++i) m_C[i] = m_C[i] + m_C[i - 1];
+        for (int i = 1; i <= (int)m_sigma; ++i)
+            m_C[i] = m_C[i] + m_C[i - 1];
         assert(m_C[sigma] == len);
         m_char = tmp_char;
         util::init_support(m_char_rank, &m_char);
@@ -416,38 +437,38 @@ class succinct_byte_alphabet
     }
 
     //! Copy constructor
-    succinct_byte_alphabet(const succinct_byte_alphabet & strat)
-      : char2comp(this)
-      , comp2char(this)
-      , C(m_C)
-      , sigma(m_sigma)
-      , m_char(strat.m_char)
-      , m_char_rank(strat.m_char_rank)
-      , m_char_select(strat.m_char_select)
-      , m_C(strat.m_C)
-      , m_sigma(strat.m_sigma)
+    succinct_byte_alphabet(succinct_byte_alphabet const & strat) :
+        char2comp(this),
+        comp2char(this),
+        C(m_C),
+        sigma(m_sigma),
+        m_char(strat.m_char),
+        m_char_rank(strat.m_char_rank),
+        m_char_select(strat.m_char_select),
+        m_C(strat.m_C),
+        m_sigma(strat.m_sigma)
     {
         m_char_rank.set_vector(&m_char);
         m_char_select.set_vector(&m_char);
     }
 
     //! Move constructor
-    succinct_byte_alphabet(succinct_byte_alphabet && strat)
-      : char2comp(this)
-      , comp2char(this)
-      , C(m_C)
-      , sigma(m_sigma)
-      , m_char(std::move(strat.m_char))
-      , m_char_rank(std::move(strat.m_char_rank))
-      , m_char_select(std::move(strat.m_char_select))
-      , m_C(std::move(strat.m_C))
-      , m_sigma(std::move(strat.m_sigma))
+    succinct_byte_alphabet(succinct_byte_alphabet && strat) :
+        char2comp(this),
+        comp2char(this),
+        C(m_C),
+        sigma(m_sigma),
+        m_char(std::move(strat.m_char)),
+        m_char_rank(std::move(strat.m_char_rank)),
+        m_char_select(std::move(strat.m_char_select)),
+        m_C(std::move(strat.m_C)),
+        m_sigma(std::move(strat.m_sigma))
     {
         m_char_rank.set_vector(&m_char);
         m_char_select.set_vector(&m_char);
     }
 
-    succinct_byte_alphabet & operator=(const succinct_byte_alphabet & strat)
+    succinct_byte_alphabet & operator=(succinct_byte_alphabet const & strat)
     {
         if (this != &strat)
         {
@@ -501,12 +522,15 @@ class succinct_byte_alphabet
     //! Equality operator.
     bool operator==(succinct_byte_alphabet const & other) const noexcept
     {
-        return (m_char == other.m_char) && (m_char_rank == other.m_char_rank) &&
-               (m_char_select == other.m_char_select) && (m_C == other.m_C) && (m_sigma == other.m_sigma);
+        return (m_char == other.m_char) && (m_char_rank == other.m_char_rank) && (m_char_select == other.m_char_select)
+            && (m_C == other.m_C) && (m_sigma == other.m_sigma);
     }
 
     //! Inequality operator.
-    bool operator!=(succinct_byte_alphabet const & other) const noexcept { return !(*this == other); }
+    bool operator!=(succinct_byte_alphabet const & other) const noexcept
+    {
+        return !(*this == other);
+    }
 
     template <typename archive_t>
     void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
@@ -532,22 +556,28 @@ class succinct_byte_alphabet
 };
 
 template <typename bit_vector_type, typename size_type>
-void init_char_bitvector(bit_vector_type & char_bv, const std::map<size_type, size_type> & D)
+void init_char_bitvector(bit_vector_type & char_bv, std::map<size_type, size_type> const & D)
 {
     // note: the alphabet has at least size 1, so the following is safe:
     auto largest_symbol = (--D.end())->first;
     bit_vector tmp_char(largest_symbol + 1, 0);
-    for (const auto & x : D) { tmp_char[x.first] = 1; }
+    for (auto const & x : D)
+    {
+        tmp_char[x.first] = 1;
+    }
     char_bv = tmp_char;
 }
 
 template <typename t_hi_bit_vector, typename t_select_1, typename t_select_0, typename size_type>
 void init_char_bitvector(sd_vector<t_hi_bit_vector, t_select_1, t_select_0> & char_bv,
-                         const std::map<size_type, size_type> & D)
+                         std::map<size_type, size_type> const & D)
 {
     auto largest_symbol = (--D.end())->first;
     sd_vector_builder builder(largest_symbol + 1, D.size());
-    for (const auto & x : D) { builder.set(x.first); }
+    for (auto const & x : D)
+    {
+        builder.set(x.first);
+    }
     char_bv = std::move(sd_vector<t_hi_bit_vector, t_select_1, t_select_0>(builder));
 }
 
@@ -558,7 +588,7 @@ void init_char_bitvector(sd_vector<t_hi_bit_vector, t_select_1, t_select_0> & ch
  */
 class plain_byte_alphabet
 {
-  public:
+public:
     //! Helper class for the char2comp and comp2char mapping.
     class mapping_wrapper;
 
@@ -579,48 +609,48 @@ class plain_byte_alphabet
     //! Helper class for the char2comp and comp2char mapping.
     class mapping_wrapper
     {
-      public:
+    public:
         //! Default constructor.
         mapping_wrapper() = default;
 
         //! Random access operator.
-        constexpr char_type operator[](char_type const c) const noexcept { return c; }
+        constexpr char_type operator[](char_type const c) const noexcept
+        {
+            return c;
+        }
     };
 
     const char2comp_type char2comp{};
     const comp2char_type comp2char{};
-    const C_type & C;
-    const sigma_type & sigma;
+    C_type const & C;
+    sigma_type const & sigma;
 
-  private:
+private:
     C_type m_C;         // Cumulative counts for the compact alphabet [0..sigma].
     sigma_type m_sigma; // Effective size of the alphabet.
 
-  public:
+public:
     //! Default constructor.
-    plain_byte_alphabet()
-      : C(m_C)
-      , sigma(m_sigma)
-      , m_sigma(0)
+    plain_byte_alphabet() : C(m_C), sigma(m_sigma), m_sigma(0)
     {}
 
     /*! Construct from a byte-stream.
      *  \param text_buf Byte stream.
      *  \param len      Length of the byte stream.
      */
-    plain_byte_alphabet(int_vector_buffer<8> & text_buf, int_vector_size_type len)
-      : C(m_C)
-      , sigma(m_sigma)
+    plain_byte_alphabet(int_vector_buffer<8> & text_buf, int_vector_size_type len) : C(m_C), sigma(m_sigma)
     {
         m_sigma = 0;
-        if (0 == len || 0 == text_buf.size()) return;
+        if (0 == len || 0 == text_buf.size())
+            return;
 
         assert(len <= text_buf.size());
 
         // initialize vectors
         m_C = int_vector<64>(257, 0);
         // count occurrences of each symbol
-        for (size_type i = 0; i < len; ++i) ++m_C[text_buf[i]];
+        for (size_type i = 0; i < len; ++i)
+            ++m_C[text_buf[i]];
 
         assert(1 == m_C[0]); // null-byte should occur exactly once
 
@@ -635,27 +665,29 @@ class plain_byte_alphabet
             }
         }
         // m_C.resize(m_sigma + 1);
-        for (int i = (int)256; i > 0; --i) m_C[i] = m_C[i - 1];
+        for (int i = (int)256; i > 0; --i)
+            m_C[i] = m_C[i - 1];
         m_C[0] = 0;
-        for (int i = 1; i <= (int)256; ++i) m_C[i] += m_C[i - 1];
+        for (int i = 1; i <= (int)256; ++i)
+            m_C[i] += m_C[i - 1];
 
         assert(C[sigma] == len);
     }
 
     //! Copy constructor.
-    plain_byte_alphabet(plain_byte_alphabet const & strat)
-      : C(m_C)
-      , sigma(m_sigma)
-      , m_C(strat.m_C)
-      , m_sigma(strat.m_sigma)
+    plain_byte_alphabet(plain_byte_alphabet const & strat) :
+        C(m_C),
+        sigma(m_sigma),
+        m_C(strat.m_C),
+        m_sigma(strat.m_sigma)
     {}
 
     //! Move constructor.
-    plain_byte_alphabet(plain_byte_alphabet && strat) noexcept
-      : C(m_C)
-      , sigma(m_sigma)
-      , m_C(std::move(strat.m_C))
-      , m_sigma(strat.m_sigma)
+    plain_byte_alphabet(plain_byte_alphabet && strat) noexcept :
+        C(m_C),
+        sigma(m_sigma),
+        m_C(std::move(strat.m_C)),
+        m_sigma(strat.m_sigma)
     {}
 
     //! Copy assignment.
@@ -716,7 +748,10 @@ class plain_byte_alphabet
         return (m_C == other.m_C) && (m_sigma == other.m_sigma);
     }
 
-    bool operator!=(plain_byte_alphabet const & other) const noexcept { return !(*this == other); }
+    bool operator!=(plain_byte_alphabet const & other) const noexcept
+    {
+        return !(*this == other);
+    }
     //!\endcond
 };
 
@@ -734,9 +769,10 @@ class plain_byte_alphabet
 template <class bit_vector_type, class rank_support_type, class select_support_type, class C_array_type>
 class int_alphabet
 {
-  public:
+public:
     class char2comp_wrapper;
     class comp2char_wrapper;
+
     friend class char2comp_wrapper;
     friend class comp2char_wrapper;
 
@@ -757,23 +793,24 @@ class int_alphabet
     //! Helper class for the char2comp mapping
     class char2comp_wrapper
     {
-      private:
-        const int_alphabet * m_strat;
+    private:
+        int_alphabet const * m_strat;
 
-      public:
-        char2comp_wrapper(const int_alphabet * strat)
-          : m_strat(strat)
+    public:
+        char2comp_wrapper(int_alphabet const * strat) : m_strat(strat)
         {}
         comp_char_type operator[](char_type c) const
         {
             if (m_strat->m_char.size() > 0)
             { // if alphabet is not continuous
-                if (c >= m_strat->m_char.size() or !m_strat->m_char[c]) return (comp_char_type)0;
+                if (c >= m_strat->m_char.size() or !m_strat->m_char[c])
+                    return (comp_char_type)0;
                 return (comp_char_type)m_strat->m_char_rank((size_type)c);
             }
             else
             { // direct map if it is continuous
-                if (c >= m_strat->m_sigma) return 0;
+                if (c >= m_strat->m_sigma)
+                    return 0;
                 return (comp_char_type)c;
             }
             return 0;
@@ -783,12 +820,11 @@ class int_alphabet
     //! Helper class for the comp2char mapping
     class comp2char_wrapper
     {
-      private:
-        const int_alphabet * m_strat;
+    private:
+        int_alphabet const * m_strat;
 
-      public:
-        comp2char_wrapper(const int_alphabet * strat)
-          : m_strat(strat)
+    public:
+        comp2char_wrapper(int_alphabet const * strat) : m_strat(strat)
         {}
         char_type operator[](comp_char_type c) const
         {
@@ -805,10 +841,10 @@ class int_alphabet
 
     const char2comp_type char2comp;
     const comp2char_type comp2char;
-    const C_type & C;
-    const sigma_type & sigma;
+    C_type const & C;
+    sigma_type const & sigma;
 
-  private:
+private:
     bit_vector_type m_char;            // `m_char[i]` indicates if character with code i is present or not
     rank_support_type m_char_rank;     // rank data structure for `m_char` to answer char2comp
     select_support_type m_char_select; // select data structure for `m_char` to answer comp2char
@@ -829,14 +865,9 @@ class int_alphabet
         }
     }
 
-  public:
+public:
     //! Default constructor
-    int_alphabet()
-      : char2comp(this)
-      , comp2char(this)
-      , C(m_C)
-      , sigma(m_sigma)
-      , m_sigma(0)
+    int_alphabet() : char2comp(this), comp2char(this), C(m_C), sigma(m_sigma), m_sigma(0)
     {}
 
     //! Construct from a byte-stream
@@ -844,19 +875,23 @@ class int_alphabet
      *  \param text_buf Byte stream.
      *  \param len      Length of the byte stream.
      */
-    int_alphabet(int_vector_buffer<0> & text_buf, int_vector_size_type len)
-      : char2comp(this)
-      , comp2char(this)
-      , C(m_C)
-      , sigma(m_sigma)
+    int_alphabet(int_vector_buffer<0> & text_buf, int_vector_size_type len) :
+        char2comp(this),
+        comp2char(this),
+        C(m_C),
+        sigma(m_sigma)
     {
         m_sigma = 0;
-        if (0 == len or 0 == text_buf.size()) return;
+        if (0 == len or 0 == text_buf.size())
+            return;
         assert(len <= text_buf.size());
         // initialize vectors
         std::map<size_type, size_type> D;
         // count occurrences of each symbol
-        for (size_type i = 0; i < len; ++i) { D[text_buf[i]]++; }
+        for (size_type i = 0; i < len; ++i)
+        {
+            D[text_buf[i]]++;
+        }
         m_sigma = D.size();
         if (is_continuous_alphabet(D))
         {
@@ -880,38 +915,38 @@ class int_alphabet
     }
 
     //! Copy constructor
-    int_alphabet(const int_alphabet & strat)
-      : char2comp(this)
-      , comp2char(this)
-      , C(m_C)
-      , sigma(m_sigma)
-      , m_char(strat.m_char)
-      , m_char_rank(strat.m_char_rank)
-      , m_char_select(strat.m_char_select)
-      , m_C(strat.m_C)
-      , m_sigma(strat.m_sigma)
+    int_alphabet(int_alphabet const & strat) :
+        char2comp(this),
+        comp2char(this),
+        C(m_C),
+        sigma(m_sigma),
+        m_char(strat.m_char),
+        m_char_rank(strat.m_char_rank),
+        m_char_select(strat.m_char_select),
+        m_C(strat.m_C),
+        m_sigma(strat.m_sigma)
     {
         m_char_rank.set_vector(&m_char);
         m_char_select.set_vector(&m_char);
     }
 
     //! Copy constructor
-    int_alphabet(int_alphabet && strat)
-      : char2comp(this)
-      , comp2char(this)
-      , C(m_C)
-      , sigma(m_sigma)
-      , m_char(std::move(strat.m_char))
-      , m_char_rank(std::move(strat.m_char_rank))
-      , m_char_select(std::move(strat.m_char_select))
-      , m_C(std::move(strat.m_C))
-      , m_sigma(std::move(strat.m_sigma))
+    int_alphabet(int_alphabet && strat) :
+        char2comp(this),
+        comp2char(this),
+        C(m_C),
+        sigma(m_sigma),
+        m_char(std::move(strat.m_char)),
+        m_char_rank(std::move(strat.m_char_rank)),
+        m_char_select(std::move(strat.m_char_select)),
+        m_C(std::move(strat.m_C)),
+        m_sigma(std::move(strat.m_sigma))
     {
         m_char_rank.set_vector(&m_char);
         m_char_select.set_vector(&m_char);
     }
 
-    int_alphabet & operator=(const int_alphabet & strat)
+    int_alphabet & operator=(int_alphabet const & strat)
     {
         if (this != &strat)
         {
@@ -965,12 +1000,15 @@ class int_alphabet
     //! Equality operator.
     bool operator==(int_alphabet const & other) const noexcept
     {
-        return (m_char == other.m_char) && (m_char_rank == other.m_char_rank) &&
-               (m_char_select == other.m_char_select) && (m_C == other.m_C) && (m_sigma == other.m_sigma);
+        return (m_char == other.m_char) && (m_char_rank == other.m_char_rank) && (m_char_select == other.m_char_select)
+            && (m_C == other.m_C) && (m_sigma == other.m_sigma);
     }
 
     //! Inequality operator.
-    bool operator!=(int_alphabet const & other) const noexcept { return !(*this == other); }
+    bool operator!=(int_alphabet const & other) const noexcept
+    {
+        return !(*this == other);
+    }
 
     template <typename archive_t>
     void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const

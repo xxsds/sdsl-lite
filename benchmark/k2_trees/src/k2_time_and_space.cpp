@@ -14,27 +14,30 @@ typedef K2_TYPE::idx_type idx_type;
 typedef K2_TYPE::size_type size_type;
 
 template <class t_kt>
-size_type test_adj(const t_kt & tree, idx_type node, size_type neighbor, uint64_t times)
+size_type test_adj(t_kt const & tree, idx_type node, size_type neighbor, uint64_t times)
 {
     size_type cnt = 0;
     for (uint64_t i = 0; i < times; i++)
-        if (tree.adj(node, neighbor)) cnt++;
+        if (tree.adj(node, neighbor))
+            cnt++;
     return cnt;
 }
 
 template <class t_kt>
-size_type test_neighbors(const t_kt & tree, idx_type node, uint64_t times)
+size_type test_neighbors(t_kt const & tree, idx_type node, uint64_t times)
 {
     size_type cnt = 0;
-    for (uint64_t i = 0; i < times; i++) cnt += tree.neigh(node).size();
+    for (uint64_t i = 0; i < times; i++)
+        cnt += tree.neigh(node).size();
     return cnt;
 }
 
 template <class t_kt>
-size_type test_reverse_neighbors(const t_kt & tree, idx_type node, uint64_t times)
+size_type test_reverse_neighbors(t_kt const & tree, idx_type node, uint64_t times)
 {
     size_type cnt = 0;
-    for (uint64_t i = 0; i < times; i++) cnt += tree.reverse_neigh(node).size();
+    for (uint64_t i = 0; i < times; i++)
+        cnt += tree.reverse_neigh(node).size();
     return cnt;
 }
 

@@ -18,8 +18,8 @@ int main(int argc, char ** argv)
         return 1;
     }
 
-    const char * input_file = argv[1];
-    const char * tmp_dir = argv[2];
+    char const * input_file = argv[1];
+    char const * tmp_dir = argv[2];
 
     fast_cst_type cst;
     cache_config config(true, tmp_dir);

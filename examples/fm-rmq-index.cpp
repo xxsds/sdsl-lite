@@ -4,7 +4,8 @@
 #include <queue>
 #include <string>
 
-#include <sdsl/rmq_support.hpp>
+#include <sdsl/rmq_succinct_sct.hpp>
+#include <sdsl/suffix_array_algorithm.hpp>
 #include <sdsl/suffix_arrays.hpp>
 
 using namespace sdsl;
@@ -15,17 +16,26 @@ struct interval
     size_t lb, rb;           // left bound, right bound (both inclusive)
     size_t min_val, min_idx; // minimal value, index of the minimum
 
-    interval(size_t lb, size_t rb, size_t min_val, size_t min_idx)
-      : lb(lb)
-      , rb(rb)
-      , min_val(min_val)
-      , min_idx(min_idx){};
+    interval(size_t lb, size_t rb, size_t min_val, size_t min_idx) :
+        lb(lb),
+        rb(rb),
+        min_val(min_val),
+        min_idx(min_idx){};
 
-    bool operator>(const interval & i) const
+    bool operator>(interval const & i) const
     {
-        if (min_val != i.min_val) { return min_val > i.min_val; }
-        if (min_idx != i.min_idx) { return min_idx > i.min_idx; }
-        if (lb != i.lb) { return lb > i.lb; }
+        if (min_val != i.min_val)
+        {
+            return min_val > i.min_val;
+        }
+        if (min_idx != i.min_idx)
+        {
+            return min_idx > i.min_idx;
+        }
+        if (lb != i.lb)
+        {
+            return lb > i.lb;
+        }
         return rb > i.rb;
     }
 };
@@ -46,9 +56,18 @@ int main(int argc, char ** argv)
     size_t max_locations = 5;
     size_t post_context = 10;
     size_t pre_context = 10;
-    if (argc >= 3) { max_locations = atoi(argv[2]); }
-    if (argc >= 4) { post_context = atoi(argv[3]); }
-    if (argc >= 5) { pre_context = atoi(argv[4]); }
+    if (argc >= 3)
+    {
+        max_locations = atoi(argv[2]);
+    }
+    if (argc >= 4)
+    {
+        post_context = atoi(argv[3]);
+    }
+    if (argc >= 5)
+    {
+        pre_context = atoi(argv[4]);
+    }
     string index_suffix = ".fm9";
     string index_file = string(argv[1]) + index_suffix;
     typedef csa_wt<wt_huff<rrr_vector<127>>, 512, 1024> fm_index_type;
@@ -119,12 +138,21 @@ int main(int argc, char ** argv)
                     pq.push(interval(r.min_idx + 1, r.rb, fm_index[min_idx], min_idx));
                 }
                 cout << setw(8) << location << ": ";
-                if (pre_extract > location) { pre_extract = location; }
-                if (location + m + post_extract > fm_index.size()) { post_extract = fm_index.size() - location - m; }
+                if (pre_extract > location)
+                {
+                    pre_extract = location;
+                }
+                if (location + m + post_extract > fm_index.size())
+                {
+                    post_extract = fm_index.size() - location - m;
+                }
                 auto s = extract(fm_index, location - pre_extract, location + m + post_extract - 1);
                 string pre = s.substr(0, pre_extract);
                 s = s.substr(pre_extract);
-                if (pre.find_last_of('\n') != string::npos) { pre = pre.substr(pre.find_last_of('\n') + 1); }
+                if (pre.find_last_of('\n') != string::npos)
+                {
+                    pre = pre.substr(pre.find_last_of('\n') + 1);
+                }
                 cout << pre;
                 cout << "\033[1;31m";
                 cout << s.substr(0, m);

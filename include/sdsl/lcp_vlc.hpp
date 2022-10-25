@@ -8,12 +8,17 @@
 #ifndef INCLUDED_SDSL_LCP_VLC
 #define INCLUDED_SDSL_LCP_VLC
 
-#include <cassert>
 #include <iostream>
-#include <vector>
+#include <string>
 
-#include <sdsl/int_vector.hpp>
+#include <sdsl/cereal.hpp>
+#include <sdsl/config.hpp>
+#include <sdsl/int_vector_buffer.hpp>
+#include <sdsl/io.hpp>
 #include <sdsl/iterators.hpp>
+#include <sdsl/sdsl_concepts.hpp>
+#include <sdsl/structure_tree.hpp>
+#include <sdsl/util.hpp>
 #include <sdsl/vlc_vector.hpp>
 
 namespace sdsl
@@ -26,7 +31,7 @@ namespace sdsl
 template <class t_vlc_vec = vlc_vector<>>
 class lcp_vlc
 {
-  public:
+public:
     typedef typename t_vlc_vec::value_type value_type;
     typedef random_access_const_iterator<lcp_vlc> const_iterator;
     typedef const_iterator iterator;
@@ -51,45 +56,66 @@ class lcp_vlc
     template <class Cst>
     using type = lcp_vlc;
 
-  private:
+private:
     vlc_vec_type m_vec;
 
-  public:
+public:
     //! Default Constructor
     lcp_vlc() = default;
 
     //! Copy / Move constructor
-    lcp_vlc(const lcp_vlc &) = default;
+    lcp_vlc(lcp_vlc const &) = default;
     lcp_vlc(lcp_vlc &&) = default;
-    lcp_vlc & operator=(const lcp_vlc &) = default;
+    lcp_vlc & operator=(lcp_vlc const &) = default;
     lcp_vlc & operator=(lcp_vlc &&) = default;
 
     //! Construct
     lcp_vlc(cache_config & config, std::string other_key = "")
     {
         std::string lcp_key = conf::KEY_LCP;
-        if ("" != other_key) { lcp_key = other_key; }
+        if ("" != other_key)
+        {
+            lcp_key = other_key;
+        }
         int_vector_buffer<> lcp_buf(cache_file_name(lcp_key, config));
         m_vec = vlc_vec_type(lcp_buf);
     }
 
     //! Number of elements in the instance.
-    size_type size() const { return m_vec.size(); }
+    size_type size() const
+    {
+        return m_vec.size();
+    }
 
     //! Returns the largest size that lcp_vlc can ever have.
-    static size_type max_size() { return vlc_vec_type::max_size(); }
+    static size_type max_size()
+    {
+        return vlc_vec_type::max_size();
+    }
 
     //! Returns if the data strucutre is empty.
-    bool empty() const { return m_vec.empty(); }
+    bool empty() const
+    {
+        return m_vec.empty();
+    }
 
     //! Returns a const_iterator to the first element.
-    const_iterator begin() const { return const_iterator(this, 0); }
+    const_iterator begin() const
+    {
+        return const_iterator(this, 0);
+    }
 
     //! Returns a const_iterator to the element after the last element.
-    const_iterator end() const { return const_iterator(this, size()); }
+    const_iterator end() const
+    {
+        return const_iterator(this, size());
+    }
 
     //! []-operator
-    inline value_type operator[](size_type i) const { return m_vec[i]; }
+    inline value_type operator[](size_type i) const
+    {
+        return m_vec[i];
+    }
 
     //! Serialize to a stream.
     size_type serialize(std::ostream & out, structure_tree_node * v = nullptr, std::string name = "") const
@@ -102,7 +128,10 @@ class lcp_vlc
     }
 
     //! Load from a stream.
-    void load(std::istream & in) { m_vec.load(in); }
+    void load(std::istream & in)
+    {
+        m_vec.load(in);
+    }
 
     template <typename archive_t>
     void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
@@ -117,10 +146,16 @@ class lcp_vlc
     }
 
     //! Equality operator.
-    bool operator==(lcp_vlc const & other) const noexcept { return (m_vec == other.m_vec); }
+    bool operator==(lcp_vlc const & other) const noexcept
+    {
+        return (m_vec == other.m_vec);
+    }
 
     //! Inequality operator.
-    bool operator!=(lcp_vlc const & other) const noexcept { return !(*this == other); }
+    bool operator!=(lcp_vlc const & other) const noexcept
+    {
+        return !(*this == other);
+    }
 };
 
 } // end namespace sdsl

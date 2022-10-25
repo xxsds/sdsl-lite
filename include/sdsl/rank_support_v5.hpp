@@ -8,14 +8,20 @@
 #ifndef INCLUDED_SDSL_RANK_SUPPORT_VFIVE
 #define INCLUDED_SDSL_RANK_SUPPORT_VFIVE
 
+#include <assert.h>
+#include <iosfwd>
+#include <stdint.h>
+#include <string>
+
+#include <sdsl/cereal.hpp>
+#include <sdsl/int_vector.hpp>
 #include <sdsl/rank_support.hpp>
+#include <sdsl/structure_tree.hpp>
+#include <sdsl/util.hpp>
 
 //! Namespace for the succinct data structure library.
 namespace sdsl
 {
-
-template <uint8_t, uint8_t>
-struct rank_support_trait;
 
 //! A class supporting rank queries in constant time.
 /*!\par Space complexity
@@ -37,12 +43,12 @@ struct rank_support_trait;
 template <uint8_t t_b = 1, uint8_t t_pat_len = 1>
 class rank_support_v5 : public rank_support
 {
-  private:
+private:
     static_assert(t_b == 1u or t_b == 0u or t_b == 10u or t_b == 11u,
                   "rank_support_v5: bit pattern must be `0`,`1`,`10` or `01` or `11`");
     static_assert(t_pat_len == 1u or t_pat_len == 2u, "rank_support_v5: bit pattern length must be 1 or 2");
 
-  public:
+public:
     typedef bit_vector bit_vector_type;
     typedef rank_support_trait<t_b, t_pat_len> trait_type;
     enum
@@ -54,15 +60,18 @@ class rank_support_v5 : public rank_support
         bit_pat_len = t_pat_len
     };
 
-  private:
+private:
     //      basic block for interleaved storage of superblockrank and blockrank
     int_vector<64> m_basic_block;
 
-  public:
-    explicit rank_support_v5(const bit_vector * v = nullptr)
+public:
+    explicit rank_support_v5(bit_vector const * v = nullptr)
     {
         set_vector(v);
-        if (v == nullptr) { return; }
+        if (v == nullptr)
+        {
+            return;
+        }
         else if (v->empty())
         {
             m_basic_block = int_vector<64>(2, 0);
@@ -70,8 +79,9 @@ class rank_support_v5 : public rank_support
         }
         size_type basic_block_size = (((v->bit_size() + 63) >> 11) + 1) << 1;
         m_basic_block.resize(basic_block_size); // resize structure for basic_blocks
-        if (m_basic_block.empty()) return;
-        const uint64_t * data = m_v->data();
+        if (m_basic_block.empty())
+            return;
+        uint64_t const * data = m_v->data();
         size_type i, j = 0;
         m_basic_block[0] = m_basic_block[1] = 0;
 
@@ -96,7 +106,10 @@ class rank_support_v5 : public rank_support
             sum += trait_type::args_in_the_word(*(++data), carry);
         }
 
-        if ((cnt_words % 6) == 0) { second_level_cnt |= sum << (60 - 12 * (cnt_words / 6)); }
+        if ((cnt_words % 6) == 0)
+        {
+            second_level_cnt |= sum << (60 - 12 * (cnt_words / 6));
+        }
         if (cnt_words == 32)
         {
             j += 2;
@@ -110,19 +123,19 @@ class rank_support_v5 : public rank_support
         }
     }
 
-    rank_support_v5(const rank_support_v5 &) = default;
+    rank_support_v5(rank_support_v5 const &) = default;
     rank_support_v5(rank_support_v5 &&) = default;
-    rank_support_v5 & operator=(const rank_support_v5 &) = default;
+    rank_support_v5 & operator=(rank_support_v5 const &) = default;
     rank_support_v5 & operator=(rank_support_v5 &&) = default;
 
     size_type rank(size_type idx) const
     {
         assert(m_v != nullptr);
         assert(idx <= m_v->size());
-        const uint64_t * p = m_basic_block.data() + ((idx >> 10) & 0xFFFFFFFFFFFFFFFEULL); // (idx/2048)*2
+        uint64_t const * p = m_basic_block.data() + ((idx >> 10) & 0xFFFFFFFFFFFFFFFEULL); // (idx/2048)*2
         //                     ( prefix sum of the 6x64bit blocks | (idx%2048)/(64*6) )
-        size_type result = *p + ((*(p + 1) >> (60 - 12 * ((idx & 0x7FF) / (64 * 6)))) & 0x7FFULL) +
-                           trait_type::word_rank(m_v->data(), idx);
+        size_type result = *p + ((*(p + 1) >> (60 - 12 * ((idx & 0x7FF) / (64 * 6)))) & 0x7FFULL)
+                         + trait_type::word_rank(m_v->data(), idx);
         idx -= (idx & 0x3F);
         uint8_t to_do = ((idx >> 6) & 0x1FULL) % 6;
         --idx;
@@ -135,8 +148,14 @@ class rank_support_v5 : public rank_support
         return result;
     }
 
-    inline size_type operator()(size_type idx) const { return rank(idx); }
-    size_type size() const { return m_v->size(); }
+    inline size_type operator()(size_type idx) const
+    {
+        return rank(idx);
+    }
+    size_type size() const
+    {
+        return m_v->size();
+    }
 
     size_type serialize(std::ostream & out, structure_tree_node * v = nullptr, std::string name = "") const
     {
@@ -147,7 +166,7 @@ class rank_support_v5 : public rank_support
         return written_bytes;
     }
 
-    void load(std::istream & in, const bit_vector * v = nullptr)
+    void load(std::istream & in, bit_vector const * v = nullptr)
     {
         set_vector(v);
         m_basic_block.load(in);
@@ -165,11 +184,20 @@ class rank_support_v5 : public rank_support
         ar(CEREAL_NVP(m_basic_block));
     }
 
-    bool operator==(const rank_support_v5 & other) const noexcept { return m_basic_block == other.m_basic_block; }
+    bool operator==(rank_support_v5 const & other) const noexcept
+    {
+        return m_basic_block == other.m_basic_block;
+    }
 
-    bool operator!=(const rank_support_v5 & other) const noexcept { return !(*this == other); }
+    bool operator!=(rank_support_v5 const & other) const noexcept
+    {
+        return !(*this == other);
+    }
 
-    void set_vector(const bit_vector * v = nullptr) { m_v = v; }
+    void set_vector(bit_vector const * v = nullptr)
+    {
+        m_v = v;
+    }
 };
 
 } // namespace sdsl

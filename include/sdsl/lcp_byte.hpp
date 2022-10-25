@@ -8,17 +8,23 @@
 #ifndef INCLUDED_SDSL_LCP_BYTE
 #define INCLUDED_SDSL_LCP_BYTE
 
-#include <algorithm> // for lower_bound
-#include <cassert>
-#include <iomanip>
 #include <iostream>
-#include <iterator>
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
 #include <utility> // for pair
 #include <vector>
 
+#include <sdsl/bits.hpp>
+#include <sdsl/cereal.hpp>
+#include <sdsl/config.hpp>
 #include <sdsl/int_vector.hpp>
+#include <sdsl/int_vector_buffer.hpp>
+#include <sdsl/io.hpp>
 #include <sdsl/iterators.hpp>
-#include <sdsl/lcp.hpp>
+#include <sdsl/sdsl_concepts.hpp>
+#include <sdsl/structure_tree.hpp>
+#include <sdsl/util.hpp>
 
 namespace sdsl
 {
@@ -38,7 +44,7 @@ namespace sdsl
 template <uint8_t t_width = 0>
 class lcp_byte
 {
-  public:
+public:
     typedef typename int_vector<t_width>::value_type value_type;
     typedef random_access_const_iterator<lcp_byte> const_iterator;
     typedef const_iterator iterator;
@@ -62,7 +68,7 @@ class lcp_byte
     template <class Cst>
     using type = lcp_byte;
 
-  private:
+private:
     int_vector<8> m_small_lcp;         // vector for LCP values < 255
     int_vector<t_width> m_big_lcp;     // vector for LCP values > 254
     int_vector<t_width> m_big_lcp_idx; // index of LCP entries in the LCP array
@@ -70,12 +76,12 @@ class lcp_byte
     typedef std::pair<size_type, size_type> tPII;
     typedef std::vector<tPII> tVPII;
 
-  public:
+public:
     //! Default Constructor
     lcp_byte() = default;
-    lcp_byte(const lcp_byte &) = default;
+    lcp_byte(lcp_byte const &) = default;
     lcp_byte(lcp_byte &&) = default;
-    lcp_byte & operator=(const lcp_byte &) = default;
+    lcp_byte & operator=(lcp_byte const &) = default;
     lcp_byte & operator=(lcp_byte &&) = default;
 
     //! Constructor
@@ -88,11 +94,15 @@ class lcp_byte
 
         for (size_type i = 0; i < m_small_lcp.size(); ++i)
         {
-            if ((l = lcp_buf[i]) < 255) { m_small_lcp[i] = l; }
+            if ((l = lcp_buf[i]) < 255)
+            {
+                m_small_lcp[i] = l;
+            }
             else
             {
                 m_small_lcp[i] = 255;
-                if (l > max_l) max_l = l;
+                if (l > max_l)
+                    max_l = l;
                 max_big_idx = i;
                 ++big_sum;
             }
@@ -112,19 +122,34 @@ class lcp_byte
     }
 
     //! Number of elements in the instance.
-    size_type size() const { return m_small_lcp.size(); }
+    size_type size() const
+    {
+        return m_small_lcp.size();
+    }
 
     //! Returns the largest size that lcp_byte can ever have.
-    static size_type max_size() { return int_vector<8>::max_size(); }
+    static size_type max_size()
+    {
+        return int_vector<8>::max_size();
+    }
 
     //! Returns if the data strucutre is empty.
-    bool empty() const { return m_small_lcp.empty(); }
+    bool empty() const
+    {
+        return m_small_lcp.empty();
+    }
 
     //! Returns a const_iterator to the first element.
-    const_iterator begin() const { return const_iterator(this, 0); }
+    const_iterator begin() const
+    {
+        return const_iterator(this, 0);
+    }
 
     //! Returns a const_iterator to the element after the last element.
-    const_iterator end() const { return const_iterator(this, size()); }
+    const_iterator end() const
+    {
+        return const_iterator(this, size());
+    }
 
     //! []-operator
     /*!\param i Index of the value. \f$ i \in [0..size()-1]\f$.
@@ -132,7 +157,10 @@ class lcp_byte
      */
     inline value_type operator[](size_type i) const
     {
-        if (m_small_lcp[i] != 255) { return m_small_lcp[i]; }
+        if (m_small_lcp[i] != 255)
+        {
+            return m_small_lcp[i];
+        }
         else
         {
             size_type idx = std::lower_bound(m_big_lcp_idx.begin(), m_big_lcp_idx.end(), i) - m_big_lcp_idx.begin();
@@ -179,12 +207,15 @@ class lcp_byte
     //! Equality operator.
     bool operator==(lcp_byte const & other) const noexcept
     {
-        return (m_small_lcp == other.m_small_lcp) && (m_big_lcp == other.m_big_lcp) &&
-               (m_big_lcp_idx == other.m_big_lcp_idx);
+        return (m_small_lcp == other.m_small_lcp) && (m_big_lcp == other.m_big_lcp)
+            && (m_big_lcp_idx == other.m_big_lcp_idx);
     }
 
     //! Inequality operator.
-    bool operator!=(lcp_byte const & other) const noexcept { return !(*this == other); }
+    bool operator!=(lcp_byte const & other) const noexcept
+    {
+        return !(*this == other);
+    }
 };
 
 } // end namespace sdsl

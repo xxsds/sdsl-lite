@@ -9,9 +9,30 @@
 #ifndef INCLUDED_SDSL_WT_AP
 #define INCLUDED_SDSL_WT_AP
 
-#include <sdsl/bit_vectors.hpp>
+#include <algorithm>
+#include <assert.h>
+#include <iosfwd>
+#include <iterator>
+#include <memory>
+#include <stdint.h>
+#include <string>
+#include <tuple>
+#include <type_traits>
+#include <utility>
+#include <vector>
+
+#include <sdsl/bits.hpp>
+#include <sdsl/cereal.hpp>
 #include <sdsl/int_vector.hpp>
-#include <sdsl/vectors.hpp>
+#include <sdsl/int_vector_buffer.hpp>
+#include <sdsl/io.hpp>
+#include <sdsl/iterators.hpp>
+#include <sdsl/memory_tracking.hpp>
+#include <sdsl/ram_fs.hpp>
+#include <sdsl/rank_support_v5.hpp>
+#include <sdsl/sdsl_concepts.hpp>
+#include <sdsl/structure_tree.hpp>
+#include <sdsl/util.hpp>
 #include <sdsl/wm_int.hpp>
 #include <sdsl/wt_huff.hpp>
 
@@ -41,7 +62,7 @@ class wt_ap
     static_assert(std::is_same<typename index_tag<t_wt_int>::type, wt_tag>::value,
                   "Second template argument has to be a wavelet tree.");
 
-  public:
+public:
     typedef int_vector<>::size_type size_type;
     typedef int_vector<>::value_type value_type;
     typedef int_vector<>::difference_type difference_type;
@@ -56,7 +77,7 @@ class wt_ap
         lex_ordered = 0
     };
 
-  protected:
+protected:
     size_type m_size = 0;
     value_type m_sigma = 0; //<- \f$ |\Sigma| \f$
     value_type m_singleton_class_cnt = 0;
@@ -65,7 +86,7 @@ class wt_ap
     wt_byte_type m_class;
     std::vector<wt_int_type> m_offset;
 
-  private:
+private:
     // retrieves a character's class and offset - if the character exists in the text
     inline std::tuple<bool, value_type, value_type> try_get_char_class_offset(value_type c) const
     {
@@ -81,11 +102,12 @@ class wt_ap
         return std::make_tuple(true, offset_class.second, offset_class.first);
     }
 
-  public:
-    const size_type & sigma = m_sigma;
+public:
+    size_type const & sigma = m_sigma;
 
     //! Default constructor
-    wt_ap() {}
+    wt_ap()
+    {}
 
     //! Construct the wavelet tree from a sequence defined by two interators
     /*!
@@ -94,8 +116,7 @@ class wt_ap
      * \param tmp_dir Temporary directory for intermediate results.
      */
     template <typename t_it>
-    wt_ap(t_it begin, t_it end, std::string tmp_dir = ram_file_name(""))
-      : m_size(std::distance(begin, end))
+    wt_ap(t_it begin, t_it end, std::string tmp_dir = ram_file_name("")) : m_size(std::distance(begin, end))
     {
         const uint8_t wt_byte_width = wt_byte_type::alphabet_category::WIDTH;
         const uint8_t wt_int_width = wt_int_type::alphabet_category::WIDTH;
@@ -115,7 +136,10 @@ class wt_ap
                     max_symbol++;
                     pseudo_entries++;
                 }
-                if (char_freq[element].first == 0) { pseudo_entries--; }
+                if (char_freq[element].first == 0)
+                {
+                    pseudo_entries--;
+                }
                 char_freq[element].first++;
             }
             std::sort(char_freq.rbegin(), char_freq.rend());
@@ -129,7 +153,10 @@ class wt_ap
 
         // assign character classes
         int_vector<wt_byte_width> m_char2class_buffer(max_symbol, m_class_cnt, bits::hi(m_class_cnt + 1) + 1);
-        for (value_type i = 0; i < m_singleton_class_cnt; ++i) { m_char2class_buffer[char_freq[i].second] = i; }
+        for (value_type i = 0; i < m_singleton_class_cnt; ++i)
+        {
+            m_char2class_buffer[char_freq[i].second] = i;
+        }
         value_type current_symbol = m_singleton_class_cnt;
         value_type class_size = 1;
         {
@@ -143,8 +170,8 @@ class wt_ap
                     m_char2class_buffer[char_freq[current_symbol].second] = i;
                 }
 
-                std::string temp_file_offset = tmp_dir + "_wt_ap_offset_" + util::to_string(i - m_singleton_class_cnt) +
-                                               "_" + util::to_string(util::pid()) + "_" + util::to_string(util::id());
+                std::string temp_file_offset = tmp_dir + "_wt_ap_offset_" + util::to_string(i - m_singleton_class_cnt)
+                                             + "_" + util::to_string(util::pid()) + "_" + util::to_string(util::id());
                 temp_file_offset_buffers.emplace_back(temp_file_offset,
                                                       int_vector_buffer<wt_int_width>(temp_file_offset,
                                                                                       std::ios::out,
@@ -156,8 +183,8 @@ class wt_ap
         }
 
         // calculate text-order classes and offsets
-        std::string temp_file_class = tmp_dir + "_wt_ap_class_" + util::to_string(util::pid()) + "_" +
-                                      util::to_string(util::id());
+        std::string temp_file_class =
+            tmp_dir + "_wt_ap_class_" + util::to_string(util::pid()) + "_" + util::to_string(util::id());
         int_vector_buffer<wt_byte_width> class_buffer(temp_file_class,
                                                       std::ios::out,
                                                       1024 * 1024,
@@ -202,21 +229,24 @@ class wt_ap
     }
 
     //! Copy constructor
-    wt_ap(const wt_ap & wt)
-      : m_size(wt.m_size)
-      , m_sigma(wt.m_sigma)
-      , m_singleton_class_cnt(wt.m_singleton_class_cnt)
-      , m_class_cnt(wt.m_class_cnt)
-      , m_char2class(wt.m_char2class)
-      , m_class(wt.m_class)
-      , m_offset(wt.m_offset)
+    wt_ap(wt_ap const & wt) :
+        m_size(wt.m_size),
+        m_sigma(wt.m_sigma),
+        m_singleton_class_cnt(wt.m_singleton_class_cnt),
+        m_class_cnt(wt.m_class_cnt),
+        m_char2class(wt.m_char2class),
+        m_class(wt.m_class),
+        m_offset(wt.m_offset)
     {}
 
     //! Move copy constructor
-    wt_ap(wt_ap && wt) { *this = std::move(wt); }
+    wt_ap(wt_ap && wt)
+    {
+        *this = std::move(wt);
+    }
 
     //! Assignment operator
-    wt_ap & operator=(const wt_ap & wt)
+    wt_ap & operator=(wt_ap const & wt)
     {
         if (this != &wt)
         {
@@ -243,10 +273,16 @@ class wt_ap
     }
 
     //! Returns the size of the original vector.
-    size_type size() const { return m_size; }
+    size_type size() const
+    {
+        return m_size;
+    }
 
     //! Returns whether the wavelet tree contains no data.
-    bool empty() const { return m_size == 0; }
+    bool empty() const
+    {
+        return m_size == 0;
+    }
 
     //! Recovers the i-th symbol of the original vector.
     /*!\param i The index of the symbol in the original vector.
@@ -263,8 +299,8 @@ class wt_ap
         assert(i < size());
         auto textoffset_class = m_class.inverse_select(i);
         auto cl = textoffset_class.second;
-        value_type offset = cl < m_singleton_class_cnt ? 0
-                                                       : m_offset[cl - m_singleton_class_cnt][textoffset_class.first];
+        value_type offset =
+            cl < m_singleton_class_cnt ? 0 : m_offset[cl - m_singleton_class_cnt][textoffset_class.first];
         return m_char2class.select(offset + 1, cl);
     };
 
@@ -284,7 +320,10 @@ class wt_ap
     {
         assert(i <= size());
         auto success_class_offset = try_get_char_class_offset(c);
-        if (!std::get<0>(success_class_offset)) { return 0; }
+        if (!std::get<0>(success_class_offset))
+        {
+            return 0;
+        }
         auto cl = std::get<1>(success_class_offset);
         auto offset = std::get<2>(success_class_offset);
         size_type count = m_class.rank(i, cl);
@@ -305,7 +344,10 @@ class wt_ap
         auto textoffset_class = m_class.inverse_select(i);
         auto textoffset = textoffset_class.first;
         auto cl = textoffset_class.second;
-        if (cl < m_singleton_class_cnt) { return std::make_pair(textoffset, m_char2class.select(1, cl)); }
+        if (cl < m_singleton_class_cnt)
+        {
+            return std::make_pair(textoffset, m_char2class.select(1, cl));
+        }
         auto class_result = m_offset[cl - m_singleton_class_cnt].inverse_select(textoffset);
         return std::make_pair(class_result.first, m_char2class.select(class_result.second + 1, cl));
     }
@@ -325,11 +367,14 @@ class wt_ap
     {
         assert(1 <= i and i <= rank(size(), c));
         auto success_class_offset = try_get_char_class_offset(c);
-        if (!std::get<0>(success_class_offset)) { return m_size; }
+        if (!std::get<0>(success_class_offset))
+        {
+            return m_size;
+        }
         auto cl = std::get<1>(success_class_offset);
         auto offset = std::get<2>(success_class_offset);
-        size_type text_offset = cl < m_singleton_class_cnt ? i
-                                                           : 1 + m_offset[cl - m_singleton_class_cnt].select(i, offset);
+        size_type text_offset =
+            cl < m_singleton_class_cnt ? i : 1 + m_offset[cl - m_singleton_class_cnt].select(i, offset);
         return m_class.select(text_offset, cl);
     };
 
@@ -363,7 +408,10 @@ class wt_ap
         m_class.load(in);
         value_type offset_size = m_class_cnt - m_singleton_class_cnt;
         m_offset.resize(offset_size);
-        for (value_type i = 0; i < offset_size; ++i) { m_offset[i].load(in); }
+        for (value_type i = 0; i < offset_size; ++i)
+        {
+            m_offset[i].load(in);
+        }
     }
 
     //!\brief Serialise (save) via cereal
@@ -392,21 +440,36 @@ class wt_ap
         ar(CEREAL_NVP(m_offset));
     }
 
-    iterator begin() { return { this, 0 }; };
-    const_iterator end() { return { this, size() }; };
-    iterator begin() const { return { this, 0 }; };
-    const_iterator end() const { return { this, size() }; };
+    iterator begin()
+    {
+        return {this, 0};
+    };
+    const_iterator end()
+    {
+        return {this, size()};
+    };
+    iterator begin() const
+    {
+        return {this, 0};
+    };
+    const_iterator end() const
+    {
+        return {this, size()};
+    };
 
     //! Equality operator.
     bool operator==(wt_ap const & other) const noexcept
     {
-        return (m_size == other.m_size) && (m_sigma == other.m_sigma) &&
-               (m_singleton_class_cnt == other.m_singleton_class_cnt) && (m_class_cnt == other.m_class_cnt) &&
-               (m_char2class == other.m_char2class) && (m_class == other.m_class) && (m_offset == other.m_offset);
+        return (m_size == other.m_size) && (m_sigma == other.m_sigma)
+            && (m_singleton_class_cnt == other.m_singleton_class_cnt) && (m_class_cnt == other.m_class_cnt)
+            && (m_char2class == other.m_char2class) && (m_class == other.m_class) && (m_offset == other.m_offset);
     }
 
     //! Inequality operator.
-    bool operator!=(wt_ap const & other) const noexcept { return !(*this == other); }
+    bool operator!=(wt_ap const & other) const noexcept
+    {
+        return !(*this == other);
+    }
 };
 
 } // end namespace sdsl

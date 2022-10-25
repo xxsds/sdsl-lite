@@ -1,6 +1,8 @@
 #include <iostream>
 
-#include <sdsl/suffix_trees.hpp>
+#include <sdsl/csa_sada.hpp>
+#include <sdsl/csa_wt.hpp>
+#include <sdsl/cst_sct3.hpp>
 
 using namespace sdsl;
 using namespace std;

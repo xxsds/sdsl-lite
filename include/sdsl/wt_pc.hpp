@@ -9,13 +9,29 @@
 #ifndef INCLUDED_SDSL_WT_PC
 #define INCLUDED_SDSL_WT_PC
 
+#include <algorithm>
+#include <array>
+#include <assert.h>
+#include <cstdint>
+#include <functional>
+#include <iosfwd>
+#include <iterator>
+#include <stddef.h>
+#include <string>
 #include <tuple>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
-#include <sdsl/bit_vectors.hpp>
-#include <sdsl/rank_support.hpp>
-#include <sdsl/select_support.hpp>
+#include <sdsl/bits.hpp>
+#include <sdsl/cereal.hpp>
+#include <sdsl/int_vector.hpp>
+#include <sdsl/io.hpp>
+#include <sdsl/iterators.hpp>
+#include <sdsl/rank_support_v.hpp>
+#include <sdsl/sdsl_concepts.hpp>
+#include <sdsl/structure_tree.hpp>
+#include <sdsl/util.hpp>
 #include <sdsl/wt_helper.hpp>
 
 //! Namespace for the succinct data structure library.
@@ -42,7 +58,7 @@ template <class t_shape,
           class t_tree_strat = byte_tree<>>
 class wt_pc
 {
-  public:
+public:
     typedef typename t_tree_strat::template type<wt_pc> tree_strat_type;
     typedef int_vector<>::size_type size_type;
     typedef typename tree_strat_type::value_type value_type;
@@ -62,7 +78,7 @@ class wt_pc
     };
     using node_type = typename tree_strat_type::node_type;
 
-  private:
+private:
 #ifdef WT_PC_CACHE
     mutable value_type m_last_access_answer;
     mutable size_type m_last_access_i;
@@ -85,14 +101,17 @@ class wt_pc
         node_type v = m_tree.root();
         for (uint32_t l = 0; l < path_len; ++l, p >>= 1)
         {
-            if (p & 1) { bv.set_int(bv_node_pos[v], 0xFFFFFFFFFFFFFFFFULL, times); }
+            if (p & 1)
+            {
+                bv.set_int(bv_node_pos[v], 0xFFFFFFFFFFFFFFFFULL, times);
+            }
             bv_node_pos[v] += times;
             v = m_tree.child(v, p & 1);
         }
     }
 
     // calculates the tree shape returns the size of the WT bit vector
-    size_type construct_tree_shape(const std::vector<size_type> & C)
+    size_type construct_tree_shape(std::vector<size_type> const & C)
     {
         // vector  for node of the tree
         std::vector<pc_node> temp_nodes; //(2*m_sigma-1);
@@ -129,7 +148,10 @@ class wt_pc
         if (i != j)
         {
             node_type v_new = m_tree.child(v, 0);
-            if (!m_tree.is_leaf(v_new)) { _interval_symbols(i, j, k, cs, rank_c_i, rank_c_j, v_new); }
+            if (!m_tree.is_leaf(v_new))
+            {
+                _interval_symbols(i, j, k, cs, rank_c_i, rank_c_j, v_new);
+            }
             else
             {
                 rank_c_i[k] = i;
@@ -141,7 +163,10 @@ class wt_pc
         if (i_new != j_new)
         {
             node_type v_new = m_tree.child(v, 1);
-            if (!m_tree.is_leaf(v_new)) { _interval_symbols(i_new, j_new, k, cs, rank_c_i, rank_c_j, v_new); }
+            if (!m_tree.is_leaf(v_new))
+            {
+                _interval_symbols(i_new, j_new, k, cs, rank_c_i, rank_c_j, v_new);
+            }
             else
             {
                 rank_c_i[k] = i_new;
@@ -151,9 +176,9 @@ class wt_pc
         }
     }
 
-  public:
-    const size_type & sigma = m_sigma;
-    const bit_vector_type & bv = m_bv;
+public:
+    size_type const & sigma = m_sigma;
+    bit_vector_type const & bv = m_bv;
 
     // Default constructor
     wt_pc(){};
@@ -166,10 +191,10 @@ class wt_pc
      *      \f$ \Order{n\log|\Sigma|}\f$, where \f$n=size\f$
      */
     template <typename t_it>
-    wt_pc(t_it begin, t_it end)
-      : m_size(std::distance(begin, end))
+    wt_pc(t_it begin, t_it end) : m_size(std::distance(begin, end))
     {
-        if (0 == m_size) return;
+        if (0 == m_size)
+            return;
         // O(n + |\Sigma|\log|\Sigma|) algorithm for calculating node sizes
         // TODO: C should also depend on the tree_strategy. C is just a mapping
         // from a symbol to its frequency. So a map<uint64_t,uint64_t> could be
@@ -186,7 +211,10 @@ class wt_pc
 
         // Initializing starting position of wavelet tree nodes
         std::vector<uint64_t> bv_node_pos(m_tree.size(), 0);
-        for (size_type v = 0; v < m_tree.size(); ++v) { bv_node_pos[v] = m_tree.bv_pos(v); }
+        for (size_type v = 0; v < m_tree.size(); ++v)
+        {
+            bv_node_pos[v] = m_tree.bv_pos(v);
+        }
         value_type old_chr = *begin;
         uint32_t times = 0;
         for (auto it = begin; it != end; ++it)
@@ -208,7 +236,10 @@ class wt_pc
                 }
             }
         }
-        if (times > 0) { insert_char(old_chr, bv_node_pos, times, temp_bv); }
+        if (times > 0)
+        {
+            insert_char(old_chr, bv_node_pos, times, temp_bv);
+        }
         m_bv = bit_vector_type(std::move(temp_bv));
         // 5. Initialize rank and select data structures for m_bv
         construct_init_rank_select();
@@ -217,33 +248,32 @@ class wt_pc
     }
 
     template <typename t_it>
-    wt_pc(t_it begin, t_it end, std::string)
-      : wt_pc(begin, end)
+    wt_pc(t_it begin, t_it end, std::string) : wt_pc(begin, end)
     {}
 
     //! Copy constructor
-    wt_pc(const wt_pc & wt)
-      : m_size(wt.m_size)
-      , m_sigma(wt.m_sigma)
-      , m_bv(wt.m_bv)
-      , m_bv_rank(wt.m_bv_rank)
-      , m_bv_select1(wt.m_bv_select1)
-      , m_bv_select0(wt.m_bv_select0)
-      , m_tree(wt.m_tree)
+    wt_pc(wt_pc const & wt) :
+        m_size(wt.m_size),
+        m_sigma(wt.m_sigma),
+        m_bv(wt.m_bv),
+        m_bv_rank(wt.m_bv_rank),
+        m_bv_select1(wt.m_bv_select1),
+        m_bv_select0(wt.m_bv_select0),
+        m_tree(wt.m_tree)
     {
         m_bv_rank.set_vector(&m_bv);
         m_bv_select1.set_vector(&m_bv);
         m_bv_select0.set_vector(&m_bv);
     }
 
-    wt_pc(wt_pc && wt)
-      : m_size(wt.m_size)
-      , m_sigma(wt.m_sigma)
-      , m_bv(std::move(wt.m_bv))
-      , m_bv_rank(std::move(wt.m_bv_rank))
-      , m_bv_select1(std::move(wt.m_bv_select1))
-      , m_bv_select0(std::move(wt.m_bv_select0))
-      , m_tree(std::move(wt.m_tree))
+    wt_pc(wt_pc && wt) :
+        m_size(wt.m_size),
+        m_sigma(wt.m_sigma),
+        m_bv(std::move(wt.m_bv)),
+        m_bv_rank(std::move(wt.m_bv_rank)),
+        m_bv_select1(std::move(wt.m_bv_select1)),
+        m_bv_select0(std::move(wt.m_bv_select0)),
+        m_tree(std::move(wt.m_tree))
     {
         m_bv_rank.set_vector(&m_bv);
         m_bv_select1.set_vector(&m_bv);
@@ -251,7 +281,7 @@ class wt_pc
     }
 
     //! Assignment operator
-    wt_pc & operator=(const wt_pc & wt)
+    wt_pc & operator=(wt_pc const & wt)
     {
         if (this != &wt)
         {
@@ -281,10 +311,16 @@ class wt_pc
     }
 
     //! Returns the size of the original vector.
-    size_type size() const { return m_size; }
+    size_type size() const
+    {
+        return m_size;
+    }
 
     //! Returns whether the wavelet tree contains no data.
-    bool empty() const { return m_size == 0; }
+    bool empty() const
+    {
+        return m_size == 0;
+    }
 
     //! Recovers the i-th symbol of the original vector.
     /*!
@@ -349,7 +385,10 @@ class wt_pc
         node_type v = m_tree.root();
         for (uint32_t l = 0; l < path_len and result; ++l, p >>= 1)
         {
-            if (p & 1) { result = (m_bv_rank(m_tree.bv_pos(v) + result) - m_tree.bv_pos_rank(v)); }
+            if (p & 1)
+            {
+                result = (m_bv_rank(m_tree.bv_pos(v) + result) - m_tree.bv_pos_rank(v));
+            }
             else
             {
                 result -= (m_bv_rank(m_tree.bv_pos(v) + result) - m_tree.bv_pos_rank(v));
@@ -409,7 +448,10 @@ class wt_pc
         {                  // if c was not in the text
             return m_size; // -> return a position right to the end
         }
-        if (m_sigma == 1) { return std::min(i - 1, m_size); }
+        if (m_sigma == 1)
+        {
+            return std::min(i - 1, m_size);
+        }
         size_type result = i - 1; // otherwise
         uint64_t p = m_tree.bit_path(c);
         uint32_t path_len = (p >> 56);
@@ -461,7 +503,10 @@ class wt_pc
                           std::vector<size_type> & rank_c_j) const
     {
         assert(i <= j and j <= size());
-        if (i == j) { k = 0; }
+        if (i == j)
+        {
+            k = 0;
+        }
         else if (1 == m_sigma)
         {
             k = 1;
@@ -526,9 +571,8 @@ class wt_pc
      * This method is only available if lex_ordered = true
      */
     template <class t_ret_type = std::tuple<size_type, size_type, size_type>>
-    typename std::enable_if<shape_type::lex_ordered, t_ret_type>::type lex_count(size_type i,
-                                                                                 size_type j,
-                                                                                 value_type c) const
+    typename std::enable_if<shape_type::lex_ordered, t_ret_type>::type
+    lex_count(size_type i, size_type j, value_type c) const
     {
         assert(i <= j and j <= size());
         if (1 == m_sigma)
@@ -536,18 +580,21 @@ class wt_pc
             value_type _c = m_tree.bv_pos_rank(m_tree.root());
             if (c == _c)
             { // c is the only symbol in the wt
-                return t_ret_type{ i, 0, 0 };
+                return t_ret_type{i, 0, 0};
             }
             else if (c < _c)
             {
-                return t_ret_type{ 0, 0, j - i };
+                return t_ret_type{0, 0, j - i};
             }
             else
             {
-                return t_ret_type{ 0, j - i, 0 };
+                return t_ret_type{0, j - i, 0};
             }
         }
-        if (i == j) { return t_ret_type{ rank(i, c), 0, 0 }; }
+        if (i == j)
+        {
+            return t_ret_type{rank(i, c), 0, 0};
+        }
         uint64_t p = m_tree.bit_path(c);
         uint32_t path_len = p >> 56;
         if (path_len == 0)
@@ -555,10 +602,10 @@ class wt_pc
             value_type _c = (value_type)p;
             if (c == _c)
             { // c is smaller than any symbol in wt
-                return t_ret_type{ 0, 0, j - i };
+                return t_ret_type{0, 0, j - i};
             }
             auto res = lex_count(i, j, _c);
-            return t_ret_type{ 0, j - i - std::get<2>(res), std::get<2>(res) };
+            return t_ret_type{0, j - i - std::get<2>(res), std::get<2>(res)};
         }
         size_type smaller = 0, greater = 0;
         node_type v = m_tree.root();
@@ -581,7 +628,7 @@ class wt_pc
             }
             v = m_tree.child(v, p & 1);
         }
-        return t_ret_type{ i, smaller, greater };
+        return t_ret_type{i, smaller, greater};
     }
 
     //! How many symbols are lexicographic smaller than c in [0..i-1].
@@ -606,15 +653,15 @@ class wt_pc
             value_type _c = m_tree.bv_pos_rank(m_tree.root());
             if (c == _c)
             { // c is the only symbol in the wt
-                return t_ret_type{ i, 0 };
+                return t_ret_type{i, 0};
             }
             else if (c < _c)
             {
-                return t_ret_type{ 0, 0 };
+                return t_ret_type{0, 0};
             }
             else
             {
-                return t_ret_type{ 0, i };
+                return t_ret_type{0, i};
             }
         }
 
@@ -625,10 +672,10 @@ class wt_pc
             value_type _c = (value_type)p;
             if (c == _c)
             { // c is smaller than any symbol in wt
-                return t_ret_type{ 0, 0 };
+                return t_ret_type{0, 0};
             }
             auto res = lex_smaller_count(i, _c);
-            return t_ret_type{ 0, std::get<0>(res) + std::get<1>(res) };
+            return t_ret_type{0, std::get<0>(res) + std::get<1>(res)};
         }
         size_type result = 0;
         size_type all = i; // possible occurrences of c
@@ -647,14 +694,20 @@ class wt_pc
             }
             v = m_tree.child(v, p & 1);
         }
-        return t_ret_type{ all, result };
+        return t_ret_type{all, result};
     }
 
     //! Returns a const_iterator to the first element.
-    const_iterator begin() const { return const_iterator(this, 0); }
+    const_iterator begin() const
+    {
+        return const_iterator(this, 0);
+    }
 
     //! Returns a const_iterator to the element after the last element.
-    const_iterator end() const { return const_iterator(this, size()); }
+    const_iterator end() const
+    {
+        return const_iterator(this, size());
+    }
 
     //! Serializes the data structure into the given ostream
     size_type serialize(std::ostream & out, structure_tree_node * v = nullptr, std::string name = "") const
@@ -687,13 +740,16 @@ class wt_pc
     //! Equality operator.
     bool operator==(wt_pc const & other) const noexcept
     {
-        return (m_size == other.m_size) && (m_sigma == other.m_sigma) && (m_bv == other.m_bv) &&
-               (m_bv_rank == other.m_bv_rank) && (m_bv_select1 == other.m_bv_select1) &&
-               (m_bv_select0 == other.m_bv_select0) && (m_tree == other.m_tree);
+        return (m_size == other.m_size) && (m_sigma == other.m_sigma) && (m_bv == other.m_bv)
+            && (m_bv_rank == other.m_bv_rank) && (m_bv_select1 == other.m_bv_select1)
+            && (m_bv_select0 == other.m_bv_select0) && (m_tree == other.m_tree);
     }
 
     //! Inequality operator.
-    bool operator!=(wt_pc const & other) const noexcept { return !(*this == other); }
+    bool operator!=(wt_pc const & other) const noexcept
+    {
+        return !(*this == other);
+    }
 
     template <typename archive_t>
     void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
@@ -723,41 +779,51 @@ class wt_pc
     }
 
     //! Random access container to bitvector of node v
-    auto bit_vec(const node_type & v) const -> node_bv_container<t_bitvector>
+    auto bit_vec(node_type const & v) const -> node_bv_container<t_bitvector>
     {
         return node_bv_container<t_bitvector>(begin(v), end(v));
     }
 
     //! Random access container to sequence of node v
-    auto seq(const node_type & v) const -> random_access_container<std::function<value_type(size_type)>>
+    auto seq(node_type const & v) const -> random_access_container<std::function<value_type(size_type)>>
     {
         return random_access_container<std::function<value_type(size_type)>>(
-                                                          [&v, this](size_type i) {
-                                                              node_type vv = v;
-                                                              while (!is_leaf(vv))
-                                                              {
-                                                                  auto vs = expand(vv);
-                                                                  auto rs = expand(vv, range_type{ { 0, i } });
-                                                                  bool bit = *(begin(vv) + i);
-                                                                  i = std::get<1>(rs[bit]);
-                                                                  vv = vs[bit];
-                                                              }
-                                                              return sym(vv);
-                                                          },
-                                                          size(v));
+            [&v, this](size_type i)
+            {
+                node_type vv = v;
+                while (!is_leaf(vv))
+                {
+                    auto vs = expand(vv);
+                    auto rs = expand(vv, range_type{{0, i}});
+                    bool bit = *(begin(vv) + i);
+                    i = std::get<1>(rs[bit]);
+                    vv = vs[bit];
+                }
+                return sym(vv);
+            },
+            size(v));
     }
 
     //! Checks if the node is a leaf node
-    bool is_leaf(const node_type & v) const { return m_tree.is_leaf(v); }
+    bool is_leaf(node_type const & v) const
+    {
+        return m_tree.is_leaf(v);
+    }
 
     //! Symbol for a leaf
-    value_type sym(const node_type & v) const { return m_tree.bv_pos_rank(v); }
+    value_type sym(node_type const & v) const
+    {
+        return m_tree.bv_pos_rank(v);
+    }
 
     //! Indicates if node v is empty
-    bool empty(const node_type & v) const { return size(v) == 0; }
+    bool empty(node_type const & v) const
+    {
+        return size(v) == 0;
+    }
 
     //! Return the size of node v
-    auto size(const node_type & v) const -> decltype(m_tree.size(v))
+    auto size(node_type const & v) const -> decltype(m_tree.size(v))
     {
         if (is_leaf(v))
         {
@@ -766,7 +832,7 @@ class wt_pc
             else
             {
                 auto parent = m_tree.parent(v);
-                auto rs = expand(parent, range_type{ { 0, size(parent) - 1 } });
+                auto rs = expand(parent, range_type{{0, size(parent) - 1}});
                 if (m_tree.child(parent, 0) == v)
                     return std::get<1>(std::get<0>(rs)) - std::get<0>((std::get<0>(rs))) + 1;
                 else
@@ -780,16 +846,19 @@ class wt_pc
     }
 
     //! Returns the root node
-    node_type root() const { return m_tree.root(); }
+    node_type root() const
+    {
+        return m_tree.root();
+    }
 
     //! Returns the two child nodes of an inner node
     /*!\param v An inner node of a wavelet tree.
      *  \return Return a pair of nodes (left child, right child).
      *  \pre !is_leaf(v)
      */
-    std::array<node_type, 2> expand(const node_type & v) const
+    std::array<node_type, 2> expand(node_type const & v) const
     {
-        return { { m_tree.child(v, 0), m_tree.child(v, 1) } };
+        return {{m_tree.child(v, 0), m_tree.child(v, 1)}};
     }
 
     //! Returns for each range its left and right child ranges
@@ -802,7 +871,7 @@ class wt_pc
      *          range mapped to the right child of v.
      *  \pre !is_leaf(v) and s>=v_s and e<=v_e
      */
-    std::array<range_vec_type, 2> expand(const node_type & v, const range_vec_type & ranges) const
+    std::array<range_vec_type, 2> expand(node_type const & v, range_vec_type const & ranges) const
     {
         auto ranges_copy = ranges;
         return expand(v, std::move(ranges_copy));
@@ -818,7 +887,7 @@ class wt_pc
      *          range mapped to the right child of v.
      *  \pre !is_leaf(v) and s>=v_s and e<=v_e
      */
-    std::array<range_vec_type, 2> expand(const node_type & v, range_vec_type && ranges) const
+    std::array<range_vec_type, 2> expand(node_type const & v, range_vec_type && ranges) const
     {
         auto v_sp_rank = m_tree.bv_pos_rank(v);
         range_vec_type res(ranges.size());
@@ -832,10 +901,10 @@ class wt_pc
             auto right_sp = sp_rank - v_sp_rank;
             auto left_sp = r[0] - right_sp;
 
-            r = { { left_sp, left_sp + left_size - 1 } };
-            res[i++] = { { right_sp, right_sp + right_size - 1 } };
+            r = {{left_sp, left_sp + left_size - 1}};
+            res[i++] = {{right_sp, right_sp + right_size - 1}};
         }
-        return { { ranges, std::move(res) } };
+        return {{ranges, std::move(res)}};
     }
 
     //! Returns for a range its left and right child ranges
@@ -848,7 +917,7 @@ class wt_pc
      *          range mapped to the right child of v.
      *  \pre !is_leaf(v) and s>=v_s and e<=v_e
      */
-    std::array<range_type, 2> expand(const node_type & v, const range_type & r) const
+    std::array<range_type, 2> expand(node_type const & v, range_type const & r) const
     {
         auto v_sp_rank = m_tree.bv_pos_rank(v);
         auto sp_rank = m_bv_rank(m_tree.bv_pos(v) + r[0]);
@@ -858,7 +927,7 @@ class wt_pc
         auto right_sp = sp_rank - v_sp_rank;
         auto left_sp = r[0] - right_sp;
 
-        return { { { { left_sp, left_sp + left_size - 1 } }, { { right_sp, right_sp + right_size - 1 } } } };
+        return {{{{left_sp, left_sp + left_size - 1}}, {{right_sp, right_sp + right_size - 1}}}};
     }
 
     //! return the path to the leaf for a given symbol
@@ -869,7 +938,7 @@ class wt_pc
         // reverse the path till we fix the ordering
         path = bits::rev(path);
         path = path >> (64 - path_len); // remove the length
-        return { path_len, path };
+        return {path_len, path};
     }
 
     //! Returns for a symbol c the next larger or equal symbol in the WT.
@@ -878,7 +947,10 @@ class wt_pc
      *          a valid answer was found (true) or no valid answer (false)
      *          could be found. The second element contains the found symbol.
      */
-    std::pair<bool, value_type> symbol_gte(value_type c) const { return m_tree.symbol_gte(c); }
+    std::pair<bool, value_type> symbol_gte(value_type c) const
+    {
+        return m_tree.symbol_gte(c);
+    }
 
     //! Returns for a symbol c the previous smaller or equal symbol in the WT.
     /*!\param c the symbol
@@ -886,17 +958,20 @@ class wt_pc
      *          a valid answer was found (true) or no valid answer (false)
      *          could be found. The second element contains the found symbol.
      */
-    std::pair<bool, value_type> symbol_lte(value_type c) const { return m_tree.symbol_lte(c); }
+    std::pair<bool, value_type> symbol_lte(value_type c) const
+    {
+        return m_tree.symbol_lte(c);
+    }
 
-  private:
+private:
     //! Iterator to the begin of the bitvector of inner node v
-    auto begin(const node_type & v) const -> decltype(m_bv.begin() + m_tree.bv_pos(v))
+    auto begin(node_type const & v) const -> decltype(m_bv.begin() + m_tree.bv_pos(v))
     {
         return m_bv.begin() + m_tree.bv_pos(v);
     }
 
     //! Iterator to the begin of the bitvector of inner node v
-    auto end(const node_type & v) const -> decltype(m_bv.begin() + m_tree.bv_pos(v) + m_tree.size(v))
+    auto end(node_type const & v) const -> decltype(m_bv.begin() + m_tree.bv_pos(v) + m_tree.size(v))
     {
         return m_bv.begin() + m_tree.bv_pos(v) + m_tree.size(v);
     }

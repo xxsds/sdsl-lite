@@ -35,13 +35,19 @@
 #define INCLUDED_SDSL_HYB_VECTOR
 
 #include <algorithm>
+#include <assert.h>
 #include <cstdlib>
 #include <iostream>
-#include <vector>
+#include <stdint.h>
+#include <stdio.h>
+#include <string>
 
+#include <sdsl/bits.hpp>
+#include <sdsl/cereal.hpp>
 #include <sdsl/int_vector.hpp>
 #include <sdsl/io.hpp>
 #include <sdsl/iterators.hpp>
+#include <sdsl/structure_tree.hpp>
 #include <sdsl/util.hpp>
 
 namespace sdsl
@@ -65,7 +71,7 @@ class select_support_hyb;
 template <uint32_t k_sblock_rate = 16>
 class hyb_vector
 {
-  public:
+public:
     typedef bit_vector::size_type size_type;
     typedef bit_vector::value_type value_type;
     typedef bit_vector::difference_type difference_type;
@@ -80,7 +86,7 @@ class hyb_vector
     friend class select_support_hyb<1, k_sblock_rate>;
     friend class select_support_hyb<0, k_sblock_rate>;
 
-  private:
+private:
     static const uint32_t k_block_size;
     static const uint32_t k_block_bytes;
     static const uint32_t k_sblock_header_size;
@@ -92,16 +98,16 @@ class hyb_vector
     int_vector<8> m_sblock_header;  // sblock headers
     int_vector<64> m_hblock_header; // hblock headers
 
-  public:
+public:
     //! Default constructor
     hyb_vector() = default;
-    hyb_vector(const hyb_vector & hybrid) = default;
+    hyb_vector(hyb_vector const & hybrid) = default;
     hyb_vector(hyb_vector && hybrid) = default;
-    hyb_vector & operator=(const hyb_vector & hybrid) = default;
+    hyb_vector & operator=(hyb_vector const & hybrid) = default;
     hyb_vector & operator=(hyb_vector && hybrid) = default;
 
     //! Constructor
-    hyb_vector(const bit_vector & bv)
+    hyb_vector(bit_vector const & bv)
     {
         m_size = bv.size();
 
@@ -118,12 +124,14 @@ class hyb_vector
         for (uint32_t i = 1; i < 65536; ++i)
         {
             runs_lookup[i] = runs_lookup[i >> 1];
-            if (i >= 32768) --runs_lookup[i];
-            if ((i & 1) != ((i >> 1) & 1)) ++runs_lookup[i];
+            if (i >= 32768)
+                --runs_lookup[i];
+            if ((i & 1) != ((i >> 1) & 1))
+                ++runs_lookup[i];
         }
 
         // Compute optimal encoding for each block.
-        const uint64_t * bv_ptr = bv.data();
+        uint64_t const * bv_ptr = bv.data();
         for (size_type block_id = 0; block_id < n_blocks; ++block_id)
         {
             size_type block_beg = block_id * k_block_size;
@@ -135,15 +143,17 @@ class hyb_vector
             if (block_end <= m_size)
             {
                 // Count the number of ones, fast.
-                const uint64_t * ptr64 = bv_ptr;
-                for (uint8_t i = 0; i < 4; ++i) ones += bits::cnt(*ptr64++);
+                uint64_t const * ptr64 = bv_ptr;
+                for (uint8_t i = 0; i < 4; ++i)
+                    ones += bits::cnt(*ptr64++);
 
                 // Count the number of runs, fast.
                 ptr64 = bv_ptr;
                 for (uint8_t i = 0; i < 4; ++i)
                 {
                     // Count changes of bits inside 16-bit words of *ptr64.
-                    for (uint8_t j = 0; j < 4; ++j) runs += runs_lookup[((*ptr64) >> (16 * j)) & 0xffff];
+                    for (uint8_t j = 0; j < 4; ++j)
+                        runs += runs_lookup[((*ptr64) >> (16 * j)) & 0xffff];
 
                     // Count changes of bits between 16-bit words of *ptr64.
                     for (uint8_t j = 0; j < 3; ++j)
@@ -167,8 +177,10 @@ class hyb_vector
                 for (size_type i = block_beg; i < block_end; ++i)
                 {
                     uint8_t bit = (i < m_size ? bv[i] : 0);
-                    if (bit == 1) ++ones;
-                    if (bit != prevbit) ++runs;
+                    if (bit == 1)
+                        ++ones;
+                    if (bit != prevbit)
+                        ++runs;
                     prevbit = bit;
                 }
             }
@@ -235,14 +247,16 @@ class hyb_vector
             if (block_end <= m_size)
             {
                 // Count the number of ones, fast.
-                const uint64_t * ptr64 = bv_ptr;
-                for (uint8_t i = 0; i < 4; ++i) ones += bits::cnt(*ptr64++);
+                uint64_t const * ptr64 = bv_ptr;
+                for (uint8_t i = 0; i < 4; ++i)
+                    ones += bits::cnt(*ptr64++);
 
                 // Count the number of runs, fast.
                 ptr64 = bv_ptr;
                 for (uint8_t i = 0; i < 4; ++i)
                 {
-                    for (uint8_t j = 0; j < 4; ++j) runs += runs_lookup[((*ptr64) >> (16 * j)) & 0xffff];
+                    for (uint8_t j = 0; j < 4; ++j)
+                        runs += runs_lookup[((*ptr64) >> (16 * j)) & 0xffff];
                     for (uint8_t j = 0; j < 3; ++j)
                         runs += ((((*ptr64) >> (16 * j + 15)) & 1) ^ (((*ptr64) >> (16 * j + 16)) & 1));
                     ++ptr64;
@@ -262,20 +276,23 @@ class hyb_vector
                 for (size_type i = block_beg; i < block_end; ++i)
                 {
                     uint8_t bit = (i < m_size ? bv[i] : 0);
-                    if (bit == 1) ++ones;
-                    if (bit != prevbit) ++runs;
+                    if (bit == 1)
+                        ++ones;
+                    if (bit != prevbit)
+                        ++runs;
                     prevbit = bit;
                 }
             }
             uint32_t zeros = k_block_size - ones;
 
             // Store block popcount.
-            uint16_t * header_ptr16 = (uint16_t *)(((uint8_t *)m_sblock_header.data()) +
-                                                   sblock_id * k_sblock_header_size + 8 +
-                                                   (block_id % k_sblock_rate) * 2);
+            uint16_t * header_ptr16 =
+                (uint16_t *)(((uint8_t *)m_sblock_header.data()) + sblock_id * k_sblock_header_size + 8
+                             + (block_id % k_sblock_rate) * 2);
 
             (*header_ptr16) = ones;
-            if (ones == k_block_size) (*header_ptr16) |= 0x200;
+            if (ones == k_block_size)
+                (*header_ptr16) |= 0x200;
 
             if (0 < ones && ones < k_block_size)
             { // non uniform block
@@ -305,7 +322,8 @@ class hyb_vector
                             for (size_type j = i; j < std::min(i + 64, block_end); ++j)
                             {
                                 uint8_t bit = (j < m_size ? bv[j] : 0);
-                                if (bit) w |= ((uint64_t)1 << (j - i));
+                                if (bit)
+                                    w |= ((uint64_t)1 << (j - i));
                             }
                             *((uint64_t *)(((uint8_t *)m_trunk.data()) + trunk_ptr)) = w;
                             trunk_ptr += 8;
@@ -325,18 +343,20 @@ class hyb_vector
                         {
                             // Find run ends, fast.
                             uint32_t runid = 0;
-                            const uint64_t * ptr64 = bv_ptr;
+                            uint64_t const * ptr64 = bv_ptr;
 
                             uint64_t w = 0;
                             for (uint8_t i = 0; runid < runs_enc_size && i < 4; ++i)
                             {
                                 // Check if run end aligns with the end of the 64-bit word.
-                                if (i > 0 && (w & 1) != ((*ptr64) & 1)) m_trunk[trunk_ptr + runid++] = 64 * i - 1;
+                                if (i > 0 && (w & 1) != ((*ptr64) & 1))
+                                    m_trunk[trunk_ptr + runid++] = 64 * i - 1;
 
                                 w = (*ptr64++);
                                 for (uint8_t j = 0; runid < runs_enc_size && j < 63; ++j)
                                 {
-                                    if ((w & 1) != ((w >> 1) & 1)) m_trunk[trunk_ptr + runid++] = j + i * 64;
+                                    if ((w & 1) != ((w >> 1) & 1))
+                                        m_trunk[trunk_ptr + runid++] = j + i * 64;
                                     w >>= 1;
                                 }
                             }
@@ -363,19 +383,21 @@ class hyb_vector
                         // Use minority encoding.
                         // Update sblock header.
                         (*header_ptr16) |= (minority_enc_size << 10);
-                        if (ones < zeros) (*header_ptr16) |= 0x200;
+                        if (ones < zeros)
+                            (*header_ptr16) |= 0x200;
                         uint8_t keybit = (ones < zeros);
 
                         // Find positions of 1-bits, fast.
                         if (block_end <= m_size)
                         {
-                            const uint64_t * ptr64 = bv_ptr;
+                            uint64_t const * ptr64 = bv_ptr;
                             for (uint8_t i = 0; i < 4; ++i)
                             {
                                 uint64_t w = (*ptr64++);
                                 for (uint8_t j = 0; j < 64; ++j)
                                 {
-                                    if ((w & 1) == keybit) m_trunk[trunk_ptr++] = j + 64 * i;
+                                    if ((w & 1) == keybit)
+                                        m_trunk[trunk_ptr++] = j + 64 * i;
                                     w >>= 1;
                                 }
                             }
@@ -386,7 +408,8 @@ class hyb_vector
                             {
                                 uint8_t bit = (i < m_size ? bv[i] : 0);
 
-                                if (bit == keybit) m_trunk[trunk_ptr++] = i - block_beg;
+                                if (bit == keybit)
+                                    m_trunk[trunk_ptr++] = i - block_beg;
                             }
                         }
                     }
@@ -400,7 +423,7 @@ class hyb_vector
         }
     }
 
-  private:
+private:
     //! Given i returns bv[i - 1].
     value_type access0(size_type i) const
     {
@@ -416,7 +439,7 @@ class hyb_vector
         uint32_t local_i = i - block_id * k_block_size;
 
         // Read superblock header.
-        const uint8_t * header_ptr8 = ((const uint8_t *)m_sblock_header.data()) + (sblock_id * k_sblock_header_size);
+        uint8_t const * header_ptr8 = ((uint8_t const *)m_sblock_header.data()) + (sblock_id * k_sblock_header_size);
         uint32_t * header_ptr32 = (uint32_t *)header_ptr8;
         size_type trunk_ptr = trunk_base + ((*header_ptr32) & 0x3fffffff);
         header_ptr8 += 8;
@@ -424,7 +447,8 @@ class hyb_vector
         uint16_t * header_ptr16 = (uint16_t *)header_ptr8;
 
         // Uniform superblock optimization.
-        if ((*header_ptr32) & 0x80000000) return (value_type)((*(header_ptr8 + 1)) & 0x01);
+        if ((*header_ptr32) & 0x80000000)
+            return (value_type)((*(header_ptr8 + 1)) & 0x01);
 
         // Fast forward through preceding blocks in the superblock.
         for (size_type j = sblock_id * k_sblock_rate; j != block_id; ++j)
@@ -433,7 +457,7 @@ class hyb_vector
             ++header_ptr16;
         }
 
-        const uint8_t * trunk_p = ((const uint8_t *)m_trunk.data()) + trunk_ptr;
+        uint8_t const * trunk_p = ((uint8_t const *)m_trunk.data()) + trunk_ptr;
 
         uint32_t encoding_size = ((*header_ptr16) >> 10);
         uint32_t ones = ((*header_ptr16) & 0x1ff);
@@ -569,7 +593,8 @@ class hyb_vector
             // plain encoding.
             uint64_t * trunk_ptr64 = (uint64_t *)(((uint8_t *)m_trunk.data()) + trunk_ptr);
             uint32_t bit;
-            for (bit = 0; bit + 64 <= local_i; bit += 64) trunk_ptr64++;
+            for (bit = 0; bit + 64 <= local_i; bit += 64)
+                trunk_ptr64++;
 
             uint8_t access_i = 0;
             if (bit != local_i)
@@ -580,7 +605,7 @@ class hyb_vector
         }
     }
 
-  public:
+public:
     //! Get the integer value of the binary string of length len starting at position idx.
     /*!\param idx Starting index of the binary representation of the integer.
      *  \param len Length of the binary representation of the integer. Default value is 64.
@@ -601,10 +626,16 @@ class hyb_vector
     }
 
     //! Accessing the i-th element of the original bitvector
-    value_type operator[](size_type i) const { return access0(i + 1); }
+    value_type operator[](size_type i) const
+    {
+        return access0(i + 1);
+    }
 
     //! Returns the size of the original bitvector
-    size_type size() const { return m_size; }
+    size_type size() const
+    {
+        return m_size;
+    }
 
     //! Serializes the data structure into the given ostream
     size_type serialize(std::ostream & out, structure_tree_node * v = nullptr, std::string name = "") const
@@ -646,17 +677,26 @@ class hyb_vector
         ar(CEREAL_NVP(m_hblock_header));
     }
 
-    iterator begin() const { return iterator(this, 0); }
-
-    iterator end() const { return iterator(this, size()); }
-
-    bool operator==(const hyb_vector & v) const
+    iterator begin() const
     {
-        return m_size == v.m_size && m_trunk == v.m_trunk && m_sblock_header == v.m_sblock_header &&
-               m_hblock_header == v.m_hblock_header;
+        return iterator(this, 0);
     }
 
-    bool operator!=(const hyb_vector & v) const { return !(*this == v); }
+    iterator end() const
+    {
+        return iterator(this, size());
+    }
+
+    bool operator==(hyb_vector const & v) const
+    {
+        return m_size == v.m_size && m_trunk == v.m_trunk && m_sblock_header == v.m_sblock_header
+            && m_hblock_header == v.m_hblock_header;
+    }
+
+    bool operator!=(hyb_vector const & v) const
+    {
+        return !(*this == v);
+    }
 };
 
 template <uint32_t k_sblock_rate>
@@ -674,14 +714,20 @@ template <uint8_t t_bp>
 struct rank_result
 {
     typedef bit_vector::size_type size_type;
-    static size_type adapt(size_type res, size_type) { return res; }
+    static size_type adapt(size_type res, size_type)
+    {
+        return res;
+    }
 };
 
 template <>
 struct rank_result<0>
 {
     typedef bit_vector::size_type size_type;
-    static size_type adapt(size_type res, size_type i) { return i - res; }
+    static size_type adapt(size_type res, size_type i)
+    {
+        return i - res;
+    }
 };
 
 //! Rank_support for the hyb_vector class
@@ -693,7 +739,7 @@ struct rank_result<0>
 template <uint8_t t_b, uint32_t k_sblock_rate>
 class rank_support_hyb
 {
-  public:
+public:
     typedef hyb_vector<k_sblock_rate> bit_vector_type;
     typedef typename bit_vector_type::size_type size_type;
     enum
@@ -705,12 +751,15 @@ class rank_support_hyb
         bit_pat_len = (uint8_t)1
     };
 
-  private:
-    const bit_vector_type * m_v;
+private:
+    bit_vector_type const * m_v;
 
-  public:
+public:
     //! Standard constructor
-    explicit rank_support_hyb(const bit_vector_type * v = nullptr) { set_vector(v); }
+    explicit rank_support_hyb(bit_vector_type const * v = nullptr)
+    {
+        set_vector(v);
+    }
 
     //! Answers rank queries
     const size_type rank(size_type i) const
@@ -719,7 +768,8 @@ class rank_support_hyb
         assert(i <= m_v->size());
 
         // Handle easy case.
-        if (i <= 0) return 0;
+        if (i <= 0)
+            return 0;
 
         size_type block_id = (i - 1) / bit_vector_type::k_block_size;
         size_type sblock_id = block_id / k_sblock_rate;
@@ -731,8 +781,8 @@ class rank_support_hyb
         uint32_t local_i = i - block_id * bit_vector_type::k_block_size;
 
         // Read superblock header.
-        const uint8_t * header_ptr8 = ((const uint8_t *)(m_v->m_sblock_header.data())) +
-                                      (sblock_id * bit_vector_type::k_sblock_header_size);
+        uint8_t const * header_ptr8 =
+            ((uint8_t const *)(m_v->m_sblock_header.data())) + (sblock_id * bit_vector_type::k_sblock_header_size);
         uint32_t * header_ptr32 = (uint32_t *)header_ptr8;
         size_type trunk_ptr = trunk_base + ((*header_ptr32) & 0x3fffffff);
         size_type sblock_rank = *(header_ptr32 + 1);
@@ -743,10 +793,9 @@ class rank_support_hyb
         // Uniform superblock optimization.
         if ((*header_ptr32) & 0x80000000)
         {
-            return rank_result<t_b>::adapt(hblock_rank + sblock_rank +
-                                                                                             ((*(header_ptr8 + 1)) &
-                                                                                              0x01) * (i -
-                                                                                                       sblock_id * bit_vector_type::k_sblock_size),
+            return rank_result<t_b>::adapt(hblock_rank + sblock_rank
+                                               + ((*(header_ptr8 + 1)) & 0x01)
+                                                     * (i - sblock_id * bit_vector_type::k_sblock_size),
                                            i);
         }
 
@@ -759,7 +808,7 @@ class rank_support_hyb
             ++header_ptr16;
         }
 
-        const uint8_t * trunk_p = ((uint8_t *)m_v->m_trunk.data()) + trunk_ptr;
+        uint8_t const * trunk_p = ((uint8_t *)m_v->m_trunk.data()) + trunk_ptr;
 
         uint32_t encoding_size = ((*header_ptr16) >> 10);
         uint32_t ones = ((*header_ptr16) & 0x1ff);
@@ -772,12 +821,10 @@ class rank_support_hyb
             uint32_t first_run_length = special_bit * ones + (1 - special_bit) * zeros;
             uint32_t local_rank = std::min(local_i, first_run_length);
 
-            return rank_result<t_b>::adapt(hblock_rank + sblock_rank + block_rank +
-                                                                                             (special_bit * local_rank +
-                                                                                              (1 -
-                                                                                               special_bit) * (local_i -
-                                                                                                               local_rank)),
-                                           i);
+            return rank_result<t_b>::adapt(
+                hblock_rank + sblock_rank + block_rank
+                    + (special_bit * local_rank + (1 - special_bit) * (local_i - local_rank)),
+                i);
         }
 
         // Number of runs > 2.
@@ -787,12 +834,11 @@ class rank_support_hyb
             {
                 // Minority encoding.
                 uint32_t tot = 0;
-                while (tot < encoding_size && (*trunk_p++) < local_i) ++tot;
+                while (tot < encoding_size && (*trunk_p++) < local_i)
+                    ++tot;
 
-                return rank_result<t_b>::adapt(hblock_rank + sblock_rank + block_rank + special_bit * tot +
-                                                                                                 (1 -
-                                                                                                  special_bit) * (local_i -
-                                                                                                                  tot),
+                return rank_result<t_b>::adapt(hblock_rank + sblock_rank + block_rank + special_bit * tot
+                                                   + (1 - special_bit) * (local_i - tot),
                                                i);
             }
 
@@ -873,31 +919,48 @@ class rank_support_hyb
             // plain encoding.
             uint64_t * trunk_ptr64 = (uint64_t *)(((uint8_t *)m_v->m_trunk.data()) + trunk_ptr);
             uint32_t bit;
-            for (bit = 0; bit + 64 <= local_i; bit += 64) block_rank += bits::cnt(*trunk_ptr64++);
-            if (bit != local_i) block_rank += bits::cnt((*trunk_ptr64) & (((uint64_t)1 << (local_i - bit)) - 1));
+            for (bit = 0; bit + 64 <= local_i; bit += 64)
+                block_rank += bits::cnt(*trunk_ptr64++);
+            if (bit != local_i)
+                block_rank += bits::cnt((*trunk_ptr64) & (((uint64_t)1 << (local_i - bit)) - 1));
 
             return rank_result<t_b>::adapt(hblock_rank + sblock_rank + block_rank, i);
         }
     }
 
     //! Shorthand for rank(i)
-    const size_type operator()(size_type i) const { return rank(i); }
+    const size_type operator()(size_type i) const
+    {
+        return rank(i);
+    }
 
     //! Return the size of the original vector
-    const size_type size() const { return m_v->size(); }
+    const size_type size() const
+    {
+        return m_v->size();
+    }
 
     //! Set the supported vector
-    void set_vector(const bit_vector_type * v = nullptr) { m_v = v; }
+    void set_vector(bit_vector_type const * v = nullptr)
+    {
+        m_v = v;
+    }
 
     //! Assignment operator
-    rank_support_hyb & operator=(const rank_support_hyb & rs)
+    rank_support_hyb & operator=(rank_support_hyb const & rs)
     {
-        if (this != &rs) { set_vector(rs.m_v); }
+        if (this != &rs)
+        {
+            set_vector(rs.m_v);
+        }
         return *this;
     }
 
     //! Load the data structure from a stream and set the supported vector
-    void load(std::istream &, const bit_vector_type * v = nullptr) { set_vector(v); }
+    void load(std::istream &, bit_vector_type const * v = nullptr)
+    {
+        set_vector(v);
+    }
 
     //! Serializes the data structure into a stream
     size_type serialize(std::ostream &, structure_tree_node * v = nullptr, std::string name = "") const
@@ -915,9 +978,15 @@ class rank_support_hyb
     void CEREAL_LOAD_FUNCTION_NAME(archive_t &)
     {}
 
-    bool operator==(const rank_support_hyb & other) const noexcept { return *m_v == *other.m_v; }
+    bool operator==(rank_support_hyb const & other) const noexcept
+    {
+        return *m_v == *other.m_v;
+    }
 
-    bool operator!=(const rank_support_hyb & other) const noexcept { return !(*this == other); }
+    bool operator!=(rank_support_hyb const & other) const noexcept
+    {
+        return !(*this == other);
+    }
 };
 
 //! Select support for the hyb_vector class
@@ -929,7 +998,7 @@ class rank_support_hyb
 template <uint8_t t_b, uint32_t k_sblock_rate>
 class select_support_hyb
 {
-  public:
+public:
     typedef hyb_vector<k_sblock_rate> bit_vector_type;
     typedef typename bit_vector_type::size_type size_type;
     enum
@@ -941,12 +1010,15 @@ class select_support_hyb
         bit_pat_len = (uint8_t)1
     };
 
-  private:
-    const bit_vector_type * m_v;
+private:
+    bit_vector_type const * m_v;
 
-  public:
+public:
     //! Standard constructor
-    explicit select_support_hyb(const bit_vector_type * v = nullptr) { set_vector(v); }
+    explicit select_support_hyb(bit_vector_type const * v = nullptr)
+    {
+        set_vector(v);
+    }
 
     //! Answers select queries
     size_type select(size_type) const
@@ -956,23 +1028,38 @@ class select_support_hyb
     }
 
     //! Shorthand for select(i)
-    const size_type operator()(size_type i) const { return select(i); }
+    const size_type operator()(size_type i) const
+    {
+        return select(i);
+    }
 
     //! Return the size of the original vector
-    const size_type size() const { return m_v->size(); }
+    const size_type size() const
+    {
+        return m_v->size();
+    }
 
     //! Set the supported vector
-    void set_vector(const bit_vector_type * v = nullptr) { m_v = v; }
+    void set_vector(bit_vector_type const * v = nullptr)
+    {
+        m_v = v;
+    }
 
     //! Assignment operator
-    select_support_hyb & operator=(const select_support_hyb & rs)
+    select_support_hyb & operator=(select_support_hyb const & rs)
     {
-        if (this != &rs) { set_vector(rs.m_v); }
+        if (this != &rs)
+        {
+            set_vector(rs.m_v);
+        }
         return *this;
     }
 
     //! Load the data structure from a stream and set the supported vector
-    void load(std::istream &, const bit_vector_type * v = nullptr) { set_vector(v); }
+    void load(std::istream &, bit_vector_type const * v = nullptr)
+    {
+        set_vector(v);
+    }
 
     //! Serializes the data structure into a stream
     size_type serialize(std::ostream &, structure_tree_node * v = nullptr, std::string name = "") const
@@ -990,9 +1077,15 @@ class select_support_hyb
     void CEREAL_LOAD_FUNCTION_NAME(archive_t &)
     {}
 
-    bool operator==(const select_support_hyb & other) const noexcept { return *m_v == *other.m_v; }
+    bool operator==(select_support_hyb const & other) const noexcept
+    {
+        return *m_v == *other.m_v;
+    }
 
-    bool operator!=(const select_support_hyb & other) const noexcept { return !(*this == other); }
+    bool operator!=(select_support_hyb const & other) const noexcept
+    {
+        return !(*this == other);
+    }
 };
 
 } // end namespace sdsl

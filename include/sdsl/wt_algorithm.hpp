@@ -4,9 +4,18 @@
 #ifndef INCLUDED_SDSL_WT_ALGORITHM
 #define INCLUDED_SDSL_WT_ALGORITHM
 
-#include <algorithm>
+#include <array>
+#include <assert.h>
+#include <cstdint>
+#include <iterator>
+#include <numeric>
+#include <stack>
+#include <tuple>
+#include <type_traits>
 #include <utility>
+#include <vector>
 
+#include <sdsl/bits.hpp>
 #include <sdsl/wt_helper.hpp>
 
 namespace sdsl
@@ -14,10 +23,8 @@ namespace sdsl
 
 template <typename t_wt>
 struct has_interval_symbols;
-
 template <typename t_wt, bool t_has_interval_symbols>
 struct _interval_symbols_wt;
-
 template <typename, typename T>
 struct has_expand;
 
@@ -33,7 +40,7 @@ struct has_expand;
  */
 template <class t_wt>
 std::vector<std::pair<typename t_wt::value_type, typename t_wt::size_type>>
-intersect(const t_wt & wt, const std::vector<range_type> & ranges, typename t_wt::size_type t = 0)
+intersect(t_wt const & wt, std::vector<range_type> const & ranges, typename t_wt::size_type t = 0)
 {
     using std::get;
     using size_type = typename t_wt::size_type;
@@ -42,23 +49,28 @@ intersect(const t_wt & wt, const std::vector<range_type> & ranges, typename t_wt
     using pnvr_type = std::pair<node_type, range_vec_type>;
     typedef std::stack<pnvr_type> stack_type;
 
-    static_assert(has_expand<t_wt, std::array<node_type, 2>(const node_type &)>::value,
+    static_assert(has_expand<t_wt, std::array<node_type, 2>(node_type const &)>::value,
                   "intersect requires t_wt to have expand(const node_type&)");
 
     using p_t = std::pair<value_type, size_type>;
     std::vector<p_t> res;
 
-    auto push_node = [&t](stack_type & s, node_type & child, range_vec_type & child_range) {
-        auto end = std::remove_if(child_range.begin(), child_range.end(), [&](const range_type & x) {
-            return empty(x);
-        });
+    auto push_node = [&t](stack_type & s, node_type & child, range_vec_type & child_range)
+    {
+        auto end = std::remove_if(child_range.begin(),
+                                  child_range.end(),
+                                  [&](const range_type & x)
+                                  {
+                                      return empty(x);
+                                  });
         if (end > child_range.begin() + t - 1)
         {
             s.emplace(pnvr_type(child, range_vec_type(child_range.begin(), end)));
         }
     };
 
-    if (ranges.empty()) return res;
+    if (ranges.empty())
+        return res;
 
     t = (t == 0) ? ranges.size() : t;
 
@@ -72,12 +84,16 @@ intersect(const t_wt & wt, const std::vector<range_type> & ranges, typename t_wt
 
         if (wt.is_leaf(x.first))
         {
-            const auto & iv = x.second;
+            auto const & iv = x.second;
             if (t <= iv.size())
             {
-                auto freq = std::accumulate(iv.begin(), iv.end(), 0ULL, [](size_type acc, const range_type & r) {
-                    return acc + (r[1] - r[0] + 1);
-                });
+                auto freq = std::accumulate(iv.begin(),
+                                            iv.end(),
+                                            0ULL,
+                                            [](size_type acc, range_type const & r)
+                                            {
+                                                return acc + (r[1] - r[0] + 1);
+                                            });
                 res.emplace_back(wt.sym(x.first), freq);
             }
         }
@@ -100,19 +116,17 @@ intersect(const t_wt & wt, const std::vector<range_type> & ranges, typename t_wt
  *  \param q q-th largest element ('quantile'), 0-based indexed.
  */
 template <class t_wt>
-std::pair<typename t_wt::value_type, typename t_wt::size_type> quantile_freq(const t_wt & wt,
-                                                                             typename t_wt::size_type lb,
-                                                                             typename t_wt::size_type rb,
-                                                                             typename t_wt::size_type q)
+std::pair<typename t_wt::value_type, typename t_wt::size_type>
+quantile_freq(t_wt const & wt, typename t_wt::size_type lb, typename t_wt::size_type rb, typename t_wt::size_type q)
 {
     static_assert(t_wt::lex_ordered, "quantile_freq requires a lex_ordered WT");
     using std::get;
     using node_type = typename t_wt::node_type;
-    static_assert(has_expand<t_wt, std::array<node_type, 2>(const node_type &)>::value,
+    static_assert(has_expand<t_wt, std::array<node_type, 2>(node_type const &)>::value,
                   "quantile_freq requires t_wt to have expand(const node_type&)");
 
     node_type v = wt.root();
-    range_type r{ { lb, rb } };
+    range_type r{{lb, rb}};
 
     while (!wt.is_leaf(v))
     {
@@ -132,11 +146,11 @@ std::pair<typename t_wt::value_type, typename t_wt::size_type> quantile_freq(con
             r = get<0>(child_ranges);
         }
     }
-    return { wt.sym(v), size(r) };
+    return {wt.sym(v), size(r)};
 }
 
 template <class t_wt>
-void _interval_symbols_rec(const t_wt & wt,
+void _interval_symbols_rec(t_wt const & wt,
                            range_type r,
                            typename t_wt::size_type & k,
                            std::vector<typename t_wt::value_type> & cs,
@@ -167,7 +181,7 @@ void _interval_symbols_rec(const t_wt & wt,
 }
 
 template <class t_wt>
-void _interval_symbols(const t_wt & wt,
+void _interval_symbols(t_wt const & wt,
                        typename t_wt::size_type i,
                        typename t_wt::size_type j,
                        typename t_wt::size_type & k,
@@ -189,7 +203,7 @@ void _interval_symbols(const t_wt & wt,
     }
     else if (j > i)
     {
-        _interval_symbols_rec(wt, range_type{ { i, j - 1 } }, k, cs, rank_c_i, rank_c_j, wt.root());
+        _interval_symbols_rec(wt, range_type{{i, j - 1}}, k, cs, rank_c_i, rank_c_j, wt.root());
     }
 }
 
@@ -215,7 +229,7 @@ void _interval_symbols(const t_wt & wt,
  *      \f$ rank_{c_j}.size() \geq \sigma \f$
  */
 template <class t_wt>
-void interval_symbols(const t_wt & wt,
+void interval_symbols(t_wt const & wt,
                       typename t_wt::size_type i,
                       typename t_wt::size_type j,
                       typename t_wt::size_type & k,
@@ -243,14 +257,14 @@ template <typename t_wt>
 struct has_interval_symbols
 {
     template <typename T>
-    static constexpr auto
-    check(T *) -> typename std::is_same<decltype(std::declval<T>().interval_symbols(std::declval<typename T::size_type>(),
-                                                                                    std::declval<typename T::size_type>(),
-                                                                                    std::declval<typename T::size_type &>(),
-                                                                                    std::declval<std::vector<typename T::value_type> &>(),
-                                                                                    std::declval<std::vector<typename T::size_type> &>(),
-                                                                                    std::declval<std::vector<typename T::size_type> &>())),
-                                        void>::type
+    static constexpr auto check(T *) -> typename std::is_same<
+        decltype(std::declval<T>().interval_symbols(std::declval<typename T::size_type>(),
+                                                    std::declval<typename T::size_type>(),
+                                                    std::declval<typename T::size_type &>(),
+                                                    std::declval<std::vector<typename T::value_type> &>(),
+                                                    std::declval<std::vector<typename T::size_type> &>(),
+                                                    std::declval<std::vector<typename T::size_type> &>())),
+        void>::type
     {
         return std::true_type();
     }
@@ -269,7 +283,7 @@ struct _interval_symbols_wt
     typedef typename t_wt::size_type size_type;
     typedef typename t_wt::value_type value_type;
 
-    static void call(const t_wt & wt,
+    static void call(t_wt const & wt,
                      size_type i,
                      size_type j,
                      size_type & k,
@@ -287,7 +301,7 @@ struct _interval_symbols_wt<t_wt, false>
     typedef typename t_wt::size_type size_type;
     typedef typename t_wt::value_type value_type;
 
-    static void call(const t_wt &,
+    static void call(t_wt const &,
                      size_type,
                      size_type,
                      size_type &,
@@ -307,8 +321,8 @@ template <typename t_wt, typename t_ret, typename... t_args>
 struct has_expand<t_wt, t_ret(t_args...)>
 {
     template <typename T>
-    static constexpr auto
-    check(T *) -> typename std::is_same<decltype(std::declval<T>().expand(std::declval<t_args>()...)), t_ret>::type
+    static constexpr auto check(T *) ->
+        typename std::is_same<decltype(std::declval<T>().expand(std::declval<t_args>()...)), t_ret>::type
     {
         return std::true_type();
     }
@@ -325,16 +339,14 @@ template <typename t_wt>
 struct has_range_search_2d
 {
     template <typename T>
-    static constexpr auto
-    check(T *) -> typename std::is_same<decltype(std::declval<T>().range_search_2d( //
-                                                                                          std::declval<typename T::size_type>(),
-                                                                                          std::declval<typename T::size_type>(),
-                                                                                          std::declval<typename T::value_type>(),
-                                                                                          std::declval<typename T::value_type>(),
-                                                                                          false)),
-                                        std::pair<typename T::size_type,
-                                                  std::vector<std::pair<typename T::value_type,
-                                                                        typename T::size_type>>>>::type
+    static constexpr auto check(T *) -> typename std::is_same<
+        decltype(std::declval<T>().range_search_2d( //
+            std::declval<typename T::size_type>(),
+            std::declval<typename T::size_type>(),
+            std::declval<typename T::value_type>(),
+            std::declval<typename T::value_type>(),
+            false)),
+        std::pair<typename T::size_type, std::vector<std::pair<typename T::value_type, typename T::size_type>>>>::type
     {
         return std::true_type();
     }
@@ -355,7 +367,7 @@ struct has_range_search_2d
  *          could be found. The second element contains the found symbol.
  */
 template <class t_wt>
-std::pair<bool, typename t_wt::value_type> _symbol_lte(const t_wt & wt, typename t_wt::value_type c)
+std::pair<bool, typename t_wt::value_type> _symbol_lte(t_wt const & wt, typename t_wt::value_type c)
 {
     if (((1ULL) << (wt.max_level)) <= c)
     {
@@ -389,21 +401,24 @@ std::pair<bool, typename t_wt::value_type> _symbol_lte(const t_wt & wt, typename
         }
         else
         { // go left
-            if (left_child.size) { node = left_child; }
+            if (left_child.size)
+            {
+                node = left_child;
+            }
             else
             { // dead end
                 if (predecessor_subtree == wt.root())
                 {
                     // there is no valid predecessor. symbol must be
                     // smaller than the smallest symbol in the wt.
-                    return { false, 0 };
+                    return {false, 0};
                 }
                 node = predecessor_subtree;
                 c = sdsl::bits::all_set;
             }
         }
     }
-    return { true, node.sym };
+    return {true, node.sym};
 }
 
 //! Returns for a symbol c the next larger or equal symbol in the WT.
@@ -413,12 +428,12 @@ std::pair<bool, typename t_wt::value_type> _symbol_lte(const t_wt & wt, typename
  *          could be found. The second element contains the found symbol.
  */
 template <class t_wt>
-std::pair<bool, typename t_wt::value_type> _symbol_gte(const t_wt & wt, typename t_wt::value_type c)
+std::pair<bool, typename t_wt::value_type> _symbol_gte(t_wt const & wt, typename t_wt::value_type c)
 {
     if (((1ULL) << (wt.max_level)) <= c)
     {
         // c is greater than any symbol in wt
-        return { false, 0 };
+        return {false, 0};
     }
     auto node = wt.root();
     auto successor_subtree = node;
@@ -430,14 +445,17 @@ std::pair<bool, typename t_wt::value_type> _symbol_gte(const t_wt & wt, typename
         auto right_child = std::get<1>(children);
         if (c & (mask >> node.level))
         { // go right
-            if (right_child.size) { node = right_child; }
+            if (right_child.size)
+            {
+                node = right_child;
+            }
             else
             { // dead end
                 if (successor_subtree == wt.root())
                 {
                     // there is no valid successor. symbol must be
                     // bigger than the largest symbol in the wt.
-                    return { false, 0 };
+                    return {false, 0};
                 }
                 node = successor_subtree;
                 c = 0;
@@ -461,7 +479,7 @@ std::pair<bool, typename t_wt::value_type> _symbol_gte(const t_wt & wt, typename
             }
         }
     }
-    return { true, node.sym };
+    return {true, node.sym};
 }
 
 template <class t_wt, bool t_has_interval_symbols>
@@ -469,9 +487,15 @@ struct _symbols_calls_wt
 {
     typedef typename t_wt::value_type value_type;
 
-    static std::pair<bool, value_type> call_symbol_gte(const t_wt & wt, value_type c) { return wt.symbol_gte(c); }
+    static std::pair<bool, value_type> call_symbol_gte(t_wt const & wt, value_type c)
+    {
+        return wt.symbol_gte(c);
+    }
 
-    static std::pair<bool, value_type> call_symbol_lte(const t_wt & wt, value_type c) { return wt.symbol_lte(c); }
+    static std::pair<bool, value_type> call_symbol_lte(t_wt const & wt, value_type c)
+    {
+        return wt.symbol_lte(c);
+    }
 };
 
 template <class t_wt>
@@ -479,18 +503,24 @@ struct _symbols_calls_wt<t_wt, false>
 {
     typedef typename t_wt::value_type value_type;
 
-    static std::pair<bool, value_type> call_symbol_gte(const t_wt & wt, value_type c) { return _symbol_gte(wt, c); }
+    static std::pair<bool, value_type> call_symbol_gte(t_wt const & wt, value_type c)
+    {
+        return _symbol_gte(wt, c);
+    }
 
-    static std::pair<bool, value_type> call_symbol_lte(const t_wt & wt, value_type c) { return _symbol_lte(wt, c); }
+    static std::pair<bool, value_type> call_symbol_lte(t_wt const & wt, value_type c)
+    {
+        return _symbol_lte(wt, c);
+    }
 };
 
 template <typename t_wt>
 struct has_symbols_wt
 {
     template <typename T>
-    static constexpr auto
-    check(T *) -> typename std::is_same<decltype(std::declval<T>().symbol_gte(std::declval<typename T::value_type>())),
-                                        std::pair<bool, typename T::value_type>>::type
+    static constexpr auto check(T *) ->
+        typename std::is_same<decltype(std::declval<T>().symbol_gte(std::declval<typename T::value_type>())),
+                              std::pair<bool, typename T::value_type>>::type
     {
         return std::true_type();
     }
@@ -511,7 +541,7 @@ struct has_symbols_wt
  *          could be found. The second element contains the found symbol.
  */
 template <class t_wt>
-std::pair<bool, typename t_wt::value_type> symbol_lte(const t_wt & wt, typename t_wt::value_type c)
+std::pair<bool, typename t_wt::value_type> symbol_lte(t_wt const & wt, typename t_wt::value_type c)
 {
     static_assert(t_wt::lex_ordered, "symbols_lte requires a lex_ordered WT");
     // check if wt has a built-in interval_symbols method
@@ -526,7 +556,7 @@ std::pair<bool, typename t_wt::value_type> symbol_lte(const t_wt & wt, typename 
  *          could be found. The second element contains the found symbol.
  */
 template <class t_wt>
-std::pair<bool, typename t_wt::value_type> symbol_gte(const t_wt & wt, typename t_wt::value_type c)
+std::pair<bool, typename t_wt::value_type> symbol_gte(t_wt const & wt, typename t_wt::value_type c)
 {
     static_assert(t_wt::lex_ordered, "symbols_gte requires a lex_ordered WT");
     // check if wt has a built-in interval_symbols method
@@ -543,7 +573,7 @@ std::pair<bool, typename t_wt::value_type> symbol_gte(const t_wt & wt, typename 
  *  \return a vector of increasing y values occuring in the range [x_i,x_j]
  */
 template <class t_wt>
-std::vector<typename t_wt::value_type> restricted_unique_range_values(const t_wt & wt,
+std::vector<typename t_wt::value_type> restricted_unique_range_values(t_wt const & wt,
                                                                       typename t_wt::size_type x_i,
                                                                       typename t_wt::size_type x_j,
                                                                       typename t_wt::value_type y_i,
@@ -554,8 +584,12 @@ std::vector<typename t_wt::value_type> restricted_unique_range_values(const t_wt
     std::vector<typename t_wt::value_type> unique_values;
 
     // make sure things are within bounds
-    if (x_j > wt.size() - 1) x_j = wt.size() - 1;
-    if ((x_i > x_j) || (y_i > y_j)) { return unique_values; }
+    if (x_j > wt.size() - 1)
+        x_j = wt.size() - 1;
+    if ((x_i > x_j) || (y_i > y_j))
+    {
+        return unique_values;
+    }
     auto lower_y_bound = symbol_gte(wt, y_i);
     auto upper_y_bound = symbol_lte(wt, y_j);
     // is the y range valid?
@@ -567,22 +601,25 @@ std::vector<typename t_wt::value_type> restricted_unique_range_values(const t_wt
     auto lower_y_bound_path = wt.path(lower_y_bound.second);
     auto upper_y_bound_path = wt.path(upper_y_bound.second);
 
-    auto compare_path = [](uint64_t node_path,
-                           uint64_t node_path_len,
-                           std::pair<uint64_t, uint64_t> bound_path) -> int {
+    auto compare_path = [](uint64_t node_path, uint64_t node_path_len, std::pair<uint64_t, uint64_t> bound_path) -> int
+    {
         auto bound_path_len = bound_path.first;
         auto bound_path_val = bound_path.second;
         /* align to same length */
-        if (bound_path_len > node_path_len) bound_path_val = bound_path_val >> (bound_path_len - node_path_len);
-        if (bound_path_len < node_path_len) bound_path_val = bound_path_val << (node_path_len - bound_path_len);
+        if (bound_path_len > node_path_len)
+            bound_path_val = bound_path_val >> (bound_path_len - node_path_len);
+        if (bound_path_len < node_path_len)
+            bound_path_val = bound_path_val << (node_path_len - bound_path_len);
         /* cmp */
-        if (node_path < bound_path_val) return -1;
-        if (node_path > bound_path_val) return 1;
+        if (node_path < bound_path_val)
+            return -1;
+        if (node_path > bound_path_val)
+            return 1;
         return 0;
     };
 
     std::stack<std::tuple<typename t_wt::node_type, sdsl::range_type, uint64_t, uint64_t>> stack;
-    sdsl::range_type initial_range = { { x_i, x_j } };
+    sdsl::range_type initial_range = {{x_i, x_j}};
     stack.emplace(wt.root(), initial_range, 0, 0);
     while (!stack.empty())
     {
@@ -592,7 +629,10 @@ std::vector<typename t_wt::value_type> restricted_unique_range_values(const t_wt
         auto range = std::get<1>(node_data);
         auto node_path = std::get<2>(node_data);
         auto node_level = std::get<3>(node_data);
-        if (wt.is_leaf(node)) { unique_values.emplace_back(wt.sym(node)); }
+        if (wt.is_leaf(node))
+        {
+            unique_values.emplace_back(wt.sym(node));
+        }
         else
         {
             auto children = wt.expand(node);
@@ -603,13 +643,15 @@ std::vector<typename t_wt::value_type> restricted_unique_range_values(const t_wt
             {
                 auto right_child = std::get<1>(children);
                 auto right_range = std::get<1>(child_ranges);
-                if (!sdsl::empty(right_range)) stack.emplace(right_child, right_range, right_path, node_level + 1);
+                if (!sdsl::empty(right_range))
+                    stack.emplace(right_child, right_range, right_path, node_level + 1);
             }
             if (compare_path(left_path, node_level + 1, lower_y_bound_path) > -1)
             {
                 auto left_child = std::get<0>(children);
                 auto left_range = std::get<0>(child_ranges);
-                if (!sdsl::empty(left_range)) stack.emplace(left_child, left_range, left_path, node_level + 1);
+                if (!sdsl::empty(left_range))
+                    stack.emplace(left_child, left_range, left_path, node_level + 1);
             }
         }
     }

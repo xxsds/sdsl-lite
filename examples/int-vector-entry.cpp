@@ -26,14 +26,22 @@ int main(int argc, char * argv[])
         size_t a = stoull(argv[2]);
         ;
         size_t b = stoull(argv[3]);
-        if (b >= v.size()) b = v.size() - 1;
-        if (a > b) a = b;
-        for (size_t i = a; i <= b; ++i) { cout << "v[" << i << "]=" << v[i] << endl; }
+        if (b >= v.size())
+            b = v.size() - 1;
+        if (a > b)
+            a = b;
+        for (size_t i = a; i <= b; ++i)
+        {
+            cout << "v[" << i << "]=" << v[i] << endl;
+        }
     }
     else
     {
         cout << "Interactive mode." << endl;
         size_t i;
-        while (cin >> i) { cout << "v[" << i << "]=" << v[i] << endl; }
+        while (cin >> i)
+        {
+            cout << "v[" << i << "]=" << v[i] << endl;
+        }
     }
 }

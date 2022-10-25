@@ -2,7 +2,7 @@
 #include <iostream>
 #include <random>
 
-#include <sdsl/bit_vectors.hpp>
+#include <sdsl/sd_vector.hpp>
 
 using namespace sdsl;
 using namespace std;
@@ -11,13 +11,14 @@ using namespace std::chrono;
 using timer = std::chrono::high_resolution_clock;
 
 template <class t_vec>
-uint64_t test_inv_random_access(const t_vec & v,
-                                const int_vector<64> & rands,
-                                uint64_t mask,
-                                uint64_t times = 100000000)
+uint64_t
+test_inv_random_access(t_vec const & v, int_vector<64> const & rands, uint64_t mask, uint64_t times = 100000000)
 {
     uint64_t cnt = 0;
-    for (uint64_t i = 0; i < times; ++i) { cnt += v(rands[i & mask]); }
+    for (uint64_t i = 0; i < times; ++i)
+    {
+        cnt += v(rands[i & mask]);
+    }
     return cnt;
 }
 
@@ -58,7 +59,8 @@ int main()
     {
         uint64_t mask = 0;
         auto rands = util::rnd_positions<int_vector<64>>(20, mask, zeros, 17);
-        for (uint64_t i = 0; i < rands.size(); ++i) rands[i] = rands[i] + 1;
+        for (uint64_t i = 0; i < rands.size(); ++i)
+            rands[i] = rands[i] + 1;
         sd_vector<>::select_0_type select0(&bv_sd);
         const uint64_t reps = 10000000;
         start = timer::now();
@@ -73,7 +75,8 @@ int main()
     {
         uint64_t mask = 0;
         auto rands = util::rnd_positions<int_vector<64>>(20, mask, zeros, 17);
-        for (uint64_t i = 0; i < rands.size(); ++i) rands[i] = rands[i] + 1;
+        for (uint64_t i = 0; i < rands.size(); ++i)
+            rands[i] = rands[i] + 1;
         select_0_support_sd<sd_vector<>> select0(&bv_sd);
         const uint64_t reps = 10000000;
         start = timer::now();
@@ -88,7 +91,8 @@ int main()
     {
         uint64_t mask = 0;
         auto rands = util::rnd_positions<int_vector<64>>(20, mask, ones, 17);
-        for (uint64_t i = 0; i < rands.size(); ++i) rands[i] = rands[i] + 1;
+        for (uint64_t i = 0; i < rands.size(); ++i)
+            rands[i] = rands[i] + 1;
         sd_vector<>::select_1_type select1(&bv_sd);
         const uint64_t reps = 10000000;
         start = timer::now();

@@ -1,9 +1,8 @@
 #include <iostream>
 
-#include <sdsl/coder_comma.hpp>
-#include <sdsl/coder_elias_gamma.hpp>
 #include <sdsl/coder_fibonacci.hpp>
-#include <sdsl/vectors.hpp>
+#include <sdsl/int_vector.hpp>
+#include <sdsl/vlc_vector.hpp>
 
 using namespace std;
 using namespace sdsl;

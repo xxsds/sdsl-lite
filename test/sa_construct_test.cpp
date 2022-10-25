@@ -20,17 +20,22 @@ cache_config config;
 
 class sa_construct_test : public ::testing::Test
 {
-  public:
-  protected:
-    sa_construct_test() {}
+public:
 
-    virtual ~sa_construct_test() {}
+protected:
+    sa_construct_test()
+    {}
+
+    virtual ~sa_construct_test()
+    {}
 
     // If the constructor and destructor are not enough for setting up
     // and cleaning up each test, you can define the following methods:
-    virtual void SetUp() {}
+    virtual void SetUp()
+    {}
 
-    virtual void TearDown() {}
+    virtual void TearDown()
+    {}
 };
 
 TEST_F(sa_construct_test, divsufsort)
@@ -93,7 +98,10 @@ int main(int argc, char ** argv)
     string temp_dir;
     string temp_file;
     ::testing::InitGoogleTest(&argc, argv);
-    if (init_2_arg_test(argc, argv, "SA_CONSTRUCT", test_file, temp_dir, temp_file) != 0) { return 1; }
+    if (init_2_arg_test(argc, argv, "SA_CONSTRUCT", test_file, temp_dir, temp_file) != 0)
+    {
+        return 1;
+    }
     string test_id = to_string(util::pid());
     config = cache_config(false, temp_dir, test_id);
     if (!cache_file_exists(conf::KEY_TEXT, config))

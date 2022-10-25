@@ -8,39 +8,35 @@
 #ifndef INCLUDED_SDSL_MEMORY_TRACKING
 #define INCLUDED_SDSL_MEMORY_TRACKING
 
-#include <sdsl/bits.hpp>
+#include <stdint.h>
+
 #include <sdsl/config.hpp>
-#include <sdsl/uintx_t.hpp>
 //#include <sdsl/ram_fs.hpp>
 
+#include <algorithm>
 #include <atomic>
 #include <chrono>
-#include <cstddef>
 #include <cstdlib>
-#include <cstring>
-#include <fcntl.h>
 #include <fstream>
-#include <iostream>
+#include <limits>
 #include <map>
+#include <memory>
 #include <mutex>
-#include <set>
-#include <sstream>
+#include <new>
 #include <stack>
+#include <string>
+#include <utility>
 #include <vector>
 
-#include <sdsl/config.hpp>
-
 #ifdef _WIN32
-#ifndef NOMINMAX
+#    ifndef NOMINMAX
 // windows.h has min/max macro which causes problems when using std::min/max
-#define NOMINMAX 1
-#endif
-#include <io.h>
-#include <windows.h>
+#        define NOMINMAX 1
+#    endif
+#    include <io.h>
+#    include <windows.h>
 #else
-#include <unistd.h> // for getpid, file_size, clock_gettime
 
-#include <sys/mman.h>
 #endif
 
 namespace sdsl
@@ -57,7 +53,7 @@ struct track_allocator
 
     track_allocator() = default;
     template <class U>
-    track_allocator(const track_allocator<U> &)
+    track_allocator(track_allocator<U> const &)
     {}
 
     T * allocate(std::size_t n)
@@ -82,13 +78,13 @@ struct track_allocator
 };
 
 template <typename T, typename U>
-inline bool operator==(const track_allocator<T> &, const track_allocator<U> &)
+inline bool operator==(track_allocator<T> const &, track_allocator<U> const &)
 {
     return true;
 }
 
 template <typename T, typename U>
-inline bool operator!=(const track_allocator<T> & a, const track_allocator<U> & b)
+inline bool operator!=(track_allocator<T> const & a, track_allocator<U> const & b)
 {
     return !(a == b);
 }
@@ -96,18 +92,24 @@ inline bool operator!=(const track_allocator<T> & a, const track_allocator<U> & 
 // spin lock
 class spin_lock
 {
-  private:
+private:
     std::atomic_flag m_slock;
 
-  public:
-    spin_lock() { m_slock.clear(); }
+public:
+    spin_lock()
+    {
+        m_slock.clear();
+    }
     void lock()
     {
         while (m_slock.test_and_set(std::memory_order_acquire))
         { /* spin */
         }
     };
-    void unlock() { m_slock.clear(std::memory_order_release); };
+    void unlock()
+    {
+        m_slock.clear(std::memory_order_release);
+    };
 };
 
 namespace ram_fs
@@ -124,9 +126,13 @@ struct ramfs_storage
     mss_type m_map;
     mis_type m_fd_map;
 
-    ramfs_storage() { m_fd_map[-1] = ""; }
+    ramfs_storage()
+    {
+        m_fd_map[-1] = "";
+    }
 
-    ~ramfs_storage() {}
+    ~ramfs_storage()
+    {}
 };
 
 struct mm_alloc
@@ -134,9 +140,7 @@ struct mm_alloc
     using timer = std::chrono::high_resolution_clock;
     timer::time_point timestamp;
     int64_t usage;
-    mm_alloc(timer::time_point t, int64_t u)
-      : timestamp(t)
-      , usage(u){};
+    mm_alloc(timer::time_point t, int64_t u) : timestamp(t), usage(u){};
 };
 
 struct mm_event
@@ -144,12 +148,11 @@ struct mm_event
     using timer = std::chrono::high_resolution_clock;
     std::string name;
     std::vector<mm_alloc> allocations;
-    mm_event(std::string n, int64_t usage)
-      : name(n)
+    mm_event(std::string n, int64_t usage) : name(n)
     {
         allocations.emplace_back(timer::now(), usage);
     };
-    bool operator<(const mm_event & a) const
+    bool operator<(mm_event const & a) const
     {
         if (a.allocations.size() && this->allocations.size())
         {
@@ -178,25 +181,26 @@ struct tracker_storage
     timer::time_point last_event;
     spin_lock spinlock;
 
-    tracker_storage() {}
+    tracker_storage()
+    {}
 
-    ~tracker_storage() {}
+    ~tracker_storage()
+    {}
 };
 
 template <format_type F>
-void write_mem_log(std::ostream & out, const tracker_storage & m);
+void write_mem_log(std::ostream & out, tracker_storage const & m);
 
 class memory_monitor
 {
-  public:
+public:
     using timer = std::chrono::high_resolution_clock;
 
     struct mm_event_proxy
     {
         bool add;
         timer::time_point created;
-        mm_event_proxy(const std::string & name, int64_t usage, bool a)
-          : add(a)
+        mm_event_proxy(std::string const & name, int64_t usage, bool a) : add(a)
         {
             if (add)
             {
@@ -230,7 +234,7 @@ class memory_monitor
         }
     };
 
-  private:
+private:
     tracker_storage * m_tracker;
     ramfs_storage * m_ram_fs;
 
@@ -243,12 +247,15 @@ class memory_monitor
 
     ~memory_monitor()
     {
-        if (m_tracker->track_usage) { stop(); }
+        if (m_tracker->track_usage)
+        {
+            stop();
+        }
         delete m_ram_fs;
         delete m_tracker;
     }
-    memory_monitor(const memory_monitor &) = delete;
-    memory_monitor & operator=(const memory_monitor &) = delete;
+    memory_monitor(memory_monitor const &) = delete;
+    memory_monitor & operator=(memory_monitor const &) = delete;
 
     static memory_monitor & the_monitor()
     {
@@ -256,7 +263,7 @@ class memory_monitor
         return m;
     }
 
-  public:
+public:
     static void granularity(std::chrono::milliseconds ms)
     {
         auto & m = *(the_monitor().m_tracker);
@@ -270,21 +277,33 @@ class memory_monitor
         {
             for (auto alloc : events.allocations)
             {
-                if (max < alloc.usage) { max = alloc.usage; }
+                if (max < alloc.usage)
+                {
+                    max = alloc.usage;
+                }
             }
         }
         return max;
     }
 
-    static ramfs_storage & ram_fs() { return *(the_monitor().m_ram_fs); }
+    static ramfs_storage & ram_fs()
+    {
+        return *(the_monitor().m_ram_fs);
+    }
 
     static void start()
     {
         auto & m = *(the_monitor().m_tracker);
         m.track_usage = true;
         // clear if there is something there
-        if (m.completed_events.size()) { m.completed_events.clear(); }
-        while (m.event_stack.size()) { m.event_stack.pop(); }
+        if (m.completed_events.size())
+        {
+            m.completed_events.clear();
+        }
+        while (m.event_stack.size())
+        {
+            m.event_stack.pop();
+        }
         m.start_log = timer::now();
         m.current_usage = 0;
         m.last_event = m.start_log;
@@ -326,10 +345,13 @@ class memory_monitor
         }
     }
 
-    static mm_event_proxy event(const std::string & name)
+    static mm_event_proxy event(std::string const & name)
     {
         auto & m = *(the_monitor().m_tracker);
-        if (m.track_usage) { return mm_event_proxy(name, m.current_usage, true); }
+        if (m.track_usage)
+        {
+            return mm_event_proxy(name, m.current_usage, true);
+        }
         return mm_event_proxy(name, m.current_usage, false);
     }
 

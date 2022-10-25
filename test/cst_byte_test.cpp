@@ -4,7 +4,9 @@
 #include <string>
 #include <vector>
 
-#include <sdsl/suffix_trees.hpp>
+#include <sdsl/cst_fully.hpp>
+#include <sdsl/cst_sada.hpp>
+#include <sdsl/cst_sct3.hpp>
 
 #include "common.hpp"
 #include "cst_helper.hpp"
@@ -48,7 +50,7 @@ typedef Types<cst_sada<>,
               cst_sct3<cst_sct3<>::csa_type, lcp_wt<>>,
               cst_sct3<cst_sct3<>::csa_type, lcp_support_tree<>, bp_support_g<>>,
               cst_sct3<csa_bitcompressed<>, lcp_bitcompressed<>>>
-                                                  Implementations;
+    Implementations;
 
 #else
 
@@ -143,7 +145,10 @@ TYPED_TEST(cst_byte_test, basic_methods)
     // Size of the subtree rooted at r should the size of the suffix array
     ASSERT_EQ(cst.csa.size(), cst.size(r));
     // Check leaf methods
-    for (size_type i = 0; i < cst.csa.size(); ++i) { ASSERT_TRUE(cst.is_leaf(cst.select_leaf(i + 1))); }
+    for (size_type i = 0; i < cst.csa.size(); ++i)
+    {
+        ASSERT_TRUE(cst.is_leaf(cst.select_leaf(i + 1)));
+    }
 }
 
 //! Test suffix array access
@@ -155,7 +160,10 @@ TYPED_TEST(cst_byte_test, sa_access)
     sdsl::load_from_file(sa, test_case_file_map[sdsl::conf::KEY_SA]);
     size_type n = sa.size();
     ASSERT_EQ(n, cst.csa.size());
-    for (size_type j = 0; j < n; ++j) { ASSERT_EQ(sa[j], cst.csa[j]) << " j=" << j; }
+    for (size_type j = 0; j < n; ++j)
+    {
+        ASSERT_EQ(sa[j], cst.csa[j]) << " j=" << j;
+    }
 }
 
 //! Test suffix array access after move
@@ -168,7 +176,10 @@ TYPED_TEST(cst_byte_test, move_sa_access)
     sdsl::load_from_file(sa, test_case_file_map[sdsl::conf::KEY_SA]);
     size_type n = sa.size();
     ASSERT_EQ(n, cst.csa.size());
-    for (size_type j = 0; j < n; ++j) { ASSERT_EQ(sa[j], cst.csa[j]) << " j=" << j; }
+    for (size_type j = 0; j < n; ++j)
+    {
+        ASSERT_EQ(sa[j], cst.csa[j]) << " j=" << j;
+    }
 }
 
 //! Test BWT access
@@ -180,7 +191,10 @@ TYPED_TEST(cst_byte_test, bwt_access)
     sdsl::load_from_file(bwt, test_case_file_map[sdsl::conf::KEY_BWT]);
     size_type n = bwt.size();
     ASSERT_EQ(n, cst.csa.bwt.size());
-    for (size_type j = 0; j < n; ++j) { ASSERT_EQ(bwt[j], cst.csa.bwt[j]) << " j=" << j; }
+    for (size_type j = 0; j < n; ++j)
+    {
+        ASSERT_EQ(bwt[j], cst.csa.bwt[j]) << " j=" << j;
+    }
 }
 
 //! Test LCP access
@@ -192,7 +206,10 @@ TYPED_TEST(cst_byte_test, lcp_access)
     sdsl::load_from_file(lcp, test_case_file_map[sdsl::conf::KEY_LCP]);
     size_type n = lcp.size();
     ASSERT_EQ(n, cst.lcp.size());
-    for (size_type j = 0; j < n; ++j) { ASSERT_EQ(lcp[j], cst.lcp[j]) << " j=" << j; }
+    for (size_type j = 0; j < n; ++j)
+    {
+        ASSERT_EQ(lcp[j], cst.lcp[j]) << " j=" << j;
+    }
 }
 
 //! Test LCP access after move
@@ -205,7 +222,10 @@ TYPED_TEST(cst_byte_test, move_lcp_access)
     sdsl::load_from_file(lcp, test_case_file_map[sdsl::conf::KEY_LCP]);
     size_type n = lcp.size();
     ASSERT_EQ(n, cst.lcp.size());
-    for (size_type j = 0; j < n; ++j) { ASSERT_EQ(lcp[j], cst.lcp[j]) << " j=" << j; }
+    for (size_type j = 0; j < n; ++j)
+    {
+        ASSERT_EQ(lcp[j], cst.lcp[j]) << " j=" << j;
+    }
 }
 
 template <typename t_cst>
@@ -225,7 +245,10 @@ void test_id(typename std::enable_if<has_id<t_cst>::value, t_cst>::type & cst)
     size_type node_count = 0;
     for (auto it = cst.begin(), end = cst.end(); it != end; ++it)
     {
-        if (it.visit() == 1) { ++node_count; }
+        if (it.visit() == 1)
+        {
+            ++node_count;
+        }
     }
     // counted nodes should be equal to nodes
     ASSERT_EQ(node_count, cst.nodes());
@@ -356,13 +379,19 @@ TYPED_TEST(cst_byte_test, child)
             ASSERT_EQ(v, w);
             if (cst.is_leaf(v))
             {
-                if (c > 0) { ASSERT_EQ(cst.root(), cst.select_child(v, c)); }
+                if (c > 0)
+                {
+                    ASSERT_EQ(cst.root(), cst.select_child(v, c));
+                }
             }
         }
         for (size_type i = 0; i < 256; ++i)
         {
             char_type c = (char_type)i;
-            if (char_set.find(c) == char_set.end()) { ASSERT_EQ(cst.root(), cst.child(cst.root(), c)); }
+            if (char_set.find(c) == char_set.end())
+            {
+                ASSERT_EQ(cst.root(), cst.child(cst.root(), c));
+            }
         }
     }
 }
@@ -414,7 +443,8 @@ TYPED_TEST(cst_byte_test, leftmost_rightmost_leaf)
             ASSERT_TRUE(cst.is_leaf(v_r));
             ASSERT_EQ(cst.lb(v), cst.lb(v_l));
             ASSERT_EQ(cst.rb(v), cst.rb(v_r));
-            if (v == cst.root()) break;
+            if (v == cst.root())
+                break;
             v = cst.parent(v);
         }
     }
@@ -435,13 +465,15 @@ TYPED_TEST(cst_byte_test, suffix_and_weiner_link)
         for (size_type i = 0; i < 100; ++i)
         {
             auto v = cst.select_leaf(dice() + 1);
-            if (cst.depth(v) < 1) continue;
+            if (cst.depth(v) < 1)
+                continue;
             auto c = cst.edge(v, 1);
             ASSERT_EQ(v, cst.wl(cst.sl(v), c));
             for (size_type j = 0; j < 5; ++j)
             {
                 v = cst.parent(v);
-                if (cst.root() == v) break;
+                if (cst.root() == v)
+                    break;
                 c = cst.edge(v, 1);
                 ASSERT_EQ(v, cst.wl(cst.sl(v), c));
             }
@@ -495,15 +527,15 @@ template <typename in_archive_t, typename out_archive_t, typename TypeParam>
 void do_serialisation(TypeParam const & l)
 {
     {
-        std::ofstream os{ temp_file, std::ios::binary };
-        out_archive_t oarchive{ os };
+        std::ofstream os{temp_file, std::ios::binary};
+        out_archive_t oarchive{os};
         oarchive(l);
     }
 
     TypeParam in_l{};
     {
-        std::ifstream is{ temp_file, std::ios::binary };
-        in_archive_t iarchive{ is };
+        std::ifstream is{temp_file, std::ios::binary};
+        in_archive_t iarchive{is};
         iarchive(in_l);
     }
     EXPECT_EQ(l, in_l);
@@ -535,6 +567,9 @@ TYPED_TEST(cst_byte_test, delete_)
 int main(int argc, char ** argv)
 {
     ::testing::InitGoogleTest(&argc, argv);
-    if (init_2_arg_test(argc, argv, "CST_BYTE", test_file, temp_dir, temp_file) != 0) { return 1; }
+    if (init_2_arg_test(argc, argv, "CST_BYTE", test_file, temp_dir, temp_file) != 0)
+    {
+        return 1;
+    }
     return RUN_ALL_TESTS();
 }

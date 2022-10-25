@@ -8,10 +8,11 @@
 #ifndef INCLUDED_SDSL_LCP_DAC
 #define INCLUDED_SDSL_LCP_DAC
 
-#include <sdsl/lcp.hpp>
+#include <stdint.h>
+
+#include <sdsl/dac_vector.hpp>
 #include <sdsl/lcp_vlc.hpp>
 #include <sdsl/rank_support_v5.hpp>
-#include <sdsl/vectors.hpp>
 
 namespace sdsl
 {

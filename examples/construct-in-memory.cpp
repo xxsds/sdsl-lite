@@ -1,6 +1,6 @@
-#include <string>
-
-#include <sdsl/suffix_trees.hpp>
+#include <sdsl/csa_wt.hpp>
+#include <sdsl/cst_sada.hpp>
+#include <sdsl/wt_huff.hpp>
 
 using namespace sdsl;
 using namespace std;
@@ -11,7 +11,7 @@ int main()
     string v = "abracadabradabarab";
     cout << "v.size()=" << v.size() << endl;
     cout << v << endl;
-    store_to_file((const char *)v.c_str(), file);
+    store_to_file((char const *)v.c_str(), file);
     cout << "---------" << endl;
     cout << util::file_size(file) << endl;
     cout << "--------- construct wt_huff<> ----------" << endl;
@@ -20,7 +20,10 @@ int main()
         construct(wt, file, 1);
         cout << "wt.size()=" << wt.size() << endl;
         cout << util::file_size(file) << endl;
-        for (size_t i = 0; i < wt.size(); ++i) { cout << wt[i] << " "; }
+        for (size_t i = 0; i < wt.size(); ++i)
+        {
+            cout << wt[i] << " ";
+        }
         cout << endl;
     }
     cout << "---------" << endl;
@@ -29,7 +32,10 @@ int main()
         csa_wt<> csa;
         construct(csa, file, 1);
         cout << "csa.size()=" << csa.size() << endl;
-        for (size_t i = 0; i < csa.size(); ++i) { cout << csa[i] << " "; }
+        for (size_t i = 0; i < csa.size(); ++i)
+        {
+            cout << csa[i] << " ";
+        }
         cout << endl;
     }
     cout << "---------" << endl;

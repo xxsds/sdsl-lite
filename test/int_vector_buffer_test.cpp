@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 
-#include <sdsl/int_vector.hpp>
+#include <sdsl/int_vector_buffer.hpp>
 #include <sdsl/util.hpp>
 
 #include <gtest/gtest.h>
@@ -19,10 +19,12 @@ std::string temp_dir;
 // The fixture for testing class int_vector.
 class int_vector_buffer_test : public ::testing::Test
 {
-  protected:
-    int_vector_buffer_test() {}
+protected:
+    int_vector_buffer_test()
+    {}
 
-    virtual ~int_vector_buffer_test() {}
+    virtual ~int_vector_buffer_test()
+    {}
 
     virtual void SetUp()
     {
@@ -30,18 +32,25 @@ class int_vector_buffer_test : public ::testing::Test
         {
             std::uniform_int_distribution<uint64_t> distribution(0, 100000);
             auto dice = bind(distribution, rng);
-            for (size_type i = 0; i < 128; ++i) { vec_sizes.push_back(dice()); }
+            for (size_type i = 0; i < 128; ++i)
+            {
+                vec_sizes.push_back(dice());
+            }
         }
         {
             std::uniform_int_distribution<uint64_t> distribution(0, 10000000);
             auto dice = bind(distribution, rng);
-            for (size_type i = 0; i < 10; ++i) { vec_sizes.push_back(dice()); }
+            for (size_type i = 0; i < 10; ++i)
+            {
+                vec_sizes.push_back(dice());
+            }
         }
     }
 
-    virtual void TearDown() {}
+    virtual void TearDown()
+    {}
 
-    std::vector<size_type> vec_sizes = { 0, 64, 65, 127, 128 }; // different sizes for the vectors
+    std::vector<size_type> vec_sizes = {0, 64, 65, 127, 128}; // different sizes for the vectors
 };
 
 template <class t_T>
@@ -326,7 +335,10 @@ void test_random_access(size_type width = 1)
     ivb[999] = 999 & sdsl::bits::lo_set[ivb.width()];
     ASSERT_EQ(999 & sdsl::bits::lo_set[ivb.width()], (size_type)ivb[999]);
     ASSERT_EQ((size_type)1000, ivb.size());
-    for (size_type i = 0; i < 999; ++i) { ASSERT_EQ((size_type)0, (size_type)ivb[i]); }
+    for (size_type i = 0; i < 999; ++i)
+    {
+        ASSERT_EQ((size_type)0, (size_type)ivb[i]);
+    }
     // Test random access write
     for (size_type i = 0; i < 1000; ++i)
     {
@@ -336,7 +348,10 @@ void test_random_access(size_type width = 1)
     ASSERT_EQ((size_type)1000, ivb.size());
     for (size_type i = 0; i < ivb.size(); ++i)
     {
-        if (ivb[i]) { ASSERT_EQ(i & sdsl::bits::lo_set[ivb.width()], (size_type)ivb[i]); }
+        if (ivb[i])
+        {
+            ASSERT_EQ(i & sdsl::bits::lo_set[ivb.width()], (size_type)ivb[i]);
+        }
     }
     // Test random access with different buffersize
     buffersize = 50;
@@ -349,13 +364,19 @@ void test_random_access(size_type width = 1)
     }
     for (size_type i = 0; i < ivb.size(); ++i)
     {
-        if (ivb[i]) { ASSERT_EQ(i & sdsl::bits::lo_set[ivb.width()], (size_type)ivb[i]); }
+        if (ivb[i])
+        {
+            ASSERT_EQ(i & sdsl::bits::lo_set[ivb.width()], (size_type)ivb[i]);
+        }
     }
     // Test random access read
     for (size_type i = 0; i < ivb.size(); ++i)
     {
         value_type idx = dice();
-        if (ivb[idx]) { ASSERT_EQ(idx & sdsl::bits::lo_set[ivb.width()], (size_type)ivb[idx]); }
+        if (ivb[idx])
+        {
+            ASSERT_EQ(idx & sdsl::bits::lo_set[ivb.width()], (size_type)ivb[idx]);
+        }
     }
     ivb.close(true);
 }
@@ -363,7 +384,10 @@ void test_random_access(size_type width = 1)
 //! Test RandomAcces, which should not be done in practice because it is expected to be very slow
 TEST_F(int_vector_buffer_test, random_access)
 {
-    for (size_type width = 1; width <= 64; ++width) { test_random_access<sdsl::int_vector_buffer<>>(width); }
+    for (size_type width = 1; width <= 64; ++width)
+    {
+        test_random_access<sdsl::int_vector_buffer<>>(width);
+    }
     test_random_access<sdsl::int_vector_buffer<1>>();
     test_random_access<sdsl::int_vector_buffer<8>>();
     test_random_access<sdsl::int_vector_buffer<16>>();
@@ -380,7 +404,10 @@ void test_file_handling(size_type exp_w)
 
     // write an int_vector-file using int_vector_buffer
     t_T ivb(file_name, std::ios::out, buffersize, exp_w);
-    for (size_type i = 0; i < 100000; ++i) { ivb[i] = rng() & sdsl::bits::lo_set[exp_w]; }
+    for (size_type i = 0; i < 100000; ++i)
+    {
+        ivb[i] = rng() & sdsl::bits::lo_set[exp_w];
+    }
     ivb.close();
 
     // load int_vector from file and compare it with int_vector_buffer
@@ -410,7 +437,10 @@ void test_plain_file_handling(uint8_t exp_w)
 
     // write plain array using int_vector_buffer
     t_T ivb(file_name, std::ios::out, buffersize, exp_w, true);
-    for (size_type i = 0; i < 100000; ++i) { ivb[i] = rng(); }
+    for (size_type i = 0; i < 100000; ++i)
+    {
+        ivb[i] = rng();
+    }
     ivb.close();
 
     // load plain_array and compare it with int_vector_buffer
@@ -466,12 +496,18 @@ void test_swap(size_type exp_w_ivb1, size_type exp_w_ivb2, std::vector<size_type
         {
             // Create, fill and verify ivb1
             t_T ivb1(file_name_1, std::ios::out, 100, exp_w_ivb1);
-            for (size_type j = 0; j < size; ++j) { ivb1[j] = j & sdsl::bits::lo_set[exp_w_ivb1]; }
+            for (size_type j = 0; j < size; ++j)
+            {
+                ivb1[j] = j & sdsl::bits::lo_set[exp_w_ivb1];
+            }
             ASSERT_TRUE(ivb1.is_open());
             ASSERT_EQ(file_name_1, ivb1.filename());
             ASSERT_EQ(size, ivb1.size());
             ASSERT_EQ(exp_w_ivb1, ivb1.width());
-            for (size_type j = 0; j < size; ++j) { ASSERT_EQ(j & sdsl::bits::lo_set[exp_w_ivb1], (size_type)ivb1[j]); }
+            for (size_type j = 0; j < size; ++j)
+            {
+                ASSERT_EQ(j & sdsl::bits::lo_set[exp_w_ivb1], (size_type)ivb1[j]);
+            }
             size_type buffersize_ivb1 = ivb1.buffersize();
 
             // Create and verify ivb2
@@ -665,7 +701,10 @@ void test_reset(std::vector<size_type> & vec_sizes, size_type width = 1)
         if (size < 1000)
         {
             t_T ivb(file_name, std::ios::out, buffersize, width);
-            for (size_type j = 0; j < size; ++j) { ivb[j] = rng(); }
+            for (size_type j = 0; j < size; ++j)
+            {
+                ivb[j] = rng();
+            }
             ASSERT_EQ(file_name, ivb.filename());
             ASSERT_EQ(size, ivb.size());
             size_type bsize = ivb.buffersize();
@@ -687,7 +726,10 @@ void test_reset(std::vector<size_type> & vec_sizes, size_type width = 1)
 //! Test reset
 TEST_F(int_vector_buffer_test, Reset)
 {
-    for (size_type width = 1; width <= 64; ++width) { test_reset<sdsl::int_vector_buffer<>>(vec_sizes, width); }
+    for (size_type width = 1; width <= 64; ++width)
+    {
+        test_reset<sdsl::int_vector_buffer<>>(vec_sizes, width);
+    }
     test_reset<sdsl::int_vector_buffer<1>>(vec_sizes);
     test_reset<sdsl::int_vector_buffer<8>>(vec_sizes);
     test_reset<sdsl::int_vector_buffer<16>>(vec_sizes);

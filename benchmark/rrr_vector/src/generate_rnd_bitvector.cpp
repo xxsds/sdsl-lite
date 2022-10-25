@@ -42,7 +42,11 @@ int main(int argc, char * argv[])
     srand(17);
     for (uint64_t i = 0; i < v.size(); ++i)
     {
-        if ((uint64_t)(rand() % 100) < density) { v[i] = 1; }
+        if ((uint64_t)(rand() % 100) < density)
+        {
+            v[i] = 1;
+        }
     }
-    if (!store_to_file(v, argv[3])) return 1;
+    if (!store_to_file(v, argv[3]))
+        return 1;
 }

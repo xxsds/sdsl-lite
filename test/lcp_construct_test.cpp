@@ -20,12 +20,12 @@ typedef map<string, void (*)(cache_config &)> tMSFP; // map <name, lcp method>
 
 class lcp_construct_test : public ::testing::Test
 {
-  protected:
-    lcp_construct_test()
-      : CHECK_KEY("CHECK_" + string(conf::KEY_LCP))
+protected:
+    lcp_construct_test() : CHECK_KEY("CHECK_" + string(conf::KEY_LCP))
     {}
 
-    virtual ~lcp_construct_test() {}
+    virtual ~lcp_construct_test()
+    {}
 
     // If the constructor and destructor are not enough for setting up
     // and cleaning up each test, you can define the following methods:
@@ -49,7 +49,7 @@ class lcp_construct_test : public ::testing::Test
             ASSERT_TRUE(store_to_cache(text, conf::KEY_TEXT, test_config));
             // Construct SA
             int_vector<> sa(text.size(), 0, bits::hi(text.size()) + 1);
-            algorithm::calculate_sa((const unsigned char *)text.data(), text.size(), sa);
+            algorithm::calculate_sa((unsigned char const *)text.data(), text.size(), sa);
             ASSERT_TRUE(store_to_cache(sa, conf::KEY_SA, test_config));
         }
         {
@@ -66,7 +66,10 @@ class lcp_construct_test : public ::testing::Test
         }
     }
 
-    virtual void TearDown() { sdsl::remove(cache_file_name(CHECK_KEY, test_config)); }
+    virtual void TearDown()
+    {
+        sdsl::remove(cache_file_name(CHECK_KEY, test_config));
+    }
 
     cache_config test_config;
     tMSFP lcp_function;
@@ -84,15 +87,15 @@ TEST_F(lcp_construct_test, construct_lcp)
         int_vector<> lcp_check, lcp;
         string lcp_check_file = cache_file_name(CHECK_KEY, this->test_config);
         string lcp_file = cache_file_name(conf::KEY_LCP, this->test_config);
-        ASSERT_TRUE(load_from_file(lcp_check, lcp_check_file)) << info << " could not load reference lcp array "
-                                                               << lcp_check_file;
+        ASSERT_TRUE(load_from_file(lcp_check, lcp_check_file))
+            << info << " could not load reference lcp array " << lcp_check_file;
         ASSERT_TRUE(load_from_file(lcp, lcp_file)) << info << " could not load created lcp array";
         ASSERT_EQ(lcp_check.size(), lcp.size()) << info << " lcp array size differ";
         for (uint64_t j = 0; j < lcp.size(); ++j)
         {
-            ASSERT_EQ(lcp_check[j], lcp[j]) << info << " value differ:"
-                                            << " lcp_check[" << j << "]=" << lcp_check[j] << "!=" << lcp[j] << "=lcp["
-                                            << j << "]";
+            ASSERT_EQ(lcp_check[j], lcp[j])
+                << info << " value differ:"
+                << " lcp_check[" << j << "]=" << lcp_check[j] << "!=" << lcp[j] << "=lcp[" << j << "]";
         }
         // Clean up LCP array
         sdsl::remove(cache_file_name(conf::KEY_LCP, this->test_config));
@@ -104,6 +107,9 @@ TEST_F(lcp_construct_test, construct_lcp)
 int main(int argc, char ** argv)
 {
     ::testing::InitGoogleTest(&argc, argv);
-    if (init_2_arg_test(argc, argv, "LCP_CONSTRUCT", test_file, temp_dir, temp_file) != 0) { return 1; }
+    if (init_2_arg_test(argc, argv, "LCP_CONSTRUCT", test_file, temp_dir, temp_file) != 0)
+    {
+        return 1;
+    }
     return RUN_ALL_TESTS();
 }

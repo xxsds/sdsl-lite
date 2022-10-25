@@ -8,26 +8,28 @@
 #ifndef INCLUDED_SDSL_CST_SADA
 #define INCLUDED_SDSL_CST_SADA
 
-#include <algorithm>
 #include <cassert>
-#include <cstring> // for strlen
-#include <iomanip>
 #include <iostream>
-#include <iterator>
+#include <stddef.h>
+#include <string>
+#include <type_traits>
 
-#include <sdsl/bp_support.hpp>
 #include <sdsl/bp_support_sada.hpp>
-#include <sdsl/construct.hpp>
+#include <sdsl/cereal.hpp>
+#include <sdsl/config.hpp>
 #include <sdsl/csa_sada.hpp> // for std initialization of cst_sada
 #include <sdsl/cst_iterators.hpp>
-#include <sdsl/cst_sct3.hpp>
 #include <sdsl/int_vector.hpp>
-#include <sdsl/iterators.hpp>
+#include <sdsl/int_vector_buffer.hpp>
+#include <sdsl/io.hpp>
+#include <sdsl/lcp.hpp>
 #include <sdsl/lcp_support_sada.hpp>
+#include <sdsl/memory_tracking.hpp>
+#include <sdsl/rank_support_v5.hpp>
 #include <sdsl/sdsl_concepts.hpp>
 #include <sdsl/select_support_mcl.hpp>
 #include <sdsl/sorted_stack_support.hpp>
-#include <sdsl/suffix_tree_algorithm.hpp>
+#include <sdsl/structure_tree.hpp>
 #include <sdsl/suffix_tree_helper.hpp>
 #include <sdsl/util.hpp>
 
@@ -74,7 +76,7 @@ class cst_sada
     static_assert(std::is_same<typename index_tag<t_csa>::type, csa_tag>::value,
                   "First template argument has to be a compressed suffix array.");
 
-  public:
+public:
     typedef cst_dfs_const_forward_iterator<cst_sada> const_iterator;
     typedef cst_bottom_up_const_forward_iterator<cst_sada> const_bottom_up_iterator;
     typedef typename t_csa::size_type size_type;
@@ -94,7 +96,7 @@ class cst_sada
     typedef typename t_csa::alphabet_category alphabet_category;
     typedef cst_tag index_category;
 
-  private:
+private:
     t_csa m_csa;                  // suffix array
     lcp_type m_lcp;               // lcp information
     bit_vector m_bp;              // balanced parentheses sequence for suffix tree
@@ -105,26 +107,29 @@ class cst_sada
     /* Get the number of leaves that are in the subtree rooted at the first child of v +
      * number of leafs in the subtrees rooted at the children of parent(v) which precede v in the tree.
      */
-    size_type inorder(node_type v) const { return m_bp_rank10(m_bp_support.find_close(v + 1) + 1); }
+    size_type inorder(node_type v) const
+    {
+        return m_bp_rank10(m_bp_support.find_close(v + 1) + 1);
+    }
 
-  public:
-    const t_csa & csa = m_csa;
-    const lcp_type & lcp = m_lcp;
-    const bit_vector & bp = m_bp;
-    const bp_support_type & bp_support = m_bp_support;
-    const rank_10_type & bp_rank_10 = m_bp_rank10;
-    const select_10_type & bp_select_10 = m_bp_select10;
+public:
+    t_csa const & csa = m_csa;
+    lcp_type const & lcp = m_lcp;
+    bit_vector const & bp = m_bp;
+    bp_support_type const & bp_support = m_bp_support;
+    rank_10_type const & bp_rank_10 = m_bp_rank10;
+    select_10_type const & bp_select_10 = m_bp_select10;
 
     //! Default constructor
     cst_sada() = default;
 
     //! Copy constructor
-    cst_sada(const cst_sada & cst)
-      : m_csa(cst.m_csa)
-      , m_bp(cst.m_bp)
-      , m_bp_support(cst.m_bp_support)
-      , m_bp_rank10(cst.m_bp_rank10)
-      , m_bp_select10(cst.m_bp_select10)
+    cst_sada(cst_sada const & cst) :
+        m_csa(cst.m_csa),
+        m_bp(cst.m_bp),
+        m_bp_support(cst.m_bp_support),
+        m_bp_rank10(cst.m_bp_rank10),
+        m_bp_select10(cst.m_bp_select10)
     {
         copy_lcp(m_lcp, cst.m_lcp, *this);
         m_bp_support.set_vector(&m_bp);
@@ -133,12 +138,12 @@ class cst_sada
     }
 
     //! Move constructor
-    cst_sada(cst_sada && cst)
-      : m_csa(std::move(cst.m_csa))
-      , m_bp(std::move(cst.m_bp))
-      , m_bp_support(std::move(cst.m_bp_support))
-      , m_bp_rank10(std::move(cst.m_bp_rank10))
-      , m_bp_select10(std::move(cst.m_bp_select10))
+    cst_sada(cst_sada && cst) :
+        m_csa(std::move(cst.m_csa)),
+        m_bp(std::move(cst.m_bp)),
+        m_bp_support(std::move(cst.m_bp_support)),
+        m_bp_rank10(std::move(cst.m_bp_rank10)),
+        m_bp_select10(std::move(cst.m_bp_select10))
     {
         move_lcp(m_lcp, cst.m_lcp, *this);
         m_bp_support.set_vector(&m_bp);
@@ -153,8 +158,8 @@ class cst_sada
             auto event = memory_monitor::event("bps-dfs");
             int_vector_buffer<> lcp(cache_file_name(conf::KEY_LCP, config));
 
-            const bool o_par = true;
-            const bool c_par = !o_par;
+            bool const o_par = true;
+            bool const c_par = !o_par;
 
             // trim bps to maximal size of tree
             m_bp.resize(4 * lcp.size());
@@ -176,10 +181,14 @@ class cst_sada
                         stack.pop();
                         ++co;
                     }
-                    if (stack.top() < x) { stack.push(x); }
+                    if (stack.top() < x)
+                    {
+                        stack.push(x);
+                    }
                     // encode number of opening parenthesis at i as unary number
                     m_bp[p--] = o_par;
-                    while (--co > 0) m_bp[p--] = c_par;
+                    while (--co > 0)
+                        m_bp[p--] = c_par;
                 }
                 // handle last value lcp[0] separate, since it virtually is a -1, but in real is a 0
                 m_bp[p--] = o_par; // code last number of opening parenthesis
@@ -197,9 +206,11 @@ class cst_sada
                     // compute number of opening parentheses at position i-1 using
                     // the unary coding from the last step
                     size_type co = 0;
-                    do {
+                    do
+                    {
                         ++co;
-                    } while (m_bp[++p] == c_par);
+                    }
+                    while (m_bp[++p] == c_par);
 
                     // compute number of closing parentheses at position i-1
                     size_type cc = 1; // for singleton interval
@@ -209,10 +220,15 @@ class cst_sada
                         stack.pop();
                         ++cc;
                     }
-                    if (stack.top() < x) { stack.push(x); }
+                    if (stack.top() < x)
+                    {
+                        stack.push(x);
+                    }
                     // write sequence for position i-1
-                    while (co-- > 0) m_bp[q++] = o_par;
-                    while (cc-- > 0) m_bp[q++] = c_par;
+                    while (co-- > 0)
+                        m_bp[q++] = o_par;
+                    while (cc-- > 0)
+                        m_bp[q++] = c_par;
                 }
                 // handle last value lcp[n+1] separate
                 m_bp[q++] = o_par;
@@ -249,19 +265,28 @@ class cst_sada
     /*! Required for the Container Concept of the STL.
      *  \sa max_size, empty
      */
-    size_type size() const { return m_csa.size(); }
+    size_type size() const
+    {
+        return m_csa.size();
+    }
 
     //! Returns the maximal lenght of text for that a suffix tree can be build.
     /*! Required for the Container Concept of the STL.
      *  \sa size
      */
-    static size_type max_size() { return t_csa::max_size(); }
+    static size_type max_size()
+    {
+        return t_csa::max_size();
+    }
 
     //! Returns if the data strucutre is empty.
     /*! Required for the Container Concept of the STL.
      * \sa size
      */
-    bool empty() const { return m_csa.empty(); }
+    bool empty() const
+    {
+        return m_csa.empty();
+    }
 
     //! Returns a const_iterator to the first element.
     /*! Required for the STL Container Concept.
@@ -275,9 +300,10 @@ class cst_sada
     }
 
     //! Returns a const_iterator to the first element of a depth first traversal of the subtree rooted at node v.
-    const_iterator begin(const node_type & v) const
+    const_iterator begin(node_type const & v) const
     {
-        if (0 == m_bp.size() and root() == v) return end();
+        if (0 == m_bp.size() and root() == v)
+            return end();
         return const_iterator(this, v, false, true);
     }
 
@@ -285,12 +311,16 @@ class cst_sada
     /*! Required for the STL Container Concept.
      *  \sa begin.
      */
-    const_iterator end() const { return const_iterator(this, root(), true, false); }
+    const_iterator end() const
+    {
+        return const_iterator(this, root(), true, false);
+    }
 
     //! Returns a const_iterator to the element past the end of a depth first traversal of the subtree rooted at node v.
-    const_iterator end(const node_type & v) const
+    const_iterator end(node_type const & v) const
     {
-        if (root() == v) return end();
+        if (root() == v)
+            return end();
         return ++const_iterator(this, v, true, true);
     }
 
@@ -303,13 +333,16 @@ class cst_sada
     }
 
     //! Returns an iterator to the element after the last element of a bottom-up traversal of the tree.
-    const_bottom_up_iterator end_bottom_up() const { return const_bottom_up_iterator(this, root(), false); }
+    const_bottom_up_iterator end_bottom_up() const
+    {
+        return const_bottom_up_iterator(this, root(), false);
+    }
 
     //! Assignment Operator.
     /*!
      *    Required for the Assignable Concept of the STL.
      */
-    cst_sada & operator=(const cst_sada & cst)
+    cst_sada & operator=(cst_sada const & cst)
     {
         if (this != &cst)
         {
@@ -343,13 +376,16 @@ class cst_sada
     //! Equality operator.
     bool operator==(cst_sada const & other) const noexcept
     {
-        return (m_csa == other.m_csa) && (m_lcp == other.m_lcp) && (m_bp == other.m_bp) &&
-               (m_bp_support == other.m_bp_support) && (m_bp_rank10 == other.m_bp_rank10) &&
-               (m_bp_select10 == other.m_bp_select10);
+        return (m_csa == other.m_csa) && (m_lcp == other.m_lcp) && (m_bp == other.m_bp)
+            && (m_bp_support == other.m_bp_support) && (m_bp_rank10 == other.m_bp_rank10)
+            && (m_bp_select10 == other.m_bp_select10);
     }
 
     //! Inequality operator.
-    bool operator!=(cst_sada const & other) const noexcept { return !(*this == other); }
+    bool operator!=(cst_sada const & other) const noexcept
+    {
+        return !(*this == other);
+    }
 
     //! Serialize to a stream.
     /*!\param out Outstream to write the data structure.
@@ -416,7 +452,10 @@ class cst_sada
      * \par Time complexity
      *   \f$ \Order{1} \f$
      */
-    node_type root() const { return 0; }
+    node_type root() const
+    {
+        return 0;
+    }
 
     //! Decide if a node is a leaf in the suffix tree.
     /*!
@@ -501,7 +540,10 @@ class cst_sada
      *  \par Time complexity
      *    \f$ \Order{1} \f$
      */
-    node_type leftmost_leaf(const node_type v) const { return m_bp_select10(m_bp_rank10(v) + 1) - 1; }
+    node_type leftmost_leaf(const node_type v) const
+    {
+        return m_bp_select10(m_bp_rank10(v) + 1) - 1;
+    }
 
     //! Calculates the rightmost leaf in the subtree rooted at node v.
     /*!\param v A valid node of the suffix tree.
@@ -523,7 +565,10 @@ class cst_sada
      * \par Note
      * lb is an abbreviation for ,,left bound''
      */
-    size_type lb(const node_type v) const { return m_bp_rank10(v); }
+    size_type lb(const node_type v) const
+    {
+        return m_bp_rank10(v);
+    }
 
     //! Calculates the index of the rightmost leaf in the corresponding suffix array.
     /*!\param v A valid node of the suffix tree.
@@ -562,7 +607,10 @@ class cst_sada
      *  \par Time complexity
      *     \f$ \Order{1}\f$
      */
-    cst_node_child_proxy<cst_sada> children(node_type v) const { return cst_node_child_proxy<cst_sada>(this, v); }
+    cst_node_child_proxy<cst_sada> children(node_type v) const
+    {
+        return cst_node_child_proxy<cst_sada>(this, v);
+    }
 
     //! Returns the next sibling of node v.
     /*!
@@ -573,7 +621,8 @@ class cst_sada
      */
     node_type sibling(node_type v) const
     {
-        if (v == root()) return root();
+        if (v == root())
+            return root();
         node_type sib = m_bp_support.find_close(v) + 1;
         if (m_bp[sib])
             return sib;
@@ -604,7 +653,10 @@ class cst_sada
         size_type res = v + 1;
         while (true)
         {
-            if (is_leaf(res)) { char_pos = get_char_pos(m_bp_rank10(res), d, m_csa); }
+            if (is_leaf(res))
+            {
+                char_pos = get_char_pos(m_bp_rank10(res), d, m_csa);
+            }
             else
             {
                 char_pos = get_char_pos(inorder(res), d, m_csa);
@@ -677,7 +729,10 @@ class cst_sada
         while (c_begin < c_end)
         {
             mid = (c_begin + c_end) >> 1;
-            if (m_csa.C[mid] <= order) { c_begin = mid + 1; }
+            if (m_csa.C[mid] <= order)
+            {
+                c_begin = mid + 1;
+            }
             else
             {
                 c_end = mid;
@@ -697,12 +752,16 @@ class cst_sada
     node_type lca(node_type v, node_type w) const
     {
         assert(m_bp[v] == 1 and m_bp[w] == 1);
-        if (v > w) { std::swap(v, w); }
+        if (v > w)
+        {
+            std::swap(v, w);
+        }
         else if (v == w)
         {
             return v;
         }
-        if (v == root()) return root();
+        if (v == root())
+            return root();
         return m_bp_support.double_enclose(v, w);
     }
 
@@ -715,10 +774,14 @@ class cst_sada
      */
     node_type sl(node_type v) const
     {
-        if (v == root()) return root();
+        if (v == root())
+            return root();
         // get leftmost leaf in the tree rooted at v
         size_type left = m_bp_rank10(v);
-        if (is_leaf(v)) { return select_leaf(m_csa.psi[left] + 1); }
+        if (is_leaf(v))
+        {
+            return select_leaf(m_csa.psi[left] + 1);
+        }
         // get the rightmost leaf in the tree rooted at v
         size_type right = m_bp_rank10(m_bp_support.find_close(v)) - 1;
         assert(left < right);
@@ -736,10 +799,14 @@ class cst_sada
      */
     node_type sl(node_type v, size_type i) const
     {
-        if (v == root()) return root();
+        if (v == root())
+            return root();
         // get leftmost leaf in the tree rooted at v
         size_type left = m_bp_rank10(v);
-        if (is_leaf(v)) { return select_leaf(get_char_pos(left, i, m_csa) + 1); }
+        if (is_leaf(v))
+        {
+            return select_leaf(get_char_pos(left, i, m_csa) + 1);
+        }
         // get the rightmost leaf in the tree rooted at v
         size_type right = m_bp_rank10(m_bp_support.find_close(v)) - 1;
         assert(left < right);
@@ -844,10 +911,13 @@ class cst_sada
                     ++mid; // we step one to the right to include it
                 }
                 // get the number of open inner nodes before position mid, i.e. arg(mid)
-                size_type mid_id = m_bp_support.rank(mid - 1) -
-                                   m_bp_rank10(mid); // Note: mid-1 is valid of mid is of type ``size_type'' as us the
+                size_type mid_id = m_bp_support.rank(mid - 1)
+                                 - m_bp_rank10(mid); // Note: mid-1 is valid of mid is of type ``size_type'' as us the
                                                      // parameter of rank
-                if (mid_id < id) { lb = mid; }
+                if (mid_id < id)
+                {
+                    lb = mid;
+                }
                 else
                 { // mid_id >= x
                     rb = mid;
@@ -863,14 +933,20 @@ class cst_sada
      *  \par Time complexity
      *    \f$ \Order{1} \f$
      */
-    size_type nodes() const { return m_bp.size() >> 1; }
+    size_type nodes() const
+    {
+        return m_bp.size() >> 1;
+    }
 
     //! Get the node in the suffix tree which corresponds to the lcp-interval [lb..rb]
     /* \param lb Left bound of the lcp-interval [lb..rb] (inclusive).
      * \param rb Right bound of the lcp-interval [lb..rb] (inclusive).
      *\ return The node in the suffix tree corresponding lcp-interval [lb..rb]
      */
-    node_type node(size_type lb, size_type rb) const { return lca(select_leaf(lb + 1), select_leaf(rb + 1)); }
+    node_type node(size_type lb, size_type rb) const
+    {
+        return lca(select_leaf(lb + 1), select_leaf(rb + 1));
+    }
 
     //! Get the number of children of a node v.
     /*!

@@ -77,7 +77,10 @@ int main(int argc, char * argv[])
         for (uint64_t i = 0; valid and i < pat.size(); ++i)
         {
             // if pattern includes separator or newline in byte sequence
-            if (pat[i] == 1 or (num_bytes == 1 and pat[i] == '\n')) { valid = false; }
+            if (pat[i] == 1 or (num_bytes == 1 and pat[i] == '\n'))
+            {
+                valid = false;
+            }
         }
         if (valid)
         {

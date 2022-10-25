@@ -1,7 +1,7 @@
 #include <fstream>
 #include <iostream>
 
-#include <sdsl/suffix_arrays.hpp>
+#include <sdsl/csa_wt.hpp>
 
 using namespace sdsl;
 using namespace std;

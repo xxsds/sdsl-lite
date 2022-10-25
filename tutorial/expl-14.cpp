@@ -1,6 +1,8 @@
 #include <iostream>
 
-#include <sdsl/wavelet_trees.hpp>
+#include <sdsl/construct.hpp>
+#include <sdsl/rrr_vector.hpp>
+#include <sdsl/wt_hutu.hpp>
 
 using namespace std;
 using namespace sdsl;
@@ -9,7 +11,8 @@ int main()
 {
     wt_hutu<rrr_vector<63>> wt;
     construct_im(wt, "こんにちは世界", 1);
-    for (size_t i = 0; i < wt.size(); ++i) cout << wt[i];
+    for (size_t i = 0; i < wt.size(); ++i)
+        cout << wt[i];
     cout << endl;
     auto t1 = wt.lex_count(0, wt.size(), 0x80);
     auto t2 = wt.lex_count(0, wt.size(), 0xbf);

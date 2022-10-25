@@ -15,17 +15,21 @@ std::string temp_dir;
 // The fixture for testing class nn_dict_dynamic.
 class nn_dict_dynamic_test : public ::testing::Test
 {
-  protected:
-    nn_dict_dynamic_test() {}
+protected:
+    nn_dict_dynamic_test()
+    {}
 
-    virtual ~nn_dict_dynamic_test() {}
+    virtual ~nn_dict_dynamic_test()
+    {}
 
-    virtual void SetUp() {}
+    virtual void SetUp()
+    {}
 
-    virtual void TearDown() {}
+    virtual void TearDown()
+    {}
 };
 
-void compare_bv_and_nndd(const sdsl::bit_vector & bv, const sdsl::nn_dict_dynamic & nndd)
+void compare_bv_and_nndd(sdsl::bit_vector const & bv, sdsl::nn_dict_dynamic const & nndd)
 {
     sdsl::nearest_neighbour_dictionary<32> exp(bv);
     uint64_t first_one = exp.select(1);
@@ -168,15 +172,15 @@ template <typename in_archive_t, typename out_archive_t>
 void do_serialisation(sdsl::nn_dict_dynamic const & l, std::string const & temp_file)
 {
     {
-        std::ofstream os{ temp_file, std::ios::binary };
-        out_archive_t oarchive{ os };
+        std::ofstream os{temp_file, std::ios::binary};
+        out_archive_t oarchive{os};
         oarchive(l);
     }
 
     {
         sdsl::nn_dict_dynamic in_l(0);
-        std::ifstream is{ temp_file, std::ios::binary };
-        in_archive_t iarchive{ is };
+        std::ifstream is{temp_file, std::ios::binary};
+        in_archive_t iarchive{is};
         iarchive(in_l);
         EXPECT_EQ(l, in_l);
     }

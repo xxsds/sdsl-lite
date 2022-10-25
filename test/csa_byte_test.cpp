@@ -2,8 +2,12 @@
 #include <type_traits>
 #include <vector>
 
-#include <sdsl/coder.hpp>
-#include <sdsl/suffix_arrays.hpp>
+#include <sdsl/coder_elias_gamma.hpp>
+#include <sdsl/coder_fibonacci.hpp>
+#include <sdsl/csa_bitcompressed.hpp>
+#include <sdsl/csa_sada.hpp>
+#include <sdsl/csa_wt.hpp>
+#include <sdsl/suffix_array_algorithm.hpp>
 
 #include "common.hpp"
 
@@ -52,7 +56,7 @@ typedef Types<csa_wt<>,
                      succinct_byte_alphabet<bit_vector, rank_support_v<>, select_support_mcl<>>>,
               csa_wt<wt_huff<>, 8, 16, sa_order_sa_sampling<>, isa_sampling<>, succinct_byte_alphabet<>>,
               csa_wt<wt_huff<>, 8, 16, sa_order_sa_sampling<>, isa_sampling<>, plain_byte_alphabet>>
-                                                  Implementations;
+    Implementations;
 
 #else
 
@@ -157,7 +161,8 @@ TYPED_TEST(csa_byte_test, sigma)
     else
     {
         int max_char = 0;
-        for (int chr : text) max_char = std::max(max_char, chr);
+        for (int chr : text)
+            max_char = std::max(max_char, chr);
 
         ASSERT_EQ(max_char + 1, csa.sigma);
     }
@@ -172,7 +177,10 @@ TYPED_TEST(csa_byte_test, sa_access)
     load_from_file(sa, test_case_file_map[conf::KEY_SA]);
     size_type n = sa.size();
     ASSERT_EQ(n, csa.size());
-    for (size_type j = 0; j < n; ++j) { ASSERT_EQ(sa[j], csa[j]) << " j=" << j; }
+    for (size_type j = 0; j < n; ++j)
+    {
+        ASSERT_EQ(sa[j], csa[j]) << " j=" << j;
+    }
 }
 
 //! Test inverse suffix access methods
@@ -188,9 +196,15 @@ TYPED_TEST(csa_byte_test, isa_access)
         n = sa.size();
         ASSERT_EQ(n, csa.size());
         isa = sa;
-        for (size_type j = 0; j < n; ++j) { isa[sa[j]] = j; }
+        for (size_type j = 0; j < n; ++j)
+        {
+            isa[sa[j]] = j;
+        }
     }
-    for (size_type j = 0; j < n; ++j) { ASSERT_EQ(isa[j], csa.isa[j]) << " j=" << j; }
+    for (size_type j = 0; j < n; ++j)
+    {
+        ASSERT_EQ(isa[j], csa.isa[j]) << " j=" << j;
+    }
 }
 
 //! Test text access methods
@@ -204,10 +218,16 @@ TYPED_TEST(csa_byte_test, text_access)
         load_from_file(text, test_case_file_map[conf::KEY_TEXT]);
         size_type n = text.size();
         ASSERT_EQ(n, csa.size());
-        for (size_type j = 0; j < n; ++j) { ASSERT_EQ(text[j], csa.text[j]) << " j=" << j; }
+        for (size_type j = 0; j < n; ++j)
+        {
+            ASSERT_EQ(text[j], csa.text[j]) << " j=" << j;
+        }
         auto len = std::min(csa.size(), std::max(csa.size() / 10, (decltype(csa.size()))20));
         auto ex_text = extract(csa, 0, len - 1);
-        for (size_type j = 0; j < len; ++j) { ASSERT_EQ(text[j], (decltype(text[j]))ex_text[j]) << " j=" << j; }
+        for (size_type j = 0; j < len; ++j)
+        {
+            ASSERT_EQ(text[j], (decltype(text[j]))ex_text[j]) << " j=" << j;
+        }
     }
 }
 
@@ -222,7 +242,10 @@ TYPED_TEST(csa_byte_test, bwt_access)
         load_from_file(bwt, test_case_file_map[conf::KEY_BWT]);
         size_type n = bwt.size();
         ASSERT_EQ(n, csa.size());
-        for (size_type j = 0; j < n; ++j) { ASSERT_EQ(bwt[j], csa.bwt[j]) << " j=" << j; }
+        for (size_type j = 0; j < n; ++j)
+        {
+            ASSERT_EQ(bwt[j], csa.bwt[j]) << " j=" << j;
+        }
     }
 }
 
@@ -237,7 +260,10 @@ TYPED_TEST(csa_byte_test, f_access)
         std::sort(begin(text), end(text));
         size_type n = text.size();
         ASSERT_EQ(n, csa.size());
-        for (size_type j = 0; j < n; j += 200) { ASSERT_EQ(text[j], csa.F[j]) << " j=" << j; }
+        for (size_type j = 0; j < n; j += 200)
+        {
+            ASSERT_EQ(text[j], csa.F[j]) << " j=" << j;
+        }
     }
 }
 
@@ -252,7 +278,10 @@ TYPED_TEST(csa_byte_test, psi_access)
         load_from_file(psi, test_case_file_map[conf::KEY_PSI]);
         size_type n = psi.size();
         ASSERT_EQ(n, csa.size());
-        for (size_type j = 0; j < n; ++j) { ASSERT_EQ(psi[j], csa.psi[j]) << " j=" << j; }
+        for (size_type j = 0; j < n; ++j)
+        {
+            ASSERT_EQ(psi[j], csa.psi[j]) << " j=" << j;
+        }
     }
 }
 
@@ -284,7 +313,10 @@ TYPED_TEST(csa_byte_test, swap)
     load_from_file(sa, test_case_file_map[conf::KEY_SA]);
     size_type n = sa.size();
     ASSERT_EQ(n, csa2.size());
-    for (size_type j = 0; j < n; ++j) { ASSERT_EQ((typename TypeParam::value_type)sa[j], csa2[j]); }
+    for (size_type j = 0; j < n; ++j)
+    {
+        ASSERT_EQ((typename TypeParam::value_type)sa[j], csa2[j]);
+    }
 }
 
 #if SDSL_HAS_CEREAL
@@ -292,15 +324,15 @@ template <typename in_archive_t, typename out_archive_t, typename TypeParam>
 void do_serialisation(TypeParam const & l)
 {
     {
-        std::ofstream os{ temp_file, std::ios::binary };
-        out_archive_t oarchive{ os };
+        std::ofstream os{temp_file, std::ios::binary};
+        out_archive_t oarchive{os};
         oarchive(l);
     }
 
     TypeParam in_l{};
     {
-        std::ifstream is{ temp_file, std::ios::binary };
-        in_archive_t iarchive{ is };
+        std::ifstream is{temp_file, std::ios::binary};
+        in_archive_t iarchive{is};
         iarchive(in_l);
     }
     EXPECT_EQ(l, in_l);
@@ -332,6 +364,9 @@ TYPED_TEST(csa_byte_test, delete_)
 int main(int argc, char ** argv)
 {
     ::testing::InitGoogleTest(&argc, argv);
-    if (init_2_arg_test(argc, argv, "CSA_BYTE", test_file, temp_dir, temp_file) != 0) { return 1; }
+    if (init_2_arg_test(argc, argv, "CSA_BYTE", test_file, temp_dir, temp_file) != 0)
+    {
+        return 1;
+    }
     return RUN_ALL_TESTS();
 }

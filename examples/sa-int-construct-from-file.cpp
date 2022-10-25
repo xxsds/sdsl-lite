@@ -1,7 +1,8 @@
 #include <fstream>
 #include <iostream>
 
-#include <sdsl/suffix_trees.hpp>
+#include <sdsl/int_vector.hpp>
+#include <sdsl/qsufsort.hpp>
 
 using namespace sdsl;
 using namespace std;
@@ -12,7 +13,10 @@ int main(int argc, char * argv[])
     {
         string file = string(argv[1]);
         string ofile = file + ".sa";
-        if (argc > 2) { ofile = argv[2]; }
+        if (argc > 2)
+        {
+            ofile = argv[2];
+        }
         int_vector<> sa;
         {
             int_vector<64> temp;

@@ -8,8 +8,15 @@
 #ifndef INCLUDED_SDSL_RMQ_SUCCINCT_SCT
 #define INCLUDED_SDSL_RMQ_SUCCINCT_SCT
 
+#include <assert.h>
+#include <iosfwd>
+#include <string>
+
 #include <sdsl/bp_support_sada.hpp>
+#include <sdsl/cereal.hpp>
 #include <sdsl/int_vector.hpp>
+#include <sdsl/rank_support_v5.hpp>
+#include <sdsl/structure_tree.hpp>
 #include <sdsl/suffix_tree_helper.hpp>
 #include <sdsl/util.hpp>
 
@@ -42,23 +49,24 @@ class rmq_succinct_sct
     bit_vector m_sct_bp;           //!< A bit vector which contains the BPS-SCT of the input container.
     t_bp_support m_sct_bp_support; //!< Support structure for the BPS-SCT
 
-  public:
+public:
     typedef typename bit_vector::size_type size_type;
     typedef typename bit_vector::size_type value_type;
     typedef t_bp_support bp_support_type;
 
-    const bit_vector & sct_bp = m_sct_bp;
-    const bp_support_type & sct_bp_support = m_sct_bp_support;
+    bit_vector const & sct_bp = m_sct_bp;
+    bp_support_type const & sct_bp_support = m_sct_bp_support;
 
     //! Default constructor
-    rmq_succinct_sct() {}
+    rmq_succinct_sct()
+    {}
 
     //! Constructor
     /*!\tparam t_rac A random access container.
      *  \param  v     Pointer to container object.
      */
     template <class t_rac>
-    rmq_succinct_sct(const t_rac * v = nullptr)
+    rmq_succinct_sct(t_rac const * v = nullptr)
     {
         if (v != nullptr)
         {
@@ -75,17 +83,18 @@ class rmq_succinct_sct
     }
 
     //! Copy constructor
-    rmq_succinct_sct(const rmq_succinct_sct & rm)
-      : m_sct_bp(rm.m_sct_bp)
-      , m_sct_bp_support(rm.m_sct_bp_support)
+    rmq_succinct_sct(rmq_succinct_sct const & rm) : m_sct_bp(rm.m_sct_bp), m_sct_bp_support(rm.m_sct_bp_support)
     {
         m_sct_bp_support.set_vector(&m_sct_bp);
     }
 
     //! Move constructor
-    rmq_succinct_sct(rmq_succinct_sct && rm) { *this = std::move(rm); }
+    rmq_succinct_sct(rmq_succinct_sct && rm)
+    {
+        *this = std::move(rm);
+    }
 
-    rmq_succinct_sct & operator=(const rmq_succinct_sct & rm)
+    rmq_succinct_sct & operator=(rmq_succinct_sct const & rm)
     {
         if (this != &rm)
         {
@@ -121,7 +130,8 @@ class rmq_succinct_sct
     {
         assert(l <= r);
         assert(r < size());
-        if (l == r) return l;
+        if (l == r)
+            return l;
         size_type i = m_sct_bp_support.select(l + 1);
         size_type j = m_sct_bp_support.select(r + 1);
         size_type fc_i = m_sct_bp_support.find_close(i);
@@ -143,7 +153,10 @@ class rmq_succinct_sct
         }
     }
 
-    size_type size() const { return m_sct_bp.size() / 2; }
+    size_type size() const
+    {
+        return m_sct_bp.size() / 2;
+    }
 
     size_type serialize(std::ostream & out, structure_tree_node * v = nullptr, std::string name = "") const
     {
@@ -183,7 +196,10 @@ class rmq_succinct_sct
     }
 
     //! Inequality operator.
-    bool operator!=(rmq_succinct_sct const & other) const noexcept { return !(*this == other); }
+    bool operator!=(rmq_succinct_sct const & other) const noexcept
+    {
+        return !(*this == other);
+    }
 };
 
 } // end namespace sdsl

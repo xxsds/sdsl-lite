@@ -37,8 +37,14 @@ int main(int argc, char * argv[])
                 std::ofstream out(argv[2]);
                 if ('d' == num_byte)
                 {
-                    if (bwt.size()) { out << bwt[0]; }
-                    for (uint64_t i = 1; i < bwt.size(); ++i) { out << " " << bwt[i]; }
+                    if (bwt.size())
+                    {
+                        out << bwt[0];
+                    }
+                    for (uint64_t i = 1; i < bwt.size(); ++i)
+                    {
+                        out << " " << bwt[i];
+                    }
                 }
                 else if (0 == num_byte)
                 {

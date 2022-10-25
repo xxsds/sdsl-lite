@@ -1,7 +1,7 @@
 #include <cstdlib>
 #include <string>
 
-#include <sdsl/int_vector.hpp>
+#include <sdsl/int_vector_buffer.hpp>
 
 using namespace std;
 using namespace sdsl;
@@ -24,7 +24,10 @@ int main(int argc, char * argv[])
         for (size_t i = 0; i < v.size(); ++i)
         {
             uint64_t val = v[i];
-            if (val == x) { v[i] = y; }
+            if (val == x)
+            {
+                v[i] = y;
+            }
         }
     }
     else

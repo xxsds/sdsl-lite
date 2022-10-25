@@ -8,10 +8,18 @@
 #ifndef INCLUDED_SDSL_SUFFIX_ARRAY_ALGORITHM
 #define INCLUDED_SDSL_SUFFIX_ARRAY_ALGORITHM
 
+#include <array>
+#include <assert.h>
 #include <iterator>
+#include <stdint.h>
+#include <type_traits>
 
+#include <sdsl/config.hpp>
 #include <sdsl/csa_wt.hpp>
+#include <sdsl/int_vector.hpp>
+#include <sdsl/sdsl_concepts.hpp>
 #include <sdsl/suffix_array_helper.hpp>
+#include <sdsl/wt_pc.hpp>
 
 namespace sdsl
 {
@@ -33,17 +41,16 @@ namespace sdsl
  *
  */
 template <class t_csa, class t_pat_iter>
-typename t_csa::size_type
-forward_search(const t_csa & csa,
-               typename t_csa::size_type l,
-               typename t_csa::size_type r,
-               t_pat_iter begin,
-               t_pat_iter end,
-               typename t_csa::size_type & l_res,
-               typename t_csa::size_type & r_res,
-               SDSL_UNUSED
-               typename std::enable_if<std::is_same<csa_tag, typename t_csa::index_category>::value, csa_tag>::type x =
-                                                                 csa_tag())
+typename t_csa::size_type forward_search(
+    t_csa const & csa,
+    typename t_csa::size_type l,
+    typename t_csa::size_type r,
+    t_pat_iter begin,
+    t_pat_iter end,
+    typename t_csa::size_type & l_res,
+    typename t_csa::size_type & r_res,
+    SDSL_UNUSED
+    typename std::enable_if<std::is_same<csa_tag, typename t_csa::index_category>::value, csa_tag>::type x = csa_tag())
 {
     assert(l <= r);
     assert(r < csa.size());
@@ -56,16 +63,21 @@ forward_search(const t_csa & csa,
     auto r_res_upper = r + 1;
 
     // shortcut for too long patterns
-    if ((typename t_csa::size_type)(end - begin) >= size) return 0;
+    if ((typename t_csa::size_type)(end - begin) >= size)
+        return 0;
 
     // compares the pattern with CSA-prefix i (truncated to length $|pattern|$).
-    auto compare = [&](typename t_csa::size_type i) -> int {
+    auto compare = [&](typename t_csa::size_type i) -> int
+    {
         for (auto current = begin; current != end; current++)
         {
             auto index = csa.char2comp[*current];
-            if (index == 0) return -1;
-            if (csa.C[index + 1] - 1 < i) return -1;
-            if (csa.C[index] > i) return 1;
+            if (index == 0)
+                return -1;
+            if (csa.C[index + 1] - 1 < i)
+                return -1;
+            if (csa.C[index] > i)
+                return 1;
             i = csa.psi[i];
         }
         return 0;
@@ -115,16 +127,15 @@ forward_search(const t_csa & csa,
  *
  */
 template <class t_csa>
-typename t_csa::size_type
-forward_search(const t_csa & csa,
-               typename t_csa::size_type l,
-               typename t_csa::size_type r,
-               typename t_csa::char_type c,
-               typename t_csa::size_type & l_res,
-               typename t_csa::size_type & r_res,
-               SDSL_UNUSED
-               typename std::enable_if<std::is_same<csa_tag, typename t_csa::index_category>::value, csa_tag>::type x =
-                                                                 csa_tag())
+typename t_csa::size_type forward_search(
+    t_csa const & csa,
+    typename t_csa::size_type l,
+    typename t_csa::size_type r,
+    typename t_csa::char_type c,
+    typename t_csa::size_type & l_res,
+    typename t_csa::size_type & r_res,
+    SDSL_UNUSED
+    typename std::enable_if<std::is_same<csa_tag, typename t_csa::index_category>::value, csa_tag>::type x = csa_tag())
 {
     auto c_ptr = &c;
     return forward_search(csa, l, r, c_ptr, c_ptr + 1, l_res, r_res);
@@ -153,16 +164,15 @@ forward_search(const t_csa & csa,
  *         FOCS 2000: 390-398
  */
 template <class t_csa>
-typename t_csa::size_type
-backward_search(const t_csa & csa,
-                typename t_csa::size_type l,
-                typename t_csa::size_type r,
-                typename t_csa::char_type c,
-                typename t_csa::size_type & l_res,
-                typename t_csa::size_type & r_res,
-                SDSL_UNUSED
-                typename std::enable_if<std::is_same<csa_tag, typename t_csa::index_category>::value, csa_tag>::type x =
-                                                                  csa_tag())
+typename t_csa::size_type backward_search(
+    t_csa const & csa,
+    typename t_csa::size_type l,
+    typename t_csa::size_type r,
+    typename t_csa::char_type c,
+    typename t_csa::size_type & l_res,
+    typename t_csa::size_type & r_res,
+    SDSL_UNUSED
+    typename std::enable_if<std::is_same<csa_tag, typename t_csa::index_category>::value, csa_tag>::type x = csa_tag())
 {
     assert(l <= r);
     assert(r < csa.size());
@@ -215,17 +225,16 @@ backward_search(const t_csa & csa,
  *         FOCS 2000: 390-398
  */
 template <class t_csa, class t_pat_iter>
-typename t_csa::size_type
-backward_search(const t_csa & csa,
-                typename t_csa::size_type l,
-                typename t_csa::size_type r,
-                t_pat_iter begin,
-                t_pat_iter end,
-                typename t_csa::size_type & l_res,
-                typename t_csa::size_type & r_res,
-                SDSL_UNUSED
-                typename std::enable_if<std::is_same<csa_tag, typename t_csa::index_category>::value, csa_tag>::type x =
-                                                                  csa_tag())
+typename t_csa::size_type backward_search(
+    t_csa const & csa,
+    typename t_csa::size_type l,
+    typename t_csa::size_type r,
+    t_pat_iter begin,
+    t_pat_iter end,
+    typename t_csa::size_type & l_res,
+    typename t_csa::size_type & r_res,
+    SDSL_UNUSED
+    typename std::enable_if<std::is_same<csa_tag, typename t_csa::index_category>::value, csa_tag>::type x = csa_tag())
 {
     t_pat_iter it = end;
     while (begin < it and r + 1 - l > 0)
@@ -261,7 +270,7 @@ template <class t_wt,
           class t_isa,
           class t_alphabet_strat>
 typename csa_wt<t_wt>::size_type
-bidirectional_search(const csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat> & csa_fwd,
+bidirectional_search(csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat> const & csa_fwd,
                      typename csa_wt<>::size_type l_fwd,
                      typename csa_wt<>::size_type r_fwd,
                      typename csa_wt<>::size_type l_bwd,
@@ -327,26 +336,20 @@ template <class t_pat_iter,
           class t_sa_sample_strat,
           class t_isa,
           class t_alphabet_strat>
-typename csa_wt<>::size_type
-bidirectional_search_backward(const csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat> &
-                                                                                csa_fwd,
-                              SDSL_UNUSED const csa_wt<t_wt,
-                                                       t_dens,
-                                                       t_inv_dens,
-                                                       t_sa_sample_strat,
-                                                       t_isa,
-                                                       t_alphabet_strat> & csa_bwd,
-                              typename csa_wt<>::size_type l_fwd,
-                              typename csa_wt<>::size_type r_fwd,
-                              typename csa_wt<>::size_type l_bwd,
-                              typename csa_wt<>::size_type r_bwd,
-                              t_pat_iter begin,
-                              t_pat_iter end,
-                              typename csa_wt<>::size_type & l_fwd_res,
-                              typename csa_wt<>::size_type & r_fwd_res,
-                              typename csa_wt<>::size_type & l_bwd_res,
-                              typename csa_wt<>::size_type & r_bwd_res,
-                              SDSL_UNUSED typename std::enable_if<t_wt::lex_ordered, csa_tag>::type x = csa_tag())
+typename csa_wt<>::size_type bidirectional_search_backward(
+    csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat> const & csa_fwd,
+    SDSL_UNUSED csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat> const & csa_bwd,
+    typename csa_wt<>::size_type l_fwd,
+    typename csa_wt<>::size_type r_fwd,
+    typename csa_wt<>::size_type l_bwd,
+    typename csa_wt<>::size_type r_bwd,
+    t_pat_iter begin,
+    t_pat_iter end,
+    typename csa_wt<>::size_type & l_fwd_res,
+    typename csa_wt<>::size_type & r_fwd_res,
+    typename csa_wt<>::size_type & l_bwd_res,
+    typename csa_wt<>::size_type & r_bwd_res,
+    SDSL_UNUSED typename std::enable_if<t_wt::lex_ordered, csa_tag>::type x = csa_tag())
 {
     t_pat_iter it = end;
     while (begin < it and r_fwd + 1 - l_fwd > 0)
@@ -407,26 +410,20 @@ template <class t_pat_iter,
           class t_sa_sample_strat,
           class t_isa,
           class t_alphabet_strat>
-typename csa_wt<t_wt>::size_type
-bidirectional_search_forward(SDSL_UNUSED const csa_wt<t_wt,
-                                                      t_dens,
-                                                      t_inv_dens,
-                                                      t_sa_sample_strat,
-                                                      t_isa,
-                                                      t_alphabet_strat> & csa_fwd,
-                             const csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat> &
-                                                                               csa_bwd,
-                             typename csa_wt<>::size_type l_fwd,
-                             typename csa_wt<>::size_type r_fwd,
-                             typename csa_wt<>::size_type l_bwd,
-                             typename csa_wt<>::size_type r_bwd,
-                             t_pat_iter begin,
-                             t_pat_iter end,
-                             typename csa_wt<>::size_type & l_fwd_res,
-                             typename csa_wt<>::size_type & r_fwd_res,
-                             typename csa_wt<>::size_type & l_bwd_res,
-                             typename csa_wt<>::size_type & r_bwd_res,
-                             SDSL_UNUSED typename std::enable_if<t_wt::lex_ordered, csa_tag>::type x = csa_tag())
+typename csa_wt<t_wt>::size_type bidirectional_search_forward(
+    SDSL_UNUSED csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat> const & csa_fwd,
+    csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat> const & csa_bwd,
+    typename csa_wt<>::size_type l_fwd,
+    typename csa_wt<>::size_type r_fwd,
+    typename csa_wt<>::size_type l_bwd,
+    typename csa_wt<>::size_type r_bwd,
+    t_pat_iter begin,
+    t_pat_iter end,
+    typename csa_wt<>::size_type & l_fwd_res,
+    typename csa_wt<>::size_type & r_fwd_res,
+    typename csa_wt<>::size_type & l_bwd_res,
+    typename csa_wt<>::size_type & r_bwd_res,
+    SDSL_UNUSED typename std::enable_if<t_wt::lex_ordered, csa_tag>::type x = csa_tag())
 {
     t_pat_iter it = begin;
     while (it < end and r_fwd + 1 - l_fwd > 0)
@@ -464,16 +461,17 @@ bidirectional_search_forward(SDSL_UNUSED const csa_wt<t_wt,
  *        \f$ \Order{ t_{backward\_search} } \f$
  */
 template <class t_csa, class t_pat_iter>
-typename t_csa::size_type count(const t_csa & csa, t_pat_iter begin, t_pat_iter end, csa_tag)
+typename t_csa::size_type count(t_csa const & csa, t_pat_iter begin, t_pat_iter end, csa_tag)
 {
-    if (end - begin > (typename std::iterator_traits<t_pat_iter>::difference_type)csa.size()) return 0;
+    if (end - begin > (typename std::iterator_traits<t_pat_iter>::difference_type)csa.size())
+        return 0;
     typename t_csa::size_type t = 0; // dummy variable for the backward_search call
     typename t_csa::size_type result = backward_search(csa, 0, csa.size() - 1, begin, end, t, t);
     return result;
 }
 
 template <class t_csx, class t_pat_iter>
-typename t_csx::size_type count(const t_csx & csx, t_pat_iter begin, t_pat_iter end)
+typename t_csx::size_type count(t_csx const & csx, t_pat_iter begin, t_pat_iter end)
 {
     typename t_csx::index_category tag;
     return count(csx, begin, end, tag);
@@ -492,7 +490,7 @@ typename t_csx::size_type count(const t_csx & csx, t_pat_iter begin, t_pat_iter 
  */
 
 template <class t_csx>
-typename t_csx::size_type count(const t_csx & csx, const typename t_csx::string_type & pat)
+typename t_csx::size_type count(t_csx const & csx, const typename t_csx::string_type & pat)
 {
     typename t_csx::index_category tag;
     return count(csx, pat.begin(), pat.end(), tag);
@@ -511,7 +509,7 @@ typename t_csx::size_type count(const t_csx & csx, const typename t_csx::string_
  *         by the given pattern.
  */
 template <typename t_csx, typename t_pat_iter>
-auto lex_interval(const t_csx & csx, t_pat_iter begin, t_pat_iter end) -> std::array<typename t_csx::size_type, 2>
+auto lex_interval(t_csx const & csx, t_pat_iter begin, t_pat_iter end) -> std::array<typename t_csx::size_type, 2>
 {
     std::array<typename t_csx::size_type, 2> res;
     backward_search(csx, 0, csx.size() - 1, begin, end, res[0], res[1]);
@@ -534,17 +532,20 @@ auto lex_interval(const t_csx & csx, t_pat_iter begin, t_pat_iter end) -> std::a
  *         occurrences of pattern in the CSA.
  */
 template <class t_csa, class t_pat_iter, class t_rac = int_vector<64>>
-t_rac locate(const t_csa & csa,
+t_rac locate(t_csa const & csa,
              t_pat_iter begin,
              t_pat_iter end,
              SDSL_UNUSED
              typename std::enable_if<std::is_same<csa_tag, typename t_csa::index_category>::value, csa_tag>::type x =
-                                                               csa_tag())
+                 csa_tag())
 {
     typename t_csa::size_type occ_begin, occ_end, occs;
     occs = backward_search(csa, 0, csa.size() - 1, begin, end, occ_begin, occ_end);
     t_rac occ(occs);
-    for (typename t_csa::size_type i = 0; i < occs; ++i) { occ[i] = csa[occ_begin + i]; }
+    for (typename t_csa::size_type i = 0; i < occs; ++i)
+    {
+        occ[i] = csa[occ_begin + i];
+    }
     return occ;
 }
 
@@ -562,7 +563,7 @@ t_rac locate(const t_csa & csa,
  *         occurrences of pattern in the CSA.
  */
 template <class t_csx, class t_rac = int_vector<64>>
-t_rac locate(const t_csx & csx, const typename t_csx::string_type & pat)
+t_rac locate(t_csx const & csx, const typename t_csx::string_type & pat)
 {
     typename t_csx::index_category tag;
     return locate<t_csx, decltype(pat.begin()), t_rac>(csx, pat.begin(), pat.end(), tag);
@@ -581,13 +582,13 @@ t_rac locate(const t_csx & csx, const typename t_csx::string_type & pat)
  * complexity \f$ \Order{ (end-begin+1) \cdot t_{\Psi} + t_{SA^{-1}} } \f$
  */
 template <class t_csa, class t_text_iter>
-typename t_csa::size_type extract(const t_csa & csa,
-                                  typename t_csa::size_type begin,
-                                  typename t_csa::size_type end,
-                                  t_text_iter text,
-                                  SDSL_UNUSED
-                                  typename std::enable_if<std::is_same<csa_tag, typename t_csa::index_category>::value,
-                                                          csa_tag>::type x = csa_tag())
+typename t_csa::size_type extract(
+    t_csa const & csa,
+    typename t_csa::size_type begin,
+    typename t_csa::size_type end,
+    t_text_iter text,
+    SDSL_UNUSED
+    typename std::enable_if<std::is_same<csa_tag, typename t_csa::index_category>::value, csa_tag>::type x = csa_tag())
 {
     typename t_csa::extract_category extract_tag;
     return extract(csa, begin, end, text, extract_tag);
@@ -595,11 +596,8 @@ typename t_csa::size_type extract(const t_csa & csa,
 
 //! Specialization of extract for LF-function based CSAs
 template <class t_csa, class t_text_iter>
-typename t_csa::size_type extract(const t_csa & csa,
-                                  typename t_csa::size_type begin,
-                                  typename t_csa::size_type end,
-                                  t_text_iter text,
-                                  lf_tag)
+typename t_csa::size_type
+extract(t_csa const & csa, typename t_csa::size_type begin, typename t_csa::size_type end, t_text_iter text, lf_tag)
 {
     assert(end < csa.size());
     assert(begin <= end);
@@ -622,11 +620,8 @@ typename t_csa::size_type extract(const t_csa & csa,
 
 //! Specialization of extract for \f$\Psi\f$-function based CSAs
 template <class t_csa, class t_text_iter>
-typename t_csa::size_type extract(const t_csa & csa,
-                                  typename t_csa::size_type begin,
-                                  typename t_csa::size_type end,
-                                  t_text_iter text,
-                                  psi_tag)
+typename t_csa::size_type
+extract(t_csa const & csa, typename t_csa::size_type begin, typename t_csa::size_type end, t_text_iter text, psi_tag)
 {
     assert(end < csa.size());
     assert(begin <= end);
@@ -634,7 +629,8 @@ typename t_csa::size_type extract(const t_csa & csa,
     for (typename t_csa::size_type i = 0, order = csa.isa[begin]; steps != 0; --steps, ++i)
     {
         text[i] = first_row_symbol(order, csa);
-        if (steps != 0) order = csa.psi[order];
+        if (steps != 0)
+            order = csa.psi[order];
     }
     return end - begin + 1;
 }
@@ -653,13 +649,12 @@ typename t_csa::size_type extract(const t_csa & csa,
  *        \f$ \Order{ (end-begin+1) \cdot t_{\Psi} + t_{SA^{-1}} } \f$
  */
 template <class t_csa>
-typename t_csa::string_type
-extract(const t_csa & csa,
-        typename t_csa::size_type begin,
-        typename t_csa::size_type end,
-        SDSL_UNUSED
-        typename std::enable_if<std::is_same<csa_tag, typename t_csa::index_category>::value, csa_tag>::type x =
-                                                          csa_tag())
+typename t_csa::string_type extract(
+    t_csa const & csa,
+    typename t_csa::size_type begin,
+    typename t_csa::size_type end,
+    SDSL_UNUSED
+    typename std::enable_if<std::is_same<csa_tag, typename t_csa::index_category>::value, csa_tag>::type x = csa_tag())
 {
     assert(end <= csa.size());
     assert(begin <= end);

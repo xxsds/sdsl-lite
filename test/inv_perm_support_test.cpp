@@ -4,6 +4,7 @@
 #include <vector>
 
 #include <sdsl/inv_perm_support.hpp>
+#include <sdsl/rank_support_v.hpp>
 #include <sdsl/util.hpp>
 
 #include <gtest/gtest.h>
@@ -19,10 +20,12 @@ std::string temp_dir;
 // The fixture for testing class int_vector.
 class inv_perm_support_test : public ::testing::Test
 {
-  protected:
-    inv_perm_support_test() {}
+protected:
+    inv_perm_support_test()
+    {}
 
-    virtual ~inv_perm_support_test() {}
+    virtual ~inv_perm_support_test()
+    {}
 
     virtual void SetUp()
     {
@@ -39,21 +42,28 @@ class inv_perm_support_test : public ::testing::Test
         for (size_t i = 0; i < perms.size(); ++i)
         {
             auto iiv = perms[i];
-            for (size_t j = 0; j < perms[i].size(); ++j) { iiv[perms[i][j]] = j; }
+            for (size_t j = 0; j < perms[i].size(); ++j)
+            {
+                iiv[perms[i][j]] = j;
+            }
             inv_perms.emplace_back(iiv);
         }
     }
 
-    virtual void TearDown() {}
+    virtual void TearDown()
+    {}
 
     std::vector<sdsl::int_vector<>> perms;
     std::vector<sdsl::int_vector<>> inv_perms;
 };
 
-void compare(const sdsl::int_vector<> & inv_perm, const sdsl::inv_perm_support<> & ips)
+void compare(sdsl::int_vector<> const & inv_perm, sdsl::inv_perm_support<> const & ips)
 {
     ASSERT_EQ(inv_perm.size(), ips.size());
-    for (size_t j = 0; j < ips.size(); ++j) { ASSERT_EQ(inv_perm[j], ips[j]); }
+    for (size_t j = 0; j < ips.size(); ++j)
+    {
+        ASSERT_EQ(inv_perm[j], ips[j]);
+    }
 }
 
 //! Test Constructors
@@ -94,7 +104,7 @@ TEST_F(inv_perm_support_test, swap)
         {
             sdsl::inv_perm_support<> tmp;
             ASSERT_EQ((size_type)0, tmp.size());
-            sdsl::util::swap_support(tmp, ips, &perms[i], (const sdsl::int_vector<> *)nullptr);
+            sdsl::util::swap_support(tmp, ips, &perms[i], (sdsl::int_vector<> const *)nullptr);
             ASSERT_EQ((size_type)0, ips.size());
             compare(inv_perms[i], tmp);
         }

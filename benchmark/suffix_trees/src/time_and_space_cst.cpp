@@ -21,14 +21,12 @@ std::default_random_engine & get_generator()
 template <class t_cst>
 class node_sampler_uniform
 {
-  private:
-    const t_cst & m_cst;
+private:
+    t_cst const & m_cst;
     std::uniform_int_distribution<typename t_cst::size_type> m_distribution;
 
-  public:
-    node_sampler_uniform(const t_cst & cst)
-      : m_cst(cst)
-      , m_distribution(0, m_cst.size() - 2)
+public:
+    node_sampler_uniform(t_cst const & cst) : m_cst(cst), m_distribution(0, m_cst.size() - 2)
     {}
 
     std::vector<typename t_cst::node_type> get_data(size_t sample_count, size_t)
@@ -49,16 +47,16 @@ class node_sampler_uniform
 template <class t_cst>
 class node_sampler_iterate_sl
 {
-  private:
-    const t_cst & m_cst;
+private:
+    t_cst const & m_cst;
     std::uniform_int_distribution<typename t_cst::size_type> m_distribution;
     typename t_cst::node_type m_last_node;
 
-  public:
-    node_sampler_iterate_sl(const t_cst & cst)
-      : m_cst(cst)
-      , m_distribution(0, m_cst.size() - 2)
-      , m_last_node(cst.root())
+public:
+    node_sampler_iterate_sl(t_cst const & cst) :
+        m_cst(cst),
+        m_distribution(0, m_cst.size() - 2),
+        m_last_node(cst.root())
     {}
 
     std::vector<typename t_cst::node_type> get_data(size_t sample_count, size_t burst_size)
@@ -68,7 +66,10 @@ class node_sampler_iterate_sl
 
         for (size_t i = 0; i < sample_count; i++)
         {
-            if (i % burst_size == 0) { m_last_node = m_cst.root(); }
+            if (i % burst_size == 0)
+            {
+                m_last_node = m_cst.root();
+            }
 
             if (m_last_node == m_cst.root())
             {
@@ -90,16 +91,16 @@ class node_sampler_iterate_sl
 template <class t_cst>
 class node_sampler_iterate_parent
 {
-  private:
-    const t_cst & m_cst;
+private:
+    t_cst const & m_cst;
     std::uniform_int_distribution<typename t_cst::size_type> m_distribution;
     typename t_cst::node_type m_last_node;
 
-  public:
-    node_sampler_iterate_parent(const t_cst & cst)
-      : m_cst(cst)
-      , m_distribution(0, m_cst.size() - 2)
-      , m_last_node(cst.root())
+public:
+    node_sampler_iterate_parent(t_cst const & cst) :
+        m_cst(cst),
+        m_distribution(0, m_cst.size() - 2),
+        m_last_node(cst.root())
     {}
 
     std::vector<typename t_cst::node_type> get_data(size_t sample_count, size_t burst_size)
@@ -109,7 +110,10 @@ class node_sampler_iterate_parent
 
         for (size_t i = 0; i < sample_count; i++)
         {
-            if (i % burst_size == 0) { m_last_node = m_cst.root(); }
+            if (i % burst_size == 0)
+            {
+                m_last_node = m_cst.root();
+            }
 
             if (m_last_node == m_cst.root())
             {
@@ -129,7 +133,7 @@ class node_sampler_iterate_parent
 };
 
 template <class t_cst>
-std::pair<typename t_cst::node_type, typename t_cst::node_type> lca_argument(const t_cst & cst,
+std::pair<typename t_cst::node_type, typename t_cst::node_type> lca_argument(t_cst const & cst,
                                                                              const typename t_cst::node_type v)
 {
     // Two nodes close to each other
@@ -140,13 +144,13 @@ std::pair<typename t_cst::node_type, typename t_cst::node_type> lca_argument(con
 }
 
 template <class t_cst>
-void test_lca(const t_cst & cst, const std::pair<typename t_cst::node_type, typename t_cst::node_type> & arg)
+void test_lca(t_cst const & cst, std::pair<typename t_cst::node_type, typename t_cst::node_type> const & arg)
 {
     cst.lca(arg.first, arg.second);
 }
 
 template <class t_cst>
-std::pair<typename t_cst::node_type, typename t_cst::size_type> letter_argument(const t_cst & cst,
+std::pair<typename t_cst::node_type, typename t_cst::size_type> letter_argument(t_cst const & cst,
                                                                                 const typename t_cst::node_type v)
 {
     auto d = cst.depth(v);
@@ -164,25 +168,25 @@ std::pair<typename t_cst::node_type, typename t_cst::size_type> letter_argument(
 }
 
 template <class t_cst>
-void test_letter(const t_cst & cst, const std::pair<typename t_cst::node_type, typename t_cst::size_type> & arg)
+void test_letter(t_cst const & cst, std::pair<typename t_cst::node_type, typename t_cst::size_type> const & arg)
 {
     cst.edge(arg.first, arg.second);
 }
 
 template <class t_cst>
-typename t_cst::node_type slink_argument(const t_cst &, const typename t_cst::node_type v)
+typename t_cst::node_type slink_argument(t_cst const &, const typename t_cst::node_type v)
 {
     return v;
 }
 
 template <class t_cst>
-void test_slink(const t_cst & cst, const typename t_cst::node_type & v)
+void test_slink(t_cst const & cst, const typename t_cst::node_type & v)
 {
     cst.sl(v);
 }
 
 template <class t_cst>
-std::pair<typename t_cst::node_type, typename t_cst::char_type> child_argument(const t_cst & cst,
+std::pair<typename t_cst::node_type, typename t_cst::char_type> child_argument(t_cst const & cst,
                                                                                const typename t_cst::node_type v)
 {
     std::uniform_int_distribution<typename t_cst::size_type> distribution(cst.lb(v), cst.rb(v));
@@ -194,25 +198,25 @@ std::pair<typename t_cst::node_type, typename t_cst::char_type> child_argument(c
 }
 
 template <class t_cst>
-void test_child(const t_cst & cst, const std::pair<typename t_cst::node_type, typename t_cst::char_type> & arg)
+void test_child(t_cst const & cst, std::pair<typename t_cst::node_type, typename t_cst::char_type> const & arg)
 {
     cst.child(arg.first, arg.second);
 }
 
 template <class t_cst>
-typename t_cst::node_type depth_argument(const t_cst &, const typename t_cst::node_type v)
+typename t_cst::node_type depth_argument(t_cst const &, const typename t_cst::node_type v)
 {
     return v;
 }
 
 template <class t_cst>
-void test_depth(const t_cst & cst, const typename t_cst::node_type & v)
+void test_depth(t_cst const & cst, const typename t_cst::node_type & v)
 {
     cst.depth(v);
 }
 
 template <class t_cst>
-typename t_cst::node_type parent_argument(const t_cst & cst, const typename t_cst::node_type v)
+typename t_cst::node_type parent_argument(t_cst const & cst, const typename t_cst::node_type v)
 {
     std::uniform_int_distribution<typename t_cst::size_type> distribution(cst.lb(v), cst.rb(v));
 
@@ -223,15 +227,15 @@ typename t_cst::node_type parent_argument(const t_cst & cst, const typename t_cs
 }
 
 template <class t_cst>
-void test_parent(const t_cst & cst, const typename t_cst::node_type & v)
+void test_parent(t_cst const & cst, const typename t_cst::node_type & v)
 {
     cst.parent(v);
 }
 
 template <class t_cst, class t_test_func, class t_prepare_func>
-void run_benchmark(const std::string & cst_name,
-                   const t_cst & cst,
-                   const std::string & op_name,
+void run_benchmark(std::string const & cst_name,
+                   t_cst const & cst,
+                   std::string const & op_name,
                    t_test_func test_func,
                    t_prepare_func prepare_func)
 {
@@ -240,7 +244,7 @@ void run_benchmark(const std::string & cst_name,
 
 template <class t_cst, class t_test_func, class t_prepare_func, class t_sampler>
 void run_benchmark(const std::string cst_name,
-                   const t_cst & cst,
+                   t_cst const & cst,
                    const std::string op_name,
                    t_test_func test_func,
                    t_prepare_func prepare_func,
@@ -252,10 +256,16 @@ void run_benchmark(const std::string cst_name,
     std::vector<decltype(prepare_func(cst, cst.root()))> args;
     args.reserve(nodes.size());
 
-    for (auto v : nodes) { args.push_back(prepare_func(cst, v)); }
+    for (auto v : nodes)
+    {
+        args.push_back(prepare_func(cst, v));
+    }
 
     auto start = timer::now();
-    for (auto arg : args) { test_func(cst, arg); }
+    for (auto arg : args)
+    {
+        test_func(cst, arg);
+    }
     auto stop = timer::now();
 
     unsigned long long nanos = duration_cast<nanoseconds>(stop - start).count();
@@ -265,7 +275,7 @@ void run_benchmark(const std::string cst_name,
 }
 
 template <class t_cst>
-void run_benchmark(std::string cst_name, const t_cst & cst)
+void run_benchmark(std::string cst_name, t_cst const & cst)
 {
     run_benchmark(cst_name, cst, "LCA", test_lca<t_cst>, lca_argument<t_cst>);
     run_benchmark(cst_name, cst, "LETTER", test_letter<t_cst>, letter_argument<t_cst>);
@@ -283,7 +293,7 @@ int main(int argc, char ** argv)
         return 1;
     }
 
-    const char * cst_file = argv[1];
+    char const * cst_file = argv[1];
 
     cst_type cst;
     load_from_file(cst, cst_file);

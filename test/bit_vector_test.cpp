@@ -1,6 +1,10 @@
 #include <string>
 
-#include <sdsl/bit_vectors.hpp> // for rrr_vector
+#include <sdsl/bit_vector_il.hpp>
+#include <sdsl/hyb_vector.hpp>
+#include <sdsl/int_vector.hpp>
+#include <sdsl/rrr_vector.hpp>
+#include <sdsl/sd_vector.hpp>
 
 #include "common.hpp"
 
@@ -48,7 +52,7 @@ typedef Types<bit_vector,
               sd_vector<>,
               sd_vector<rrr_vector<63>>,
               hyb_vector<>>
-                                                  Implementations;
+    Implementations;
 
 #else
 
@@ -81,10 +85,16 @@ TYPED_TEST(bit_vector_test, access)
     ASSERT_TRUE(load_from_file(bv, test_file));
     TypeParam c_bv(bv);
     ASSERT_EQ(bv.size(), c_bv.size());
-    for (uint64_t j = 0; j < bv.size(); ++j) { ASSERT_EQ((bool)(bv[j]), (bool)(c_bv[j])); }
+    for (uint64_t j = 0; j < bv.size(); ++j)
+    {
+        ASSERT_EQ((bool)(bv[j]), (bool)(c_bv[j]));
+    }
     TypeParam mo_bv = TypeParam(bv);
     ASSERT_EQ(bv.size(), mo_bv.size());
-    for (uint64_t j = 0; j < bv.size(); ++j) { ASSERT_EQ((bool)(bv[j]), (bool)(c_bv[j])); }
+    for (uint64_t j = 0; j < bv.size(); ++j)
+    {
+        ASSERT_EQ((bool)(bv[j]), (bool)(c_bv[j]));
+    }
 }
 
 TYPED_TEST(bit_vector_test, get_int)
@@ -94,7 +104,10 @@ TYPED_TEST(bit_vector_test, get_int)
     TypeParam c_bv(bv);
     ASSERT_EQ(bv.size(), c_bv.size());
     uint8_t len = 63;
-    for (uint64_t j = 0; j + len < bv.size(); j += len) { ASSERT_EQ(bv.get_int(j, len), c_bv.get_int(j, len)); }
+    for (uint64_t j = 0; j + len < bv.size(); j += len)
+    {
+        ASSERT_EQ(bv.get_int(j, len), c_bv.get_int(j, len));
+    }
 }
 
 TYPED_TEST(bit_vector_test, get_int_all_block_sizes)
@@ -105,7 +118,8 @@ TYPED_TEST(bit_vector_test, get_int_all_block_sizes)
     auto dice = bind(distribution, rng);
     for (size_t i = 1001; i < bv.size(); ++i)
     {
-        if (0 == dice()) bv[i] = 1;
+        if (0 == dice())
+            bv[i] = 1;
     }
 
     TypeParam c_bv(bv);
@@ -129,7 +143,10 @@ TYPED_TEST(bit_vector_test, swap)
     std::swap(bv_empty, c_bv);
     ASSERT_EQ((uint64_t)0, c_bv.size());
     ASSERT_EQ(bv.size(), bv_empty.size());
-    for (uint64_t j = 0; j < bv.size(); ++j) { ASSERT_EQ((bool)(bv[j]), (bool)(bv_empty[j])); }
+    for (uint64_t j = 0; j < bv.size(); ++j)
+    {
+        ASSERT_EQ((bool)(bv[j]), (bool)(bv_empty[j]));
+    }
 }
 
 TYPED_TEST(bit_vector_test, delete_)
@@ -223,15 +240,15 @@ template <typename in_archive_t, typename out_archive_t, typename TypeParam>
 void do_serialisation(TypeParam const & l)
 {
     {
-        std::ofstream os{ temp_file, std::ios::binary };
-        out_archive_t oarchive{ os };
+        std::ofstream os{temp_file, std::ios::binary};
+        out_archive_t oarchive{os};
         oarchive(l);
     }
 
     TypeParam in_l{};
     {
-        std::ifstream is{ temp_file, std::ios::binary };
-        in_archive_t iarchive{ is };
+        std::ifstream is{temp_file, std::ios::binary};
+        in_archive_t iarchive{is};
         iarchive(in_l);
     }
     EXPECT_EQ(l, in_l);
@@ -259,6 +276,9 @@ TYPED_TEST(bit_vector_test, cereal)
 int main(int argc, char * argv[])
 {
     ::testing::InitGoogleTest(&argc, argv);
-    if (init_2_arg_test(argc, argv, "BV", test_file, temp_dir, temp_file) != 0) { return 1; }
+    if (init_2_arg_test(argc, argv, "BV", test_file, temp_dir, temp_file) != 0)
+    {
+        return 1;
+    }
     return RUN_ALL_TESTS();
 }
