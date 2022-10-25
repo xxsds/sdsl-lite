@@ -7,6 +7,7 @@ endif ()
 # https://github.com/seqan/seqan3/blob/fddd89708f8fa858521a9cf958900232c7e8ef89/test/cmake/seqan3_require_test.cmake
 macro (add_gtest)
     set (SDSL_EXTERNAL_PROJECT_CMAKE_ARGS "")
+    list (APPEND SDSL_EXTERNAL_PROJECT_CMAKE_ARGS "--no-warn-unused-cli")
     list (APPEND SDSL_EXTERNAL_PROJECT_CMAKE_ARGS "-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}")
     list (APPEND SDSL_EXTERNAL_PROJECT_CMAKE_ARGS "-DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}")
     list (APPEND SDSL_EXTERNAL_PROJECT_CMAKE_ARGS "-DCMAKE_CXX_COMPILER_LAUNCHER=${CMAKE_CXX_COMPILER_LAUNCHER}")
@@ -14,7 +15,7 @@ macro (add_gtest)
     list (APPEND SDSL_EXTERNAL_PROJECT_CMAKE_ARGS "-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}")
     list (APPEND SDSL_EXTERNAL_PROJECT_CMAKE_ARGS "-DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}")
     list (APPEND SDSL_EXTERNAL_PROJECT_CMAKE_ARGS "-DCMAKE_VERBOSE_MAKEFILE=${CMAKE_VERBOSE_MAKEFILE}")
-    list (APPEND SDSL_EXTERNAL_PROJECT_CMAKE_ARGS "-DCMAKE_POLICY_DEFAULT_CMP0025=NEW")
+
 
     set (gtest_project_args ${SDSL_EXTERNAL_PROJECT_CMAKE_ARGS})
     list (APPEND gtest_project_args "-DBUILD_GMOCK=0")
@@ -22,20 +23,11 @@ macro (add_gtest)
     # force that libraries are installed to `lib/`, because GNUInstallDirs might install it into `lib64/`
     list (APPEND gtest_project_args "-DCMAKE_INSTALL_LIBDIR=${PROJECT_BINARY_DIR}/lib/")
 
-    # google sets CMAKE_DEBUG_POSTFIX = "d"
     set (gtest_main_path
          "${PROJECT_BINARY_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}gtest_main${CMAKE_STATIC_LIBRARY_SUFFIX}"
     )
-    if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-        set (gtest_main_path
-             "${PROJECT_BINARY_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}gtest_maind${CMAKE_STATIC_LIBRARY_SUFFIX}"
-        )
-    endif ()
 
     set (gtest_path "${PROJECT_BINARY_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}gtest${CMAKE_STATIC_LIBRARY_SUFFIX}")
-    if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-        set (gtest_path "${PROJECT_BINARY_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}gtestd${CMAKE_STATIC_LIBRARY_SUFFIX}")
-    endif ()
 
     include (ExternalProject)
     ExternalProject_Add (
