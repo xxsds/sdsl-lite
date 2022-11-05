@@ -11,6 +11,15 @@
 #include <assert.h>
 #include <stdint.h>
 
+// clang-format off
+// Cyclic includes start
+#include <sdsl/coder_comma.hpp>
+#include <sdsl/coder_elias_delta.hpp>
+#include <sdsl/coder_elias_gamma.hpp>
+#include <sdsl/coder_fibonacci.hpp>
+// Cyclic includes end
+// clang-format on
+
 namespace sdsl
 {
 

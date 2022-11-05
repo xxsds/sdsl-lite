@@ -20,6 +20,22 @@
 #include <sdsl/wt_helper.hpp>
 #include <sdsl/wt_pc.hpp>
 
+// clang-format off
+// Cyclic includes start
+#include <sdsl/construct.hpp>
+#include <sdsl/wm_int.hpp>
+#include <sdsl/wt_algorithm.hpp>
+#include <sdsl/wt_ap.hpp>
+#include <sdsl/wt_blcd.hpp>
+#include <sdsl/wt_epr.hpp>
+#include <sdsl/wt_gmr.hpp>
+#include <sdsl/wt_huff.hpp>
+#include <sdsl/wt_hutu.hpp>
+#include <sdsl/wt_int.hpp>
+#include <sdsl/wt_rlmn.hpp>
+// Cyclic includes end
+// clang-format on
+
 namespace sdsl
 {
 struct balanced_shape;

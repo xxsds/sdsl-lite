@@ -19,6 +19,16 @@
 #include <sdsl/enc_vector.hpp>
 #include <sdsl/wt_int.hpp>
 
+// clang-format off
+// Cyclic includes start
+#include <sdsl/sdsl_concepts.hpp>
+#include <sdsl/construct.hpp>
+#include <sdsl/csa_bitcompressed.hpp>
+#include <sdsl/suffix_array_algorithm.hpp>
+#include <sdsl/wavelet_trees.hpp>
+// Cyclic includes end
+// clang-format on
+
 namespace sdsl
 {
 

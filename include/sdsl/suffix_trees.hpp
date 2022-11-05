@@ -20,4 +20,12 @@
  *    - ..
  */
 
+// clang-format off
+// Cyclic includes start
+#include <sdsl/cst_fully.hpp>
+#include <sdsl/cst_sada.hpp>
+#include <sdsl/cst_sct3.hpp>
+// Cyclic includes end
+// clang-format on
+
 #endif

@@ -2169,4 +2169,11 @@ int_vector_trait<8>::end(const typename int_vector_trait<8>::int_vector_type * v
 
 } // end namespace sdsl
 
+// clang-format off
+// Cyclic includes start
+#include <sdsl/int_vector_buffer.hpp>
+#include <sdsl/int_vector_mapper.hpp>
+// Cyclic includes end
+// clang-format on
+
 #endif
