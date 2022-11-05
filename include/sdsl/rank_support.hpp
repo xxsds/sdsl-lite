@@ -285,4 +285,12 @@ struct rank_support_trait<11, 2>
 
 } // namespace sdsl
 
+// clang-format off
+// Cyclic includes start
+#include <sdsl/rank_support_scan.hpp>
+#include <sdsl/rank_support_v.hpp>
+#include <sdsl/rank_support_v5.hpp>
+// Cyclic includes end
+// clang-format on
+
 #endif

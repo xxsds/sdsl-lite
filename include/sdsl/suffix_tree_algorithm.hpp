@@ -18,6 +18,12 @@
 #include <sdsl/int_vector.hpp>
 #include <sdsl/sdsl_concepts.hpp>
 
+// clang-format off
+// Cyclic includes start
+#include <sdsl/suffix_array_algorithm.hpp>
+// Cyclic includes end
+// clang-format on
+
 namespace sdsl
 {
 

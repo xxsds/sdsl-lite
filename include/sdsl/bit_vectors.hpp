@@ -8,4 +8,14 @@
 #ifndef INCLUDED_SDSL_BITVECTORS
 #define INCLUDED_SDSL_BITVECTORS
 
+// clang-format off
+// Cyclic includes start
+#include <sdsl/bit_vector_il.hpp>
+#include <sdsl/hyb_vector.hpp>
+#include <sdsl/int_vector.hpp>
+#include <sdsl/rrr_vector.hpp>
+#include <sdsl/sd_vector.hpp>
+// Cyclic includes end
+// clang-format on
+
 #endif

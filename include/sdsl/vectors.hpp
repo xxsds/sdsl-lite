@@ -5,4 +5,13 @@
 #ifndef SDSL_INCLUDED_VECTORS
 #define SDSL_INCLUDED_VECTORS
 
+// clang-format off
+// Cyclic includes start
+#include <sdsl/dac_vector.hpp>
+#include <sdsl/enc_vector.hpp>
+#include <sdsl/int_vector.hpp>
+#include <sdsl/vlc_vector.hpp>
+// Cyclic includes end
+// clang-format on
+
 #endif

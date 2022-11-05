@@ -21,4 +21,12 @@
  *   - rr_enclose
  */
 
+// clang-format off
+// Cyclic includes start
+#include <sdsl/bp_support_g.hpp>
+#include <sdsl/bp_support_gg.hpp>
+#include <sdsl/bp_support_sada.hpp>
+// Cyclic includes end
+// clang-format on
+
 #endif
