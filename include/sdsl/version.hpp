@@ -16,7 +16,7 @@
 //!\brief The minor version as MACRO.
 #define SDSL_VERSION_MINOR 0
 //!\brief The patch version as MACRO.
-#define SDSL_VERSION_PATCH 2
+#define SDSL_VERSION_PATCH 3
 
 //!\brief The full version as MACRO (number).
 #define SDSL_VERSION (SDSL_VERSION_MAJOR * 10000 + SDSL_VERSION_MINOR * 100 + SDSL_VERSION_PATCH)
