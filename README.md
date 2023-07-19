@@ -19,7 +19,7 @@
 Other compiler may work, but are not tested within the continuous integration. In general, the latest minor release of each
 listed major compiler version is supported.
 
-* GCC 10, 11, 12
+* GCC 10, 11, 12, 13
 * clang 11, 12, 13, 14
 
 Tests are run with both C++20 and C++23.
