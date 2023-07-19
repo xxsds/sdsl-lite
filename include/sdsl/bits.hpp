@@ -8,7 +8,7 @@
 #ifndef INCLUDED_SDSL_BITS
 #define INCLUDED_SDSL_BITS
 
-# GCC definitions
+// GCC definitions
 #if defined(__x86_64__)
 #include <immintrin.h> // IWYU pragma: keep
 #endif
