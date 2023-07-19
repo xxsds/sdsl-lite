@@ -8,7 +8,17 @@
 #ifndef INCLUDED_SDSL_BITS
 #define INCLUDED_SDSL_BITS
 
+# GCC definitions
+#if defined(__x86_64__)
 #include <immintrin.h> // IWYU pragma: keep
+#endif
+#if defined(__aarch64__) || defined(_M_ARM64)
+#include <arm_neon.h>
+#endif
+#if defined(__powerpc__) || defined(__powerpc64__)
+#include <altivec.h>
+#endif
+
 #include <stddef.h>
 #include <stdint.h> // for uint64_t uint32_t declaration
 #ifdef __SSE4_2__
