@@ -409,7 +409,11 @@ private:
             throw std::runtime_error("could not create temporary file.");
         }
 #else
-        sprintf(tmp_file_name, "%s/tmp_mapper_file_%" PRIu64 "_XXXXXX.sdsl", dir.c_str(), util::pid());
+        snprintf(tmp_file_name,
+                 sizeof(tmp_file_name),
+                 "%s/tmp_mapper_file_%" PRIu64 "_XXXXXX.sdsl",
+                 dir.c_str(),
+                 util::pid());
         int fd = mkstemps(tmp_file_name, 5);
         if (fd == -1)
         {
