@@ -18,6 +18,7 @@ macro (add_gtest)
 
 
     set (gtest_project_args ${SDSL_EXTERNAL_PROJECT_CMAKE_ARGS})
+    list (APPEND gtest_project_args "-DCMAKE_CXX_FLAGS=-w")
     list (APPEND gtest_project_args "-DBUILD_GMOCK=0")
 
     # force that libraries are installed to `lib/`, because GNUInstallDirs might install it into `lib64/`
