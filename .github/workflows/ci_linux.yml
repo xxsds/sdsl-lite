@@ -1,4 +1,4 @@
-name: CI on Linux
+name: Linux
 
 on:
   push:
@@ -14,12 +14,11 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  CMAKE_VERSION: 3.12.4
   TZ: Europe/Berlin
 
 defaults:
   run:
-    shell: bash -ex {0}
+    shell: bash -Eexuo pipefail {0}
 
 jobs:
   build:
@@ -31,195 +30,85 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: "gcc12"
-            cxx: "g++-12"
-            cc: "gcc-12"
+          - name: "gcc13"
+            compiler: "gcc-13"
             build_type: Release
-            build_threads: 2
-            test_threads: 2
             cxx_flags: "-std=c++23"
 
-          - name: "Header gcc12"
-            cxx: "g++-12"
-            cc: "gcc-12"
+          - name: "cereal gcc13"
+            compiler: "gcc-13"
             build_type: Release
-            build_threads: 2
-            test_threads: 2
-            cxx_flags: "-std=c++23"
-            header_test: "ON"
-
-          - name: "ASAN gcc12"
-            cxx: "g++-12"
-            cc: "gcc-12"
-            build_type: Debug
-            build_threads: 2
-            test_threads: 2
-            cxx_flags: "-std=c++23 -fsanitize=address"
-            ctest_exclude: "-E 'faust|moby'"
-            ctest_include: "-R '-im'"
-
-          - name: "cereal gcc12"
-            cxx: "g++-12"
-            cc: "gcc-12"
-            build_type: Release
-            build_threads: 2
-            test_threads: 2
             cxx_flags: "-std=c++23"
             has_cereal: "1"
+
+          - name: "gcc12"
+            compiler: "gcc-12"
+            build_type: Release
+            cxx_flags: "-std=c++23"
 
           - name: "gcc11"
-            cxx: "g++-11"
-            cc: "gcc-11"
+            compiler: "gcc-11"
             build_type: Release
-            build_threads: 2
-            test_threads: 2
             cxx_flags: "-std=c++23"
 
-          - name: "gcc10"
-            cxx: "g++-10"
-            cc: "gcc-10"
+          - name: "clang16"
+            compiler: "clang-16"
             build_type: Release
-            build_threads: 2
-            test_threads: 2
-            cxx_flags: "-std=c++20"
-
-          - name: "clang14"
-            cxx: "clang++-14"
-            cc: "clang-14"
-            build_type: Release
-            build_threads: 2
-            test_threads: 2
             cxx_flags: "-std=c++2b"
 
-          - name: "Header clang14"
-            cxx: "clang++-14"
-            cc: "clang-14"
+          - name: "cereal clang16"
+            compiler: "clang-16"
             build_type: Release
-            build_threads: 2
-            test_threads: 2
-            cxx_flags: "-std=c++2b"
-            header_test: "ON"
-
-          - name: "ASAN clang14"
-            cxx: "clang++-14"
-            cc: "clang-14"
-            build_type: Debug
-            build_threads: 2
-            test_threads: 2
-            cxx_flags: "-std=c++2b -fsanitize=address"
-            ctest_exclude: "-E 'faust|moby'"
-            ctest_include: "-R '-im'"
-
-          - name: "cereal clang14"
-            cxx: "clang++-14"
-            cc: "clang-14"
-            build_type: Release
-            build_threads: 2
-            test_threads: 2
             cxx_flags: "-std=c++2b"
             has_cereal: "1"
 
-          - name: "clang13"
-            cxx: "clang++-13"
-            cc: "clang-13"
+          - name: "clang15"
+            compiler: "clang-15"
             build_type: Release
-            build_threads: 2
-            test_threads: 2
             cxx_flags: "-std=c++2b"
 
-          - name: "clang12"
-            cxx: "clang++-12"
-            cc: "clang-12"
+          - name: "clang14"
+            compiler: "clang-14"
             build_type: Release
-            build_threads: 2
-            test_threads: 2
             cxx_flags: "-std=c++20"
 
     steps:
-      - name: Checkout SDSL
+      - name: Checkout
         uses: actions/checkout@v3
         with:
-          path: sdsl
-          fetch-depth: 2
+          fetch-depth: 1
           submodules: true
 
-      - name: Checkout SeqAn3
-        uses: actions/checkout@v3
+      - name: Setup toolchain
+        uses: seqan/actions/setup-toolchain@main
         with:
-          repository: seqan/seqan3
-          ref: 39e696830bbdcde0e520c87811db3eb5e083d7c0
-          path: seqan3
-          fetch-depth: 1
-          submodules: false
-
-      - name: Configure APT
-        continue-on-error: true
-        run: bash ./seqan3/.github/workflows/scripts/configure_apt.sh
+          compiler: ${{ matrix.compiler }}
+          ccache_size: 75M
 
       - name: Install CMake
-        run: bash ./seqan3/.github/workflows/scripts/install_cmake.sh
-
-      - name: Install ccache
-        run: sudo apt-get install --yes ccache
-
-      - name: Install compiler ${{ matrix.cxx }}
-        run: sudo apt-get install --yes ${{ matrix.cxx }}
-
-      - name: Load ccache
-        uses: actions/cache@v3
+        uses: seqan/actions/setup-cmake@main
         with:
-          path: .ccache
-          key: ${{ runner.os }}-${{ matrix.name }}-ccache-${{ github.ref }}-${{ github.run_number }}
-          # Restoring: From current branch, otherwise from base branch, otherwise from any branch.
-          restore-keys: |
-            ${{ runner.os }}-${{ matrix.name }}-ccache-${{ github.ref }}
-            ${{ runner.os }}-${{ matrix.name }}-ccache-${{ github.base_ref }}
-            ${{ runner.os }}-${{ matrix.name }}-ccache-
-
-      - name: Tool versions
-        run: |
-          env cmake --version
-          env ${{ matrix.cxx }} --version
+          cmake: 3.12.4
 
       - name: Configure tests
-        env:
-          CXX: ${{ matrix.cxx }}
-          CC: ${{ matrix.cc }}
         run: |
-          mkdir sdsl-build
-          cd sdsl-build
-          cmake ../sdsl -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
-                        -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
-                        -DCMAKE_C_COMPILER_LAUNCHER=ccache \
-                        -DCMAKE_CXX_FLAGS="-pedantic -Wall -Wextra -Werror ${{ matrix.cxx_flags }}" \
-                        -DSDSL_CEREAL=${{ matrix.has_cereal }} \
-                        -DSDSL_HEADER_TEST=${{ matrix.header_test }}
-          make -j${{ matrix.build_threads }} gtest_build
+          mkdir ci-build
+          cd ci-build
+          cmake .. -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+                   -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+                   -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+                   -DCMAKE_CXX_FLAGS="-pedantic -Wall -Wextra -Werror ${{ matrix.cxx_flags }}" \
+                   -DSDSL_CEREAL=${{ matrix.has_cereal }}
+          make -j2 gtest_build
 
       - name: Build tests
-        env:
-          CCACHE_BASEDIR: ${{ github.workspace }}
-          CCACHE_DIR: ${{ github.workspace }}/.ccache
-          CCACHE_COMPRESS: true
-          CCACHE_COMPRESSLEVEL: 6
-          CCACHE_MAXSIZE: 100M
-          CCACHE_IGNOREHEADERS: ${{ github.workspace }}/sdsl/include/sdsl/structure_tree.hpp
         run: |
-          ccache -p || true
-          cd sdsl-build
-          if [[ "${{ matrix.header_test }}" == "ON" ]]; then
-            make sdsl_header_test -k -j${{ matrix.build_threads }}
-          else
-            make sdsl_test_targets sdsl_examples sdsl_tutorials -k -j${{ matrix.build_threads }}
-          fi
-          ccache -s || true
+          ccache -p
+          cd ci-build
+          make sdsl_test_targets sdsl_examples sdsl_tutorials -k -j2
+          ccache -s
 
       - name: Run tests
         run: |
-          cd sdsl-build
-          ctest . -j${{ matrix.test_threads }} \
-                  ${{ matrix.ctest_exclude }} \
-                  ${{ matrix.ctest_include }} \
-            || ctest . -j${{ matrix.test_threads }} \
-                       --output-on-failure \
-                       --rerun-failed
+          cd ci-build
+          ctest . -j2

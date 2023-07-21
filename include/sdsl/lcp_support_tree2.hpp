@@ -253,9 +253,7 @@ void construct_first_child_and_lf_lcp(int_vector_buffer<> & lcp_buf,
 
     osfstream big_lcp_out(big_lcp_file, std::ios::out | std::ios::trunc | std::ios::binary);
 
-    size_type fc_cnt = 0;     // number of lcp values at the first child r
     size_type fc_cnt_big = 0; // number of lcp values at the first child which are big and not reducible
-    size_type fc_cnt_big2 = 0;
     sorted_multi_stack_support vec_stack(n);   // occupies 2n bits
     bit_vector is_big_and_not_reducable(n, 0); // initialized with 0s
     bool is_one_big_and_not_reducable = false; // all positions have to be reducible
@@ -286,7 +284,6 @@ void construct_first_child_and_lf_lcp(int_vector_buffer<> & lcp_buf,
                     else
                     {
                         val = M - 1;
-                        ++fc_cnt_big2;
                     }
                 }
                 else
@@ -294,7 +291,6 @@ void construct_first_child_and_lf_lcp(int_vector_buffer<> & lcp_buf,
                     val = y;
                 }
                 sml_lcp_out.push_back(val);
-                ++fc_cnt;
                 is_one_big_and_not_reducable = false;
             }
         }
@@ -328,7 +324,6 @@ void construct_first_child_and_lf_lcp(int_vector_buffer<> & lcp_buf,
                 else
                 {
                     val = M - 1;
-                    ++fc_cnt_big2;
                 }
             }
             else
@@ -336,7 +331,6 @@ void construct_first_child_and_lf_lcp(int_vector_buffer<> & lcp_buf,
                 val = y;
             }
             sml_lcp_out.push_back(val);
-            ++fc_cnt;
         }
     }
 
