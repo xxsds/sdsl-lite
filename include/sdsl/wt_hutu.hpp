@@ -648,13 +648,11 @@ struct _hutu_shape
 
         int64_t spointer = -1;
         uint64_t qpointer = 0; // use the Array T as a stack
-        int64_t max_nodes = sigma;
         while (qpointer < sigma or spointer >= 1LL)
         {
             if (spointer >= 1LL and (stack[spointer]->level == stack[spointer - 1]->level))
             {
                 ht_node * n_node = new ht_node();
-                max_nodes++;
                 n_node->t = false;
                 n_node->left = stack[spointer - 1];
                 n_node->right = stack[spointer];

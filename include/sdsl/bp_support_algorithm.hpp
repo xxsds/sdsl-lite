@@ -235,14 +235,13 @@ inline bit_vector calculate_pioneers_bitmap_succinct(bit_vector const & bp, uint
     bit_vector pioneer_bitmap(bp.size(), 0);
 
     sorted_stack_support opening_parenthesis(bp.size());
-    uint64_t cur_pioneer_block = 0, last_start = 0, last_j = 0, cur_block = 0, first_index_in_block = 0;
+    uint64_t cur_pioneer_block = 0, last_start = 0, last_j = 0, first_index_in_block = 0;
     // calculate positions of findclose and findopen pioneers
     for (uint64_t j = 0, new_block = block_size; j < bp.size(); ++j, --new_block)
     {
         if (!(new_block))
         {
             cur_pioneer_block = j / block_size;
-            ++cur_block;
             first_index_in_block = j;
             new_block = block_size;
         }

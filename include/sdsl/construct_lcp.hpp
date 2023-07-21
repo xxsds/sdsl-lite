@@ -376,7 +376,6 @@ inline void construct_lcp_go(cache_config & config)
 
         int_vector<8> lcp_sml(n,
                               0); // initialize array for small values of first phase; note lcp[0]=0
-        size_type done_cnt = 0;
 
         for (size_type i = 0; i < n; ++i)
         { // initialize cnt_c
@@ -436,7 +435,6 @@ inline void construct_lcp_go(cache_config & config)
 #endif
                         }
                         lcp_sml[i] = l;
-                        ++done_cnt;
                     }
                     else
                     { // BWT[i] != BWT[i-1] or LF[i] > i
@@ -482,7 +480,6 @@ inline void construct_lcp_go(cache_config & config)
                 rmq_end = j;            // update index of the value of the topmost element
                 if (lf > i)
                 { // if LF[i] > i, we can calculate LCP[LF[i]] in constant time with rmq
-                    ++done_cnt;
                     // rmq query for lcp-values in the interval I=[prev_occ_in_bwt[BWT[i]]+1..i]
                     // rmq is linear in the stack size; can also be implemented with binary search on the stack
                     size_type x_pos = prev_occ_in_bwt[bwti] + 2;
@@ -763,7 +760,6 @@ inline void construct_lcp_goPHI(cache_config & config)
 
         int_vector<8> lcp_sml(n,
                               0); // initialize array for small values of first phase; note lcp[0]=0
-        size_type done_cnt = 0;
 
         for (size_type i = 0; i < n; ++i)
         { // initialize cnt_c
@@ -817,7 +813,6 @@ inline void construct_lcp_goPHI(cache_config & config)
                             l += (text[sai_1 + m] == text[sai + m]);
                         }
                         lcp_sml[i] = l;
-                        ++done_cnt;
                     }
                     else
                     { // BWT[i] != BWT[i-1] or LF[i] > i
@@ -845,7 +840,6 @@ inline void construct_lcp_goPHI(cache_config & config)
                 rmq_end = j;            // update index of the value of the topmost element
                 if (lf > i)
                 { // if LF[i] > i, we can calculate LCP[LF[i]] in constant time with rmq
-                    ++done_cnt;
                     // rmq query for lcp-values in the interval I=[prev_occ_in_bwt[BWT[i]]+1..i]
                     // rmq is linear in the stack size; can also be implemented with binary search on the stack
                     size_type x_pos = prev_occ_in_bwt[bwti] + 2;

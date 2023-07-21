@@ -345,7 +345,6 @@ public:
             bit_vector marked_sa(n, 0);  // temporary bitvector for marked SA positions
             int_vector<> inv_perm((n + sample_dens - 1) / sample_dens, 0, bits::hi(n) + 1);
             size_type cnt = 0;
-            size_type runs = 1;
 
             uint64_t min_prev_val = 0;
             for (size_type i = 0; i < n; i += sample_dens)
@@ -371,7 +370,6 @@ public:
                 if (pos_cnd == n)
                 { // increasing sequence can not be extended
                     pos_cnd = pos_min;
-                    ++runs;
                 }
                 min_prev_val = isa_buf[pos_cnd];
                 marked_isa[pos_cnd] = 1;
