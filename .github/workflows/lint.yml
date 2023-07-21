@@ -1,11 +1,6 @@
 name: Linting
 
 on:
-  # push:
-  #   branches:
-      # Push events to branches matching refs/heads/master
-      # - 'master'
-  # Enables a manual trigger, may run on any branch
   workflow_dispatch:
 
 concurrency:
@@ -17,14 +12,13 @@ env:
 
 defaults:
   run:
-    shell: bash -ex {0}
+    shell: bash -Eexuo pipefail {0}
 
 jobs:
   lint:
     name: Linting
     runs-on: ubuntu-22.04
     timeout-minutes: 30
-    if: github.repository_owner == 'xxsds' || github.event_name == 'workflow_dispatch'
     steps:
       - uses: actions/checkout@v3
       - name: Run clang-format
@@ -35,6 +29,7 @@ jobs:
           extensions: 'h,hpp,hpp.cmake,cpp'
           clangFormatVersion: 15
           inplace: True
+          
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v3
         with:

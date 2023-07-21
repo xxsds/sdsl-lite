@@ -1,4 +1,4 @@
-name: macOS
+name: Header
 
 on:
   push:
@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: macos-${{ github.event.pull_request.number || github.ref }}
+  group: header-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 env:
@@ -23,32 +23,31 @@ defaults:
 jobs:
   build:
     name: ${{ matrix.name }}
-    runs-on: macos-12
+    runs-on: ubuntu-22.04
     timeout-minutes: 120
     if: github.repository_owner == 'xxsds' || github.event_name == 'workflow_dispatch'
     strategy:
       fail-fast: false
       matrix:
         include:
+          - name: "gcc13"
+            compiler: "gcc-13"
+            build_type: Release
+            cxx_flags: "-std=c++23"
+
+          - name: "gcc11"
+            compiler: "gcc-13"
+            build_type: Debug
+            cxx_flags: "-std=c++23"
+
           - name: "clang16"
             compiler: "clang-16"
             build_type: Release
             cxx_flags: "-std=c++2b"
 
-          - name: "cereal clang16"
-            compiler: "clang-16"
-            build_type: Release
-            cxx_flags: "-std=c++2b"
-            has_cereal: "1"
-
-          - name: "clang15"
-            compiler: "clang-15"
-            build_type: Release
-            cxx_flags: "-std=c++2b"
-
           - name: "clang14"
             compiler: "clang-14"
-            build_type: Release
+            build_type: Debug
             cxx_flags: "-std=c++20"
 
     steps:
@@ -77,17 +76,18 @@ jobs:
                    -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
                    -DCMAKE_C_COMPILER_LAUNCHER=ccache \
                    -DCMAKE_CXX_FLAGS="-pedantic -Wall -Wextra -Werror ${{ matrix.cxx_flags }}" \
-                   -DSDSL_CEREAL=${{ matrix.has_cereal }}
-          make -j3 gtest_build
+                   -DSDSL_CEREAL=1 \
+                   -DSDSL_HEADER_TEST=ON
+          make -j2 gtest_build
 
       - name: Build tests
         run: |
           ccache -p
           cd ci-build
-          make sdsl_test_targets sdsl_examples sdsl_tutorials -k -j3
+          make sdsl_header_test -k -j2
           ccache -s
 
       - name: Run tests
         run: |
           cd ci-build
-          ctest . -j3
+          ctest . -j2
