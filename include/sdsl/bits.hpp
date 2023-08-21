@@ -434,7 +434,7 @@ struct bits_impl
     static constexpr uint32_t hi11(uint64_t x);
 
     //! Writes value x to an bit position in an array.
-    static constexpr void write_int(uint64_t * word, uint64_t x, const uint8_t offset = 0, const uint8_t len = 64);
+    static constexpr void write_int(uint64_t * word, uint64_t x, uint8_t offset = 0, const uint8_t len = 64);
 
     //! Writes value x to an bit position in an array and moves the bit-pointer.
     static constexpr void write_int_and_move(uint64_t *& word, uint64_t x, uint8_t & offset, const uint8_t len);
