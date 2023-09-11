@@ -30,6 +30,7 @@ public:
 
     typedef typename int_vector<t_width>::difference_type difference_type;
     typedef typename int_vector<t_width>::value_type value_type;
+    typedef typename int_vector<t_width>::size_type size_type;
 
 private:
     static_assert(t_width <= 64, "int_vector_buffer: width must be at most 64 bits.");
@@ -493,7 +494,7 @@ public:
     class iterator
     {
     private:
-        int_vector_buffer<t_width> & m_ivb;
+        int_vector_buffer<t_width> * m_ivb{nullptr};
         uint64_t m_idx = 0;
 
     public:
@@ -504,7 +505,7 @@ public:
         using reference = sdsl::int_vector_buffer<t_width>::reference;
 
         iterator() = delete;
-        iterator(int_vector_buffer<t_width> & ivb, uint64_t idx = 0) : m_ivb(ivb), m_idx(idx)
+        iterator(int_vector_buffer<t_width> & ivb, uint64_t idx = 0) : m_ivb(&ivb), m_idx(idx)
         {}
 
         iterator & operator++()
@@ -535,7 +536,8 @@ public:
 
         reference operator*() const
         {
-            return m_ivb[m_idx];
+            assert(m_ivb != nullptr);
+            return (*m_ivb)[m_idx];
         }
 
         iterator & operator+=(difference_type i)
@@ -568,7 +570,7 @@ public:
 
         bool operator==(iterator const & it) const
         {
-            return &m_ivb == &(it.m_ivb) and m_idx == it.m_idx;
+            return m_ivb == it.m_ivb and m_idx == it.m_idx;
         }
 
         bool operator!=(iterator const & it) const
