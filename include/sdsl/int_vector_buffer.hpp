@@ -494,7 +494,7 @@ public:
     class iterator
     {
     private:
-        int_vector_buffer<t_width> * m_ivb;
+        int_vector_buffer<t_width> * m_ivb{nullptr};
         uint64_t m_idx = 0;
 
     public:
@@ -536,6 +536,7 @@ public:
 
         reference operator*() const
         {
+            assert(m_ivb != nullptr);
             return (*m_ivb)[m_idx];
         }
 
