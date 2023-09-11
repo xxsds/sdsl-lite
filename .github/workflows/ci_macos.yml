@@ -67,7 +67,7 @@ jobs:
       - name: Install CMake
         uses: seqan/actions/setup-cmake@main
         with:
-          cmake: 3.12.4
+          cmake: 3.13.5
 
       - name: Configure tests
         run: |

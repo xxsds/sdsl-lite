@@ -16,6 +16,14 @@ macro (add_gtest)
     list (APPEND SDSL_EXTERNAL_PROJECT_CMAKE_ARGS "-DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}")
     list (APPEND SDSL_EXTERNAL_PROJECT_CMAKE_ARGS "-DCMAKE_VERBOSE_MAKEFILE=${CMAKE_VERBOSE_MAKEFILE}")
 
+    if (NOT EXISTS "${CMAKE_CURRENT_LIST_DIR}/googletest/googletest/include/gtest/gtest.h")
+        message (STATUS "Checking out googletest submodule")
+        execute_process (
+            COMMAND git submodule update --init external/googletest
+            WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/..
+            OUTPUT_QUIET
+        )
+    endif ()
 
     set (gtest_project_args ${SDSL_EXTERNAL_PROJECT_CMAKE_ARGS})
     list (APPEND gtest_project_args "-DCMAKE_CXX_FLAGS=-w")
@@ -64,6 +72,7 @@ if (SDSL_CEREAL)
     set (cereal_dir ${CMAKE_CURRENT_LIST_DIR}/cereal/include/cereal)
     set (cereal_file ${cereal_dir}/cereal.hpp)
     if (NOT EXISTS ${cereal_file})
+        message (STATUS "  Checking out cereal submodule")
         execute_process (
             COMMAND git submodule update --init external/cereal
             WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/..

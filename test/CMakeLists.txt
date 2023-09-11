@@ -59,6 +59,13 @@ file (GLOB test_sources ${CMAKE_CURRENT_SOURCE_DIR}/*_test.cpp)
 include_directories (${sdsl_include_directory})
 include_directories (SYSTEM ${gtest_dir}/googletest/include)
 
+## Bogus warnings in GCC12
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU"
+    AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 12
+    AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 13)
+    add_compile_options (-Wno-restrict)
+endif ()
+
 link_libraries ("gtest_main" "gtest")
 
 if (SDSL_CEREAL)
