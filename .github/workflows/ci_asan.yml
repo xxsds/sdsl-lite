@@ -34,9 +34,9 @@ jobs:
             compiler: "gcc-13"
             cxx_flags: "-std=c++23"
 
-          - name: "clang16"
-            compiler: "clang-16"
-            cxx_flags: "-std=c++2b"
+          - name: "clang17"
+            compiler: "clang-17"
+            cxx_flags: "-std=c++23 -stdlib=libc++"
 
     steps:
       - name: Checkout

@@ -6,15 +6,20 @@ endif ()
 # Modified version from SeqAn3
 # https://github.com/seqan/seqan3/blob/fddd89708f8fa858521a9cf958900232c7e8ef89/test/cmake/seqan3_require_test.cmake
 macro (add_gtest)
-    set (SDSL_EXTERNAL_PROJECT_CMAKE_ARGS "")
-    list (APPEND SDSL_EXTERNAL_PROJECT_CMAKE_ARGS "--no-warn-unused-cli")
-    list (APPEND SDSL_EXTERNAL_PROJECT_CMAKE_ARGS "-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}")
-    list (APPEND SDSL_EXTERNAL_PROJECT_CMAKE_ARGS "-DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}")
-    list (APPEND SDSL_EXTERNAL_PROJECT_CMAKE_ARGS "-DCMAKE_CXX_COMPILER_LAUNCHER=${CMAKE_CXX_COMPILER_LAUNCHER}")
-    list (APPEND SDSL_EXTERNAL_PROJECT_CMAKE_ARGS "-DCMAKE_C_COMPILER_LAUNCHER=${CMAKE_C_COMPILER_LAUNCHER}")
-    list (APPEND SDSL_EXTERNAL_PROJECT_CMAKE_ARGS "-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}")
-    list (APPEND SDSL_EXTERNAL_PROJECT_CMAKE_ARGS "-DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}")
-    list (APPEND SDSL_EXTERNAL_PROJECT_CMAKE_ARGS "-DCMAKE_VERBOSE_MAKEFILE=${CMAKE_VERBOSE_MAKEFILE}")
+    set (SDSL_EXTERNAL_GTEST_CMAKE_ARGS "")
+    list (APPEND SDSL_EXTERNAL_GTEST_CMAKE_ARGS "--no-warn-unused-cli")
+    list (APPEND SDSL_EXTERNAL_GTEST_CMAKE_ARGS "-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}")
+    list (APPEND SDSL_EXTERNAL_GTEST_CMAKE_ARGS "-DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS} -w")
+    list (APPEND SDSL_EXTERNAL_GTEST_CMAKE_ARGS "-DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}")
+    list (APPEND SDSL_EXTERNAL_GTEST_CMAKE_ARGS "-DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}")
+    list (APPEND SDSL_EXTERNAL_GTEST_CMAKE_ARGS "-DCMAKE_CXX_COMPILER_LAUNCHER=${CMAKE_CXX_COMPILER_LAUNCHER}")
+    list (APPEND SDSL_EXTERNAL_GTEST_CMAKE_ARGS "-DCMAKE_C_COMPILER_LAUNCHER=${CMAKE_C_COMPILER_LAUNCHER}")
+    list (APPEND SDSL_EXTERNAL_GTEST_CMAKE_ARGS "-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}")
+    list (APPEND SDSL_EXTERNAL_GTEST_CMAKE_ARGS "-DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}")
+    list (APPEND SDSL_EXTERNAL_GTEST_CMAKE_ARGS "-DCMAKE_VERBOSE_MAKEFILE=${CMAKE_VERBOSE_MAKEFILE}")
+    list (APPEND SDSL_EXTERNAL_GTEST_CMAKE_ARGS "-DBUILD_GMOCK=0")
+    # force that libraries are installed to `lib/`, because GNUInstallDirs might install it into `lib64/`
+    list (APPEND SDSL_EXTERNAL_GTEST_CMAKE_ARGS "-DCMAKE_INSTALL_LIBDIR=${PROJECT_BINARY_DIR}/lib/")
 
     if (NOT EXISTS "${CMAKE_CURRENT_LIST_DIR}/googletest/googletest/include/gtest/gtest.h")
         message (STATUS "Checking out googletest submodule")
@@ -24,13 +29,6 @@ macro (add_gtest)
             OUTPUT_QUIET
         )
     endif ()
-
-    set (gtest_project_args ${SDSL_EXTERNAL_PROJECT_CMAKE_ARGS})
-    list (APPEND gtest_project_args "-DCMAKE_CXX_FLAGS=-w")
-    list (APPEND gtest_project_args "-DBUILD_GMOCK=0")
-
-    # force that libraries are installed to `lib/`, because GNUInstallDirs might install it into `lib64/`
-    list (APPEND gtest_project_args "-DCMAKE_INSTALL_LIBDIR=${PROJECT_BINARY_DIR}/lib/")
 
     set (gtest_main_path
          "${PROJECT_BINARY_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}gtest_main${CMAKE_STATIC_LIBRARY_SUFFIX}"
@@ -42,10 +40,10 @@ macro (add_gtest)
     ExternalProject_Add (
         gtest_project
         SOURCE_DIR "${gtest_dir}"
-        CMAKE_ARGS "${gtest_project_args}"
+        CMAKE_ARGS "${SDSL_EXTERNAL_GTEST_CMAKE_ARGS}"
         BUILD_BYPRODUCTS "${gtest_main_path}" "${gtest_path}"
     )
-    unset (gtest_project_args)
+    unset (SDSL_EXTERNAL_GTEST_CMAKE_ARGS)
 
     add_library (gtest_main STATIC IMPORTED)
     add_dependencies (gtest_main gtest_project)
