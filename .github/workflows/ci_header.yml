@@ -40,15 +40,15 @@ jobs:
             build_type: Debug
             cxx_flags: "-std=c++23"
 
+          - name: "clang17"
+            compiler: "clang-17"
+            build_type: Release
+            cxx_flags: "-std=c++23 -stdlib=libc++"
+
           - name: "clang16"
             compiler: "clang-16"
-            build_type: Release
-            cxx_flags: "-std=c++2b"
-
-          - name: "clang14"
-            compiler: "clang-14"
             build_type: Debug
-            cxx_flags: "-std=c++20"
+            cxx_flags: "-std=c++20 -stdlib=libc++"
 
     steps:
       - name: Checkout

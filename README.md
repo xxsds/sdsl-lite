@@ -17,7 +17,7 @@ Other compiler may work, but are not tested within the continuous integration. I
 each listed major compiler version is supported.
 
 * GCC 11, 12, 13
-* clang 14, 15, 16
+* clang 15, 16, 17
 
 Tests are run with C++20 and C++23.
 
