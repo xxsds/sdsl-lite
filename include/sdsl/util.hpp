@@ -9,6 +9,7 @@
 #define INCLUDED_SDSL_UTIL
 
 #include <algorithm>
+#include <atomic>
 #include <cassert>
 #include <chrono>
 #include <cstdlib>
@@ -345,15 +346,10 @@ inline char * str_from_errno()
 #endif
 }
 
-struct _id_helper_struct
+inline uint64_t _id_helper()
 {
-    uint64_t id = 0;
-};
-
-extern inline uint64_t _id_helper()
-{
-    static _id_helper_struct data;
-    return data.id++;
+    static std::atomic<uint64_t> id{0u};
+    return id++;
 }
 
 //! Get the process id of the current process
