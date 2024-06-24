@@ -3,15 +3,13 @@ name: Linux
 on:
   push:
     branches:
-      # Push events to branches matching refs/heads/master
       - 'master'
   pull_request:
-  # Enables a manual trigger, may run on any branch
   workflow_dispatch:
 
 concurrency:
   group: linux-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name != 'push' }}
 
 env:
   TZ: Europe/Berlin
@@ -22,93 +20,51 @@ defaults:
 
 jobs:
   build:
-    name: ${{ matrix.name }}
-    runs-on: ubuntu-22.04
-    timeout-minutes: 120
+    runs-on: ubuntu-latest
+    name: ${{ matrix.compiler }} ${{ matrix.cereal == '1' && 'cereal' || '' }}
     if: github.repository_owner == 'xxsds' || github.event_name == 'workflow_dispatch'
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - name: "gcc13"
-            compiler: "gcc-13"
-            build_type: Release
-            cxx_flags: "-std=c++23"
-
-          - name: "cereal gcc13"
-            compiler: "gcc-13"
-            build_type: Release
-            cxx_flags: "-std=c++23"
-            has_cereal: "1"
-
-          - name: "gcc12"
-            compiler: "gcc-12"
-            build_type: Release
-            cxx_flags: "-std=c++23"
-
-          - name: "gcc11"
-            compiler: "gcc-11"
-            build_type: Release
-            cxx_flags: "-std=c++23"
-
-          - name: "clang17"
-            compiler: "clang-17"
-            build_type: Release
-            cxx_flags: "-std=c++23 -stdlib=libc++"
-
-          - name: "cereal clang17"
-            compiler: "clang-17"
-            build_type: Release
-            cxx_flags: "-std=c++23 -stdlib=libc++"
-            has_cereal: "1"
-
-          - name: "clang16"
-            compiler: "clang-16"
-            build_type: Release
-            cxx_flags: "-std=c++20 -stdlib=libc++"
-
-          - name: "clang15"
-            compiler: "clang-15"
-            build_type: Release
-            cxx_flags: "-std=c++20 -stdlib=libc++"
-
+        compiler: ["clang-18", "clang-17", "gcc-14", "gcc-13", "gcc-12", "gcc-11", "intel"]
+        cereal: ["0", "1"]
+    container:
+      image: ghcr.io/seqan/${{ matrix.compiler }}
+      volumes:
+        - /home/runner:/home/runner
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 1
           submodules: true
 
-      - name: Setup toolchain
-        uses: seqan/actions/setup-toolchain@main
-        with:
-          compiler: ${{ matrix.compiler }}
-          ccache_size: 75M
+      - name: Get number of processors
+        run: echo "NUM_THREADS=$(getconf _NPROCESSORS_ONLN)" >> "$GITHUB_ENV"
 
-      - name: Install CMake
-        uses: seqan/actions/setup-cmake@main
+      - name: Load ccache
+        uses: actions/cache@v4
         with:
-          cmake: 3.13.5
+          path: /home/runner/.ccache
+          save-always: true
+          key: ccache-${{ runner.os }}-${{ github.workflow }}-${{ matrix.compiler }}-${{ github.ref }}
 
       - name: Configure tests
         run: |
-          mkdir ci-build
-          cd ci-build
-          cmake .. -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+          mkdir bbuild && cd bbuild
+          cmake .. -DCMAKE_BUILD_TYPE=Release \
                    -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
                    -DCMAKE_C_COMPILER_LAUNCHER=ccache \
-                   -DCMAKE_CXX_FLAGS="-pedantic -Wall -Wextra -Werror ${{ matrix.cxx_flags }}" \
-                   -DSDSL_CEREAL=${{ matrix.has_cereal }}
-          make -j2 gtest_build
+                   -DCMAKE_CXX_FLAGS="-pedantic -Wall -Wextra -Werror -std=c++23" \
+                   -DSDSL_CEREAL=${{ matrix.cereal }}
+          make -j${NUM_THREADS} gtest_build
 
       - name: Build tests
+        working-directory: bbuild
         run: |
-          ccache -p
-          cd ci-build
-          make sdsl_test_targets sdsl_examples sdsl_tutorials -k -j2
-          ccache -s
+          ccache -z
+          make -k -j${NUM_THREADS} sdsl_test_targets sdsl_examples sdsl_tutorials
+          ccache -sv
 
       - name: Run tests
-        run: |
-          cd ci-build
-          ctest . -j2
+        working-directory: bbuild
+        run: ctest . -j${NUM_THREADS} --output-on-failure
