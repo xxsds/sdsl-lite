@@ -14,6 +14,7 @@
 #include <cstdint>
 #include <deque>
 #include <iosfwd>
+#include <limits>
 #include <memory>
 #include <queue>
 #include <stdexcept>
@@ -64,11 +65,21 @@ private:
     uint8_t k_k;
     uint16_t k_height;
 
+    template <typename return_t>
+    return_t integral_pow(uint64_t base, uint64_t exponent) const noexcept
+    {
+        uint64_t result = 1u;
+        for (; exponent; exponent >>= 1, base *= base)
+            result *= (exponent & 1) ? base : 1;
+        assert(result <= std::numeric_limits<return_t>::max());
+        return static_cast<return_t>(result);
+    }
+
 protected:
     void build_from_matrix(std::vector<std::vector<int>> const & matrix)
     {
         // Makes the size a power of k.
-        int simulated_size = std::pow(k, k_height);
+        int const simulated_size = integral_pow<int>(k, k_height);
         std::vector<std::deque<bit_vector>> acc(k_height + 1);
 
         k2_tree_ns::_build_from_matrix<bit_vector>(matrix, k, simulated_size, k_height, 1, 0, 0, acc);
@@ -128,7 +139,7 @@ protected:
 
         if (k_t[level] == 1)
         {
-            idx_type y = k_t_rank(level + 1) * std::pow(k_k, 2) + k_k * std::floor(row / static_cast<double>(n));
+            idx_type y = k_t_rank(level + 1) * k_k * k_k + k_k * std::floor(row / static_cast<double>(n));
             for (unsigned j = 0; j < k_k; j++)
                 _neigh(n / k_k, row % n, col + n * j, y + j, acc);
         }
@@ -158,7 +169,7 @@ protected:
 
         if (k_t[level] == 1)
         {
-            idx_type y = k_t_rank(level + 1) * std::pow(k_k, 2) + std::floor(col / static_cast<double>(n));
+            idx_type y = k_t_rank(level + 1) * k_k * k_k + std::floor(col / static_cast<double>(n));
             for (unsigned j = 0; j < k_k; j++)
                 _reverse_neigh(n / k_k, row + n * j, col % n, y + j * k_k, acc);
         }
@@ -181,14 +192,14 @@ protected:
         k_k = k;
         k_height = std::ceil(std::log(size) / std::log(k_k));
         k_height = k_height > 1 ? k_height : 1; // If size == 0
-        size_type k_2 = std::pow(k_k, 2);
+        size_type k_2 = k_k * k_k;
         bit_vector k_t_ = bit_vector(k_2 * k_height * edges.size(), 0);
         bit_vector k_l_;
 
         std::queue<t_part_tuple> q;
         idx_type t = 0, last_level = 0;
         idx_type i, j, r_0, c_0, it, c, r;
-        size_type l = std::pow(k_k, k_height - 1);
+        size_type l = integral_pow<size_type>(k_k, k_height - 1);
         std::vector<idx_type> pos_by_chunk(k_2 + 1, 0);
 
         q.push(t_part_tuple(0, edges.size(), l, 0, 0));
@@ -420,8 +431,8 @@ public:
     {
         if (k_t.size() == 0 && k_l.size() == 0)
             return false;
-        size_type n = std::pow(k_k, k_height - 1);
-        size_type k_2 = std::pow(k_k, 2);
+        size_type n = integral_pow<size_type>(k_k, k_height - 1);
+        size_type k_2 = k_k * k_k;
         idx_type col, row;
 
         // This is duplicated to avoid an extra if at the loop. As idx_type
@@ -459,7 +470,7 @@ public:
         std::vector<idx_type> acc{};
         if (k_l.size() == 0 && k_t.size() == 0)
             return acc;
-        size_type n = static_cast<size_type>(std::pow(k_k, k_height)) / k_k;
+        size_type n = integral_pow<size_type>(k_k, k_height) / k_k;
         idx_type y = k_k * std::floor(i / static_cast<double>(n));
         for (unsigned j = 0; j < k_k; j++)
             _neigh(n / k_k, i % n, n * j, y + j, acc);
@@ -477,7 +488,7 @@ public:
         if (k_l.size() == 0 && k_t.size() == 0)
             return acc;
         // Size of the first square division
-        size_type n = static_cast<size_type>(std::pow(k_k, k_height)) / k_k;
+        size_type n = integral_pow<size_type>(k_k, k_height) / k_k;
         idx_type y = std::floor(i / static_cast<double>(n));
         for (unsigned j = 0; j < k_k; j++)
             _reverse_neigh(n / k_k, n * j, i % n, y + j * k_k, acc);
