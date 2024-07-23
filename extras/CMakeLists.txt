@@ -1,7 +1,7 @@
 include (Colors)
 
 # (1) generate docs
-if (GENERATE_DOC)
+if (SDSL_GENERATE_DOC)
     find_package (Doxygen)
     if (DOXYGEN_FOUND)
         configure_file (${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
@@ -11,7 +11,7 @@ if (GENERATE_DOC)
                            COMMENT "Generating API documentation with Doxygen"
                            VERBATIM)
     endif (DOXYGEN_FOUND)
-endif (GENERATE_DOC)
+endif (SDSL_GENERATE_DOC)
 
 ## (2) Add 'uninstall' target ##
 configure_file ("${CMAKE_CURRENT_SOURCE_DIR}/../CMakeModules/cmake_uninstall.cmake.in"
