@@ -55,6 +55,10 @@ set (sdsl_include_directory "${CMAKE_CURRENT_SOURCE_DIR}/include")
 file (GLOB HEADERS "${sdsl_include_directory}/sdsl/*.hpp")
 add_custom_target (sdsl SOURCES ${HEADERS})
 
+add_library(sdsl-lite INTERFACE)
+target_include_directories(sdsl-lite INTERFACE SYSTEM ${sdsl_include_directory})
+add_library(sdsl-lite::sdsl-lite ALIAS sdsl-lite)
+
 # (9) test targets
 if (SDSL_HEADER_TEST)
     add_subdirectory (test/header)
