@@ -4,6 +4,14 @@ set (CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
 ## (1) Read and set library version
 include (ParseVersionFile)
 
+# check if this is the main iproject
+# This can be removed if cmake 3.21 is used
+# https://cmake.org/cmake/help/latest/variable/PROJECT_IS_TOP_LEVEL.html
+set(PROJECT_IS_TOP_LEVEL FALSE)
+if (NOT DEFINED PROJECT_NAME)
+    set(PROJECT_IS_TOP_LEVEL TRUE)
+endif ()
+
 ## (2) CREATE PROJECT
 cmake_policy (SET CMP0048 NEW) # no more project version warnings
 project (sdsl
@@ -18,10 +26,10 @@ if (NOT CMAKE_BUILD_TYPE)
 endif ()
 
 ## (5) Options
-option (CODE_COVERAGE "Set ON to add code coverage compile options" OFF)
+option (SDSL_CODE_COVERAGE "Set ON to add code coverage compile options" OFF)
 option (SDSL_HEADER_TEST "Set ON to run header tests only" OFF)
-option (GENERATE_DOC "Set ON to genrate doxygen API reference in build/doc directory" OFF)
-option (USE_LIBCPP "Use the LLVM libc++ instead of GCC libstdc++ on OS X" ON)
+option (SDSL_GENERATE_DOC "Set ON to genrate doxygen API reference in build/doc directory" OFF)
+option (SDSL_USE_LIBCPP "Use the LLVM libc++ instead of GCC libstdc++ on OS X" ON)
 
 ## (6) Compiler requirements and compile options
 include (CompilerFlags)
@@ -29,10 +37,12 @@ include (CompilerFlags)
 ## (7) Configure scripts
 configure_file ("${CMAKE_CURRENT_SOURCE_DIR}/Make.helper.cmake" "${CMAKE_CURRENT_SOURCE_DIR}/Make.helper" @ONLY)
 
+
 enable_testing ()
 
 # (8) main library target
 set (gtest_dir ${CMAKE_CURRENT_LIST_DIR}/external/googletest)
+
 add_subdirectory (external)
 add_subdirectory (lib)
 
