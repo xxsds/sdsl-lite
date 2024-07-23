@@ -28,6 +28,7 @@ endif ()
 ## (5) Options
 option (SDSL_CODE_COVERAGE "Set ON to add code coverage compile options" OFF)
 option (SDSL_HEADER_TEST "Set ON to run header tests only" OFF)
+option (SDSL_BUILD_TESTS "Set ON to build tests" ${PROJECT_IS_TOP_LEVEL})
 option (SDSL_GENERATE_DOC "Set ON to genrate doxygen API reference in build/doc directory" OFF)
 option (SDSL_USE_LIBCPP "Use the LLVM libc++ instead of GCC libstdc++ on OS X" ON)
 
@@ -38,10 +39,12 @@ include (CompilerFlags)
 configure_file ("${CMAKE_CURRENT_SOURCE_DIR}/Make.helper.cmake" "${CMAKE_CURRENT_SOURCE_DIR}/Make.helper" @ONLY)
 
 
-enable_testing ()
+if (SDSL_BUILD_TESTS)
+    enable_testing ()
 
-# (8) main library target
-set (gtest_dir ${CMAKE_CURRENT_LIST_DIR}/external/googletest)
+    # (8) main library target
+    set (gtest_dir ${CMAKE_CURRENT_LIST_DIR}/external/googletest)
+endif()
 
 add_subdirectory (external)
 add_subdirectory (lib)
@@ -55,7 +58,9 @@ if (SDSL_HEADER_TEST)
     add_subdirectory (test/header)
     return ()
 endif ()
-add_subdirectory (test)
+if (SDSL_BUILD_TESTS)
+    add_subdirectory (test)
+endif()
 
 # (10) perform extra tasks such as doxygen / packaging and uninstall target
 add_subdirectory (extras)
