@@ -27,6 +27,9 @@ protected:
     // Needs to be a member instead of a global since the static sdsl::memory_manager might call its destructor
     // before the vector.
     static int_vector<8> text;
+
+    // a alphabet which only uses parts of the assigned alphabet
+    static int_vector<8> text_sparse_alphabet;
 };
 
 template <class T>
@@ -37,6 +40,19 @@ int_vector<8> wt_byte_epr_test<T>::text{[]()
                                             for (uint32_t i = 0; i < result.size(); ++i)
                                             {
                                                 result[i] = std::rand() % 4;
+                                            }
+                                            return result;
+                                        }()};
+
+template <class T>
+int_vector<8> wt_byte_epr_test<T>::text_sparse_alphabet{[]()
+                                        {
+                                            int_vector<8> result;
+                                            result.resize(std::rand() % 10000);
+                                            for (uint32_t i = 0; i < result.size(); ++i)
+                                            {
+                                                // only generate values of 2 or 3
+                                                result[i] = (std::rand() % 2) + 2;
                                             }
                                             return result;
                                         }()};
@@ -142,6 +158,37 @@ TYPED_TEST(wt_byte_epr_test, rank)
         }
     }
 }
+
+//! Test rank methods with sparse alphabet
+TYPED_TEST(wt_byte_epr_test, rank_on_sparse_alphabet)
+{
+    TypeParam wt(this->text_sparse_alphabet.begin(), this->text_sparse_alphabet.end());
+    ASSERT_EQ(this->text_sparse_alphabet.size(), wt.size());
+
+    // Test rank(i, c) for each character c and position i
+    unsigned cnt_prefix_rank[4] = {0};
+    for (unsigned i = 0; i < this->text_sparse_alphabet.size() + 1; ++i)
+    {
+        for (unsigned v = 0; v < wt.sigma; ++v)
+        {
+            if (i > 0 && this->text_sparse_alphabet[i - 1] <= v)
+                ++cnt_prefix_rank[v];
+
+            // auto const rank = rb(i, v);
+            if (v > 0)
+                ASSERT_EQ(cnt_prefix_rank[v] - cnt_prefix_rank[v - 1], wt.rank(i, v)) << " v=" << v;
+            else
+                ASSERT_EQ(cnt_prefix_rank[v], wt.rank(i, v)) << " v=" << v;
+
+            if (v > 0)
+            {
+                auto lex = wt.lex_smaller_count(i, v);
+                ASSERT_EQ(cnt_prefix_rank[v - 1], std::get<1>(lex)) << " v=" << v;
+            }
+        }
+    }
+}
+
 
 #if SDSL_HAS_CEREAL
 template <typename in_archive_t, typename out_archive_t, typename TypeParam>
