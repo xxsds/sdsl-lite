@@ -119,13 +119,10 @@ public:
             return;
 
         // The largest letter, is the effective alphabet size
-        for (auto it = begin; it != end; ++it)
+        if (std::any_of(begin, end, [](size_t value) { return value >= alphabet_size; }))
         {
-            size_t c = *it;
-            // The text cannot have a character equal or larger than the required alphabet_size.
-            if (c >= alphabet_size)
-                throw std::domain_error{"The given text uses an alphabet that is larger than the explicitly given "
-                                        "alphabet size."};
+            throw std::domain_error{"The given text uses an alphabet that is larger than the explicitly given "
+                                    "alphabet size."};
         }
         m_sigma = alphabet_size;
 
