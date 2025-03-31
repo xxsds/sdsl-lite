@@ -36,7 +36,7 @@ int_vector<8> wt_byte_epr_test<T>::text{[]()
                                             result.resize(std::rand() % 10000);
                                             for (uint32_t i = 0; i < result.size(); ++i)
                                             {
-                                                result[i] = (std::rand() % 3) + 1; // no 0s allowed. produces 1, 2 or 3.
+                                                result[i] = std::rand() % 4;
                                             }
                                             return result;
                                         }()};
