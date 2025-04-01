@@ -106,7 +106,7 @@ public:
     //!\brief Default constructor.
     wt_epr() = default;
 
-    /*!\brief Construct the EPR-dictionary from a sequence defined by two interators
+    /*!\brief Construct the EPR-dictionary from a sequence defined by two iterators
      * \param begin Iterator to the start of the input.
      * \param end   Iterator one past the end of the input.
      * \par Time complexity
@@ -117,22 +117,16 @@ public:
     {
         if (0 == m_size)
             return;
-        // O(n + |\Sigma|\log|\Sigma|) algorithm for calculating node sizes
-        // TODO: C should also depend on the tree_strategy. C is just a mapping
-        // from a symbol to its frequency. So a map<uint64_t,uint64_t> could be
-        // used for integer alphabets...
-        std::vector<size_type> C;
-        // 1. Count occurrences of characters
-        calculate_character_occurences(begin, end, C);
-        // 2. Calculate effective alphabet size
-        calculate_effective_alphabet_size(C, m_sigma);
 
-        // The text cannot have an alphabet larger than the required alphabet_size.
-        if (m_sigma > alphabet_size)
+        // The largest letter, is the effective alphabet size
+        if (std::any_of(begin, end, [](size_t value) { return value >= alphabet_size; }))
+        {
             throw std::domain_error{"The given text uses an alphabet that is larger than the explicitly given "
                                     "alphabet size."};
+        }
+        m_sigma = alphabet_size;
 
-        // 4. Generate wavelet tree bit sequence m_bv
+        // Generate wavelet tree bit sequence m_bv
         int_vector<> intermediate_bitvector{};
         intermediate_bitvector.width(std::ceil(std::log2(m_sigma)));
         intermediate_bitvector.resize(m_size);
