@@ -26,45 +26,40 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        compiler: ["clang-18", "clang-17", "gcc-14", "gcc-13", "gcc-12", "gcc-11", "intel"]
+        compiler: ["clang-latest", "clang-second-latest", "clang-third-latest", "gcc-latest", "gcc-second-latest", "gcc-third-latest", "intel"]
         cereal: ["0", "1"]
+        include:
+          - compiler: "intel"
+            cxx_flags: "-fp-model=strict -Wno-overriding-option"
     container:
       image: ghcr.io/seqan/${{ matrix.compiler }}
-      volumes:
-        - /home/runner:/home/runner
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           submodules: true
 
-      - name: Get number of processors
-        run: echo "NUM_THREADS=$(getconf _NPROCESSORS_ONLN)" >> "$GITHUB_ENV"
-
-      - name: Load ccache
-        uses: actions/cache@v4
-        with:
-          path: /home/runner/.ccache
-          save-always: true
-          key: ccache-${{ runner.os }}-${{ github.workflow }}-${{ matrix.compiler }}-${{ github.ref }}
+      - name: Setup cache
+        uses: seqan/actions/setup-actions-cache@main
 
       - name: Configure tests
         run: |
-          mkdir bbuild && cd bbuild
+          mkdir ci_build && cd ci_build
           cmake .. -DCMAKE_BUILD_TYPE=Release \
                    -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
                    -DCMAKE_C_COMPILER_LAUNCHER=ccache \
-                   -DCMAKE_CXX_FLAGS="-pedantic -Wall -Wextra -Werror -std=c++23" \
+                   -DCMAKE_CXX_FLAGS="-pedantic -Wall -Wextra -Werror ${{ matrix.cxx_flags }}" \
+                   -DCMAKE_CXX_STANDARD=23 \
                    -DSDSL_CEREAL=${{ matrix.cereal }}
-          make -j${NUM_THREADS} gtest_build
+          make gtest_build
 
       - name: Build tests
-        working-directory: bbuild
+        working-directory: ci_build
         run: |
           ccache -z
-          make -k -j${NUM_THREADS} sdsl_test_targets sdsl_examples sdsl_tutorials
-          ccache -sv
+          make -k sdsl_test_targets sdsl_examples sdsl_tutorials
+          ccache -svvx
 
       - name: Run tests
-        working-directory: bbuild
-        run: ctest . -j${NUM_THREADS} --output-on-failure
+        working-directory: ci_build
+        run: ctest . -j --output-on-failure --no-tests=error

@@ -5,7 +5,7 @@ endif ()
 
 # Modified version from SeqAn3
 # https://github.com/seqan/seqan3/blob/fddd89708f8fa858521a9cf958900232c7e8ef89/test/cmake/seqan3_require_test.cmake
-macro (add_gtest)
+function (add_gtest)
     set (SDSL_EXTERNAL_GTEST_CMAKE_ARGS "")
     list (APPEND SDSL_EXTERNAL_GTEST_CMAKE_ARGS "--no-warn-unused-cli")
     list (APPEND SDSL_EXTERNAL_GTEST_CMAKE_ARGS "-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}")
@@ -21,7 +21,7 @@ macro (add_gtest)
     # force that libraries are installed to `lib/`, because GNUInstallDirs might install it into `lib64/`
     list (APPEND SDSL_EXTERNAL_GTEST_CMAKE_ARGS "-DCMAKE_INSTALL_LIBDIR=${PROJECT_BINARY_DIR}/lib/")
 
-    if (NOT EXISTS "${CMAKE_CURRENT_LIST_DIR}/googletest/googletest/include/gtest/gtest.h")
+    if (NOT EXISTS "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/googletest/googletest/include/gtest/gtest.h")
         message (STATUS "Checking out googletest submodule")
         execute_process (
             COMMAND git submodule update --init external/googletest
@@ -62,7 +62,7 @@ macro (add_gtest)
     unset (gtest_path)
 
     add_custom_target (gtest_build DEPENDS gtest_main gtest)
-endmacro ()
+endfunction ()
 
 # Add cereal
 if (SDSL_CEREAL)

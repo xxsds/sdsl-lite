@@ -8,6 +8,8 @@ else ()
     message (STATUS "${Green}Found 64 bit system${ColourReset}")
 endif ()
 
+set (CMAKE_REQUIRED_QUIET TRUE)
+
 set (CMAKE_REQUIRED_FLAGS "-msse4.2")
 file (READ "${CMAKE_MODULE_PATH}/SSE42.cpp" test_source_sse42)
 check_cxx_source_runs ("${test_source_sse42}" HAVE_SSE42)
@@ -59,6 +61,8 @@ check_cxx_source_runs ("${test_source_modeti}" HAVE_MODETI)
 if (HAVE_MODETI)
     message (STATUS "${Green}Compiler supports 128 bit integers${ColourReset}")
 else ()
-    message (STATUS "${Red}Compiler supports 128 bit integers${ColourReset}")
+    message (STATUS "${Red}Compiler does NOT support 128 bit integers${ColourReset}")
     set (HAVE_MODETI 0)
 endif ()
+
+set (CMAKE_REQUIRED_QUIET FALSE)

@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.13 FATAL_ERROR)
+cmake_minimum_required (VERSION 3.18 FATAL_ERROR)
 set (CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
 
 ## (1) Read and set library version
