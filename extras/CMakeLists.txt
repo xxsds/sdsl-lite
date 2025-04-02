@@ -23,11 +23,11 @@ add_custom_target (uninstall-sdsl "${CMAKE_COMMAND}" -P
 configure_file ("${CMAKE_CURRENT_SOURCE_DIR}/../sdsl-lite.pc.cmake" "${CMAKE_CURRENT_BINARY_DIR}/sdsl-lite.pc" @ONLY)
 install (FILES "${CMAKE_CURRENT_BINARY_DIR}/sdsl-lite.pc" DESTINATION "lib/pkgconfig")
 
-find_program (CLANG_FORMAT NAMES clang-format-15)
-if (CLANG_FORMAT)
-    message (STATUS "${Green}clang-format-15 found: ${CLANG_FORMAT}${ColourReset}")
-else ()
-    message (STATUS "${Yellow}clang-format-15 NOT found!${ColourReset}")
-endif (CLANG_FORMAT)
+# find_program (CLANG_FORMAT NAMES clang-format-15)
+# if (CLANG_FORMAT)
+#     message (STATUS "${Green}clang-format-15 found: ${CLANG_FORMAT}${ColourReset}")
+# else ()
+#     message (STATUS "${Yellow}clang-format-15 NOT found!${ColourReset}")
+# endif (CLANG_FORMAT)
 
-configure_file ("${CMAKE_CURRENT_SOURCE_DIR}/pre-commit.cmake" "${CMAKE_CURRENT_SOURCE_DIR}/pre-commit" @ONLY)
+# configure_file ("${CMAKE_CURRENT_SOURCE_DIR}/pre-commit.cmake" "${CMAKE_CURRENT_SOURCE_DIR}/pre-commit" @ONLY)
