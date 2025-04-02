@@ -4,4 +4,3 @@
 [submodule "external/cereal"]
 	path = external/cereal
 	url = https://github.com/USCiLab/cereal.git
-	branch = v1.2.2
