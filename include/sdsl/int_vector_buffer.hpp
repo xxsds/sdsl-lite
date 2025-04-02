@@ -577,6 +577,27 @@ public:
         {
             return !(*this == it);
         }
+
+        bool operator<(iterator const & it) const
+        {
+            return m_idx < it.m_idx;
+        }
+
+        bool operator>(iterator const & it) const
+        {
+            return m_idx > it.m_idx;
+        }
+
+        bool operator<=(iterator const & it) const
+        {
+            return m_idx <= it.m_idx;
+        }
+
+        bool operator>=(iterator const & it) const
+        {
+            return m_idx >= it.m_idx;
+        }
+
         inline difference_type operator-(iterator const & it)
         {
             return (m_idx - it.m_idx);
