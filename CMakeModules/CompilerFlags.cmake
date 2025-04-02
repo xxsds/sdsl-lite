@@ -11,10 +11,15 @@ checkandappendcompilerflags ("Release" "-D__extern_always_inline=\"extern __alwa
 # Clang <= 9 has trouble on ubuntu 20.04
 set (CMAKE_REQUIRED_FLAGS "-ffast-math")
 file (READ "${CMAKE_MODULE_PATH}/ffast_math.cpp" test_source_ffast_math)
+set (CMAKE_REQUIRED_QUIET TRUE)
 check_cxx_source_runs ("${test_source_ffast_math}" HAVE_FFAST_MATH)
+set (CMAKE_REQUIRED_QUIET FALSE)
 set (CMAKE_REQUIRED_FLAGS "")
 if (HAVE_FFAST_MATH)
+    message (STATUS "${Green}Compiler supports fast math${ColourReset}")
     checkandappendcompilerflags ("Release" "-ffast-math")
+else ()
+    message (STATUS "${Red}Compiler does NOT support fast math${ColourReset}")
 endif ()
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
