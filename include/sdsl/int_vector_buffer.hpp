@@ -598,7 +598,7 @@ public:
             return m_idx >= it.m_idx;
         }
 
-        inline difference_type operator-(iterator const & it)
+        difference_type operator-(iterator const & it) const
         {
             return (m_idx - it.m_idx);
         }
