@@ -570,7 +570,11 @@ public:
 
         bool operator==(iterator const & it) const
         {
-            return m_ivb == it.m_ivb and m_idx == it.m_idx;
+            // assert that iterator point to the same int_vector_buffer
+            assert(m_ivb);
+            assert(it.m_ivb);
+            assert(m_ivb == it.m_ivb);
+            return m_idx == it.m_idx;
         }
 
         bool operator!=(iterator const & it) const
@@ -580,26 +584,46 @@ public:
 
         bool operator<(iterator const & it) const
         {
+            // assert that iterator point to the same int_vector_buffer
+            assert(m_ivb);
+            assert(it.m_ivb);
+            assert(m_ivb == it.m_ivb);
             return m_idx < it.m_idx;
         }
 
         bool operator>(iterator const & it) const
         {
+            // assert that iterator point to the same int_vector_buffer
+            assert(m_ivb);
+            assert(it.m_ivb);
+            assert(m_ivb == it.m_ivb);
             return m_idx > it.m_idx;
         }
 
         bool operator<=(iterator const & it) const
         {
+            // assert that iterator point to the same int_vector_buffer
+            assert(m_ivb);
+            assert(it.m_ivb);
+            assert(m_ivb == it.m_ivb);
             return m_idx <= it.m_idx;
         }
 
         bool operator>=(iterator const & it) const
         {
+            // assert that iterator point to the same int_vector_buffer
+            assert(m_ivb);
+            assert(it.m_ivb);
+            assert(m_ivb == it.m_ivb);
             return m_idx >= it.m_idx;
         }
 
         difference_type operator-(iterator const & it) const
         {
+            // assert that iterator point to the same int_vector_buffer
+            assert(m_ivb);
+            assert(it.m_ivb);
+            assert(m_ivb == it.m_ivb);
             return (m_idx - it.m_idx);
         }
     };
