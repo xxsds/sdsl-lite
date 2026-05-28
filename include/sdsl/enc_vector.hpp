@@ -245,7 +245,7 @@ enc_vector<t_coder, t_dens, t_width>::enc_vector(Container const & c)
     size_type samples = 0;
     size_type z_size = 0;
     //  (1) Calculate maximal value of samples and of deltas
-    for (size_type i = 0, no_sample = 0; it != end; ++it, ++i, --no_sample)
+    for (size_type no_sample = 0; it != end; ++it, --no_sample)
     {
         v2 = *it;
         if (!no_sample)
