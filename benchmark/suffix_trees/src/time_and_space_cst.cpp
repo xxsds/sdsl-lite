@@ -9,8 +9,8 @@ using timer = std::chrono::high_resolution_clock;
 
 typedef CST_TYPE cst_type;
 
-const size_t NUM_REPETITIONS = 10000;
-const size_t BURST_SIZE = 10000;
+size_t const NUM_REPETITIONS = 10000;
+size_t const BURST_SIZE = 10000;
 
 std::default_random_engine & get_generator()
 {
@@ -134,7 +134,7 @@ public:
 
 template <class t_cst>
 std::pair<typename t_cst::node_type, typename t_cst::node_type> lca_argument(t_cst const & cst,
-                                                                             const typename t_cst::node_type v)
+                                                                             typename t_cst::node_type const v)
 {
     // Two nodes close to each other
     std::uniform_int_distribution<typename t_cst::size_type> distribution(cst.lb(v), cst.rb(v));
@@ -151,7 +151,7 @@ void test_lca(t_cst const & cst, std::pair<typename t_cst::node_type, typename t
 
 template <class t_cst>
 std::pair<typename t_cst::node_type, typename t_cst::size_type> letter_argument(t_cst const & cst,
-                                                                                const typename t_cst::node_type v)
+                                                                                typename t_cst::node_type const v)
 {
     auto d = cst.depth(v);
 
@@ -174,20 +174,20 @@ void test_letter(t_cst const & cst, std::pair<typename t_cst::node_type, typenam
 }
 
 template <class t_cst>
-typename t_cst::node_type slink_argument(t_cst const &, const typename t_cst::node_type v)
+typename t_cst::node_type slink_argument(t_cst const &, typename t_cst::node_type const v)
 {
     return v;
 }
 
 template <class t_cst>
-void test_slink(t_cst const & cst, const typename t_cst::node_type & v)
+void test_slink(t_cst const & cst, typename t_cst::node_type const & v)
 {
     cst.sl(v);
 }
 
 template <class t_cst>
 std::pair<typename t_cst::node_type, typename t_cst::char_type> child_argument(t_cst const & cst,
-                                                                               const typename t_cst::node_type v)
+                                                                               typename t_cst::node_type const v)
 {
     std::uniform_int_distribution<typename t_cst::size_type> distribution(cst.lb(v), cst.rb(v));
 
@@ -204,19 +204,19 @@ void test_child(t_cst const & cst, std::pair<typename t_cst::node_type, typename
 }
 
 template <class t_cst>
-typename t_cst::node_type depth_argument(t_cst const &, const typename t_cst::node_type v)
+typename t_cst::node_type depth_argument(t_cst const &, typename t_cst::node_type const v)
 {
     return v;
 }
 
 template <class t_cst>
-void test_depth(t_cst const & cst, const typename t_cst::node_type & v)
+void test_depth(t_cst const & cst, typename t_cst::node_type const & v)
 {
     cst.depth(v);
 }
 
 template <class t_cst>
-typename t_cst::node_type parent_argument(t_cst const & cst, const typename t_cst::node_type v)
+typename t_cst::node_type parent_argument(t_cst const & cst, typename t_cst::node_type const v)
 {
     std::uniform_int_distribution<typename t_cst::size_type> distribution(cst.lb(v), cst.rb(v));
 
@@ -227,7 +227,7 @@ typename t_cst::node_type parent_argument(t_cst const & cst, const typename t_cs
 }
 
 template <class t_cst>
-void test_parent(t_cst const & cst, const typename t_cst::node_type & v)
+void test_parent(t_cst const & cst, typename t_cst::node_type const & v)
 {
     cst.parent(v);
 }
@@ -243,12 +243,12 @@ void run_benchmark(std::string const & cst_name,
 }
 
 template <class t_cst, class t_test_func, class t_prepare_func, class t_sampler>
-void run_benchmark(const std::string cst_name,
+void run_benchmark(std::string const cst_name,
                    t_cst const & cst,
-                   const std::string op_name,
+                   std::string const op_name,
                    t_test_func test_func,
                    t_prepare_func prepare_func,
-                   const std::string sampler_name,
+                   std::string const sampler_name,
                    t_sampler sampler)
 {
     auto nodes = sampler.get_data(NUM_REPETITIONS, BURST_SIZE);

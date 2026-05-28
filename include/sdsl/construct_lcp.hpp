@@ -224,9 +224,9 @@ inline void construct_lcp_semi_extern_PHI(cache_config & config)
         store_to_cache(lcp, conf::KEY_LCP, config);
         return;
     }
-    const uint8_t log_q = 6; // => q=64
-    const uint32_t q = 1 << log_q;
-    const uint64_t modq = bits::lo_set[log_q];
+    uint8_t const log_q = 6; // => q=64
+    uint32_t const q = 1 << log_q;
+    uint64_t const modq = bits::lo_set[log_q];
 
     // n-1 is the maximum entry in SA
     int_vector<64> plcp((n - 1 + q) >> log_q);
@@ -346,8 +346,8 @@ inline void construct_lcp_go(cache_config & config)
     int_vector<8> text;
     load_from_cache(text, conf::KEY_TEXT, config);
     int_vector_buffer<> sa_buf(cache_file_name(conf::KEY_SA, config)); // initialize buffer for suffix array
-    const size_type n = sa_buf.size();
-    const size_type m = 254; // LCP[i] == m+1 corresp. to LCP[i]>= m+1; LCP[i] <= m corresp. to LCP[i] was calculated
+    size_type const n = sa_buf.size();
+    size_type const m = 254; // LCP[i] == m+1 corresp. to LCP[i]>= m+1; LCP[i] <= m corresp. to LCP[i] was calculated
 
     if (1 == n)
     {
@@ -405,7 +405,7 @@ inline void construct_lcp_go(cache_config & config)
             rmq_stack[3] = 0;      // second element (0, -1)
             size_type rmq_end = 3; // index of the value of the topmost element
 
-            const size_type m_mod2 = m % 2;
+            size_type const m_mod2 = m % 2;
             uint8_t cur_c = alphabet[1];
             size_type big_val = 0;
             for (size_type i = 1, sai, cur_c_idx = 1, cur_c_cnt = cnt_c[alphabet[1] + 1]; i < n; ++i, --cur_c_cnt)
@@ -558,7 +558,7 @@ inline void construct_lcp_go(cache_config & config)
                     if (todo[lf_i])
                     {                             // LCP[LF[i]] is a big entry
                         lcp_big[i2] = cnt_cc2[b]; // LF'[i]
-                    }                             /*else{
+                    } /*else{
  * lcp_big[i2] = 0;
                         }*/
                     ++i2;
@@ -678,7 +678,7 @@ inline void construct_lcp_go(cache_config & config)
     //		std::cout<<"# merge lcp_sml and lcp_big"<<std::endl;
     // phase 3: merge lcp_sml and lcp_big and save to disk
     {
-        const size_type buffer_size = 1000000; // buffer_size has to be a multiple of 8!
+        size_type const buffer_size = 1000000; // buffer_size has to be a multiple of 8!
         int_vector_buffer<> lcp_big_buf(cache_file_name("lcp_big",
                                                         config)); // file buffer containing the big LCP values
         int_vector_buffer<8> lcp_sml_buf(cache_file_name("lcp_sml", config),
@@ -735,8 +735,8 @@ inline void construct_lcp_goPHI(cache_config & config)
     int_vector<8> text;
     load_from_cache(text, conf::KEY_TEXT, config);                     // load text from file system
     int_vector_buffer<> sa_buf(cache_file_name(conf::KEY_SA, config)); // initialize buffer for suffix array
-    const size_type n = sa_buf.size();
-    const size_type m = 254; // LCP[i] == m+1 corresp. to LCP[i]>= m+1; LCP[i] <= m corresp. to LCP[i] was calculated
+    size_type const n = sa_buf.size();
+    size_type const m = 254; // LCP[i] == m+1 corresp. to LCP[i]>= m+1; LCP[i] <= m corresp. to LCP[i] was calculated
 
     if (1 == n)
     {
@@ -887,7 +887,7 @@ inline void construct_lcp_goPHI(cache_config & config)
             }
             rank_support_v<> todo_rank(&todo); // initialize rank for todo
 
-            const size_type bot = sa_n_1;
+            size_type const bot = sa_n_1;
             int_vector<> phi(nn, bot, bits::hi(n - 1) + 1); // phi
 
             int_vector_buffer<8> bwt_buf(cache_file_name(conf::KEY_BWT, config)); // load BWT
@@ -943,7 +943,7 @@ inline void construct_lcp_goPHI(cache_config & config)
     //		std::cout<<"# merge lcp_sml and lcp_big"<<std::endl;
     // phase 3: merge lcp_sml and lcp_big and save to disk
     {
-        const size_type buffer_size = 1000000; // buffer_size has to be a multiple of 8!
+        size_type const buffer_size = 1000000; // buffer_size has to be a multiple of 8!
         int_vector_buffer<> lcp_big_buf(cache_file_name("lcp_big",
                                                         config)); // file buffer containing the big LCP values
         int_vector_buffer<8> lcp_sml_buf(cache_file_name("lcp_sml", config),

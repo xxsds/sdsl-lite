@@ -52,7 +52,7 @@ public:
     };
 
 public:
-    explicit rank_support_scan(bit_vector const * v = nullptr) : rank_support(v){};
+    explicit rank_support_scan(bit_vector const * v = nullptr) : rank_support(v) {};
     rank_support_scan(rank_support_scan const & rs) = default;
     rank_support_scan(rank_support_scan && rs) = default;
     rank_support_scan & operator=(rank_support_scan const & rs) = default;

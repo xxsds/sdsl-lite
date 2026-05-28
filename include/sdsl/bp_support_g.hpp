@@ -238,18 +238,18 @@ public:
         size_type mi = 0; // match for i
         if ((mi = near_find_close(*m_bp, i, t_bs)) == i)
         {
-            const size_type i2 = m_nnd.rank(i + 1) - 1; // lemma that this gives us an opening pioneer
+            size_type const i2 = m_nnd.rank(i + 1) - 1; // lemma that this gives us an opening pioneer
             assert(m_pioneer_bp[i2] == 1);              // assert that i2 is an opening parenthesis
             size_type mi2 = 0;                          // match for i2
             if ((mi2 = near_find_close(m_pioneer_bp, i2, t_bs)) == i2)
             {
-                const size_type i3 = m_nnd2.rank(i2 + 1) - 1;
-                const size_type mi3 = m_match[i3];
+                size_type const i3 = m_nnd2.rank(i2 + 1) - 1;
+                size_type const mi3 = m_match[i3];
                 assert(mi3 > i3);             // assert that i3 is an opening parenthesis
                 mi2 = m_nnd2.select(mi3 + 1); // matching pioneer position in pioneer_bp
                 mi2 = (mi2 / t_bs) * t_bs;
                 size_type epb = excess_pioneer(mi2);     // excess of first parenthesis in the pioneer block
-                const size_type ei = excess_pioneer(i2); // excess of pioneer
+                size_type const ei = excess_pioneer(i2); // excess of pioneer
                 /* invariant: epb >= ei-1 */ assert(epb + 1 >= ei);
                 while (epb + 1 != ei)
                 {
@@ -264,7 +264,7 @@ public:
             assert((*m_bp)[mi] == 0);
             mi = (mi / t_bs) * t_bs;
             size_type epb = excess(mi);     // excess of first parenthesis in the pioneer block
-            const size_type ei = excess(i); // excess at position i
+            size_type const ei = excess(i); // excess at position i
             /* invariant: epb >= ei-1 */ assert(epb + 1 >= ei);
             while (epb + 1 != ei)
             {
@@ -294,16 +294,16 @@ public:
         size_type mi = 0; // match for i
         if ((mi = near_find_open(*m_bp, i, t_bs)) == i)
         {
-            const size_type i2 = m_nnd.rank(i); // lemma that this gives us an closing pioneer
+            size_type const i2 = m_nnd.rank(i); // lemma that this gives us an closing pioneer
             assert(m_pioneer_bp[i2] == 0);      // assert that i2 is an opening parenthesis
-            const size_type mi2 = find_open_in_pioneers(i2);
+            size_type const mi2 = find_open_in_pioneers(i2);
             assert(m_pioneer_bp[mi2] == 1);
             mi = m_nnd.select(mi2 + 1); /* matching pioneer position in bp */
             assert((*m_bp)[mi] == 1);
             mi = (mi / t_bs) * t_bs + t_bs - 1;
             assert(mi < i);
             size_type epb = excess(mi);     // excess of last parenthesis in the pioneer block
-            const size_type ei = excess(i); // excess at position i
+            size_type const ei = excess(i); // excess at position i
             /*invariant: epb >= ei+1*/ assert(epb >= ei + 1);
             while (epb != ei)
             {
@@ -323,13 +323,13 @@ public:
         size_type mi = 0; // match for i
         if ((mi = near_find_open(m_pioneer_bp, i, t_bs)) == i)
         {
-            const size_type i3 = m_nnd2.rank(i);
-            const size_type mi3 = m_match[i3];
+            size_type const i3 = m_nnd2.rank(i);
+            size_type const mi3 = m_match[i3];
             assert(mi3 < i3);            // assert that i3 is an closing parenthesis
             mi = m_nnd2.select(mi3 + 1); // matching pioneer position in pioneer_bp
             mi = (mi / t_bs) * t_bs + t_bs - 1;
             size_type epb2 = excess_pioneer(mi);    // excess of last parenthesis in the pioneer block
-            const size_type ei = excess_pioneer(i); // excess of pioneer
+            size_type const ei = excess_pioneer(i); // excess of pioneer
             /* invariant: epb2 >= ei+1 */ assert(epb2 >= ei + 1);
             while (epb2 != ei)
             {
@@ -357,27 +357,27 @@ public:
         { // if there is closing parenthesis at position i
             return find_open(i);
         }
-        const size_type exi = excess(i);
+        size_type const exi = excess(i);
         if (exi == 1) // if i is not enclosed by a parentheses pair..
             return size();
         size_type ei; // enclose  for i
         if ((ei = near_enclose(*m_bp, i, t_bs)) == i)
         {
-            const size_type i2 = m_nnd.rank(i); // next parenthesis in the pioneer bitmap
+            size_type const i2 = m_nnd.rank(i); // next parenthesis in the pioneer bitmap
             size_type ei2;                      // enclose for i2
             if (m_pioneer_bp[i2])
             { // search enclose in the pioneer bp
                 if ((ei2 = near_enclose(m_pioneer_bp, i2, t_bs)) == i2)
                 {
-                    const size_type i3 = m_nnd2.rank(i2); // next parenthesis in the pioneer2 bitmap
-                    const size_type ei3 = m_enclose[i3];
+                    size_type const i3 = m_nnd2.rank(i2); // next parenthesis in the pioneer2 bitmap
+                    size_type const ei3 = m_enclose[i3];
                     assert(ei3 < i3); // assert that enclose answer is valid
                     ei2 = m_nnd2.select(ei3 + 1);
                     assert(m_pioneer_bp[ei2] == 1);
                     ei2 = (ei2 / t_bs) * t_bs + t_bs - 1;
                     assert(ei2 < i2);
                     size_type epb2 = excess_pioneer(ei2);      // excess of the last parenthesis in the pioneer block
-                    const size_type exi2 = excess_pioneer(i2); // excess
+                    size_type const exi2 = excess_pioneer(i2); // excess
                     /* invariant epb2+1 >= exi2 */ assert(epb2 + 1 >= exi2);
                     while (epb2 + 2 != exi2)
                     {
@@ -421,10 +421,10 @@ public:
      * \par Time complexity
      *     \f$ \Order{block\_size} \f$
      */
-    size_type rr_enclose(const size_type i, const size_type j) const
+    size_type rr_enclose(size_type const i, size_type const j) const
     {
         assert(j > i and j < m_size);
-        const size_type mip1 = find_close(i) + 1;
+        size_type const mip1 = find_close(i) + 1;
         if (mip1 >= j)
             return size();
         return rmq_open(mip1, j);
@@ -443,7 +443,7 @@ public:
      * \par Time complexity
      *     \f$ \Order{block\_size} \f$
      */
-    size_type rmq_open(const size_type l, const size_type r) const
+    size_type rmq_open(size_type const l, size_type const r) const
     {
         if (l >= r)
             return size();
@@ -459,9 +459,9 @@ public:
             // note: mi and r are not in the same block
             size_type k, ex;              // helper variables
             size_type min_ex = excess(r); // + 2*((*m_bp[r])==0); // minimal excess
-            const size_type bl =
+            size_type const bl =
                 (l / t_bs + 1) * t_bs; // leftmost position of the leftmost block between the blocks of l and r
-            const size_type br = (r / t_bs) * t_bs; // leftmost position of the block of r
+            size_type const br = (r / t_bs) * t_bs; // leftmost position of the block of r
 
             // 1.2
             size_type l_ = m_nnd.rank(l); //  l_ inclusive
@@ -477,8 +477,8 @@ public:
                 else if (r_ < m_pioneer_bp.size())
                 {
                     size_type min_ex_ = excess_pioneer(r_) + 2 * (m_pioneer_bp[r_] == 0);
-                    const size_type bl_ = (l_ / t_bs + 1) * t_bs;
-                    const size_type br_ = (r_ / t_bs) * t_bs;
+                    size_type const bl_ = (l_ / t_bs + 1) * t_bs;
+                    size_type const br_ = (r_ / t_bs) * t_bs;
 
                     // 2.2
                     size_type l__ = m_nnd2.rank(l_); // l__ inclusive

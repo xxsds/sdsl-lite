@@ -250,7 +250,7 @@ public:
         size_type mi = 0; // match for i
         if ((mi = near_find_closing(*m_bp, i + 1, 1, t_bs)) == i)
         {
-            const size_type i_ = m_nnd.rank(i + 1) - 1; // lemma that this gives us an opening pioneer
+            size_type const i_ = m_nnd.rank(i + 1) - 1; // lemma that this gives us an opening pioneer
             assert(m_pioneer_bp[i_] == 1);              // assert that i2 is an opening parenthesis
             size_type mi_ = m_pioneer_bp_support->find_close(i_);
             assert(m_pioneer_bp[mi_] == 0);
@@ -258,7 +258,7 @@ public:
             assert((*m_bp)[mi] == 0);
             mi = (mi / t_bs) * t_bs;
             size_type epb2 = excess(mi - 1); // excess of first parenthesis in the pioneer block
-            const size_type ei = excess(i);  // excess at position i
+            size_type const ei = excess(i);  // excess at position i
             /* invariant: epb >= ei-1 */     // assert( epb+1 >= ei );
             return near_find_closing(*m_bp, mi, epb2 - ei + 1, t_bs);
         }
@@ -282,16 +282,16 @@ public:
         size_type mi = 0; // match for i
         if ((mi = near_find_opening(*m_bp, i - 1, 1, t_bs)) == i)
         {
-            const size_type i_ = m_nnd.rank(i); // lemma that this gives us an closing pioneer
+            size_type const i_ = m_nnd.rank(i); // lemma that this gives us an closing pioneer
             assert(m_pioneer_bp[i_] == 0);      // assert that i' is an opening parenthesis
-            const size_type mi_ = m_pioneer_bp_support->find_open(i_);
+            size_type const mi_ = m_pioneer_bp_support->find_open(i_);
             assert(m_pioneer_bp[mi_] == 1);
             mi = m_nnd.select(mi_ + 1); /* matching pioneer position in bp */
             assert((*m_bp)[mi] == 1);
             mi = (mi / t_bs) * t_bs + t_bs - 1;
             assert(mi < i);
             size_type epb2 = excess(mi + 1); // excess of last parenthesis in the pioneer block
-            const size_type ei = excess(i);  // excess at position i
+            size_type const ei = excess(i);  // excess at position i
             /*invariant: epb >= ei+1*/       // assert( epb >= ei+1 );
             return near_find_opening(*m_bp, mi, epb2 - ei + 1 - 2 * ((*m_bp)[mi + 1]), t_bs);
         }
@@ -311,13 +311,13 @@ public:
         { // if there is closing parenthesis at position i
             return find_open(i);
         }
-        const size_type exi = excess(i);
+        size_type const exi = excess(i);
         if (exi == 1) // if i is not enclosed by a parentheses pair..
             return size();
         size_type ei; // enclose  for i
         if ((ei = near_find_opening(*m_bp, i - 1, 1, t_bs)) == i)
         {
-            const size_type i_ = m_nnd.rank(i); // next parenthesis in the pioneer bitmap
+            size_type const i_ = m_nnd.rank(i); // next parenthesis in the pioneer bitmap
             size_type ei_;                      // enclose for i'
             ei_ = m_pioneer_bp_support->enclose(i_);
             assert(m_pioneer_bp[ei_] == 1);
@@ -343,11 +343,11 @@ public:
      *  \par Time complexity
      *      \f$ \Order{block\_size} \f$
      */
-    size_type rr_enclose(const size_type i, const size_type j) const
+    size_type rr_enclose(size_type const i, size_type const j) const
     {
         assert(j < m_size);
         assert((*m_bp)[i] == 1 and (*m_bp)[j] == 1);
-        const size_type mip1 = find_close(i) + 1;
+        size_type const mip1 = find_close(i) + 1;
         if (mip1 >= j)
             return size();
         return rmq_open(mip1, j);
@@ -361,7 +361,7 @@ public:
      * \par Time complexity
      *     \f$ \Order{block\_size} \f$
      */
-    size_type rmq_open(const size_type l, const size_type r) const
+    size_type rmq_open(size_type const l, size_type const r) const
     {
         if (l >= r)
             return size();

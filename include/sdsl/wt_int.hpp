@@ -199,7 +199,7 @@ public:
             for (uint32_t k = 0; k < m_max_level; ++k)
             {
                 size_type start = 0;
-                const uint64_t mask_new = 1ULL << (m_max_level - k - 1);
+                uint64_t const mask_new = 1ULL << (m_max_level - k - 1);
                 do
                 {
                     size_type i = start;

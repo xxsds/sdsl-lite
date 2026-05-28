@@ -126,7 +126,7 @@ public:
      * \par Time complexity
      *      \f$ \Order{1} \f$
      */
-    size_type operator()(const size_type l, const size_type r) const
+    size_type operator()(size_type const l, size_type const r) const
     {
         assert(l <= r);
         assert(r < size());

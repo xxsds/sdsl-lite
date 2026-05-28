@@ -44,8 +44,8 @@ template <class t_cst>
 typename t_cst::size_type forward_search(
     t_cst const & cst,
     typename t_cst::node_type & v,
-    const typename t_cst::size_type d,
-    const typename t_cst::char_type c,
+    typename t_cst::size_type const d,
+    typename t_cst::char_type const c,
     typename t_cst::size_type & char_pos,
     SDSL_UNUSED
     typename std::enable_if<std::is_same<cst_tag, typename t_cst::index_category>::value, cst_tag>::type x = cst_tag())
@@ -169,7 +169,7 @@ t_rac locate(t_cst const & cst,
 template <class t_cst, class t_text_iter>
 typename t_cst::size_type extract(
     t_cst const & cst,
-    const typename t_cst::node_type & v,
+    typename t_cst::node_type const & v,
     t_text_iter text,
     SDSL_UNUSED
     typename std::enable_if<std::is_same<cst_tag, typename t_cst::index_category>::value, cst_tag>::type x = cst_tag())
@@ -197,7 +197,7 @@ typename t_cst::size_type extract(
 template <class t_cst>
 typename t_cst::csa_type::string_type extract(
     t_cst const & cst,
-    const typename t_cst::node_type & v,
+    typename t_cst::node_type const & v,
     SDSL_UNUSED
     typename std::enable_if<std::is_same<cst_tag, typename t_cst::index_category>::value, cst_tag>::type x = cst_tag())
 {
@@ -220,7 +220,7 @@ typename t_cst::csa_type::string_type extract(
  * s in the original text.
  */
 template <class t_cst>
-double H0(const typename t_cst::node_type & v, t_cst const & cst)
+double H0(typename t_cst::node_type const & v, t_cst const & cst)
 {
     if (cst.is_leaf(v))
     {

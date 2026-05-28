@@ -63,7 +63,7 @@ public:
     //! Constructor
     /*!\param n Number of supported bits
      */
-    nn_dict_dynamic(const uint64_t n = 0) : depth(m_depth)
+    nn_dict_dynamic(uint64_t const n = 0) : depth(m_depth)
     {
         m_size = n;
         if (n == 0)
@@ -166,7 +166,7 @@ public:
      *  \return If there exists a leftmost index \f$i\geq idx\f$ where a bit is set,
      *          then \f$i\f$ is returned, otherwise size().
      */
-    size_type next(const size_type idx) const
+    size_type next(size_type const idx) const
     {
         uint64_t v_node_position; // virtual node position
         uint64_t node;            // current node
@@ -216,7 +216,7 @@ public:
      *  \return If there exists a rightmost index \f$i \leq idx\f$ where a bit is set,
      *          then \f$i\f$ is returned, otherwise size().
      */
-    size_type prev(const size_type idx) const
+    size_type prev(size_type const idx) const
     {
         uint64_t v_node_position; // virtual node position
         uint64_t node;            // current node
@@ -330,7 +330,7 @@ public:
 
     public:
         //! Constructor
-        reference(nn_dict_dynamic * pbv, nn_dict_dynamic::size_type idx) : m_pbv(pbv), m_idx(idx){};
+        reference(nn_dict_dynamic * pbv, nn_dict_dynamic::size_type idx) : m_pbv(pbv), m_idx(idx) {};
 
         //! Assignment operator for the proxy class
         reference & operator=(bool x)

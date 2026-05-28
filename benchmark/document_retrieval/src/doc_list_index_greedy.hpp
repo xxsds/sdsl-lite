@@ -197,7 +197,7 @@ private:
 
     void construct_D_array(int_vector_buffer<0> & sa_buf,
                            bit_vector::rank_1_type & doc_border_rank,
-                           const size_type doc_cnt,
+                           size_type const doc_cnt,
                            int_vector<> & D)
     {
         D = int_vector<>(sa_buf.size(), 0, bits::hi(doc_cnt + 1) + 1);

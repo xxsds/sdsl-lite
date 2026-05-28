@@ -253,7 +253,7 @@ TYPED_TEST(cst_int_test, id_method)
 }
 
 template <class t_cst>
-size_type naive_degree(t_cst const & cst, const typename t_cst::node_type & v)
+size_type naive_degree(t_cst const & cst, typename t_cst::node_type const & v)
 {
     if (cst.is_leaf(v))
     {

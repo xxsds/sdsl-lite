@@ -71,7 +71,7 @@ private:
 
 public:
     //! Default constructor
-    inv_multi_perm_support(){};
+    inv_multi_perm_support() {};
 
     //! Constructor
     inv_multi_perm_support(iv_type const * perm, int_vector<> & iv, uint64_t chunksize) :
@@ -318,7 +318,7 @@ public:
 template <class t_rac>
 void _transform_to_compressed(int_vector<> & iv,
                               typename std::enable_if<!(std::is_same<t_rac, int_vector<>>::value), t_rac>::type & rac,
-                              const std::string filename)
+                              std::string const filename)
 {
     std::string tmp_file_name = tmp_file(filename, "_compress_int_vector");
     store_to_file(iv, tmp_file_name);
@@ -331,7 +331,7 @@ void _transform_to_compressed(int_vector<> & iv,
 template <class t_rac>
 void _transform_to_compressed(int_vector<> & iv,
                               typename std::enable_if<std::is_same<t_rac, int_vector<>>::value, t_rac>::type & rac,
-                              const std::string)
+                              std::string const)
 {
     rac = std::move(iv);
 }

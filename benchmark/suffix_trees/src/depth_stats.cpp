@@ -31,7 +31,7 @@ int main(int argc, char ** argv)
     {
         if (it.visit() == 1 && !cst.is_leaf(*it))
         {
-            const size_t depth = cst.depth(*it);
+            size_t const depth = cst.depth(*it);
             depth_cnt[depth]++;
         }
     }

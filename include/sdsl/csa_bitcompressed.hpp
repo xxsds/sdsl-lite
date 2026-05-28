@@ -54,10 +54,10 @@ public:
     typedef uint64_t value_type;                                            // STL Container requirement
     typedef random_access_const_iterator<csa_bitcompressed> const_iterator; // STL Container requirement
     typedef const_iterator iterator;                                        // STL Container requirement
-    typedef const value_type const_reference;
+    typedef value_type const const_reference;
     typedef const_reference reference;
     typedef const_reference * pointer;
-    typedef const pointer const_pointer;
+    typedef pointer const const_pointer;
     typedef int_vector<>::size_type size_type; // STL Container requirement
     typedef size_type csa_size_type;
     typedef ptrdiff_t difference_type; // STL Container requirement
@@ -91,17 +91,17 @@ private:
     alphabet_type m_alphabet;
 
 public:
-    const typename alphabet_type::char2comp_type & char2comp = m_alphabet.char2comp;
-    const typename alphabet_type::comp2char_type & comp2char = m_alphabet.comp2char;
-    const typename alphabet_type::C_type & C = m_alphabet.C;
-    const typename alphabet_type::sigma_type & sigma = m_alphabet.sigma;
-    const psi_type psi = psi_type(*this);
-    const lf_type lf = lf_type(*this);
-    const bwt_type bwt = bwt_type(*this);
-    const bwt_type L = bwt_type(*this);
+    typename alphabet_type::char2comp_type const & char2comp = m_alphabet.char2comp;
+    typename alphabet_type::comp2char_type const & comp2char = m_alphabet.comp2char;
+    typename alphabet_type::C_type const & C = m_alphabet.C;
+    typename alphabet_type::sigma_type const & sigma = m_alphabet.sigma;
+    psi_type const psi = psi_type(*this);
+    lf_type const lf = lf_type(*this);
+    bwt_type const bwt = bwt_type(*this);
+    bwt_type const L = bwt_type(*this);
     isa_type const & isa = m_isa;
-    const first_row_type F = first_row_type(*this);
-    const text_type text = text_type(*this);
+    first_row_type const F = first_row_type(*this);
+    text_type const text = text_type(*this);
     sa_sample_type const & sa_sample = m_sa;
     isa_sample_type const & isa_sample = m_isa;
 
@@ -279,7 +279,7 @@ private:
      *  \par Time complexity
      *        \f$ \Order{\log n} \f$
      */
-    size_type rank_bwt(size_type i, const char_type c) const
+    size_type rank_bwt(size_type i, char_type const c) const
     {
         // TODO: special case if c == BWT[i-1] we can use LF to get a constant time answer
         comp_char_type cc = char2comp[c];
@@ -313,7 +313,7 @@ private:
      *  \par Time complexity
      *        \f$ \Order{t_{\Psi}} \f$
      */
-    size_type select_bwt(size_type i, const char_type c) const
+    size_type select_bwt(size_type i, char_type const c) const
     {
         comp_char_type cc = char2comp[c];
         if (cc == 0 and c != 0) // character is not in the text => return size()

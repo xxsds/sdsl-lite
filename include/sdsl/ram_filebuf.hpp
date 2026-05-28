@@ -36,9 +36,9 @@ private:
     }
 
 public:
-    virtual ~ram_filebuf(){};
+    virtual ~ram_filebuf() {};
 
-    ram_filebuf(){};
+    ram_filebuf() {};
 
     ram_filebuf(ram_fs::content_type & ram_file) : m_ram_file(&ram_file)
     {
@@ -47,7 +47,7 @@ public:
         setg(begin, begin, end); // set get pointers eback(), eptr(), egptr()
     }
 
-    std::streambuf * open(const std::string name, std::ios_base::openmode mode)
+    std::streambuf * open(std::string const name, std::ios_base::openmode mode)
     {
         // open ram_file
         if ((mode & std::ios_base::in) and !(mode & std::ios_base::trunc))
@@ -87,7 +87,8 @@ public:
                 // TODO: move put pointer to the end of the file
             }
             else
-            {}
+            {
+            }
             setg(m_ram_file->data(), m_ram_file->data(), m_ram_file->data() + m_ram_file->size());
             setp(m_ram_file->data(), m_ram_file->data() + m_ram_file->size());
         }

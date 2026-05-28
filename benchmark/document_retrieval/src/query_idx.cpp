@@ -10,7 +10,7 @@ using namespace sdsl;
 
 using idx_type = IDX_TYPE;
 
-const size_t buf_size = 1024 * 128;
+size_t const buf_size = 1024 * 128;
 char buffer[buf_size];
 
 template <uint8_t t_width>

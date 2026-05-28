@@ -29,7 +29,7 @@ uint64_t id();
 namespace conf // namespace for library constant
 {
 // size of the buffer for reading and writing data in elements (not in bytes)
-const uint64_t SDSL_BLOCK_SIZE = (uint64_t)1 << 22;
+uint64_t const SDSL_BLOCK_SIZE = (uint64_t)1 << 22;
 
 constexpr char KEY_BWT[] = "bwt";
 constexpr char KEY_BWT_INT[] = "bwt_int";

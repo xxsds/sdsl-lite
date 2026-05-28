@@ -38,7 +38,7 @@ inline void insert_lcp_values(int_vector<> & partial_lcp,
                               uint64_t lcp_value_offset)
 {
     std::string tmp_lcp_file = lcp_file + "_TMP";
-    const uint64_t buffer_size = 1000000; // has to be a multiple of 64
+    uint64_t const buffer_size = 1000000; // has to be a multiple of 64
     typedef int_vector<>::size_type size_type;
     int_vector_buffer<> lcp_buffer(lcp_file, std::ios::in, buffer_size); // open lcp_file
     uint64_t n = lcp_buffer.size();
@@ -97,7 +97,7 @@ class buffered_char_queue
     typedef std::queue<uint8_t> tQ;
 
 private:
-    static const uint32_t m_buffer_size = 10000; // 409600;
+    static uint32_t const m_buffer_size = 10000; // 409600;
     uint8_t m_write_buf[m_buffer_size];
     uint8_t m_read_buf[m_buffer_size];
     size_type m_widx;                 // write index

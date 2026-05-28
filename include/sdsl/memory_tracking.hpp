@@ -140,7 +140,7 @@ struct mm_alloc
     using timer = std::chrono::high_resolution_clock;
     timer::time_point timestamp;
     int64_t usage;
-    mm_alloc(timer::time_point t, int64_t u) : timestamp(t), usage(u){};
+    mm_alloc(timer::time_point t, int64_t u) : timestamp(t), usage(u) {};
 };
 
 struct mm_event

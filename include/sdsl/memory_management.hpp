@@ -268,7 +268,7 @@ typedef struct bfoot
 #define MM_BLOCK_OVERHEAD (sizeof(size_t) + sizeof(size_t))
 #define MIN_BLOCKSIZE (ALIGN(sizeof(mm_block_t) + sizeof(mm_block_foot_t)))
 #define UNMASK_SIZE(size) ((size) & ~1)
-#define ISFREE(size) ((size)&1)
+#define ISFREE(size) ((size) & 1)
 #define SETFREE(size) ((size) | 1)
 #define SPLIT_THRESHOLD (MIN_BLOCKSIZE)
 
@@ -436,9 +436,9 @@ private:
         size_t size_in_bytes = 0;
         size_t page_size_in_bytes = 0;
         size_t num_free_pages = 0;
-        const std::string meminfo_file = "/proc/meminfo";
-        const std::string ps_str = "Hugepagesize:";
-        const std::string pf_str = "HugePages_Free:";
+        std::string const meminfo_file = "/proc/meminfo";
+        std::string const ps_str = "Hugepagesize:";
+        std::string const pf_str = "HugePages_Free:";
         std::ifstream mifs(meminfo_file);
         if (mifs.is_open())
         {
@@ -889,7 +889,7 @@ public:
 #endif
     }
     template <class t_vec>
-    static void resize(t_vec & v, const typename t_vec::size_type capacity)
+    static void resize(t_vec & v, typename t_vec::size_type const capacity)
     {
         uint64_t old_capacity_in_bytes = ((v.m_capacity + 63) >> 6) << 3;
         uint64_t new_capacity_in_bytes = ((capacity + 63) >> 6) << 3;
@@ -1011,7 +1011,7 @@ public:
         return nullptr;
     }
 
-    static int mem_unmap(int fd, void * addr, const uint64_t size)
+    static int mem_unmap(int fd, void * addr, uint64_t const size)
     {
         if (addr == nullptr)
         {
@@ -1046,7 +1046,7 @@ public:
         return -1;
     }
 
-    static int truncate_file_mmap(int fd, const uint64_t new_size)
+    static int truncate_file_mmap(int fd, uint64_t const new_size)
     {
         if (is_ram_file(fd))
         {

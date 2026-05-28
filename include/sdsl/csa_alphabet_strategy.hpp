@@ -381,13 +381,22 @@ private:
     sigma_type m_sigma;                // effective size of the alphabet
 
 public:
-    const char2comp_type char2comp;
-    const comp2char_type comp2char;
+    char2comp_type const char2comp;
+    comp2char_type const comp2char;
     C_type const & C;
     sigma_type const & sigma;
 
     //! Default constructor
-    succinct_byte_alphabet() : m_char(), m_char_rank(), m_char_select(), m_C(), m_sigma(0), char2comp(this), comp2char(this), C(m_C), sigma(m_sigma)
+    succinct_byte_alphabet() :
+        m_char(),
+        m_char_rank(),
+        m_char_select(),
+        m_C(),
+        m_sigma(0),
+        char2comp(this),
+        comp2char(this),
+        C(m_C),
+        sigma(m_sigma)
     {}
 
     //! Construct from a byte-stream
@@ -625,8 +634,8 @@ public:
         }
     };
 
-    const char2comp_type char2comp{};
-    const comp2char_type comp2char{};
+    char2comp_type const char2comp{};
+    comp2char_type const comp2char{};
     C_type const & C;
     sigma_type const & sigma;
 
@@ -866,13 +875,22 @@ private:
     }
 
 public:
-    const char2comp_type char2comp;
-    const comp2char_type comp2char;
+    char2comp_type const char2comp;
+    comp2char_type const comp2char;
     C_type const & C;
     sigma_type const & sigma;
 
     //! Default constructor
-    int_alphabet() : m_char(), m_char_rank(), m_char_select(), m_C(), m_sigma(0), char2comp(this), comp2char(this), C(m_C), sigma(m_sigma)
+    int_alphabet() :
+        m_char(),
+        m_char_rank(),
+        m_char_select(),
+        m_C(),
+        m_sigma(0),
+        char2comp(this),
+        comp2char(this),
+        C(m_C),
+        sigma(m_sigma)
     {}
 
     //! Construct from a byte-stream

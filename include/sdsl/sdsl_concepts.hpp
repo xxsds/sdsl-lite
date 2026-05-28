@@ -48,11 +48,11 @@ struct alphabet_tag
 {};
 struct byte_alphabet_tag
 {
-    static const uint8_t WIDTH = 8;
+    static uint8_t const WIDTH = 8;
 };
 struct int_alphabet_tag
 {
-    static const uint8_t WIDTH = 0;
+    static uint8_t const WIDTH = 0;
 };
 
 struct sa_sampling_tag

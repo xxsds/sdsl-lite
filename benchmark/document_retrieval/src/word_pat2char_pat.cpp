@@ -7,7 +7,7 @@
 
 using namespace std;
 
-const size_t buf_size = 1024 * 128;
+size_t const buf_size = 1024 * 128;
 char buffer[buf_size];
 
 int main(int argc, char * argv[])

@@ -62,7 +62,7 @@ int main()
         for (uint64_t i = 0; i < rands.size(); ++i)
             rands[i] = rands[i] + 1;
         sd_vector<>::select_0_type select0(&bv_sd);
-        const uint64_t reps = 10000000;
+        uint64_t const reps = 10000000;
         start = timer::now();
         auto check = test_inv_random_access(select0, rands, mask, reps);
         stop = timer::now();
@@ -78,7 +78,7 @@ int main()
         for (uint64_t i = 0; i < rands.size(); ++i)
             rands[i] = rands[i] + 1;
         select_0_support_sd<sd_vector<>> select0(&bv_sd);
-        const uint64_t reps = 10000000;
+        uint64_t const reps = 10000000;
         start = timer::now();
         auto check = test_inv_random_access(select0, rands, mask, reps);
         stop = timer::now();
@@ -94,7 +94,7 @@ int main()
         for (uint64_t i = 0; i < rands.size(); ++i)
             rands[i] = rands[i] + 1;
         sd_vector<>::select_1_type select1(&bv_sd);
-        const uint64_t reps = 10000000;
+        uint64_t const reps = 10000000;
         start = timer::now();
         auto check = test_inv_random_access(select1, rands, mask, reps);
         stop = timer::now();
@@ -106,11 +106,11 @@ int main()
         uint64_t mask = 0;
         auto rands = util::rnd_positions<int_vector<64>>(20, mask, bv_sd.size(), 17);
         cout << "done" << endl;
-        cout << (uint64_t) & (bv_sd.high_1_select) << endl;
-        cout << (uint64_t) & (bv_sd.high_0_select) << endl;
+        cout << (uint64_t)&(bv_sd.high_1_select) << endl;
+        cout << (uint64_t)&(bv_sd.high_0_select) << endl;
         sd_vector<>::rank_1_type rank1(&bv_sd);
         cout << "done" << endl;
-        const uint64_t reps = 10000000;
+        uint64_t const reps = 10000000;
         //        for(size_t i=0; i<bv_sd.size();++i){
         //            cout << "i="<<i<<" rank1("<<i<<")="<<rank1(i)<<endl;
         //        }

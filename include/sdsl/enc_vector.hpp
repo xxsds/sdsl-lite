@@ -68,15 +68,15 @@ public:
     typedef uint64_t value_type;
     typedef random_access_const_iterator<enc_vector> iterator;
     typedef iterator const_iterator;
-    typedef const value_type reference;
-    typedef const value_type const_reference;
+    typedef value_type const reference;
+    typedef value_type const const_reference;
     typedef value_type const * const_pointer;
     typedef ptrdiff_t difference_type;
     typedef int_vector<>::size_type size_type;
     typedef t_coder coder;
     typedef typename enc_vector_trait<t_width>::int_vector_type int_vector_type;
     typedef iv_tag index_category;
-    static const uint32_t sample_dens = t_dens;
+    static uint32_t const sample_dens = t_dens;
     typedef enc_vector enc_vec_type;
 
     int_vector<0> m_z; // storage for encoded deltas
@@ -137,13 +137,13 @@ public:
     }
 
     //! Iterator that points to the first element of the enc_vector.
-    const const_iterator begin() const
+    const_iterator const begin() const
     {
         return const_iterator(this, 0);
     }
 
     //! Iterator that points to the position after the last element of the enc_vector.
-    const const_iterator end() const
+    const_iterator const end() const
     {
         return const_iterator(this, this->m_size);
     }
@@ -182,7 +182,7 @@ public:
     /*!\param i The index of the sample. 0 <= i < size()/get_sample_dens()
      *  \return The value of the i-th sample.
      */
-    value_type sample(const size_type i) const;
+    value_type sample(size_type const i) const;
 
     uint32_t get_sample_dens() const
     {
@@ -193,7 +193,7 @@ public:
      * \param i The index of the sample for which all values till the next sample should be decoded. 0 <= i <
      * size()/get_sample_dens() \param it A pointer to a uint64_t vector, whereto the values should be written
      */
-    void get_inter_sampled_values(const size_type i, uint64_t * it) const
+    void get_inter_sampled_values(size_type const i, uint64_t * it) const
     {
         *(it++) = 0;
         if (i * t_dens + t_dens - 1 < size())
@@ -213,7 +213,7 @@ public:
 
 template <class t_coder, uint32_t t_dens, uint8_t t_width>
 inline typename enc_vector<t_coder, t_dens, t_width>::value_type
-enc_vector<t_coder, t_dens, t_width>::operator[](const size_type i) const
+enc_vector<t_coder, t_dens, t_width>::operator[](size_type const i) const
 {
     assert(i + 1 != 0);
     assert(i < m_size);
@@ -224,7 +224,7 @@ enc_vector<t_coder, t_dens, t_width>::operator[](const size_type i) const
 
 template <class t_coder, uint32_t t_dens, uint8_t t_width>
 inline typename enc_vector<t_coder, t_dens, t_width>::value_type
-enc_vector<t_coder, t_dens, t_width>::sample(const size_type i) const
+enc_vector<t_coder, t_dens, t_width>::sample(size_type const i) const
 {
     assert(i * get_sample_dens() + 1 != 0);
     assert(i * get_sample_dens() < m_size);
@@ -327,7 +327,7 @@ enc_vector<t_coder, t_dens, t_width>::enc_vector(int_vector_buffer<int_width> & 
         return;
     value_type v1 = 0, v2 = 0, max_sample_value = 0;
     size_type samples = 0, z_size = 0;
-    const size_type sd = get_sample_dens();
+    size_type const sd = get_sample_dens();
     //  (1) Calculate maximal value of samples and of deltas
     for (size_type i = 0, no_sample = 0; i < n; ++i, --no_sample)
     {

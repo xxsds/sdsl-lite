@@ -35,7 +35,7 @@ namespace k2_treap_ns
  *  \param Lower left corner of the rectangle.
  *  \param Upper right corner of the rectangle.
  */
-inline bool contained(const point_type p, point_type const & p1, point_type const & p2)
+inline bool contained(point_type const p, point_type const & p1, point_type const & p2)
 {
     return real(p) >= real(p1) and real(p) <= real(p2) and imag(p) >= imag(p1) and imag(p) <= imag(p2);
 }

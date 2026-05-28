@@ -354,14 +354,14 @@ void calculate_enclose(bit_vector const & bp, int_vector & enclose)
     assert(opening_parenthesis.empty());
 }
 
-inline uint64_t near_find_close(bit_vector const & bp, const uint64_t i, const uint64_t block_size)
+inline uint64_t near_find_close(bit_vector const & bp, uint64_t const i, uint64_t const block_size)
 {
     typedef bit_vector::difference_type difference_type;
     difference_type excess_v = 1;
 
-    const uint64_t end = ((i + 1) / block_size + 1) * block_size;
-    const uint64_t l = (((i + 1) + 7) / 8) * 8;
-    const uint64_t r = (end / 8) * 8;
+    uint64_t const end = ((i + 1) / block_size + 1) * block_size;
+    uint64_t const l = (((i + 1) + 7) / 8) * 8;
+    uint64_t const r = (end / 8) * 8;
     for (uint64_t j = i + 1; j < std::min(end, l); ++j)
     {
         if (bp[j])
@@ -406,15 +406,15 @@ inline uint64_t near_find_close(bit_vector const & bp, const uint64_t i, const u
     return i;
 }
 
-inline uint64_t near_find_closing(bit_vector const & bp, uint64_t i, uint64_t closings, const uint64_t block_size)
+inline uint64_t near_find_closing(bit_vector const & bp, uint64_t i, uint64_t closings, uint64_t const block_size)
 {
     typedef bit_vector::difference_type difference_type;
     difference_type excess_v = 0;
     difference_type succ_excess = -closings;
 
-    const uint64_t end = (i / block_size + 1) * block_size;
-    const uint64_t l = (((i) + 7) / 8) * 8;
-    const uint64_t r = (end / 8) * 8;
+    uint64_t const end = (i / block_size + 1) * block_size;
+    uint64_t const l = (((i) + 7) / 8) * 8;
+    uint64_t const r = (end / 8) * 8;
     for (uint64_t j = i; j < std::min(end, l); ++j)
     {
         if (bp[j])
@@ -459,14 +459,14 @@ inline uint64_t near_find_closing(bit_vector const & bp, uint64_t i, uint64_t cl
 }
 
 inline uint64_t
-near_fwd_excess(bit_vector const & bp, uint64_t i, bit_vector::difference_type rel, const uint64_t block_size)
+near_fwd_excess(bit_vector const & bp, uint64_t i, bit_vector::difference_type rel, uint64_t const block_size)
 {
     typedef bit_vector::difference_type difference_type;
     difference_type excess_v = rel;
 
-    const uint64_t end = (i / block_size + 1) * block_size;
-    const uint64_t l = (((i) + 7) / 8) * 8;
-    const uint64_t r = (end / 8) * 8;
+    uint64_t const end = (i / block_size + 1) * block_size;
+    uint64_t const l = (((i) + 7) / 8) * 8;
+    uint64_t const r = (end / 8) * 8;
     for (uint64_t j = i; j < std::min(end, l); ++j)
     {
         excess_v += 1 - 2 * bp[j];
@@ -510,8 +510,8 @@ near_fwd_excess(bit_vector const & bp, uint64_t i, bit_vector::difference_type r
 inline uint64_t near_rmq(bit_vector const & bp, uint64_t l, uint64_t r, bit_vector::difference_type & min_rel_ex)
 {
     typedef bit_vector::difference_type difference_type;
-    const uint64_t l8 = (((l + 1) + 7) / 8) * 8;
-    const uint64_t r8 = (r / 8) * 8;
+    uint64_t const l8 = (((l + 1) + 7) / 8) * 8;
+    uint64_t const r8 = (r / 8) * 8;
     difference_type excess_v = 0;
     difference_type min_pos = l;
     min_rel_ex = 0;
@@ -563,13 +563,13 @@ inline uint64_t near_rmq(bit_vector const & bp, uint64_t l, uint64_t r, bit_vect
  * such that \f$ excess(j) = excess(i+1)+rel \f$ and i < bp.size()-1
  */
 inline uint64_t
-near_bwd_excess(bit_vector const & bp, uint64_t i, bit_vector::difference_type rel, const uint64_t block_size)
+near_bwd_excess(bit_vector const & bp, uint64_t i, bit_vector::difference_type rel, uint64_t const block_size)
 {
     typedef bit_vector::difference_type difference_type;
     difference_type excess_v = rel;
-    const difference_type begin = ((difference_type)(i) / block_size) * block_size;
-    const difference_type r = ((difference_type)(i) / 8) * 8;
-    const difference_type l = ((difference_type)((begin + 7) / 8)) * 8;
+    difference_type const begin = ((difference_type)(i) / block_size) * block_size;
+    difference_type const r = ((difference_type)(i) / 8) * 8;
+    difference_type const l = ((difference_type)((begin + 7) / 8)) * 8;
     for (difference_type j = i + 1; j >= /*begin*/ std::max(r, begin); --j)
     {
         if (bp[j])
@@ -611,13 +611,13 @@ near_bwd_excess(bit_vector const & bp, uint64_t i, bit_vector::difference_type r
     return i + 1;
 }
 
-inline uint64_t near_find_open(bit_vector const & bp, uint64_t i, const uint64_t block_size)
+inline uint64_t near_find_open(bit_vector const & bp, uint64_t i, uint64_t const block_size)
 {
     typedef bit_vector::difference_type difference_type;
     difference_type excess_v = -1;
-    const difference_type begin = ((difference_type)(i - 1) / block_size) * block_size;
-    const difference_type r = ((difference_type)(i - 1) / 8) * 8;
-    const difference_type l = ((difference_type)((begin + 7) / 8)) * 8;
+    difference_type const begin = ((difference_type)(i - 1) / block_size) * block_size;
+    difference_type const r = ((difference_type)(i - 1) / 8) * 8;
+    difference_type const l = ((difference_type)((begin + 7) / 8)) * 8;
     for (difference_type j = i - 1; j >= std::max(r, begin); --j)
     {
         if (bp[j])
@@ -660,15 +660,15 @@ inline uint64_t near_find_open(bit_vector const & bp, uint64_t i, const uint64_t
     return i;
 }
 
-inline uint64_t near_find_opening(bit_vector const & bp, uint64_t i, const uint64_t openings, const uint64_t block_size)
+inline uint64_t near_find_opening(bit_vector const & bp, uint64_t i, uint64_t const openings, uint64_t const block_size)
 {
     typedef bit_vector::difference_type difference_type;
     difference_type excess_v = 0;
     difference_type succ_excess = openings;
 
-    const difference_type begin = ((difference_type)(i) / block_size) * block_size;
-    const difference_type r = ((difference_type)(i) / 8) * 8;
-    const difference_type l = ((difference_type)((begin + 7) / 8)) * 8;
+    difference_type const begin = ((difference_type)(i) / block_size) * block_size;
+    difference_type const r = ((difference_type)(i) / 8) * 8;
+    difference_type const l = ((difference_type)((begin + 7) / 8)) * 8;
     for (difference_type j = i; j >= std::max(r, begin); --j)
     {
         if (bp[j])
@@ -720,7 +720,7 @@ inline uint64_t near_find_opening(bit_vector const & bp, uint64_t i, const uint6
  * parenthesis of the enclosing pair. \pre We assert that \f$ bp[i]=1 \f$
  */
 // TODO: implement a fast version using lookup-tables of size 8
-inline uint64_t near_enclose(bit_vector const & bp, uint64_t i, const uint64_t block_size)
+inline uint64_t near_enclose(bit_vector const & bp, uint64_t i, uint64_t const block_size)
 {
     uint64_t opening_parentheses = 1;
     for (uint64_t j = i; j + block_size - 1 > i and j > 0; --j)
@@ -739,14 +739,14 @@ inline uint64_t near_enclose(bit_vector const & bp, uint64_t i, const uint64_t b
     return i;
 }
 
-inline uint64_t near_rmq_open(bit_vector const & bp, const uint64_t begin, const uint64_t end)
+inline uint64_t near_rmq_open(bit_vector const & bp, uint64_t const begin, uint64_t const end)
 {
     typedef bit_vector::difference_type difference_type;
     difference_type min_excess = end - begin + 1, ex = 0;
     uint64_t result = end;
 
-    const uint64_t l = ((begin + 7) / 8) * 8;
-    const uint64_t r = (end / 8) * 8;
+    uint64_t const l = ((begin + 7) / 8) * 8;
+    uint64_t const r = (end / 8) * 8;
 
     for (uint64_t k = begin; k < std::min(end, l); ++k)
     {

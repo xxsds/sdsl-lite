@@ -118,8 +118,8 @@ public:
     template <typename t_it>
     wt_ap(t_it begin, t_it end, std::string tmp_dir = ram_file_name("")) : m_size(std::distance(begin, end))
     {
-        const uint8_t wt_byte_width = wt_byte_type::alphabet_category::WIDTH;
-        const uint8_t wt_int_width = wt_int_type::alphabet_category::WIDTH;
+        uint8_t const wt_byte_width = wt_byte_type::alphabet_category::WIDTH;
+        uint8_t const wt_int_width = wt_int_type::alphabet_category::WIDTH;
 
         // calculate effective sigma and character frequencies
         value_type max_symbol = 0;

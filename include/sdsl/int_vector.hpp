@@ -257,9 +257,9 @@ private:
     int_width_type m_width; //!< Width of the integers.
 
     // Hidden, since number of bits (size) does not go well together with int value.
-    void bit_resize(const size_type size, const value_type value);
+    void bit_resize(size_type const size, value_type const value);
 
-    void amortized_resize(const size_type size)
+    void amortized_resize(size_type const size)
     {
         assert(growth_factor > 1.0);
         if constexpr (t_width != 0)
@@ -556,7 +556,7 @@ public:
     /*! Only as much space as necessary is being allocated.
      * \param size Number of elements.
      */
-    void resize(const size_type size)
+    void resize(size_type const size)
     {
         resize(size, 0);
     }
@@ -565,7 +565,7 @@ public:
     /*!\param size The size to resize the int_vector in terms of elements.
      * \param value If the current size is smaller than `size`, the additional elements are initialized with value.
      */
-    void resize(const size_type size, const value_type value)
+    void resize(size_type const size, value_type const value)
     {
         bit_resize(size * m_width, value);
     }
@@ -573,7 +573,7 @@ public:
     //! Resize the int_vector in terms of bits. Only as much space as necessary is allocated.
     /*!\param size The size to resize the int_vector in terms of bits.
      */
-    void bit_resize(const size_type size);
+    void bit_resize(size_type const size);
 
     //! The number of elements in the int_vector.
     /*!\sa max_size, bit_size, capacity, bit_capacity
@@ -635,7 +635,7 @@ public:
      * \returns The integer value of the binary string of length len starting at position idx.
      * \sa setInt, getBit, setBit
      */
-    value_type get_int(size_type idx, const uint8_t len = 64) const;
+    value_type get_int(size_type idx, uint8_t const len = 64) const;
 
     //! Set the bits from position idx to idx+len-1 to the binary representation of integer x.
     /*! The bit at position idx represents the least significant bit(lsb), and the bit at
@@ -645,7 +645,7 @@ public:
      * \param len The length used to store x in the int_vector. Default value is 64.
      * \sa getInt, getBit, setBit
      */
-    void set_int(size_type idx, value_type x, const uint8_t len = 64);
+    void set_int(size_type idx, value_type x, uint8_t const len = 64);
 
     //! Returns the width of the integers which are accessed via the [] operator.
     /*!\returns The width of the integers which are accessed via the [] operator.
@@ -931,7 +931,7 @@ public:
         }
     };
 
-    const raw_wrapper raw = raw_wrapper(*this);
+    raw_wrapper const raw = raw_wrapper(*this);
 };
 
 //! A proxy class that acts as a reference to an integer of length \p len bits in a int_vector.
@@ -945,8 +945,8 @@ public:
 
 private:
     typename t_int_vector::value_type * const m_word;
-    const uint8_t m_offset;
-    const uint8_t m_len; //!< Length of the integer referred to in bits.
+    uint8_t const m_offset;
+    uint8_t const m_len; //!< Length of the integer referred to in bits.
 
 public:
     //! Default constructor explicitly deleted.
@@ -963,7 +963,7 @@ public:
     int_vector_reference(value_type * word, uint8_t offset, uint8_t len) noexcept :
         m_word(word),
         m_offset(offset),
-        m_len(len){};
+        m_len(len) {};
 
     //! Assignment operator for the proxy class
     /*!
@@ -1028,7 +1028,7 @@ public:
     }
 
     //! Add assign from the proxy object
-    int_vector_reference & operator+=(const value_type x) noexcept
+    int_vector_reference & operator+=(value_type const x) noexcept
     {
         value_type w = bits::read_int(m_word, m_offset, m_len);
         bits::write_int(m_word, w + x, m_offset, m_len);
@@ -1036,7 +1036,7 @@ public:
     }
 
     //! Subtract assign from the proxy object
-    int_vector_reference & operator-=(const value_type x) noexcept
+    int_vector_reference & operator-=(value_type const x) noexcept
     {
         value_type w = bits::read_int(m_word, m_offset, m_len);
         bits::write_int(m_word, w - x, m_offset, m_len);
@@ -1110,7 +1110,7 @@ public:
     /*!\param word Pointer to the corresponding 64bit word in the int_vector.
      * \param offset Offset to the starting bit (offset in [0..63])
      */
-    int_vector_reference(uint64_t * word, uint8_t offset, uint8_t) noexcept : m_word(word), m_mask(1ULL << offset){};
+    int_vector_reference(uint64_t * word, uint8_t offset, uint8_t) noexcept : m_word(word), m_mask(1ULL << offset) {};
 
     //! Assignment operator for the proxy class
     int_vector_reference & operator=(bool x) noexcept
@@ -1394,7 +1394,7 @@ class int_vector_const_iterator : public int_vector_iterator_base<t_int_vector>
 {
 public:
     typedef typename t_int_vector::value_type const_reference;
-    typedef const typename t_int_vector::value_type * pointer;
+    typedef typename t_int_vector::value_type const * pointer;
     typedef int_vector_const_iterator const_iterator;
     typedef typename t_int_vector::size_type size_type;
     typedef typename t_int_vector::difference_type difference_type;
@@ -1409,7 +1409,7 @@ private:
     using int_vector_iterator_base<t_int_vector>::m_offset; // make m_offset easy usable
     using int_vector_iterator_base<t_int_vector>::m_len;    // make m_len easy usable
 
-    const typename t_int_vector::value_type * m_word;
+    typename t_int_vector::value_type const * m_word;
 
 public:
     int_vector_const_iterator(t_int_vector const * v = nullptr, size_type idx = 0) :
@@ -1668,7 +1668,7 @@ void swap(int_vector<t_width> & v1, int_vector<t_width> & v2) noexcept
 }
 
 template <uint8_t t_width>
-void int_vector<t_width>::bit_resize(const size_type size)
+void int_vector<t_width>::bit_resize(size_type const size)
 {
     if (size > m_capacity || m_data == nullptr)
     {
@@ -1678,7 +1678,7 @@ void int_vector<t_width>::bit_resize(const size_type size)
 }
 
 template <uint8_t t_width>
-void int_vector<t_width>::bit_resize(const size_type size, const value_type value)
+void int_vector<t_width>::bit_resize(size_type const size, value_type const value)
 {
     size_type old_size = m_size;
     bit_resize(size);
@@ -1687,7 +1687,7 @@ void int_vector<t_width>::bit_resize(const size_type size, const value_type valu
 }
 
 template <uint8_t t_width>
-auto int_vector<t_width>::get_int(size_type idx, const uint8_t len) const -> value_type
+auto int_vector<t_width>::get_int(size_type idx, uint8_t const len) const -> value_type
 {
 #ifdef SDSL_DEBUG
     if (idx + len > m_size)
@@ -1703,7 +1703,7 @@ auto int_vector<t_width>::get_int(size_type idx, const uint8_t len) const -> val
 }
 
 template <uint8_t t_width>
-inline void int_vector<t_width>::set_int(size_type idx, value_type x, const uint8_t len)
+inline void int_vector<t_width>::set_int(size_type idx, value_type x, uint8_t const len)
 {
 #ifdef SDSL_DEBUG
     if (idx + len > m_size)
@@ -2094,12 +2094,12 @@ int_vector_trait<64>::end(typename int_vector_trait<64>::int_vector_type * v) no
     return v->data() + v->size();
 }
 inline typename int_vector_trait<64>::const_iterator
-int_vector_trait<64>::begin(const typename int_vector_trait<64>::int_vector_type * v) noexcept
+int_vector_trait<64>::begin(typename int_vector_trait<64>::int_vector_type const * v) noexcept
 {
     return v->data();
 }
 inline typename int_vector_trait<64>::const_iterator
-int_vector_trait<64>::end(const typename int_vector_trait<64>::int_vector_type * v) noexcept
+int_vector_trait<64>::end(typename int_vector_trait<64>::int_vector_type const * v) noexcept
 {
     return v->data() + v->size();
 }
@@ -2115,12 +2115,12 @@ int_vector_trait<32>::end(typename int_vector_trait<32>::int_vector_type * v) no
     return ((uint32_t *)v->data()) + v->size();
 }
 inline typename int_vector_trait<32>::const_iterator
-int_vector_trait<32>::begin(const typename int_vector_trait<32>::int_vector_type * v) noexcept
+int_vector_trait<32>::begin(typename int_vector_trait<32>::int_vector_type const * v) noexcept
 {
     return (uint32_t *)v->data();
 }
 inline typename int_vector_trait<32>::const_iterator
-int_vector_trait<32>::end(const typename int_vector_trait<32>::int_vector_type * v) noexcept
+int_vector_trait<32>::end(typename int_vector_trait<32>::int_vector_type const * v) noexcept
 {
     return ((uint32_t *)v->data()) + v->size();
 }
@@ -2136,12 +2136,12 @@ int_vector_trait<16>::end(typename int_vector_trait<16>::int_vector_type * v) no
     return ((uint16_t *)v->data()) + v->size();
 }
 inline typename int_vector_trait<16>::const_iterator
-int_vector_trait<16>::begin(const typename int_vector_trait<16>::int_vector_type * v) noexcept
+int_vector_trait<16>::begin(typename int_vector_trait<16>::int_vector_type const * v) noexcept
 {
     return (uint16_t *)v->data();
 }
 inline typename int_vector_trait<16>::const_iterator
-int_vector_trait<16>::end(const typename int_vector_trait<16>::int_vector_type * v) noexcept
+int_vector_trait<16>::end(typename int_vector_trait<16>::int_vector_type const * v) noexcept
 {
     return ((uint16_t *)v->data()) + v->size();
 }
@@ -2157,12 +2157,12 @@ int_vector_trait<8>::end(typename int_vector_trait<8>::int_vector_type * v) noex
     return ((uint8_t *)v->data()) + v->size();
 }
 inline typename int_vector_trait<8>::const_iterator
-int_vector_trait<8>::begin(const typename int_vector_trait<8>::int_vector_type * v) noexcept
+int_vector_trait<8>::begin(typename int_vector_trait<8>::int_vector_type const * v) noexcept
 {
     return (uint8_t *)v->data();
 }
 inline typename int_vector_trait<8>::const_iterator
-int_vector_trait<8>::end(const typename int_vector_trait<8>::int_vector_type * v) noexcept
+int_vector_trait<8>::end(typename int_vector_trait<8>::int_vector_type const * v) noexcept
 {
     return ((uint8_t *)v->data()) + v->size();
 }

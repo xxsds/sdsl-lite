@@ -46,16 +46,16 @@ int_vector<8> wt_byte_epr_test<T>::text{[]()
 
 template <class T>
 int_vector<8> wt_byte_epr_test<T>::text_sparse_alphabet{[]()
-                                        {
-                                            int_vector<8> result;
-                                            result.resize(std::rand() % 10000);
-                                            for (uint32_t i = 0; i < result.size(); ++i)
-                                            {
-                                                // only generate values of 2 or 3
-                                                result[i] = (std::rand() % 2) + 2;
-                                            }
-                                            return result;
-                                        }()};
+                                                        {
+                                                            int_vector<8> result;
+                                                            result.resize(std::rand() % 10000);
+                                                            for (uint32_t i = 0; i < result.size(); ++i)
+                                                            {
+                                                                // only generate values of 2 or 3
+                                                                result[i] = (std::rand() % 2) + 2;
+                                                            }
+                                                            return result;
+                                                        }()};
 
 using testing::Types;
 
@@ -188,7 +188,6 @@ TYPED_TEST(wt_byte_epr_test, rank_on_sparse_alphabet)
         }
     }
 }
-
 
 #if SDSL_HAS_CEREAL
 template <typename in_archive_t, typename out_archive_t, typename TypeParam>

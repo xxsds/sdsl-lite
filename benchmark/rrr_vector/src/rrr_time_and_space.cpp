@@ -83,7 +83,7 @@ int main(int argc, char * argv[])
         cout << "# rrr_size = " << size_in_bytes(rrr_vector) << endl;
         cout << "# bt_size = " << size_in_bytes(rrr_vector.bt) << endl;
         cout << "# btnr_size = " << size_in_bytes(rrr_vector.btnr) << endl;
-        const uint64_t reps = 10000000;
+        uint64_t const reps = 10000000;
         uint64_t mask = 0;
         uint64_t check = 0;
         int_vector<64> rands = util::rnd_positions<int_vector<64>>(20, mask, rrr_vector.size(), 17);

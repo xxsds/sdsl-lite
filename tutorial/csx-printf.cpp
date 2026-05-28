@@ -9,7 +9,7 @@ using namespace sdsl;
 
 std::string format("%3I%3S %3s %3P %3p %3L %3B  %T");
 std::string header("  i SA ISA PSI  LF LCP BWT  TEXT");
-static const std::streamsize BUF_SIZE = 4096;
+static std::streamsize const BUF_SIZE = 4096;
 char line[BUF_SIZE];
 
 typedef csa_bitcompressed<int_alphabet<>> csa_int_t;

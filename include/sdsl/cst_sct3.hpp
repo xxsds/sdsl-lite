@@ -834,7 +834,7 @@ public:
      * \par Time complexity
      *   \f$ \Order{(\saaccess+\isaaccess) \cdot \log\sigma + \lcpaccess} \f$
      */
-    node_type child(node_type const & v, const char_type c, size_type & char_pos) const
+    node_type child(node_type const & v, char_type const c, size_type & char_pos) const
     {
         if (is_leaf(v)) // if v is a leaf = (), v has no child
             return root();
@@ -907,7 +907,7 @@ public:
 
     //! Get the child w of node v which edge label (v,w) starts with character c.
     // \sa child(node_type v, const char_type c, size_type &char_pos)
-    node_type child(node_type const & v, const char_type c) const
+    node_type child(node_type const & v, char_type const c) const
     {
         size_type char_pos;
         return child(v, c, char_pos);
@@ -1081,7 +1081,7 @@ public:
      *  \par Time complexity
      *        \f$ \Order{ t_{rank\_bwt} } \f$
      */
-    node_type wl(node_type const & v, const char_type c) const
+    node_type wl(node_type const & v, char_type const c) const
     {
         size_type c_left = m_csa.bwt.rank(v.i, c);
         size_type c_right = m_csa.bwt.rank(v.j + 1, c);
@@ -1390,7 +1390,7 @@ struct bp_interval
         j(j),
         ipos(ipos),
         cipos(cipos),
-        jp1pos(jp1pos){};
+        jp1pos(jp1pos) {};
 
     //! Copy constructor
     bp_interval(bp_interval const & iv) = default;

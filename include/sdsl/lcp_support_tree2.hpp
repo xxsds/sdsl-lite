@@ -53,10 +53,10 @@ public:
     typedef int_vector<>::value_type value_type;
     typedef random_access_const_iterator<_lcp_support_tree2> const_iterator;
     typedef const_iterator iterator;
-    typedef const value_type const_reference;
+    typedef value_type const const_reference;
     typedef const_reference reference;
     typedef const_reference * pointer;
-    typedef const pointer const_pointer;
+    typedef pointer const const_pointer;
     typedef int_vector<>::size_type size_type;
     typedef int_vector<>::difference_type difference_type;
     typedef t_cst cst_type;
@@ -243,7 +243,7 @@ void construct_first_child_and_lf_lcp(int_vector_buffer<> & lcp_buf,
                                       int_vector<> & big_lcp)
 {
     typedef int_vector<>::size_type size_type;
-    const size_type M = 255; // limit for values represented in the small LCP part
+    size_type const M = 255; // limit for values represented in the small LCP part
     size_type buf_len = 1000000;
     lcp_buf.buffersize(buf_len);
     bwt_buf.buffersize(buf_len);
@@ -253,8 +253,8 @@ void construct_first_child_and_lf_lcp(int_vector_buffer<> & lcp_buf,
 
     osfstream big_lcp_out(big_lcp_file, std::ios::out | std::ios::trunc | std::ios::binary);
 
-    size_type fc_cnt_big = 0; // number of lcp values at the first child which are big and not reducible
-    sorted_multi_stack_support vec_stack(n);   // occupies 2n bits
+    size_type fc_cnt_big = 0;                // number of lcp values at the first child which are big and not reducible
+    sorted_multi_stack_support vec_stack(n); // occupies 2n bits
     bit_vector is_big_and_not_reducable(n, 0); // initialized with 0s
     bool is_one_big_and_not_reducable = false; // all positions have to be reducible
 

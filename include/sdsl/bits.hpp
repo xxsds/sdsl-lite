@@ -10,13 +10,13 @@
 
 // GCC definitions
 #if defined(__x86_64__)
-#include <immintrin.h> // IWYU pragma: keep
+#    include <immintrin.h> // IWYU pragma: keep
 #endif
 #if defined(__aarch64__) || defined(_M_ARM64)
-#include <arm_neon.h>
+#    include <arm_neon.h>
 #endif
 #if defined(__powerpc__) || defined(__powerpc64__)
-#include <altivec.h>
+#    include <altivec.h>
 #endif
 
 #include <stddef.h>
@@ -434,17 +434,17 @@ struct bits_impl
     static constexpr uint32_t hi11(uint64_t x);
 
     //! Writes value x to an bit position in an array.
-    static constexpr void write_int(uint64_t * word, uint64_t x, uint8_t offset = 0, const uint8_t len = 64);
+    static constexpr void write_int(uint64_t * word, uint64_t x, uint8_t offset = 0, uint8_t const len = 64);
 
     //! Writes value x to an bit position in an array and moves the bit-pointer.
-    static constexpr void write_int_and_move(uint64_t *& word, uint64_t x, uint8_t & offset, const uint8_t len);
+    static constexpr void write_int_and_move(uint64_t *& word, uint64_t x, uint8_t & offset, uint8_t const len);
 
     //! Reads a value from a bit position in an array.
-    static constexpr uint64_t read_int(uint64_t const * word, uint8_t offset = 0, const uint8_t len = 64);
-    static constexpr uint64_t read_int_bounded(uint64_t const * word, uint8_t offset = 0, const uint8_t len = 64);
+    static constexpr uint64_t read_int(uint64_t const * word, uint8_t offset = 0, uint8_t const len = 64);
+    static constexpr uint64_t read_int_bounded(uint64_t const * word, uint8_t offset = 0, uint8_t const len = 64);
 
     //! Reads a value from a bit position in an array and moved the bit-pointer.
-    static constexpr uint64_t read_int_and_move(uint64_t const *& word, uint8_t & offset, const uint8_t len = 64);
+    static constexpr uint64_t read_int_and_move(uint64_t const *& word, uint8_t & offset, uint8_t const len = 64);
 
     //! Reads an unary decoded value from a bit position in an array.
     static constexpr uint64_t read_unary(uint64_t const * word, uint8_t offset = 0);
@@ -459,7 +459,7 @@ struct bits_impl
      * \param len    Move distance. \f$ len \in [0..64] \f$
      * \sa move_left
      */
-    static constexpr void move_right(uint64_t const *& word, uint8_t & offset, const uint8_t len);
+    static constexpr void move_right(uint64_t const *& word, uint8_t & offset, uint8_t const len);
 
     //! Move the bit-pointer (=uint64_t word and offset) `len` to the left.
     /*!\param word   64-bit word part of the bit pointer
@@ -467,7 +467,7 @@ struct bits_impl
      * \param len    Move distance. \f$ len \in [0..64] \f$
      * \sa move_right
      */
-    static constexpr void move_left(uint64_t const *& word, uint8_t & offset, const uint8_t len);
+    static constexpr void move_left(uint64_t const *& word, uint8_t & offset, uint8_t const len);
 
     //! Get the first one bit in the interval \f$[idx..\infty )\f$
     static constexpr uint64_t next(uint64_t const * word, uint64_t idx);
@@ -721,7 +721,7 @@ constexpr uint32_t bits_impl<T>::sel11(uint64_t x, uint32_t i, uint32_t c)
 }
 
 template <typename T>
-constexpr void bits_impl<T>::write_int(uint64_t * word, uint64_t x, uint8_t offset, const uint8_t len)
+constexpr void bits_impl<T>::write_int(uint64_t * word, uint64_t x, uint8_t offset, uint8_t const len)
 {
     x &= bits_impl<T>::lo_set[len];
     if (offset + len < 64)
@@ -746,7 +746,7 @@ constexpr void bits_impl<T>::write_int(uint64_t * word, uint64_t x, uint8_t offs
 }
 
 template <typename T>
-constexpr void bits_impl<T>::write_int_and_move(uint64_t *& word, uint64_t x, uint8_t & offset, const uint8_t len)
+constexpr void bits_impl<T>::write_int_and_move(uint64_t *& word, uint64_t x, uint8_t & offset, uint8_t const len)
 {
     x &= bits_impl<T>::lo_set[len];
     if (offset + len < 64)
@@ -774,7 +774,7 @@ constexpr void bits_impl<T>::write_int_and_move(uint64_t *& word, uint64_t x, ui
 }
 
 template <typename T>
-constexpr uint64_t bits_impl<T>::read_int(uint64_t const * word, uint8_t offset, const uint8_t len)
+constexpr uint64_t bits_impl<T>::read_int(uint64_t const * word, uint8_t offset, uint8_t const len)
 {
     uint64_t w1 = (*word) >> offset;
     if ((offset + len) > 64)
@@ -790,13 +790,13 @@ constexpr uint64_t bits_impl<T>::read_int(uint64_t const * word, uint8_t offset,
 }
 
 template <typename T>
-constexpr uint64_t bits_impl<T>::read_int_bounded(uint64_t const * word, uint8_t offset, const uint8_t len)
+constexpr uint64_t bits_impl<T>::read_int_bounded(uint64_t const * word, uint8_t offset, uint8_t const len)
 {
     return ((*word) >> offset) & bits_impl<T>::lo_set[len];
 }
 
 template <typename T>
-constexpr uint64_t bits_impl<T>::read_int_and_move(uint64_t const *& word, uint8_t & offset, const uint8_t len)
+constexpr uint64_t bits_impl<T>::read_int_and_move(uint64_t const *& word, uint8_t & offset, uint8_t const len)
 {
     uint64_t w1 = (*word) >> offset;
     if ((offset = (offset + len)) >= 64)
@@ -890,7 +890,7 @@ constexpr uint64_t bits_impl<T>::read_unary_and_move(uint64_t const *& word, uin
 }
 
 template <typename T>
-constexpr void bits_impl<T>::move_right(uint64_t const *& word, uint8_t & offset, const uint8_t len)
+constexpr void bits_impl<T>::move_right(uint64_t const *& word, uint8_t & offset, uint8_t const len)
 {
     if ((offset += len) & 0xC0)
     { // if offset >= 65
@@ -900,7 +900,7 @@ constexpr void bits_impl<T>::move_right(uint64_t const *& word, uint8_t & offset
 }
 
 template <typename T>
-constexpr void bits_impl<T>::move_left(uint64_t const *& word, uint8_t & offset, const uint8_t len)
+constexpr void bits_impl<T>::move_left(uint64_t const *& word, uint8_t & offset, uint8_t const len)
 {
     if ((offset -= len) & 0xC0)
     { // if offset-len<0

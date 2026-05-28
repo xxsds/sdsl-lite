@@ -540,7 +540,7 @@ public:
      *  \par Time complexity
      *    \f$ \Order{1} \f$
      */
-    node_type leftmost_leaf(const node_type v) const
+    node_type leftmost_leaf(node_type const v) const
     {
         return m_bp_select10(m_bp_rank10(v) + 1) - 1;
     }
@@ -551,7 +551,7 @@ public:
      * \par Time complexity
      *   \f$ \Order{1} \f$
      */
-    node_type rightmost_leaf(const node_type v) const
+    node_type rightmost_leaf(node_type const v) const
     {
         size_type r = m_bp_support.find_close(v);
         return m_bp_select10(m_bp_rank10(r + 1)) - 1;
@@ -565,7 +565,7 @@ public:
      * \par Note
      * lb is an abbreviation for ,,left bound''
      */
-    size_type lb(const node_type v) const
+    size_type lb(node_type const v) const
     {
         return m_bp_rank10(v);
     }
@@ -578,7 +578,7 @@ public:
      *  \par Note
      *   rb is an abbreviation for ,,right bound''
      */
-    size_type rb(const node_type v) const
+    size_type rb(node_type const v) const
     {
         size_type r = m_bp_support.find_close(v);
         return m_bp_rank10(r + 1) - 1;
@@ -639,7 +639,7 @@ public:
      * complexity \f$ \Order( (\saaccess+\isaaccess) \cdot \sigma + \lcpaccess) \f$ \par Note With range median mimimum
      * queries (RMMQ) one can code this operation in \f$\log \sigma \f$ time
      */
-    node_type child(node_type v, const char_type c, size_type & char_pos) const
+    node_type child(node_type v, char_type const c, size_type & char_pos) const
     {
         if (is_leaf(v)) // if v is a leaf = (), v has no child
             return root();
@@ -673,7 +673,7 @@ public:
 
     //! Get the child w of node v which edge label (v,w) starts with character c.
     // \sa child(node_type v, const char_type c, size_type &char_pos)
-    node_type child(node_type v, const char_type c) const
+    node_type child(node_type v, char_type const c) const
     {
         size_type char_pos;
         return child(v, c, char_pos);
@@ -823,7 +823,7 @@ public:
      * \par Time complexity
      *    \f$ \Order{ t_{rank\_bwt} + t_{lca}}\f$
      */
-    node_type wl(node_type v, const char_type c) const
+    node_type wl(node_type v, char_type const c) const
     {
         // get leftmost leaf in the tree rooted at v
         size_type left = m_bp_rank10(v);

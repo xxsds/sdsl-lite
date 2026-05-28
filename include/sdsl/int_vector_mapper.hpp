@@ -38,7 +38,7 @@ public:
     static constexpr uint8_t fixed_int_width = t_width;
 
 public:
-    const size_type append_block_size = 1000000;
+    size_type const append_block_size = 1000000;
 
 private:
     uint8_t * m_mapped_data = nullptr;
@@ -160,7 +160,7 @@ public:
         int_vector_mapper(cache_file_name(key, config))
     {}
 
-    int_vector_mapper(const std::string filename, bool is_plain = false, bool delete_on_close = false) :
+    int_vector_mapper(std::string const filename, bool is_plain = false, bool delete_on_close = false) :
         m_data_offset(0),
         m_file_name(filename),
         m_delete_on_close(delete_on_close)
@@ -235,7 +235,7 @@ public:
     {
         return m_wrapper.width();
     }
-    void width(const uint8_t new_int_width)
+    void width(uint8_t const new_int_width)
     {
         static_assert(t_mode & std::ios_base::out, "int_vector_mapper: must be opened in in+out mode for 'width'");
         m_wrapper.width(new_int_width);
@@ -244,7 +244,7 @@ public:
     {
         return m_wrapper.size();
     }
-    void bit_resize(const size_type bit_size)
+    void bit_resize(size_type const bit_size)
     {
         static_assert(t_mode & std::ios_base::out, "int_vector_mapper: must be opened in in+out mode for 'bit_resize'");
         size_type new_size_in_bytes = ((bit_size + 63) >> 6) << 3;
@@ -283,7 +283,7 @@ public:
         m_wrapper.m_size = bit_size;
     }
 
-    void resize(const size_type size)
+    void resize(size_type const size)
     {
         static_assert(t_mode & std::ios_base::out, "int_vector_mapper: must be opened in in+out mode for 'resize'");
         size_type size_in_bits = size * width();
@@ -334,11 +334,11 @@ public:
         static_assert(t_mode & std::ios_base::out, "int_vector_mapper: must be opened in in+out mode for 'data'");
         return m_wrapper.data();
     }
-    value_type get_int(size_type idx, const uint8_t len = 64) const
+    value_type get_int(size_type idx, uint8_t const len = 64) const
     {
         return m_wrapper.get_int(idx, len);
     }
-    void set_int(size_type idx, value_type x, const uint8_t len = 64)
+    void set_int(size_type idx, value_type x, uint8_t const len = 64)
     {
         static_assert(t_mode & std::ios_base::out, "int_vector_mapper: must be opened in in+out mode for 'set_int'");
         m_wrapper.set_int(idx, x, len);

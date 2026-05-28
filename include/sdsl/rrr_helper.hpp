@@ -265,20 +265,20 @@ struct binomial_coefficients
     {
         MAX_LOG = (n > 128 ? 8 : (n > 64 ? 7 : 6))
     };
-    static const uint16_t MAX_SIZE = (1 << MAX_LOG);
+    static uint16_t const MAX_SIZE = (1 << MAX_LOG);
     typedef binomial_coefficients_trait<MAX_LOG> trait;
     typedef typename trait::number_type number_type;
     typedef binomial_table<MAX_SIZE, number_type> tBinom;
 
     static struct impl
     {
-        const number_type (&table)[MAX_SIZE + 1][MAX_SIZE + 1] =
+        number_type const (&table)[MAX_SIZE + 1][MAX_SIZE + 1] =
             tBinom::data.table; // table for the binomial coefficients
         uint16_t space[n + 1];  // for entry i,j \lceil \log( {i \choose j}+1 ) \rceil
 #ifndef RRR_NO_BS
-        static const uint16_t BINARY_SEARCH_THRESHOLD = n / MAX_LOG;
+        static uint16_t const BINARY_SEARCH_THRESHOLD = n / MAX_LOG;
 #else
-        static const uint16_t BINARY_SEARCH_THRESHOLD = 0;
+        static uint16_t const BINARY_SEARCH_THRESHOLD = 0;
 #endif
         number_type (&L1Mask)[MAX_SIZE + 1] = tBinom::data.L1Mask;
         number_type (&O1Mask)[MAX_SIZE] = tBinom::data.O1Mask;
@@ -358,7 +358,7 @@ struct rrr_helper
             {
                 nr += binomial::data.table[nn - 1][k];
                 --k; // go to the case (n-1, k-1)
-            }        // else go to the case (n-1, k)
+            } // else go to the case (n-1, k)
             bin = (bin >> 1);
             --nn;
         }

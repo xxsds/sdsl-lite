@@ -56,7 +56,7 @@ private:
     }
 
     // base in which numbers are coded
-    static const uint32_t base = (1 << t_width) - 1;
+    static uint32_t const base = (1 << t_width) - 1;
 
     // table needed for computation of encoding lengths.
     // table contains entries of the kind (index, base^index)
@@ -84,7 +84,7 @@ private:
 
 public:
     typedef uint64_t size_type;
-    static const uint8_t min_codeword_length = t_width; // 0 needs t_width bits as termination
+    static uint8_t const min_codeword_length = t_width; // 0 needs t_width bits as termination
 
     //// ENCODING /////////////////////////////////////////////////
 
@@ -119,7 +119,7 @@ public:
      * \param it Iterator to store the values.
      */
     template <bool t_sumup, bool t_inc, class t_iter>
-    static uint64_t decode(uint64_t const * data, const size_type start_idx, size_type n, t_iter it = (t_iter) nullptr);
+    static uint64_t decode(uint64_t const * data, size_type const start_idx, size_type n, t_iter it = (t_iter) nullptr);
 
     //! Decode n comma gamma encoded integers
     //  beginning at start_idx in the bitstring "data"
@@ -132,7 +132,7 @@ public:
      * Attention: There have to be at least n encoded
      * values in the bitstring.
      */
-    static uint64_t decode_prefix_sum(uint64_t const * data, const size_type start_idx, size_type n);
+    static uint64_t decode_prefix_sum(uint64_t const * data, size_type const start_idx, size_type n);
 
     //! Decode n comma gamma encoded integers
     //  beginning at start_idx ending at end_idx (exclusive)
@@ -149,7 +149,7 @@ public:
      * values in the bitstring.
      */
     static uint64_t
-    decode_prefix_sum(uint64_t const * data, const size_type start_idx, const size_type end_idx, size_type n);
+    decode_prefix_sum(uint64_t const * data, size_type const start_idx, size_type const end_idx, size_type n);
 
     //! Decode vector z containing comma encoded integers
     //  and store them in vector v.
@@ -240,7 +240,7 @@ bool comma<t_width>::encode(int_vector const & v, int_vector & z)
 
 template <uint8_t t_width>
 template <bool t_sumup, bool t_inc, class t_iter>
-inline uint64_t comma<t_width>::decode(uint64_t const * data, const size_type start_idx, size_type n, t_iter it)
+inline uint64_t comma<t_width>::decode(uint64_t const * data, size_type const start_idx, size_type n, t_iter it)
 {
     data += (start_idx >> 6);          // jump to byte offset
     uint8_t offset = start_idx & 0x3F; // and calculate bit offset
@@ -263,7 +263,7 @@ inline uint64_t comma<t_width>::decode(uint64_t const * data, const size_type st
 }
 
 template <uint8_t t_width>
-uint64_t comma<t_width>::decode_prefix_sum(uint64_t const * data, const size_type start_idx, size_type n)
+uint64_t comma<t_width>::decode_prefix_sum(uint64_t const * data, size_type const start_idx, size_type n)
 {
     // easiest seems to be to use already build function decode...
     return decode<true, false, int *>(data, start_idx, n);
@@ -272,7 +272,7 @@ uint64_t comma<t_width>::decode_prefix_sum(uint64_t const * data, const size_typ
 
 template <uint8_t t_width>
 uint64_t comma<t_width>::decode_prefix_sum(uint64_t const * data,
-                                           const size_type start_idx,
+                                           size_type const start_idx,
                                            SDSL_UNUSED const size_type end_idx,
                                            size_type n)
 {

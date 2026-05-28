@@ -9,7 +9,7 @@ using namespace std;
 namespace
 {
 
-const size_t BV_SIZE = 1000000;
+size_t const BV_SIZE = 1000000;
 
 template <class T>
 class sd_vector_test : public ::testing::Test

@@ -864,7 +864,7 @@ public:
      *      Linear in the size of the suffix array.
      */
     _text_order_isa_sampling_support(SDSL_UNUSED cache_config const & cconfig,
-                                     const typename std::enable_if<sa_type::text_order, sa_type *>::type sa_sample)
+                                     typename std::enable_if<sa_type::text_order, sa_type *>::type const sa_sample)
     {
         // and initialize the select support on bitvector marked
         m_select_marked = t_sel(&(sa_sample->marked));

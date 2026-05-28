@@ -66,8 +66,8 @@ int main(int argc, char ** argv)
         return 1;
     }
     using t_wt = wt_huff<rrr_vector<63>>;
-    const uint32_t S_SA = 16;
-    const uint32_t S_ISA = 16;
+    uint32_t const S_SA = 16;
+    uint32_t const S_ISA = 16;
     using t_sa_sample = fuzzy_sa_sampling<sd_vector<>>;
     run<csa_wt<t_wt, S_SA, S_ISA, t_sa_sample, fuzzy_isa_sampling_support<>>>(argv[1]);
     run<csa_wt<t_wt, 2 * S_SA, 2 * S_ISA, t_sa_sample, fuzzy_isa_sampling_support<>>>(argv[1]);

@@ -181,7 +181,7 @@ public:
     bit_vector_type const & bv = m_bv;
 
     // Default constructor
-    wt_pc(){};
+    wt_pc() {};
 
     //! Construct the wavelet tree from a sequence defined by two interators
     /*!

@@ -34,7 +34,7 @@ using namespace std::chrono;
 using timer = std::chrono::high_resolution_clock;
 
 char const *(vectornames[]) = VNAMES;
-const size_t vectorcount = sizeof(vectornames) / sizeof(vectornames[0]);
+size_t const vectorcount = sizeof(vectornames) / sizeof(vectornames[0]);
 
 struct iv_testresult
 {                        // testcase for one defined int vector
@@ -63,7 +63,7 @@ int main(int const argc, char const ** argv)
     }
 
     // set up needed structures
-    const size_t testcasecount = (argc - 1) / 3;
+    size_t const testcasecount = (argc - 1) / 3;
     iv_testresult overallresult[vectorcount];
 
     // prepare overall result

@@ -78,10 +78,10 @@ public:
     typedef uint64_t value_type;
     typedef random_access_const_iterator<csa_sada> const_iterator;
     typedef const_iterator iterator;
-    typedef const value_type const_reference;
+    typedef value_type const const_reference;
     typedef const_reference reference;
     typedef const_reference * pointer;
-    typedef const pointer const_pointer;
+    typedef pointer const const_pointer;
     typedef int_vector<>::size_type size_type;
     typedef size_type csa_size_type;
     typedef ptrdiff_t difference_type;
@@ -107,7 +107,7 @@ public:
     friend class traverse_csa_psi<csa_sada, true>;
     friend class traverse_csa_psi<csa_sada, false>;
 
-    static const uint32_t linear_decode_limit = 100000;
+    static uint32_t const linear_decode_limit = 100000;
 
 private:
     enc_vector_type m_psi;        // psi function
@@ -126,17 +126,17 @@ private:
     }
 
 public:
-    const typename alphabet_type::char2comp_type & char2comp = m_alphabet.char2comp;
-    const typename alphabet_type::comp2char_type & comp2char = m_alphabet.comp2char;
-    const typename alphabet_type::C_type & C = m_alphabet.C;
-    const typename alphabet_type::sigma_type & sigma = m_alphabet.sigma;
+    typename alphabet_type::char2comp_type const & char2comp = m_alphabet.char2comp;
+    typename alphabet_type::comp2char_type const & comp2char = m_alphabet.comp2char;
+    typename alphabet_type::C_type const & C = m_alphabet.C;
+    typename alphabet_type::sigma_type const & sigma = m_alphabet.sigma;
     psi_type const & psi = m_psi;
-    const lf_type lf = lf_type(*this);
-    const bwt_type bwt = bwt_type(*this);
-    const isa_type isa = isa_type(*this);
-    const bwt_type L = bwt_type(*this);
-    const first_row_type F = first_row_type(*this);
-    const text_type text = text_type(*this);
+    lf_type const lf = lf_type(*this);
+    bwt_type const bwt = bwt_type(*this);
+    isa_type const isa = isa_type(*this);
+    bwt_type const L = bwt_type(*this);
+    first_row_type const F = first_row_type(*this);
+    text_type const text = text_type(*this);
     sa_sample_type const & sa_sample = m_sa_sample;
     isa_sample_type const & isa_sample = m_isa_sample;
 
@@ -305,7 +305,7 @@ private:
      *  \par Time complexity
      *        \f$ \Order{\log n t_{\Psi}} \f$
      */
-    size_type rank_bwt(size_type i, const char_type c) const
+    size_type rank_bwt(size_type i, char_type const c) const
     {
         comp_char_type cc = char2comp[c];
         if (cc == 0 and c != 0) // character is not in the text => return 0
@@ -316,7 +316,7 @@ private:
 
         size_type lower_b, upper_b; // lower_b inclusive, upper_b exclusive
 
-        const size_type sd = m_psi.get_sample_dens();
+        size_type const sd = m_psi.get_sample_dens();
         size_type lower_sb = (C[cc] + sd - 1) / sd;     // lower_sb inclusive
         size_type upper_sb = (C[cc + 1] + sd - 1) / sd; // upper_sb exclusive
         while (lower_sb + 1 < upper_sb)
@@ -399,7 +399,7 @@ private:
      *  \par Time complexity
      *        \f$ \Order{t_{\Psi}} \f$
      */
-    size_type select_bwt(size_type i, const char_type c) const
+    size_type select_bwt(size_type i, char_type const c) const
     {
         assert(i > 0);
         comp_char_type cc = char2comp[c];

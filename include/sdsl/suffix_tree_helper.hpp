@@ -30,7 +30,7 @@ public:
     using reference = value_type &;
 
     using node_type = typename t_cst::node_type;
-    using const_reference = const node_type;
+    using const_reference = node_type const;
     using iterator_type = cst_node_child_proxy_iterator<t_cst>;
 
 private:
@@ -38,7 +38,7 @@ private:
     node_type m_cur_node;
 
 public:
-    cst_node_child_proxy_iterator() : m_cst(nullptr){};
+    cst_node_child_proxy_iterator() : m_cst(nullptr) {};
     cst_node_child_proxy_iterator(t_cst const * cst, node_type v) : m_cst(cst), m_cur_node(v)
     {}
     cst_node_child_proxy_iterator(iterator_type const & it) : m_cst(it.m_cst), m_cur_node(it.m_cur_node)
@@ -84,8 +84,8 @@ private: // data
 
 public: // constructors
     cst_node_child_proxy() = delete;
-    explicit cst_node_child_proxy(t_cst const * cst, node_type v) : m_parent(v), m_cst(cst){};
-    cst_node_child_proxy(cst_node_child_proxy const & p) : m_parent(p.m_parent), m_cst(p.m_cst){};
+    explicit cst_node_child_proxy(t_cst const * cst, node_type v) : m_parent(v), m_cst(cst) {};
+    cst_node_child_proxy(cst_node_child_proxy const & p) : m_parent(p.m_parent), m_cst(p.m_cst) {};
 
 public: // methods
     node_type operator[](size_type i) const

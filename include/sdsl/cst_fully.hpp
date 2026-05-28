@@ -64,7 +64,7 @@ private:
 
 public:
     lcp_fully() = default;
-    lcp_fully(t_cst const * cst) : m_cst(cst){};
+    lcp_fully(t_cst const * cst) : m_cst(cst) {};
 
     lcp_fully(lcp_fully const &) = default;
     lcp_fully(lcp_fully &&) = default;
@@ -430,7 +430,7 @@ public:
      *  \par Time complexity
      *    \f$ \Order{1} \f$
      */
-    node_type leftmost_leaf(const node_type v) const
+    node_type leftmost_leaf(node_type const v) const
     {
         return node_type(v.first, v.first);
     }
@@ -441,7 +441,7 @@ public:
      * \par Time complexity
      *   \f$ \Order{1} \f$
      */
-    node_type rightmost_leaf(const node_type v) const
+    node_type rightmost_leaf(node_type const v) const
     {
         return node_type(v.second, v.second);
     }
@@ -745,7 +745,7 @@ public:
      * \par Time complexity
      *    \f$ \Order{ t_{rank\_bwt} + t_{lca}}\f$
      */
-    node_type wl(node_type v, const char_type c) const
+    node_type wl(node_type v, char_type const c) const
     {
         size_type l, r;
         std::tie(l, r) = v;
@@ -774,8 +774,8 @@ public:
      */
     node_type parent(node_type v) const
     {
-        const leaf_type l = v.first;
-        const leaf_type r = v.second;
+        leaf_type const l = v.first;
+        leaf_type const r = v.second;
 
         node_type left_parent = root();
         node_type right_parent = root();
@@ -1009,7 +1009,7 @@ cst_fully<t_csa, t_delta, t_s_support, t_b, t_depth, t_sample_leaves>::cst_fully
     }
     else
     {
-        const size_type n = cst.size();
+        size_type const n = cst.size();
         m_delta = (bits::hi(n - 1) + 1) * (bits::hi(bits::hi(n - 1)) + 1);
         if (m_delta < 2)
         {
@@ -1030,11 +1030,11 @@ cst_fully<t_csa, t_delta, t_s_support, t_b, t_depth, t_sample_leaves>::cst_fully
         size_type leaf_idx = 0;
         for (size_type i = 0; i < cst.size(); i++)
         {
-            const size_type d = i + 1;
+            size_type const d = i + 1;
             if (d + delta_half <= cst.size() and d % delta_half == 0)
             {
                 auto const node = cst.select_leaf(leaf_idx + 1);
-                const size_type id = cst.id(node);
+                size_type const id = cst.id(node);
                 if (!is_sampled[id])
                 {
                     is_sampled[id] = true;
@@ -1053,11 +1053,11 @@ cst_fully<t_csa, t_delta, t_s_support, t_b, t_depth, t_sample_leaves>::cst_fully
             if (it.visit() == 1 and cst.is_leaf(*it) == false)
             {
                 auto const node = *it;
-                const size_type d = cst.depth(node);
+                size_type const d = cst.depth(node);
                 if (d % delta_half == 0)
                 {
                     auto v = cst.sl(node, delta_half);
-                    const size_type id = cst.id(v);
+                    size_type const id = cst.id(v);
                     if (!is_sampled[id])
                     {
                         is_sampled[id] = true;

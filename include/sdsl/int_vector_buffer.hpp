@@ -46,7 +46,7 @@ private:
     uint64_t m_begin = 0;      // number in elements
 
     //! Read block containing element at index idx.
-    void read_block(const uint64_t idx)
+    void read_block(uint64_t const idx)
     {
         m_begin = (idx / m_buffersize) * m_buffersize;
         if (m_begin >= m_size)
@@ -94,7 +94,7 @@ private:
     }
 
     //! Read value from idx.
-    uint64_t read(const uint64_t idx)
+    uint64_t read(uint64_t const idx)
     {
         assert(is_open());
         assert(idx < m_size);
@@ -107,7 +107,7 @@ private:
     }
 
     //! Write value to idx.
-    void write(const uint64_t idx, const uint64_t value)
+    void write(uint64_t const idx, uint64_t const value)
     {
         assert(is_open());
         // If idx is not in current block, write current block and load needed block
@@ -141,10 +141,10 @@ public:
      * interpreted as int_vector. If true the file will be interpreted as plain array with t_width bits per integer. In
      * second case (is_plain==true), t_width must be 8, 16, 32 or 64.
      */
-    int_vector_buffer(const std::string filename,
+    int_vector_buffer(std::string const filename,
                       std::ios::openmode mode = std::ios::in,
-                      const uint64_t buffer_size = 1024 * 1024,
-                      const uint8_t int_width = t_width,
+                      uint64_t const buffer_size = 1024 * 1024,
+                      uint8_t const int_width = t_width,
                       bool const is_plain = false)
     {
         m_filename = filename;
@@ -231,7 +231,7 @@ public:
         assert(m_ifile.good());
         assert(m_ofile.good());
         // assign the values of ivb to this
-        m_buffer = (int_vector<t_width> &&) ivb.m_buffer;
+        m_buffer = (int_vector<t_width> &&)ivb.m_buffer;
         m_need_to_write = ivb.m_need_to_write;
         m_offset = ivb.m_offset;
         m_buffersize = ivb.m_buffersize;
@@ -341,7 +341,7 @@ public:
     }
 
     //! Appends the given element value to the end of the int_vector_buffer
-    void push_back(const uint64_t value)
+    void push_back(uint64_t const value)
     {
         write(m_size, value);
     }
@@ -443,7 +443,7 @@ public:
         //! Postfix increment of the proxy object
         uint64_t operator++(int)
         {
-            uint64_t val = (uint64_t) * this;
+            uint64_t val = (uint64_t)*this;
             ++(*this);
             return val;
         }
@@ -459,13 +459,13 @@ public:
         //! Postfix decrement of the proxy object
         uint64_t operator--(int)
         {
-            uint64_t val = (uint64_t) * this;
+            uint64_t val = (uint64_t)*this;
             --(*this);
             return val;
         }
 
         //! Add assign from the proxy object
-        reference & operator+=(const uint64_t x)
+        reference & operator+=(uint64_t const x)
         {
             uint64_t w = m_int_vector_buffer->read(m_idx);
             m_int_vector_buffer->write(m_idx, w + x);
@@ -473,7 +473,7 @@ public:
         }
 
         //! Subtract assign from the proxy object
-        reference & operator-=(const uint64_t x)
+        reference & operator-=(uint64_t const x)
         {
             uint64_t w = m_int_vector_buffer->read(m_idx);
             m_int_vector_buffer->write(m_idx, w - x);
@@ -482,12 +482,12 @@ public:
 
         bool operator==(reference const & x) const
         {
-            return (uint64_t) * this == (uint64_t)x;
+            return (uint64_t)*this == (uint64_t)x;
         }
 
         bool operator<(reference const & x) const
         {
-            return (uint64_t) * this < (uint64_t)x;
+            return (uint64_t)*this < (uint64_t)x;
         }
     };
 

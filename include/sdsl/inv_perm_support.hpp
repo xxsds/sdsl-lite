@@ -58,7 +58,7 @@ private:
     rank_type m_rank_marked;       // rank support for back pointer marking
 
 public:
-    inv_perm_support(){};
+    inv_perm_support() {};
 
     inv_perm_support(inv_perm_support const & p) :
         m_v(p.m_v),

@@ -35,10 +35,10 @@ public:
     typedef typename t_vlc_vec::value_type value_type;
     typedef random_access_const_iterator<lcp_vlc> const_iterator;
     typedef const_iterator iterator;
-    typedef const value_type const_reference;
+    typedef value_type const const_reference;
     typedef const_reference reference;
     typedef const_reference * pointer;
-    typedef const pointer const_pointer;
+    typedef pointer const const_pointer;
     typedef typename t_vlc_vec::size_type size_type;
     typedef typename t_vlc_vec::difference_type difference_type;
     typedef t_vlc_vec vlc_vec_type;

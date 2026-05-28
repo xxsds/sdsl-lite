@@ -61,13 +61,13 @@ TEST_F(int_vector_mapper_test, iterator)
             sdsl::serialize_vector(vec, ofs);
         }
         {
-            const sdsl::int_vector_mapper<64, std::ios_base::in> ivm(temp_dir + "/int_vector_mapper_itrtest", true);
+            sdsl::int_vector_mapper<64, std::ios_base::in> const ivm(temp_dir + "/int_vector_mapper_itrtest", true);
             ASSERT_EQ(size, ivm.size());
             ASSERT_TRUE(std::equal(ivm.begin(), ivm.end(), vec.begin()));
             ASSERT_EQ(size, (size_t)std::distance(ivm.begin(), ivm.end()));
         }
         {
-            const sdsl::int_vector_mapper<64, std::ios_base::in> ivm(temp_dir + "/int_vector_mapper_itrtest", true);
+            sdsl::int_vector_mapper<64, std::ios_base::in> const ivm(temp_dir + "/int_vector_mapper_itrtest", true);
             auto itr = ivm.end() - 1;
             for (size_t i = 0; i < size; i++)
             {
@@ -85,13 +85,13 @@ TEST_F(int_vector_mapper_test, iterator)
         sdsl::util::set_to_id(vec);
         store_to_file(vec, temp_dir + "/int_vector_mapper_itrtest");
         {
-            const sdsl::int_vector_mapper<25, std::ios_base::in> ivm(temp_dir + "/int_vector_mapper_itrtest");
+            sdsl::int_vector_mapper<25, std::ios_base::in> const ivm(temp_dir + "/int_vector_mapper_itrtest");
             ASSERT_EQ(size, ivm.size());
             ASSERT_TRUE(std::equal(ivm.begin(), ivm.end(), vec.begin()));
             ASSERT_EQ(size, (size_t)std::distance(ivm.begin(), ivm.end()));
         }
         {
-            const sdsl::int_vector_mapper<25, std::ios_base::in> ivm(temp_dir + "/int_vector_mapper_itrtest");
+            sdsl::int_vector_mapper<25, std::ios_base::in> const ivm(temp_dir + "/int_vector_mapper_itrtest");
             auto itr = ivm.end() - 1;
             for (size_t i = 0; i < size; i++)
             {
@@ -110,7 +110,7 @@ TEST_F(int_vector_mapper_test, iterator)
         sdsl::util::bit_compress(vec);
         store_to_file(vec, temp_dir + "/int_vector_mapper_itrtest");
         {
-            const sdsl::int_vector_mapper<0, std::ios_base::in> ivm(temp_dir + "/int_vector_mapper_itrtest");
+            sdsl::int_vector_mapper<0, std::ios_base::in> const ivm(temp_dir + "/int_vector_mapper_itrtest");
             ASSERT_EQ(size, ivm.size());
             ASSERT_EQ(vec.width(), ivm.width());
             ASSERT_TRUE(std::equal(ivm.begin(), ivm.end(), vec.begin()));
@@ -255,7 +255,7 @@ TEST_F(int_vector_mapper_test, bitvector_mapping)
         store_to_file(bv, temp_dir + "/bit_vector_mapper_test");
         {
             // load/store test
-            const sdsl::bit_vector_mapper<std::ios_base::in> bvm(temp_dir + "/bit_vector_mapper_test");
+            sdsl::bit_vector_mapper<std::ios_base::in> const bvm(temp_dir + "/bit_vector_mapper_test");
             ASSERT_EQ(bvm.size(), bv.size());
             ASSERT_EQ(bvm.width(), bv.width());
             ASSERT_TRUE(std::equal(bvm.begin(), bvm.end(), bv.begin()));
@@ -271,7 +271,7 @@ TEST_F(int_vector_mapper_test, bitvector_mapping)
         }
         {
             // load/store after flip
-            const sdsl::bit_vector_mapper<std::ios_base::in> bvm(temp_dir + "/bit_vector_mapper_test");
+            sdsl::bit_vector_mapper<std::ios_base::in> const bvm(temp_dir + "/bit_vector_mapper_test");
             ASSERT_TRUE(std::equal(bvm.begin(), bvm.end(), bv.begin()));
             ASSERT_EQ(sdsl::util::cnt_one_bits(bv), sdsl::util::cnt_one_bits(bvm));
         }

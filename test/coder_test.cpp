@@ -89,7 +89,7 @@ TYPED_TEST(coder_test, decode_prefix_sum)
     int_vector<> tmp;
     TypeParam::encode(this->m_data, tmp);
     uint64_t start = 0;
-    const uint64_t sample = 32;
+    uint64_t const sample = 32;
     for (size_t i = 0; i < this->m_data.size(); ++i)
     {
         uint64_t sum = 0;
