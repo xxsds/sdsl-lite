@@ -113,7 +113,7 @@ public:
     bit_vector const & btnr = m_btnr;
 
     //! Default constructor
-    rrr_vector(){};
+    rrr_vector() {};
     rrr_vector(rrr_vector const & v) :
         m_size(v.m_size),
         m_bt(v.m_bt),
@@ -500,7 +500,7 @@ public:
      * \par Time complexity
      * \f$ \Order{ sample\_rate of the rrr\_vector} \f$
      */
-    const size_type rank(size_type i) const
+    size_type const rank(size_type i) const
     {
         assert(m_v != nullptr);
         assert(i <= m_v->size());
@@ -544,13 +544,13 @@ public:
     }
 
     //! Short hand for rank(i)
-    const size_type operator()(size_type i) const
+    size_type const operator()(size_type i) const
     {
         return rank(i);
     }
 
     //! Returns the size of the original vector
-    const size_type size() const
+    size_type const size() const
     {
         return m_v->size();
     }
@@ -737,12 +737,12 @@ public:
         return t_b ? select1(i) : select0(i);
     }
 
-    const size_type operator()(size_type i) const
+    size_type const operator()(size_type i) const
     {
         return select(i);
     }
 
-    const size_type size() const
+    size_type const size() const
     {
         return m_v->size();
     }

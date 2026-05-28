@@ -639,11 +639,11 @@ public:
      * \par Time complexity
      *     \f$ \Order{block\_size} \f$
      */
-    size_type rr_enclose(const size_type i, const size_type j) const
+    size_type rr_enclose(size_type const i, size_type const j) const
     {
         assert(j < m_size);
         assert((*m_bp)[i] == 1 and (*m_bp)[j] == 1);
-        const size_type mip1 = find_close(i) + 1;
+        size_type const mip1 = find_close(i) + 1;
         if (mip1 >= j)
             return size();
         return rmq_open(mip1, j);
@@ -657,7 +657,7 @@ public:
      * \par Time complexity
      *     \f$ \Order{block\_size} \f$
      */
-    size_type rmq_open(const size_type l, const size_type r) const
+    size_type rmq_open(size_type const l, size_type const r) const
     {
         assert(r < m_bp->size());
         if (l >= r)

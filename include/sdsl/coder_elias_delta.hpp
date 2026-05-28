@@ -120,7 +120,7 @@ public:
         }
     } data;
 
-    static const uint8_t min_codeword_length = 1; // 1 represents 1 and is the code word with minimum length
+    static uint8_t const min_codeword_length = 1; // 1 represents 1 and is the code word with minimum length
     static uint8_t encoding_length(uint64_t);
     //! Decode n Elias-delta encoded bits beginning at start_idx in the bitstring "data"
     /* \param data Bitstring
@@ -129,7 +129,7 @@ public:
      * \param it Iterator to decode the values.
      */
     template <bool t_sumup, bool t_inc, class t_iter>
-    static uint64_t decode(uint64_t const * data, const size_type start_idx, size_type n, t_iter it = (t_iter) nullptr);
+    static uint64_t decode(uint64_t const * data, size_type const start_idx, size_type n, t_iter it = (t_iter) nullptr);
 
     //! Decode n Elias delta encoded integers beginning at start_idx in the bitstring "data"  and return the sum of
     //! these values.
@@ -138,9 +138,9 @@ public:
      * \param n Number of values to decode from the bitstring. Attention: There have to be at least n encoded values in
      * the bitstring.
      */
-    static uint64_t decode_prefix_sum(uint64_t const * d, const size_type start_idx, size_type n);
+    static uint64_t decode_prefix_sum(uint64_t const * d, size_type const start_idx, size_type n);
     static uint64_t
-    decode_prefix_sum(uint64_t const * d, const size_type start_idx, const size_type end_idx, size_type n);
+    decode_prefix_sum(uint64_t const * d, size_type const start_idx, size_type const end_idx, size_type n);
 
     template <class int_vector>
     static bool encode(int_vector const & v, int_vector & z);
@@ -177,7 +177,7 @@ inline bool elias_delta<T>::encode(int_vector const & v, int_vector & z)
     z.width(v.width());
     size_type z_bit_size = 0;
     uint64_t w;
-    const uint64_t zero_val = v.width() < 64 ? (1ULL) << v.width() : 0;
+    uint64_t const zero_val = v.width() < 64 ? (1ULL) << v.width() : 0;
     for (typename int_vector::const_iterator it = v.begin(), end = v.end(); it != end; ++it)
     {
         if ((w = *it) == 0)
@@ -237,7 +237,7 @@ inline void elias_delta<T>::encode(uint64_t x, uint64_t *& z, uint8_t & offset)
 
 template <typename T>
 inline uint64_t
-elias_delta<T>::decode_prefix_sum(uint64_t const * d, const size_type start_idx, const size_type end_idx, size_type n)
+elias_delta<T>::decode_prefix_sum(uint64_t const * d, size_type const start_idx, size_type const end_idx, size_type n)
 {
     if (n == 0)
         return 0;
@@ -468,7 +468,7 @@ start_decoding:
 }
 
 template <typename T>
-inline uint64_t elias_delta<T>::decode_prefix_sum(uint64_t const * d, const size_type start_idx, size_type n)
+inline uint64_t elias_delta<T>::decode_prefix_sum(uint64_t const * d, size_type const start_idx, size_type n)
 {
     if (n == 0)
         return 0;
@@ -617,7 +617,7 @@ inline bool elias_delta<T>::decode(int_vector const & z, int_vector & v)
 
 template <typename T>
 template <bool t_sumup, bool t_inc, class t_iter>
-inline uint64_t elias_delta<T>::decode(uint64_t const * d, const size_type start_idx, size_type n, t_iter it)
+inline uint64_t elias_delta<T>::decode(uint64_t const * d, size_type const start_idx, size_type n, t_iter it)
 {
     d += (start_idx >> 6);
     uint64_t value = 0;

@@ -47,10 +47,10 @@ public:
     typedef typename int_vector<t_width>::value_type value_type;
     typedef random_access_const_iterator<lcp_wt> const_iterator;
     typedef const_iterator iterator;
-    typedef const value_type const_reference;
+    typedef value_type const const_reference;
     typedef const_reference reference;
     typedef const_reference * pointer;
-    typedef const pointer const_pointer;
+    typedef pointer const const_pointer;
     typedef int_vector<>::size_type size_type;
     typedef ptrdiff_t difference_type;
     typedef wt_huff<bit_vector, rank_support_v<>, select_support_scan<1>, select_support_scan<0>> small_lcp_type;

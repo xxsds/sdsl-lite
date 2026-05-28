@@ -63,7 +63,7 @@ public:
     {
         if (m_v == nullptr)
             return;
-        const size_type n = m_v->size();
+        size_type const n = m_v->size();
         if (n < 2) // for n<2 the queries could be answerd without any table
             return;
         size_type k = 0;
@@ -118,7 +118,7 @@ public:
      * \par Time complexity
      *      \f$ \Order{1} \f$
      */
-    size_type operator()(const size_type l, const size_type r) const
+    size_type operator()(size_type const l, size_type const r) const
     {
         assert(l <= r);
         assert(r < size());
@@ -127,7 +127,7 @@ public:
         if (l + 1 == r)
             return mm_trait::compare((*m_v)[l], (*m_v)[r]) ? l : r;
         size_type k = bits::hi(r - l);
-        const size_type rr = r - (1ULL << k) + 1;
+        size_type const rr = r - (1ULL << k) + 1;
         return mm_trait::compare((*m_v)[l + m_table[k - 1][l]], (*m_v)[rr + m_table[k - 1][rr]])
                  ? l + m_table[k - 1][l]
                  : rr + m_table[k - 1][rr];

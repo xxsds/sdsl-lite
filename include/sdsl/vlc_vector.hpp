@@ -59,8 +59,8 @@ public:
     typedef uint64_t value_type;
     typedef random_access_const_iterator<vlc_vector> iterator;
     typedef iterator const_iterator;
-    typedef const value_type reference;
-    typedef const value_type const_reference;
+    typedef value_type const reference;
+    typedef value_type const const_reference;
     typedef value_type const * const_pointer;
     typedef ptrdiff_t difference_type;
     typedef int_vector<>::size_type size_type;
@@ -68,7 +68,7 @@ public:
     typedef iv_tag index_category;
     typedef typename vlc_vector_trait<t_width>::int_vector_type int_vector_type;
 
-    static const uint32_t sample_dens = t_dens;
+    static uint32_t const sample_dens = t_dens;
     bit_vector m_z; // compressed bit stream
 
 private:
@@ -121,13 +121,13 @@ public:
     }
 
     //! Iterator that points to the first element of the vlc_vector.
-    const const_iterator begin() const
+    const_iterator const begin() const
     {
         return const_iterator(this, 0);
     }
 
     //! Iterator that points to the position after the last element of the vlc_vector.
-    const const_iterator end() const
+    const_iterator const end() const
     {
         return const_iterator(this, this->m_size);
     }
@@ -160,10 +160,10 @@ public:
     void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar);
 
     //! Returns the ith sample of vlc_vector
-    value_type sample(const size_type i) const;
+    value_type sample(size_type const i) const;
 
     uint32_t get_sample_dens() const;
-    void set_sample_dens(const uint32_t sdens);
+    void set_sample_dens(uint32_t const sdens);
 };
 
 template <class t_coder, uint32_t t_dens, uint8_t t_width>
@@ -176,14 +176,14 @@ inline uint32_t vlc_vector<t_coder, t_dens, t_width>::get_sample_dens() const
 }
 
 template <class t_coder, uint32_t t_dens, uint8_t t_width>
-inline void vlc_vector<t_coder, t_dens, t_width>::set_sample_dens(const uint32_t sdens)
+inline void vlc_vector<t_coder, t_dens, t_width>::set_sample_dens(uint32_t const sdens)
 {
     m_sample_dens = sdens;
 }
 
 template <class t_coder, uint32_t t_dens, uint8_t t_width>
 inline typename vlc_vector<t_coder, t_dens, t_width>::value_type
-vlc_vector<t_coder, t_dens, t_width>::operator[](const size_type i) const
+vlc_vector<t_coder, t_dens, t_width>::operator[](size_type const i) const
 {
     assert(i + 1 != 0);
     assert(i < m_size);

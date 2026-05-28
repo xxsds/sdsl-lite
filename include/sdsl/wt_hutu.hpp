@@ -296,7 +296,7 @@ struct _hutu_shape
         m_node() : qel(0), myhpq(0), lt(0), rt(0)
         {}
 
-        bool operator<(const m_node other)
+        bool operator<(m_node const other)
         {
             if (min_sum != other.min_sum)
             {
@@ -309,7 +309,7 @@ struct _hutu_shape
             return j < other.j;
         }
 
-        bool operator>(const m_node other)
+        bool operator>(m_node const other)
         {
             return other < *this;
         }

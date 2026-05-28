@@ -213,7 +213,7 @@ void select_support_mcl<t_b, t_pat_len>::init_slow(bit_vector const * v)
     // Count the number of arguments in the bit vector
     m_arg_cnt = select_support_trait<t_b, t_pat_len>::arg_cnt(*v);
 
-    const size_type SUPER_BLOCK_SIZE = 4096;
+    size_type const SUPER_BLOCK_SIZE = 4096;
 
     if (m_arg_cnt == 0) // if there are no arguments in the vector we are done...
         return;
@@ -275,7 +275,7 @@ void select_support_mcl<t_b, t_pat_len>::init_fast(bit_vector const * v)
     // Count the number of arguments in the bit vector
     m_arg_cnt = select_support_trait<t_b, t_pat_len>::arg_cnt(*v);
 
-    const size_type SUPER_BLOCK_SIZE = 64 * 64;
+    size_type const SUPER_BLOCK_SIZE = 64 * 64;
 
     if (m_arg_cnt == 0) // if there are no arguments in the vector we are done...
         return;

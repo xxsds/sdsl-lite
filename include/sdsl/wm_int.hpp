@@ -148,7 +148,7 @@ public:
             for (uint32_t k = 0; k < m_max_level; ++k)
             {
                 uint8_t width = m_max_level - k - 1;
-                const uint64_t mask = 1ULL << width;
+                uint64_t const mask = 1ULL << width;
                 uint64_t x = 0;
                 size_type zeros = 0;
                 int_vector_buffer<> zero_buf(zero_buf_file_name, std::ios::out, 1024 * 1024, m_max_level);

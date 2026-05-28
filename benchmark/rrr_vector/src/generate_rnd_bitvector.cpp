@@ -36,7 +36,7 @@ int main(int argc, char * argv[])
         else if (order == 'g' or order == 'G')
             length <<= 30;
     }
-    const uint64_t density = atoi(argv[2]);
+    uint64_t const density = atoi(argv[2]);
     cout << length << endl;
     bit_vector v(length);
     srand(17);

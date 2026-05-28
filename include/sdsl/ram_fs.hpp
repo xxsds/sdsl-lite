@@ -84,7 +84,7 @@ inline int remove(std::string const & name)
 }
 
 //! Rename the file. Change key `old_filename` into `new_filename`.
-inline int rename(const std::string old_filename, const std::string new_filename)
+inline int rename(std::string const old_filename, std::string const new_filename)
 {
     auto & rf = memory_monitor::ram_fs();
     std::lock_guard<std::recursive_mutex> lock(rf.m_rlock);

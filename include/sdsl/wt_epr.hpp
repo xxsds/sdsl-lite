@@ -119,7 +119,12 @@ public:
             return;
 
         // The largest letter, is the effective alphabet size
-        if (std::any_of(begin, end, [](size_t value) { return value >= alphabet_size; }))
+        if (std::any_of(begin,
+                        end,
+                        [](size_t value)
+                        {
+                            return value >= alphabet_size;
+                        }))
         {
             throw std::domain_error{"The given text uses an alphabet that is larger than the explicitly given "
                                     "alphabet size."};

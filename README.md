@@ -16,10 +16,10 @@
 Other compiler may work, but are not tested within the continuous integration. In general, the latest minor release of
 each listed major compiler version is supported.
 
-* GCC 11, 12, 13
-* clang 15, 16, 17
+* GCC 14, 15, 16
+* clang 20, 21, 22
 
-Tests are run with C++20 and C++23.
+Tests are run with C++23.
 
 ## Dependencies
 
@@ -28,7 +28,7 @@ As SDSL v3 is header-only, dependencies marked as `required` only apply to build
 GoogleTest and cereal are provided as submodules within this repository.
 
 * required: [CMake >= 3.13](https://github.com/Kitware/CMake)
-* required: [GoogleTest 1.14.0](https://github.com/google/googletest/releases/tag/v1.14.0)
+* required: [GoogleTest 1.17.0](https://github.com/google/googletest/releases/tag/v1.17.0)
 * optional: [cereal 1.3.2](https://github.com/USCiLab/cereal/releases/tag/v1.3.2)
 
 cereal can be activated by passing `-DSDSL_CEREAL=1` to CMake.

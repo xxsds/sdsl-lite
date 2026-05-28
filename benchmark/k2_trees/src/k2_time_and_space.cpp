@@ -49,7 +49,7 @@ int main(int argc, char * argv[])
         return 1;
     }
 
-    const uint64_t reps = 100000;
+    uint64_t const reps = 100000;
 
     // construct
     memory_monitor::start();

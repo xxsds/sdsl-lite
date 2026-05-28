@@ -142,7 +142,9 @@ serialize(X const & x, std::ostream & out, structure_tree_node * v = nullptr, st
 }
 
 template <typename X>
-typename std::enable_if<std::is_standard_layout<X>::value && std::is_trivial<X>::value, uint64_t>::type
+typename std::enable_if<std::is_standard_layout<X>::value && std::is_trivially_default_constructible<X>::value
+                            && std::is_trivially_copyable<X>::value,
+                        uint64_t>::type
 serialize(X const & x, std::ostream & out, structure_tree_node * v = nullptr, std::string name = "")
 {
     return write_member(x, out, v, name);
@@ -163,7 +165,9 @@ typename std::enable_if<has_load<X>::value, void>::type load(X & x, std::istream
 }
 
 template <typename X>
-typename std::enable_if<std::is_standard_layout<X>::value && std::is_trivial<X>::value, void>::type
+typename std::enable_if<std::is_standard_layout<X>::value && std::is_trivially_default_constructible<X>::value
+                            && std::is_trivially_copyable<X>::value,
+                        void>::type
 load(X & x, std::istream & in)
 {
     read_member(x, in);
@@ -246,7 +250,7 @@ bool load_vector_from_file(t_int_vec & v, std::string const & file, uint8_t num_
             else
             {
                 size_t idx = 0;
-                const size_t block_size = conf::SDSL_BLOCK_SIZE * num_bytes;
+                size_t const block_size = conf::SDSL_BLOCK_SIZE * num_bytes;
                 std::vector<uint8_t> buf(block_size);
                 // TODO: check for larger alphabets with num_bytes*8 = v::fixed_int_width
 
@@ -497,7 +501,7 @@ t_csa const & _idx_csa(t_csa const & t, csa_tag)
 
 //! Internal function used by csXprintf
 template <typename t_cst>
-const typename t_cst::csa_type & _idx_csa(t_cst const & t, cst_tag)
+typename t_cst::csa_type const & _idx_csa(t_cst const & t, cst_tag)
 {
     return t.csa;
 }
@@ -568,7 +572,7 @@ void csXprintf(std::ostream & out,
                char sentinel = default_sentinel<t_idx>::value)
 {
     typename t_idx::index_category cat;
-    const typename t_idx::csa_type & csa = _idx_csa(idx, cat);
+    typename t_idx::csa_type const & csa = _idx_csa(idx, cat);
     std::vector<std::string> res(csa.size());
     bool truncate = false;
     for (std::string::const_iterator c = format.begin(), s = c; c != format.end(); s = c)

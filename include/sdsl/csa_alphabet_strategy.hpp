@@ -373,11 +373,6 @@ public:
         }
     };
 
-    const char2comp_type char2comp;
-    const comp2char_type comp2char;
-    C_type const & C;
-    sigma_type const & sigma;
-
 private:
     bit_vector_type m_char;            // `m_char[i]` indicates if character with code i is present or not
     rank_support_type m_char_rank;     // rank data structure for `m_char` to answer char2comp
@@ -386,8 +381,22 @@ private:
     sigma_type m_sigma;                // effective size of the alphabet
 
 public:
+    char2comp_type const char2comp;
+    comp2char_type const comp2char;
+    C_type const & C;
+    sigma_type const & sigma;
+
     //! Default constructor
-    succinct_byte_alphabet() : char2comp(this), comp2char(this), C(m_C), sigma(m_sigma), m_sigma(0)
+    succinct_byte_alphabet() :
+        m_char(),
+        m_char_rank(),
+        m_char_select(),
+        m_C(),
+        m_sigma(0),
+        char2comp(this),
+        comp2char(this),
+        C(m_C),
+        sigma(m_sigma)
     {}
 
     //! Construct from a byte-stream
@@ -396,6 +405,11 @@ public:
      *  \param len      Length of the byte stream.
      */
     succinct_byte_alphabet(int_vector_buffer<8> & text_buf, int_vector_size_type len) :
+        m_char(),
+        m_char_rank(),
+        m_char_select(),
+        m_C(),
+        m_sigma(0),
         char2comp(this),
         comp2char(this),
         C(m_C),
@@ -438,15 +452,15 @@ public:
 
     //! Copy constructor
     succinct_byte_alphabet(succinct_byte_alphabet const & strat) :
-        char2comp(this),
-        comp2char(this),
-        C(m_C),
-        sigma(m_sigma),
         m_char(strat.m_char),
         m_char_rank(strat.m_char_rank),
         m_char_select(strat.m_char_select),
         m_C(strat.m_C),
-        m_sigma(strat.m_sigma)
+        m_sigma(strat.m_sigma),
+        char2comp(this),
+        comp2char(this),
+        C(m_C),
+        sigma(m_sigma)
     {
         m_char_rank.set_vector(&m_char);
         m_char_select.set_vector(&m_char);
@@ -454,15 +468,15 @@ public:
 
     //! Move constructor
     succinct_byte_alphabet(succinct_byte_alphabet && strat) :
-        char2comp(this),
-        comp2char(this),
-        C(m_C),
-        sigma(m_sigma),
         m_char(std::move(strat.m_char)),
         m_char_rank(std::move(strat.m_char_rank)),
         m_char_select(std::move(strat.m_char_select)),
         m_C(std::move(strat.m_C)),
-        m_sigma(std::move(strat.m_sigma))
+        m_sigma(std::move(strat.m_sigma)),
+        char2comp(this),
+        comp2char(this),
+        C(m_C),
+        sigma(m_sigma)
     {
         m_char_rank.set_vector(&m_char);
         m_char_select.set_vector(&m_char);
@@ -620,8 +634,8 @@ public:
         }
     };
 
-    const char2comp_type char2comp{};
-    const comp2char_type comp2char{};
+    char2comp_type const char2comp{};
+    comp2char_type const comp2char{};
     C_type const & C;
     sigma_type const & sigma;
 
@@ -839,11 +853,6 @@ public:
         }
     };
 
-    const char2comp_type char2comp;
-    const comp2char_type comp2char;
-    C_type const & C;
-    sigma_type const & sigma;
-
 private:
     bit_vector_type m_char;            // `m_char[i]` indicates if character with code i is present or not
     rank_support_type m_char_rank;     // rank data structure for `m_char` to answer char2comp
@@ -866,8 +875,22 @@ private:
     }
 
 public:
+    char2comp_type const char2comp;
+    comp2char_type const comp2char;
+    C_type const & C;
+    sigma_type const & sigma;
+
     //! Default constructor
-    int_alphabet() : char2comp(this), comp2char(this), C(m_C), sigma(m_sigma), m_sigma(0)
+    int_alphabet() :
+        m_char(),
+        m_char_rank(),
+        m_char_select(),
+        m_C(),
+        m_sigma(0),
+        char2comp(this),
+        comp2char(this),
+        C(m_C),
+        sigma(m_sigma)
     {}
 
     //! Construct from a byte-stream
@@ -916,31 +939,31 @@ public:
 
     //! Copy constructor
     int_alphabet(int_alphabet const & strat) :
-        char2comp(this),
-        comp2char(this),
-        C(m_C),
-        sigma(m_sigma),
         m_char(strat.m_char),
         m_char_rank(strat.m_char_rank),
         m_char_select(strat.m_char_select),
         m_C(strat.m_C),
-        m_sigma(strat.m_sigma)
+        m_sigma(strat.m_sigma),
+        char2comp(this),
+        comp2char(this),
+        C(m_C),
+        sigma(m_sigma)
     {
         m_char_rank.set_vector(&m_char);
         m_char_select.set_vector(&m_char);
     }
 
-    //! Copy constructor
+    //! Move constructor
     int_alphabet(int_alphabet && strat) :
-        char2comp(this),
-        comp2char(this),
-        C(m_C),
-        sigma(m_sigma),
         m_char(std::move(strat.m_char)),
         m_char_rank(std::move(strat.m_char_rank)),
         m_char_select(std::move(strat.m_char_select)),
         m_C(std::move(strat.m_C)),
-        m_sigma(std::move(strat.m_sigma))
+        m_sigma(std::move(strat.m_sigma)),
+        char2comp(this),
+        comp2char(this),
+        C(m_C),
+        sigma(m_sigma)
     {
         m_char_rank.set_vector(&m_char);
         m_char_select.set_vector(&m_char);

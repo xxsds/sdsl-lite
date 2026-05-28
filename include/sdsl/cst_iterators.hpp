@@ -44,7 +44,7 @@ public:
     using pointer = value_type *;
     using reference = value_type &;
 
-    typedef const value_type const_reference;
+    typedef value_type const const_reference;
     typedef typename Cst::size_type size_type;
     typedef cst_dfs_const_forward_iterator<Cst> iterator;
     typedef typename Cst::node_type node_type;
@@ -82,7 +82,7 @@ private:
 
 public:
     //! Constructor
-    cst_dfs_const_forward_iterator(Cst const * cst, const value_type node, bool visited = false, bool valid = true) :
+    cst_dfs_const_forward_iterator(Cst const * cst, value_type const node, bool visited = false, bool valid = true) :
         m_visited(visited),
         m_valid(valid),
         m_stack_cache(nullptr)
@@ -215,7 +215,7 @@ public:
     using pointer = value_type *;
     using reference = value_type &;
 
-    typedef const value_type const_reference;
+    typedef value_type const const_reference;
     typedef typename Cst::size_type size_type;
     typedef cst_bottom_up_const_forward_iterator<Cst> iterator;
 
@@ -230,7 +230,7 @@ public:
     {}
 
     //! Constructor
-    cst_bottom_up_const_forward_iterator(Cst const * cst, const value_type node, bool valid = true) : m_valid(valid)
+    cst_bottom_up_const_forward_iterator(Cst const * cst, value_type const node, bool valid = true) : m_valid(valid)
     {
         m_cst = cst;
         m_v = node;
@@ -305,7 +305,7 @@ public:
     using pointer = value_type *;
     using reference = value_type &;
 
-    typedef const value_type const_reference;
+    typedef value_type const const_reference;
     typedef typename Cst::size_type size_type;
     typedef cst_bfs_iterator<Cst, Queue> iterator;
     typedef Queue queue_type;
@@ -323,7 +323,7 @@ public:
      * \param valid State of the iterator.
      * \param end   If valid=true and end=true, we get the end() iterator otherwise ``end'' has no effect.
      */
-    cst_bfs_iterator(Cst const * cst, const value_type node, bool valid = true, bool end_it = false)
+    cst_bfs_iterator(Cst const * cst, value_type const node, bool valid = true, bool end_it = false)
     {
         m_cst = cst;
         m_valid = valid;

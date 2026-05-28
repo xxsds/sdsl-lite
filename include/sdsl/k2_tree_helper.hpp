@@ -29,7 +29,7 @@ typedef int_vector<>::size_type size_type;
 
 template <typename t_bv = bit_vector>
 int _build_from_matrix(std::vector<std::vector<int>> const & matrix,
-                       const uint8_t k,
+                       uint8_t const k,
                        int n,
                        int const height,
                        int l,

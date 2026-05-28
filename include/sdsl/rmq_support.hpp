@@ -13,13 +13,13 @@
 template <class RandomAccessContainer, bool Minimum> // for range minimum queries
 struct min_max_trait
 {
-    static inline bool strict_compare(const typename RandomAccessContainer::value_type v1,
-                                      const typename RandomAccessContainer::value_type v2)
+    static inline bool strict_compare(typename RandomAccessContainer::value_type const v1,
+                                      typename RandomAccessContainer::value_type const v2)
     {
         return v1 < v2;
     }
-    static inline bool compare(const typename RandomAccessContainer::value_type v1,
-                               const typename RandomAccessContainer::value_type v2)
+    static inline bool compare(typename RandomAccessContainer::value_type const v1,
+                               typename RandomAccessContainer::value_type const v2)
     {
         return v1 <= v2;
     }
@@ -28,13 +28,13 @@ struct min_max_trait
 template <class RandomAccessContainer> // for range maximum queries
 struct min_max_trait<RandomAccessContainer, false>
 {
-    static inline bool strict_compare(const typename RandomAccessContainer::value_type v1,
-                                      const typename RandomAccessContainer::value_type v2)
+    static inline bool strict_compare(typename RandomAccessContainer::value_type const v1,
+                                      typename RandomAccessContainer::value_type const v2)
     {
         return v1 > v2;
     }
-    static inline bool compare(const typename RandomAccessContainer::value_type v1,
-                               const typename RandomAccessContainer::value_type v2)
+    static inline bool compare(typename RandomAccessContainer::value_type const v1,
+                               typename RandomAccessContainer::value_type const v2)
     {
         return v1 >= v2;
     }

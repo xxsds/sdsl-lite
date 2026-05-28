@@ -18,7 +18,7 @@ std::ostream & operator<<(std::ostream & os, std::pair<T, T> const & v)
 #include <gtest/gtest.h>
 
 template <class Cst>
-std::string format_node(Cst const & cst, const typename Cst::node_type & v)
+std::string format_node(Cst const & cst, typename Cst::node_type const & v)
 {
     std::stringstream ss;
     ss << cst.depth(v) << "-[" << cst.lb(v) << "," << cst.rb(v) << "]";

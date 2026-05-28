@@ -160,7 +160,7 @@ TYPED_TEST_SUITE(bit_vector_test_bv_only, Implementations_BV_Only, );
 #define LFSR_START 0x00000001    // linear-feedback shift register with
 // clang-format on
 #define LFSR_FEEDBACK 0x0110F65C // .. period 33554431 = 31*601*1801
-#define LFSR_NEXT(x) (((x) >> 1) ^ (((x)&1) * LFSR_FEEDBACK))
+#define LFSR_NEXT(x) (((x) >> 1) ^ (((x) & 1) * LFSR_FEEDBACK))
 // nota bene: LFSR output has ~50% 1s, will bias compression types like RRR
 
 TYPED_TEST(bit_vector_test_bv_only, and_with)

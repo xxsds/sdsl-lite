@@ -490,7 +490,7 @@ typename t_csx::size_type count(t_csx const & csx, t_pat_iter begin, t_pat_iter 
  */
 
 template <class t_csx>
-typename t_csx::size_type count(t_csx const & csx, const typename t_csx::string_type & pat)
+typename t_csx::size_type count(t_csx const & csx, typename t_csx::string_type const & pat)
 {
     typename t_csx::index_category tag;
     return count(csx, pat.begin(), pat.end(), tag);
@@ -563,7 +563,7 @@ t_rac locate(t_csa const & csa,
  *         occurrences of pattern in the CSA.
  */
 template <class t_csx, class t_rac = int_vector<64>>
-t_rac locate(t_csx const & csx, const typename t_csx::string_type & pat)
+t_rac locate(t_csx const & csx, typename t_csx::string_type const & pat)
 {
     typename t_csx::index_category tag;
     return locate<t_csx, decltype(pat.begin()), t_rac>(csx, pat.begin(), pat.end(), tag);

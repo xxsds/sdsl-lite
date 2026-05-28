@@ -87,11 +87,11 @@ public:
     friend class select_support_hyb<0, k_sblock_rate>;
 
 private:
-    static const uint32_t k_block_size;
-    static const uint32_t k_block_bytes;
-    static const uint32_t k_sblock_header_size;
-    static const uint32_t k_sblock_size;
-    static const uint32_t k_hblock_rate;
+    static uint32_t const k_block_size;
+    static uint32_t const k_block_bytes;
+    static uint32_t const k_sblock_header_size;
+    static uint32_t const k_sblock_size;
+    static uint32_t const k_hblock_rate;
 
     size_type m_size = 0;           // original bitvector size
     int_vector<8> m_trunk;          // body of encoded blocks
@@ -614,7 +614,7 @@ public:
      *  \pre idx+len-1 in [0..size()-1]
      *  \pre len in [1..64]
      */
-    uint64_t get_int(size_type idx, const uint8_t len = 64) const
+    uint64_t get_int(size_type idx, uint8_t const len = 64) const
     {
         uint64_t res = 0;
         for (size_t i = 0; i < len; ++i)
@@ -700,15 +700,15 @@ public:
 };
 
 template <uint32_t k_sblock_rate>
-const uint32_t hyb_vector<k_sblock_rate>::k_block_size = 256;
+uint32_t const hyb_vector<k_sblock_rate>::k_block_size = 256;
 template <uint32_t k_sblock_rate>
-const uint32_t hyb_vector<k_sblock_rate>::k_block_bytes = 32;
+uint32_t const hyb_vector<k_sblock_rate>::k_block_bytes = 32;
 template <uint32_t k_sblock_rate>
-const uint32_t hyb_vector<k_sblock_rate>::k_sblock_header_size = 8 + 2 * k_sblock_rate;
+uint32_t const hyb_vector<k_sblock_rate>::k_sblock_header_size = 8 + 2 * k_sblock_rate;
 template <uint32_t k_sblock_rate>
-const uint32_t hyb_vector<k_sblock_rate>::k_sblock_size = 256 * k_sblock_rate;
+uint32_t const hyb_vector<k_sblock_rate>::k_sblock_size = 256 * k_sblock_rate;
 template <uint32_t k_sblock_rate>
-const uint32_t hyb_vector<k_sblock_rate>::k_hblock_rate = (1U << 31) / 256;
+uint32_t const hyb_vector<k_sblock_rate>::k_hblock_rate = (1U << 31) / 256;
 
 template <uint8_t t_bp>
 struct rank_result
@@ -762,7 +762,7 @@ public:
     }
 
     //! Answers rank queries
-    const size_type rank(size_type i) const
+    size_type const rank(size_type i) const
     {
         assert(m_v != nullptr);
         assert(i <= m_v->size());
@@ -929,13 +929,13 @@ public:
     }
 
     //! Shorthand for rank(i)
-    const size_type operator()(size_type i) const
+    size_type const operator()(size_type i) const
     {
         return rank(i);
     }
 
     //! Return the size of the original vector
-    const size_type size() const
+    size_type const size() const
     {
         return m_v->size();
     }
@@ -1028,13 +1028,13 @@ public:
     }
 
     //! Shorthand for select(i)
-    const size_type operator()(size_type i) const
+    size_type const operator()(size_type i) const
     {
         return select(i);
     }
 
     //! Return the size of the original vector
-    const size_type size() const
+    size_type const size() const
     {
         return m_v->size();
     }

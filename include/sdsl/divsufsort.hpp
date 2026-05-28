@@ -75,8 +75,8 @@ struct libdivsufsort_config<int64_t>
 #    define BUCKET_B(_c0, _c1) (bucket_B[((_c1) << 8) | (_c0)])
 #    define BUCKET_BSTAR(_c0, _c1) (bucket_B[((_c0) << 8) | (_c1)])
 #else
-#    define BUCKET_B(_c0, _c1) (bucket_B[(_c1)*ALPHABET_SIZE + (_c0)])
-#    define BUCKET_BSTAR(_c0, _c1) (bucket_B[(_c0)*ALPHABET_SIZE + (_c1)])
+#    define BUCKET_B(_c0, _c1) (bucket_B[(_c1) * ALPHABET_SIZE + (_c0)])
+#    define BUCKET_BSTAR(_c0, _c1) (bucket_B[(_c0) * ALPHABET_SIZE + (_c1)])
 #endif
 
 #define STACK_PUSH(_a, _b, _c, _d)                                                                                     \
@@ -116,7 +116,7 @@ struct libdivsufsort_config<int64_t>
     }                                                                                                                  \
     while (0)
 
-static const int32_t lg_table[256] = {
+static int32_t const lg_table[256] = {
     -1, 0, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5,
     5,  5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
     6,  6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
@@ -158,7 +158,7 @@ inline int32_t ss_ilg(int64_t n)
 
 #if SS_BLOCKSIZE != 0
 
-static const int32_t sqq_table[256] = {
+static int32_t const sqq_table[256] = {
     0,   16,  22,  27,  32,  35,  39,  42,  45,  48,  50,  53,  55,  57,  59,  61,  64,  65,  67,  69,  71,  73,
     75,  76,  78,  80,  81,  83,  84,  86,  87,  89,  90,  91,  93,  94,  96,  97,  98,  99,  101, 102, 103, 104,
     106, 107, 108, 109, 110, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 128, 128,
@@ -216,7 +216,8 @@ inline int32_t ss_compare(uint8_t const * T, saidx_t const * p1, saidx_t const *
     for (U1 = T + depth + *p1, U2 = T + depth + *p2, U1n = T + *(p1 + 1) + 2, U2n = T + *(p2 + 1) + 2;
          (U1 < U1n) && (U2 < U2n) && (*U1 == *U2);
          ++U1, ++U2)
-    {}
+    {
+    }
 
     return U1 < U1n ? (U2 < U2n ? *U1 - *U2 : 1) : (U2 < U2n ? -1 : 0);
 }
@@ -412,7 +413,8 @@ inline saidx_t * ss_partition(saidx_t const * PA, saidx_t * first, saidx_t * las
             *a = ~*a;
         }
         for (; (a < --b) && ((PA[*b] + depth) < (PA[*b + 1] + 1));)
-        {}
+        {
+        }
         if (b <= a)
         {
             break;
@@ -516,7 +518,8 @@ inline void ss_mintrosort(uint8_t const * T, saidx_t const * PA, saidx_t * first
 
         /* partition */
         for (b = first; (++b < last) && ((x = Td[PA[*b]]) == v);)
-        {}
+        {
+        }
         if (((a = b) < last) && (x < v))
         {
             for (; (++b < last) && ((x = Td[PA[*b]]) <= v);)
@@ -529,7 +532,8 @@ inline void ss_mintrosort(uint8_t const * T, saidx_t const * PA, saidx_t * first
             }
         }
         for (c = last; (b < --c) && ((x = Td[PA[*c]]) == v);)
-        {}
+        {
+        }
         if ((b < (d = c)) && (x > v))
         {
             for (; (b < --c) && ((x = Td[PA[*c]]) >= v);)
@@ -768,7 +772,8 @@ ss_inplacemerge(uint8_t const * T, saidx_t const * PA, saidx_t * first, saidx_t 
         if (x != 0)
         {
             while (*--last < 0)
-            {}
+            {
+            }
         }
         if (middle == last)
         {
@@ -1035,11 +1040,11 @@ inline void ss_swapmerge(uint8_t const * T,
 #    define MERGE_CHECK(a, b, c)                                                                                       \
         do                                                                                                             \
         {                                                                                                              \
-            if (((c)&1) || (((c)&2) && (ss_compare(T, PA + GETIDX(*((a)-1)), PA + *(a), depth) == 0)))                 \
+            if (((c) & 1) || (((c) & 2) && (ss_compare(T, PA + GETIDX(*((a) - 1)), PA + *(a), depth) == 0)))           \
             {                                                                                                          \
                 *(a) = ~*(a);                                                                                          \
             }                                                                                                          \
-            if (((c)&4) && ((ss_compare(T, PA + GETIDX(*((b)-1)), PA + *(b), depth) == 0)))                            \
+            if (((c) & 4) && ((ss_compare(T, PA + GETIDX(*((b) - 1)), PA + *(b), depth) == 0)))                        \
             {                                                                                                          \
                 *(b) = ~*(b);                                                                                          \
             }                                                                                                          \
@@ -1101,7 +1106,8 @@ inline void ss_swapmerge(uint8_t const * T,
                     if (first < lm)
                     {
                         for (; *--l < 0;)
-                        {}
+                        {
+                        }
                         next |= 4;
                     }
                     next |= 1;
@@ -1109,7 +1115,8 @@ inline void ss_swapmerge(uint8_t const * T,
                 else if (first < lm)
                 {
                     for (; *r < 0; ++r)
-                    {}
+                    {
+                    }
                     next |= 2;
                 }
             }
@@ -1477,7 +1484,8 @@ inline void tr_partition(saidx_t const * ISAd,
     saidx_t x = 0;
 
     for (b = middle - 1; (++b < last) && ((x = ISAd[*b]) == v);)
-    {}
+    {
+    }
     if (((a = b) < last) && (x < v))
     {
         for (; (++b < last) && ((x = ISAd[*b]) <= v);)
@@ -1490,7 +1498,8 @@ inline void tr_partition(saidx_t const * ISAd,
         }
     }
     for (c = last; (b < --c) && ((x = ISAd[*c]) == v);)
-    {}
+    {
+    }
     if ((b < (d = c)) && (x > v))
     {
         for (; (b < --c) && ((x = ISAd[*c]) >= v);)
@@ -2241,12 +2250,14 @@ inline saidx_t sort_typeBstar(uint8_t const * T, saidx_t * SA, saidx_t * bucket_
         for (i = n - 1, j = m, c0 = T[n - 1]; 0 <= i;)
         {
             for (--i, c1 = c0; (0 <= i) && ((c0 = T[i]) >= c1); --i, c1 = c0)
-            {}
+            {
+            }
             if (0 <= i)
             {
                 t = i;
                 for (--i, c1 = c0; (0 <= i) && ((c0 = T[i]) <= c1); --i, c1 = c0)
-                {}
+                {
+                }
                 SA[ISAb[--j]] = ((t == 0) || (1 < (t - i))) ? t : ~t;
             }
         }
@@ -2543,7 +2554,8 @@ inline int _compare(uint8_t const * T, saidx_t Tsize, uint8_t const * P, saidx_t
     saidx_t i, j;
     int32_t r;
     for (i = suf + *match, j = *match, r = 0; (i < Tsize) && (j < Psize) && ((r = T[i] - P[j]) == 0); ++i, ++j)
-    {}
+    {
+    }
     *match = j;
     return (r == 0) ? -(j != Psize) : r;
 }

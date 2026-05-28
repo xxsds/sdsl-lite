@@ -59,7 +59,7 @@ intersect(t_wt const & wt, std::vector<range_type> const & ranges, typename t_wt
     {
         auto end = std::remove_if(child_range.begin(),
                                   child_range.end(),
-                                  [&](const range_type & x)
+                                  [&](range_type const & x)
                                   {
                                       return empty(x);
                                   });
@@ -156,7 +156,7 @@ void _interval_symbols_rec(t_wt const & wt,
                            std::vector<typename t_wt::value_type> & cs,
                            std::vector<typename t_wt::size_type> & rank_c_i,
                            std::vector<typename t_wt::size_type> & rank_c_j,
-                           const typename t_wt::node_type & v)
+                           typename t_wt::node_type const & v)
 {
     using std::get;
     if (wt.is_leaf(v))

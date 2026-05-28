@@ -36,22 +36,22 @@ public:
     typedef typename rank_support_int<alphabet_size>::value_type value_type;
 
 public:
-    explicit rank_support_int_scan(int_vector<> const * v = nullptr) : rank_support_int<alphabet_size>(v){};
+    explicit rank_support_int_scan(int_vector<> const * v = nullptr) : rank_support_int<alphabet_size>(v) {};
     rank_support_int_scan(rank_support_int_scan const & rs) = default;
     rank_support_int_scan(rank_support_int_scan && rs) = default;
     rank_support_int_scan & operator=(rank_support_int_scan const & rs) = default;
     rank_support_int_scan & operator=(rank_support_int_scan && rs) = default;
-    size_type rank(size_type idx, const value_type v) const;
-    size_type operator()(size_type idx, const value_type v) const
+    size_type rank(size_type idx, value_type const v) const;
+    size_type operator()(size_type idx, value_type const v) const
     {
         return rank(idx, v);
     };
-    size_type prefix_rank(size_type idx, const value_type v) const;
+    size_type prefix_rank(size_type idx, value_type const v) const;
     size_type size() const
     {
         return this->m_v->size();
     };
-    size_type serialize(std::ostream & out, structure_tree_node * v = nullptr, const std::string name = "") const
+    size_type serialize(std::ostream & out, structure_tree_node * v = nullptr, std::string const name = "") const
     {
         return serialize_empty_object(out, v, name, this);
     }
@@ -73,7 +73,7 @@ public:
  */
 template <uint8_t alphabet_size>
 inline typename rank_support_int_scan<alphabet_size>::size_type
-rank_support_int_scan<alphabet_size>::rank(const size_type idx, const value_type v) const
+rank_support_int_scan<alphabet_size>::rank(size_type const idx, value_type const v) const
 {
     assert(v < this->t_v);
     assert(this->m_v != nullptr);
@@ -101,7 +101,7 @@ rank_support_int_scan<alphabet_size>::rank(const size_type idx, const value_type
  */
 template <uint8_t alphabet_size>
 inline typename rank_support_int_scan<alphabet_size>::size_type
-rank_support_int_scan<alphabet_size>::prefix_rank(const size_type idx, const value_type v) const
+rank_support_int_scan<alphabet_size>::prefix_rank(size_type const idx, value_type const v) const
 {
     assert(v < this->t_v);
     assert(this->m_v != nullptr);

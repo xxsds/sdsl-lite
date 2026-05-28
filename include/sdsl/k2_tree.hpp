@@ -184,7 +184,7 @@ protected:
      *  \param size Size of the graph, all the nodes in edges must be
      *              within 0 and size ([0, size[).
      */
-    void build_from_edges(std::vector<std::tuple<idx_type, idx_type>> & edges, const size_type size)
+    void build_from_edges(std::vector<std::tuple<idx_type, idx_type>> & edges, size_type const size)
     {
 
         typedef std::tuple<idx_type, idx_type, size_type, idx_type, idx_type> t_part_tuple;
@@ -309,7 +309,7 @@ public:
      *  \param size Size of the graph, all the nodes in edges must be
      *              within 0 and size ([0, size[).
      */
-    k2_tree(std::vector<std::tuple<idx_type, idx_type>> & edges, const size_type size)
+    k2_tree(std::vector<std::tuple<idx_type, idx_type>> & edges, size_type const size)
     {
         assert(size > 0);
         assert(edges.size() > 0);

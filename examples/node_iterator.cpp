@@ -7,7 +7,7 @@ using namespace sdsl;
 using namespace std;
 
 template <class t_cst>
-void output_node(const typename t_cst::node_type & v, t_cst const & cst)
+void output_node(typename t_cst::node_type const & v, t_cst const & cst)
 {
     cout << cst.depth(v) << "-[" << cst.lb(v) << "," << cst.rb(v) << "]" << endl;
 }

@@ -190,7 +190,7 @@ TEST_F(int_vector_test, swap)
     std::mt19937_64 rng;
     for (size_type i = 0; i < vec_sizes.size(); ++i)
     {
-        const size_type val = rng();
+        size_type const val = rng();
         sdsl::int_vector<> iv(vec_sizes[i], val);
         {
             sdsl::int_vector<> tmp;

@@ -51,7 +51,7 @@ public:
      */
     select_support(select_support const & f_v);
     //! Destructor of select_support.
-    virtual ~select_support(){};
+    virtual ~select_support() {};
 
     //! Select returns the index of the i-th 1-bit in the supported bit_vector.
     /*!	\param i Argument to calculate the index of the i-th 1-bit in the supported bit_vector.

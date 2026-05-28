@@ -121,7 +121,7 @@ public:
     }
 
     //!\brief Saves to the stream.
-    size_type serialize(std::ostream & out, structure_tree_node * v = nullptr, const std::string name = "") const
+    size_type serialize(std::ostream & out, structure_tree_node * v = nullptr, std::string const name = "") const
     {
         structure_tree_node * child = structure_tree::add_child(v, name, sdsl::util::class_name(*this));
         size_type written_bytes = sdsl::serialize(word, out, child, "compressed_word");
@@ -310,7 +310,7 @@ public:
      * \param v The alphabet symbol to get the rank for.
      * \sa prefix_rank
      */
-    size_type rank(const size_type position, const value_type v) const
+    size_type rank(size_type const position, value_type const v) const
     {
         switch (v)
         {
@@ -324,7 +324,7 @@ public:
     }
 
     //! \brief Alias for rank(position, v)
-    inline size_type operator()(const size_type position, const value_type v) const
+    inline size_type operator()(size_type const position, value_type const v) const
     {
         return rank(position, v);
     }
@@ -335,7 +335,7 @@ public:
      * \param v The alphabet symbol to get the rank for.
      * \sa rank
      */
-    size_type prefix_rank(const size_type position, const value_type v) const
+    size_type prefix_rank(size_type const position, value_type const v) const
     {
         assert(position <= text_size);
         assert(v <= sigma);
@@ -369,14 +369,14 @@ public:
     /*!\brief Returns the text value at the given position.
      * \param[in] position The text position to get the value from.
      */
-    value_type value_at(const size_type position) const
+    value_type value_at(size_type const position) const
     {
         assert(position < text_size);
         return superblocks[to_superblock_position(position)].value_at(position);
     }
 
     //!\brief Saves to the stream.
-    size_type serialize(std::ostream & out, structure_tree_node * v = nullptr, const std::string name = "") const
+    size_type serialize(std::ostream & out, structure_tree_node * v = nullptr, std::string const name = "") const
     {
         structure_tree_node * child = structure_tree::add_child(v, name, util::class_name(*this));
         size_type written_bytes = sdsl::serialize(superblocks, out, child, "superblocks_vector");
@@ -443,7 +443,7 @@ private:
      * \param v The alphabet symbol to get the rank for.
      */
     template <bool compute_prefix_delta>
-    size_type prefix_rank_impl(size_type const position, const value_type v) const
+    size_type prefix_rank_impl(size_type const position, value_type const v) const
     {
         assert(position <= text_size);
 
@@ -561,7 +561,7 @@ struct rank_support_int_v<alphabet_size, words_per_block, blocks_per_superblock>
     }
 
     //!\brief Saves to the stream.
-    size_type serialize(std::ostream & out, structure_tree_node * v = nullptr, const std::string name = "") const
+    size_type serialize(std::ostream & out, structure_tree_node * v = nullptr, std::string const name = "") const
     {
         structure_tree_node * child = structure_tree::add_child(v, name, sdsl::util::class_name(*this));
         size_type written_bytes = 0;
@@ -659,7 +659,7 @@ private:
 
     //!\brief Computes the in-block rank for the delta prefix.
     template <bool compute_prefix_delta>
-    static constexpr auto word_prefix_rank(const uint64_t word, const uint64_t bit_pos, const value_type v) ->
+    static constexpr auto word_prefix_rank(uint64_t const word, uint64_t const bit_pos, value_type const v) ->
         typename std::enable_if<compute_prefix_delta, size_type>::type
     {
         auto && prefix_rank = base_t::word_prefix_rank(word, bit_pos, v - 1, v);
@@ -668,7 +668,7 @@ private:
 
     //!\brief Computes the in-block rank for the non-delta prefix.
     template <bool compute_prefix_delta>
-    static constexpr auto word_prefix_rank(const uint64_t word, const uint64_t bit_pos, const value_type v) ->
+    static constexpr auto word_prefix_rank(uint64_t const word, uint64_t const bit_pos, value_type const v) ->
         typename std::enable_if<!compute_prefix_delta, size_type>::type
     {
         return base_t::word_prefix_rank(word, bit_pos, v)[0];

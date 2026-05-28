@@ -29,7 +29,7 @@ public:
     using pointer = value_type *;
     using reference = value_type &;
 
-    typedef const typename t_rac::value_type const_reference;
+    typedef typename t_rac::value_type const const_reference;
     typedef typename t_rac::size_type size_type;
     typedef random_access_const_iterator<t_rac> iterator;
 
@@ -172,7 +172,7 @@ struct random_access_container
     t_F f;
     size_type m_size;
 
-    random_access_container(){};
+    random_access_container() {};
     random_access_container(t_F ff, size_type size) : f(ff), m_size(size)
     {}
 

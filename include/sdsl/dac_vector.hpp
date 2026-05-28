@@ -66,10 +66,10 @@ public:
     typedef typename int_vector<>::value_type value_type;
     typedef random_access_const_iterator<dac_vector> const_iterator;
     typedef const_iterator iterator;
-    typedef const value_type const_reference;
+    typedef value_type const const_reference;
     typedef const_reference reference;
     typedef const_reference * pointer;
-    typedef const pointer const_pointer;
+    typedef pointer const const_pointer;
     typedef int_vector<>::size_type size_type;
     typedef ptrdiff_t difference_type;
     typedef t_rank rank_support_type;
@@ -152,13 +152,13 @@ public:
     }
 
     //! Iterator that points to the first element of the dac_vector.
-    const const_iterator begin() const
+    const_iterator const begin() const
     {
         return const_iterator(this, 0);
     }
 
     //! Iterator that points to the position after the last element of the dac_vector.
-    const const_iterator end() const
+    const_iterator const end() const
     {
         return const_iterator(this, size());
     }
@@ -266,7 +266,7 @@ dac_vector<t_b, t_rank>::dac_vector(Container const & c)
 
     //  (3)    Enter block and overflow data
     int_vector<64> cnt = m_level_pointer_and_rank;
-    const uint64_t mask = bits::lo_set[t_b];
+    uint64_t const mask = bits::lo_set[t_b];
 
     for (size_type i = 0, j = 0; i < n; ++i)
     {
@@ -349,7 +349,7 @@ dac_vector<t_b, t_rank>::dac_vector(int_vector_buffer<int_width> & v_buf)
 
     //  (3)    Enter block and overflow data
     int_vector<64> cnt = m_level_pointer_and_rank;
-    const uint64_t mask = bits::lo_set[t_b];
+    uint64_t const mask = bits::lo_set[t_b];
 
     for (size_type i = 0, j = 0; i < n; ++i)
     {

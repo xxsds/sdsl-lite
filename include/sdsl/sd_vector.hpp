@@ -257,7 +257,7 @@ public:
     }
 
     template <class t_itr>
-    sd_vector(const t_itr begin, const t_itr end)
+    sd_vector(t_itr const begin, t_itr const end)
     {
         if (begin == end)
         {
@@ -356,7 +356,7 @@ public:
      *  \pre idx+len-1 in [0..size()-1]
      *  \pre len in [1..64]
      */
-    uint64_t get_int(size_type idx, const uint8_t len = 64) const
+    uint64_t get_int(size_type idx, uint8_t const len = 64) const
     {
         uint64_t i = idx + len - 1;
         uint64_t high_val = (i >> (m_wl));
@@ -778,7 +778,7 @@ public:
         if (nullptr != m_v)
         {
             size_type rank_0 = 0; // rank0 in H
-            const size_type bs = 1ULL << (m_v->wl);
+            size_type const bs = 1ULL << (m_v->wl);
             size_type z = 0;
             size_type rank1 = 0;                                      // rank1 in H
             size_type zeros = m_v->size() - rank_1(m_v)(m_v->size()); // zeros in B
@@ -813,7 +813,7 @@ public:
     //! Returns the position of the i-th occurrence in the bit vector.
     size_type select(size_type i) const
     {
-        const size_type bs = 1ULL << (m_v->wl);
+        size_type const bs = 1ULL << (m_v->wl);
         size_type j = m_pointer[(i - 1) / (64 * bs)] * 64; // index into m_high
         size_type rank1 = m_rank1[(i - 1) / (64 * bs)];    // rank_1(j*bs*64) in B
         size_type pos = 0;

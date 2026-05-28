@@ -401,7 +401,7 @@ private:
     }
 
     void construct_doc_isa(std::string const & text_file,
-                           const size_type doc_cnt,
+                           size_type const doc_cnt,
                            SDSL_UNUSED const size_type doc_max_len,
                            vector<int_vector<>> & doc_isa)
     {
@@ -442,7 +442,7 @@ private:
 
     void construct_D_array(int_vector_buffer<0> & sa_buf,
                            doc_border_rank_type const & doc_border_rank,
-                           const size_type doc_cnt,
+                           size_type const doc_cnt,
                            int_vector<> & D)
     {
         D = int_vector<>(sa_buf.size(), 0, bits::hi(doc_cnt + 1) + 1);

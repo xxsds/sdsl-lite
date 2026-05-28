@@ -26,7 +26,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        compiler: ["clang-latest", "gcc-third-latest"]
+        compiler: ["clang-latest", "clang-third-latest", "gcc-latest", "gcc-third-latest"]
         type: ["Release", "Debug"]
     container:
       image: ghcr.io/seqan/${{ matrix.compiler }}

@@ -25,7 +25,7 @@ namespace sdsl
  *  TODO: add hinted binary search? Two way binary search?
  */
 template <typename t_csa>
-typename t_csa::char_type first_row_symbol(const typename t_csa::size_type i, t_csa const & csa)
+typename t_csa::char_type first_row_symbol(typename t_csa::size_type const i, t_csa const & csa)
 {
     assert(i < csa.size());
     if (csa.sigma < 16)
@@ -279,7 +279,7 @@ public:
      *  \par Time complexity
      *        \f$ \Order{\log n t_{\Psi}} \f$
      */
-    size_type rank(size_type i, const char_type c) const
+    size_type rank(size_type i, char_type const c) const
     {
         return m_csa.rank_bwt(i, c);
     }
@@ -292,7 +292,7 @@ public:
      *  \par Time complexity
      *        \f$ \Order{t_{\Psi}} \f$
      */
-    size_type select(size_type i, const char_type c) const
+    size_type select(size_type i, char_type const c) const
     {
         return m_csa.select_bwt(i, c);
     }
@@ -374,8 +374,8 @@ public:
     typedef int_alphabet_tag alphabet_category;
 
 private:
-    t_csa const & m_csa; //<- pointer to the (compressed) suffix array that is based on a wavelet tree
-    traverse_csa_wt(){}; // disable default constructor
+    t_csa const & m_csa;  //<- pointer to the (compressed) suffix array that is based on a wavelet tree
+    traverse_csa_wt() {}; // disable default constructor
 
 public:
     //! Constructor
@@ -418,7 +418,7 @@ template <typename t_csa>
 class bwt_of_csa_wt
 {
 public:
-    typedef const typename t_csa::char_type value_type;
+    typedef typename t_csa::char_type const value_type;
     typedef typename t_csa::size_type size_type;
     typedef typename t_csa::char_type char_type;
     typedef typename t_csa::difference_type difference_type;
@@ -428,7 +428,7 @@ public:
 
 private:
     t_csa const & m_csa; //<- pointer to the (compressed) suffix array that is based on a wavelet tree
-    bwt_of_csa_wt(){};   // disable default constructor
+    bwt_of_csa_wt() {};  // disable default constructor
 
 public:
     //! Constructor
@@ -458,7 +458,7 @@ public:
      *  \par Time complexity
      *        \f$ \Order{\log |\Sigma|} \f$
      */
-    size_type rank(size_type i, const char_type c) const
+    size_type rank(size_type i, char_type const c) const
     {
         return m_csa.rank_bwt(i, c);
     }
@@ -471,7 +471,7 @@ public:
      *  \par Time complexity
      *        \f$ \Order{t_{\Psi}} \f$
      */
-    size_type select(size_type i, const char_type c) const
+    size_type select(size_type i, char_type const c) const
     {
         return m_csa.select(i, c);
     }
@@ -506,7 +506,7 @@ public:
 
 private:
     t_csa const & m_csa; //<- pointer to the (compressed) suffix array that is based on a wavelet tree
-    isa_of_csa_wt(){};   // disable default constructor
+    isa_of_csa_wt() {};  // disable default constructor
 
 public:
     //! Constructor
@@ -571,7 +571,7 @@ public:
 
 private:
     t_csa const & m_csa; //<- pointer to the (compressed) suffix array that is based on a wavelet tree
-    isa_of_csa_psi(){};  // disable default constructor
+    isa_of_csa_psi() {}; // disable default constructor
 
 public:
     //! Constructor
@@ -620,7 +620,7 @@ template <typename t_csa>
 class first_row_of_csa
 {
 public:
-    typedef const typename t_csa::char_type value_type;
+    typedef typename t_csa::char_type const value_type;
     typedef typename t_csa::size_type size_type;
     typedef typename t_csa::difference_type difference_type;
     typedef random_access_const_iterator<first_row_of_csa> const_iterator;

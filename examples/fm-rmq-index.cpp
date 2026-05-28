@@ -20,7 +20,7 @@ struct interval
         lb(lb),
         rb(rb),
         min_val(min_val),
-        min_idx(min_idx){};
+        min_idx(min_idx) {};
 
     bool operator>(interval const & i) const
     {

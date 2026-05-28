@@ -173,7 +173,7 @@ public:
     //! Default constructor
     /*!\param k Store rank samples and pointers each k-th blocks.
      */
-    rrr_vector(){};
+    rrr_vector() {};
 
     //! Copy constructor
     rrr_vector(rrr_vector const & v) :
@@ -513,7 +513,7 @@ public:
      * \par Time complexity
      * \f$ \Order{ sample\_rate of the rrr\_vector} \f$
      */
-    const size_type rank(size_type i) const
+    size_type const rank(size_type i) const
     {
         size_type bt_idx = i / bit_vector_type::block_size;
         size_type sample_pos = bt_idx / t_k;
@@ -591,21 +591,21 @@ public:
         bt += j / 2;
         if (j % 2 == 1 and j < bt_idx)
         {
-            const uint8_t r = (*bt++) >> 4;
+            uint8_t const r = (*bt++) >> 4;
             rank += r;
             btnrp += bi_type::space_for_bt(r);
             ++j;
         }
         while (j + 1 < bt_idx)
         {
-            const uint8_t r = *(bt++);
+            uint8_t const r = *(bt++);
             rank += (r >> 4) + (r & 0x0F);
             btnrp += bi_type::space_for_bt_pair(r); // decode two entries at once
             j += 2;
         }
         if (j < bt_idx)
         {
-            const uint8_t r = (*bt);
+            uint8_t const r = (*bt);
             rank += r & 0x0F;
             btnrp += bi_type::space_for_bt(r & 0x0F);
             ++j;
@@ -623,13 +623,13 @@ public:
     }
 
     //! Short hand for rank(i)
-    const size_type operator()(size_type i) const
+    size_type const operator()(size_type i) const
     {
         return rank(i);
     }
 
     //! Returns the size of the original vector
-    const size_type size() const
+    size_type const size() const
     {
         return m_v->size();
     }
@@ -799,12 +799,12 @@ public:
         return t_b ? select1(i) : select0(i);
     }
 
-    const size_type operator()(size_type i) const
+    size_type const operator()(size_type i) const
     {
         return select(i);
     }
 
-    const size_type size() const
+    size_type const size() const
     {
         return m_v->size();
     }

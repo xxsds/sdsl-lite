@@ -89,7 +89,7 @@ public:
 
     //! Constructor for a cst and a root node for the traversal
     template <class Cst, class CstBfsIterator>
-    louds_tree(Cst const & cst, const CstBfsIterator begin, const CstBfsIterator end) :
+    louds_tree(Cst const & cst, CstBfsIterator const begin, CstBfsIterator const end) :
         m_bv(),
         m_bv_select1(),
         m_bv_select0(),

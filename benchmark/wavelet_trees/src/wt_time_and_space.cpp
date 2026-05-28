@@ -253,7 +253,7 @@ int main(int argc, char * argv[])
         return 1;
     }
     uint8_t type = argv[2][0] == 'd' ? 'd' : argv[2][0] - '0';
-    const uint64_t reps = 100000;
+    uint64_t const reps = 100000;
     uint64_t log_s = 20;
     uint64_t mask = (1 << log_s) - 1;
     uint64_t check = 0;
@@ -311,7 +311,7 @@ int main(int argc, char * argv[])
     cout << "# inverse_select_check = " << check << endl;
 
     // interval_symbols
-    const uint64_t reps_interval_symbols = wt.sigma < 10000 ? reps : reps / 100;
+    uint64_t const reps_interval_symbols = wt.sigma < 10000 ? reps : reps / 100;
     start = timer::now();
     check = test_interval_symbols<WT_TYPE>(wt, is, js, k, mask, reps_interval_symbols);
     stop = timer::now();
