@@ -678,6 +678,17 @@ public:
     //! Load the int_vector for a stream.
     void load(std::istream & in);
 
+    //! Point the int_vector at a serialized int_vector in memory, without copying its data.
+    /*! \param addr Cursor into the serialized structure. Must satisfy addr <= end.
+     *  \param end  One past the last readable byte.
+     *
+     *  The vector borrows the buffer: its data is the caller's memory, so the buffer must outlive
+     *  the vector, and must not be modified while it is in use. Borrowed data is marked by a
+     *  capacity of 0, which is how memory_manager::clear knows not to free it.
+     *  \throws std::out_of_range if the buffer does not hold the vector the header describes.
+     */
+    void load_in_place(char const *& addr, char const * end);
+
     /* For cereal we need to define different versions of the load and save function depending on whether we want
      * binary data or text (XML/JSON) data.
      * See https://github.com/USCiLab/cereal/blob/master/include/cereal/types/vector.hpp for an example.
@@ -2019,6 +2030,41 @@ void int_vector<t_width>::load(std::istream & in)
         idx += conf::SDSL_BLOCK_SIZE;
     }
     in.read((char *)p, (bit_data_size() - idx) * sizeof(uint64_t));
+}
+
+template <uint8_t t_width>
+void int_vector<t_width>::load_in_place(char const *& addr, char const * end)
+{
+    uint64_t width_and_size = 0;
+    read_member(width_and_size, addr, end);
+    size_type size = width_and_size & bits::lo_set[56];
+    uint8_t read_int_width = (uint8_t)(width_and_size >> 56);
+    if (t_width == 0)
+    {
+        m_width = read_int_width;
+    }
+    if (t_width > 0 and t_width != read_int_width)
+    {
+        std::cerr << "Warning: Width of int_vector<" << (size_t)t_width << ">";
+        std::cerr << " was specified as " << (size_type)read_int_width << std::endl;
+        std::cerr << "Length is " << size << " bits" << std::endl;
+    }
+
+    // Give up anything owned before pointing at the buffer; from here the data is borrowed.
+    memory_manager::clear(*this);
+
+    // The header states the length, so the buffer is checked to hold it before the data is pointed
+    // at: past here, every read of this vector is in bounds.
+    size_type data_bytes = ((size + 63) >> 6) * sizeof(uint64_t);
+    if (static_cast<size_type>(end - addr) < data_bytes)
+    {
+        throw std::out_of_range("sdsl::int_vector::load_in_place: data runs past the end of the buffer");
+    }
+
+    m_size = size;
+    m_capacity = 0; // marks the data as borrowed rather than owned
+    m_data = const_cast<uint64_t *>(reinterpret_cast<uint64_t const *>(addr));
+    addr += data_bytes;
 }
 
 template <uint8_t t_width>

@@ -920,12 +920,20 @@ public:
     static void clear(t_vec & v)
     {
         int64_t size_in_bytes = ((v.m_size + 63) >> 6) << 3;
+        // A capacity of 0 marks data the vector borrows rather than owns (see
+        // int_vector::load_in_place): it belongs to the caller's buffer and must not be freed, and
+        // was never recorded as allocated.
+        bool const owns_data = v.m_capacity > 0;
         // remove mem
-        memory_manager::free_mem(v.m_data);
+        if (owns_data)
+        {
+            memory_manager::free_mem(v.m_data);
+        }
         v.m_data = nullptr;
+        v.m_capacity = 0;
 
         // update stats
-        if (size_in_bytes)
+        if (size_in_bytes && owns_data)
         {
             memory_monitor::record(size_in_bytes * -1);
         }

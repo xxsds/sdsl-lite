@@ -285,6 +285,17 @@ public:
      */
     void load(std::istream & in);
 
+    //! Point the CSA at a serialized csa_sada in memory, without copying its data.
+    /*!\param addr Cursor into the serialized structure. Must satisfy addr <= end.
+     * \param end  One past the last readable byte.
+     *
+     * The CSA borrows the buffer — typically a memory-mapped file — so it must outlive the CSA and
+     * must not be modified while the CSA is in use. This is what makes many large CSAs openable at
+     * once: their data stays in the mapping rather than being copied onto the heap.
+     * \throws std::out_of_range if the buffer does not hold the structure its headers describe.
+     */
+    void load_in_place(char const *& addr, char const * end);
+
     template <typename archive_t>
     void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const;
 
@@ -534,6 +545,23 @@ void csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabe
     m_sa_sample.load(in);
     m_isa_sample.load(in, &m_sa_sample);
     m_alphabet.load(in);
+}
+
+template <class t_enc_vec,
+          uint32_t t_dens,
+          uint32_t t_inv_dens,
+          class t_sa_sample_strat,
+          class t_isa,
+          class t_alphabet_strat>
+void csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::load_in_place(
+    char const *& addr,
+    char const * end)
+{
+    m_psi.load_in_place(addr, end);
+    m_sa_sample.load_in_place(addr, end);
+    m_isa_sample.load_in_place(addr, end);
+    m_isa_sample.set_vector(&m_sa_sample);
+    m_alphabet.load_in_place(addr, end);
 }
 
 template <class t_enc_vec,

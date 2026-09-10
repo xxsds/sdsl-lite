@@ -121,6 +121,26 @@ void read_member(T & t, std::istream & in)
     in.read((char *)&t, sizeof(t));
 }
 
+//! Reads primitive-typed variable t out of a serialized structure in memory, advancing addr past it.
+/*! \param t    Variable to read into.
+ *  \param addr Cursor into the serialized structure. Must satisfy addr <= end.
+ *  \param end  One past the last readable byte.
+ *
+ *  A serialized structure states its own lengths, so reading one that is truncated or corrupt would
+ *  walk the cursor past the buffer. Every read is checked against end instead of trusted.
+ *  \throws std::out_of_range if the buffer does not hold the value.
+ */
+template <typename T>
+void read_member(T & t, char const *& addr, char const * end)
+{
+    if (end < addr || static_cast<size_t>(end - addr) < sizeof(t))
+    {
+        throw std::out_of_range("sdsl::read_member: serialized member runs past the end of the buffer");
+    }
+    std::memcpy(&t, addr, sizeof(t));
+    addr += sizeof(t);
+}
+
 // Specialization for std::string
 template <>
 inline void read_member<std::string>(std::string & t, std::istream & in)

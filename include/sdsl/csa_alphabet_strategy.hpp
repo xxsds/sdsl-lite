@@ -275,6 +275,16 @@ public:
         read_member(m_sigma, in);
     }
 
+    //! Point the alphabet at a serialized byte_alphabet in memory, without copying its data.
+    /*! The alphabet borrows the buffer, which must outlive it. See int_vector::load_in_place. */
+    void load_in_place(char const *& addr, char const * end)
+    {
+        m_char2comp.load_in_place(addr, end);
+        m_comp2char.load_in_place(addr, end);
+        m_C.load_in_place(addr, end);
+        read_member(m_sigma, addr, end);
+    }
+
     //! Equality operator.
     bool operator==(byte_alphabet const & other) const noexcept
     {
