@@ -48,7 +48,18 @@ private:
     int m_fd = -1;
     int_vector<t_width> m_wrapper;
     std::string m_file_name;
-    bool m_delete_on_close;
+    bool m_delete_on_close = false;
+
+    void swap(int_vector_mapper & other) noexcept
+    {
+        std::swap(m_mapped_data, other.m_mapped_data);
+        std::swap(m_file_size_bytes, other.m_file_size_bytes);
+        std::swap(m_data_offset, other.m_data_offset);
+        std::swap(m_fd, other.m_fd);
+        m_wrapper.swap(other.m_wrapper);
+        m_file_name.swap(other.m_file_name);
+        std::swap(m_delete_on_close, other.m_delete_on_close);
+    }
 
 public:
     int_vector_mapper() = delete;
@@ -107,6 +118,9 @@ public:
                     }
                 }
             }
+            // Mapped storage was released above; an unmapped wrapper owns its buffer.
+            m_wrapper.m_data = nullptr;
+            m_wrapper.m_size = 0;
         }
         if (m_fd != -1)
         {
@@ -126,32 +140,19 @@ public:
                 }
             }
         }
-        m_wrapper.m_data = nullptr;
-        m_wrapper.m_size = 0;
     }
 
-    int_vector_mapper(int_vector_mapper && ivm) :
-        m_mapped_data(std::exchange(ivm.m_mapped_data, nullptr)),
-        m_file_size_bytes(std::exchange(ivm.m_file_size_bytes, 0)),
-        m_data_offset(std::exchange(ivm.m_data_offset, 0)),
-        m_fd(std::exchange(ivm.m_fd, -1)),
-        m_wrapper(std::move(ivm.m_wrapper)),
-        m_file_name(std::move(ivm.m_file_name)),
-        m_delete_on_close(std::exchange(ivm.m_delete_on_close, false))
-    {}
+    int_vector_mapper(int_vector_mapper && ivm)
+    {
+        swap(ivm);
+    }
 
     int_vector_mapper & operator=(int_vector_mapper && ivm)
     {
         if (this != &ivm)
         {
             int_vector_mapper tmp(std::move(ivm));
-            std::swap(m_mapped_data, tmp.m_mapped_data);
-            std::swap(m_file_size_bytes, tmp.m_file_size_bytes);
-            std::swap(m_data_offset, tmp.m_data_offset);
-            std::swap(m_fd, tmp.m_fd);
-            m_wrapper.swap(tmp.m_wrapper);
-            m_file_name.swap(tmp.m_file_name);
-            std::swap(m_delete_on_close, tmp.m_delete_on_close);
+            swap(tmp);
         }
         return (*this);
     }
