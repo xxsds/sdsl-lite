@@ -151,8 +151,7 @@ public:
     {
         if (this != &ivm)
         {
-            int_vector_mapper tmp(std::move(ivm));
-            swap(tmp);
+            int_vector_mapper(std::move(ivm)).swap(*this);
         }
         return (*this);
     }
