@@ -183,6 +183,11 @@ void check_move_assignment(std::string const & filename)
         destination.push_back(7);
         EXPECT_EQ(5u, destination.size());
         EXPECT_EQ(7u, destination[4]);
+
+        source = std::move(destination);
+        EXPECT_TRUE(destination.empty());
+        EXPECT_EQ(5u, source.size());
+        EXPECT_EQ(7u, source[4]);
     }
     EXPECT_FALSE(sdsl::isfstream(filename).is_open());
 }

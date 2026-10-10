@@ -66,8 +66,8 @@ public:
     int_vector_mapper(int_vector_mapper const &) = delete;
     int_vector_mapper & operator=(int_vector_mapper const &) = delete;
 
-public:
-    ~int_vector_mapper()
+private:
+    void close() noexcept
     {
         if (m_mapped_data)
         {
@@ -121,6 +121,7 @@ public:
             // Mapped storage was released above; an unmapped wrapper owns its buffer.
             m_wrapper.m_data = nullptr;
             m_wrapper.m_size = 0;
+            m_wrapper.m_capacity = 0;
         }
         if (m_fd != -1)
         {
@@ -140,6 +141,18 @@ public:
                 }
             }
         }
+        m_mapped_data = nullptr;
+        m_file_size_bytes = 0;
+        m_data_offset = 0;
+        m_fd = -1;
+        m_file_name.clear();
+        m_delete_on_close = false;
+    }
+
+public:
+    ~int_vector_mapper()
+    {
+        close();
     }
 
     int_vector_mapper(int_vector_mapper && ivm)
@@ -151,7 +164,8 @@ public:
     {
         if (this != &ivm)
         {
-            int_vector_mapper(std::move(ivm)).swap(*this);
+            swap(ivm);
+            ivm.close();
         }
         return (*this);
     }
