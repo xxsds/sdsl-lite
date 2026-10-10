@@ -473,7 +473,7 @@ public:
      */
     size_type select(size_type i, char_type const c) const
     {
-        return m_csa.select(i, c);
+        return m_csa.select_bwt(i, c);
     }
 
     //! Returns if the BWT function is empty.
