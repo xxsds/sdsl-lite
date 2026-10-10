@@ -176,7 +176,8 @@ public:
         {
             uint128_t high = m_high << x;
             uint128_t low = (((uint128_t)m_mid << 64) | m_lo);
-            high |= (low >> (128 - x));
+            // Split the shift to avoid shifting by 128 when x == 0.
+            high |= ((low >> (127 - x)) >> 1);
             low = low << x;
             return uint256_t(low, low >> 64, high);
         }
