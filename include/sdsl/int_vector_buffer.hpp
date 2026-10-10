@@ -13,6 +13,7 @@
 #include <iterator>
 #include <stdint.h>
 #include <string>
+#include <utility>
 
 #include <sdsl/int_vector.hpp>
 #include <sdsl/ram_fs.hpp>
@@ -44,6 +45,31 @@ private:
     uint64_t m_buffersize = 8; // in elements! m_buffersize*width() must be a multiple of 8!
     uint64_t m_size = 0;       // size of int_vector_buffer
     uint64_t m_begin = 0;      // number in elements
+
+    void swap(int_vector_buffer & other)
+    {
+        m_ifile.swap(other.m_ifile);
+        m_ofile.swap(other.m_ofile);
+        m_filename.swap(other.m_filename);
+        m_buffer.swap(other.m_buffer);
+        std::swap(m_need_to_write, other.m_need_to_write);
+        std::swap(m_offset, other.m_offset);
+        std::swap(m_buffersize, other.m_buffersize);
+        std::swap(m_size, other.m_size);
+        std::swap(m_begin, other.m_begin);
+    }
+
+    void clear()
+    {
+        close();
+        m_filename.clear();
+        m_buffer = int_vector<t_width>();
+        m_need_to_write = false;
+        m_offset = 0;
+        m_buffersize = 8;
+        m_size = 0;
+        m_begin = 0;
+    }
 
     //! Read block containing element at index idx.
     void read_block(uint64_t const idx)
@@ -128,10 +154,7 @@ private:
 
 public:
     //! Constructor.
-    int_vector_buffer()
-    {
-        m_buffer = int_vector<t_width>();
-    }
+    int_vector_buffer() = default;
 
     //! Constructor for int_vector_buffer.
     /*!\param filename   File that contains the data read from / written to.
@@ -194,39 +217,9 @@ public:
     }
 
     //! Move constructor.
-    int_vector_buffer(int_vector_buffer && ivb) :
-        m_filename(std::move(ivb.m_filename)),
-        m_buffer(std::move(ivb.m_buffer)),
-        m_need_to_write(ivb.m_need_to_write),
-        m_offset(ivb.m_offset),
-        m_buffersize(ivb.m_buffersize),
-        m_size(ivb.m_size),
-        m_begin(ivb.m_begin)
+    int_vector_buffer(int_vector_buffer && ivb)
     {
-        bool const open = ivb.m_ifile.is_open();
-        bool const writable = ivb.m_ofile.is_open();
-        if (open)
-            ivb.m_ifile.close();
-        if (writable)
-            ivb.m_ofile.close();
-        if (open)
-        {
-            m_ifile.open(m_filename, std::ios::in | std::ios::binary);
-            assert(m_ifile.good());
-        }
-        if (writable)
-        {
-            m_ofile.open(m_filename, std::ios::in | std::ios::out | std::ios::binary);
-            assert(m_ofile.good());
-        }
-        // set ivb to default-constructor state
-        ivb.m_filename = "";
-        ivb.m_buffer = int_vector<t_width>();
-        ivb.m_need_to_write = false;
-        ivb.m_offset = 0;
-        ivb.m_buffersize = 8;
-        ivb.m_size = 0;
-        ivb.m_begin = 0;
+        swap(ivb);
     }
 
     //! Destructor.
@@ -238,41 +231,11 @@ public:
     //! Move assignment operator.
     int_vector_buffer<t_width> & operator=(int_vector_buffer && ivb)
     {
-        if (this == &ivb)
-            return *this;
-        close();
-        bool const open = ivb.m_ifile.is_open();
-        bool const writable = ivb.m_ofile.is_open();
-        if (open)
-            ivb.m_ifile.close();
-        if (writable)
-            ivb.m_ofile.close();
-        m_filename = ivb.m_filename;
-        if (open)
+        if (this != &ivb)
         {
-            m_ifile.open(m_filename, std::ios::in | std::ios::binary);
-            assert(m_ifile.good());
+            swap(ivb);
+            ivb.clear();
         }
-        if (writable)
-        {
-            m_ofile.open(m_filename, std::ios::in | std::ios::out | std::ios::binary);
-            assert(m_ofile.good());
-        }
-        // assign the values of ivb to this
-        m_buffer = (int_vector<t_width> &&)ivb.m_buffer;
-        m_need_to_write = ivb.m_need_to_write;
-        m_offset = ivb.m_offset;
-        m_buffersize = ivb.m_buffersize;
-        m_size = ivb.m_size;
-        m_begin = ivb.m_begin;
-        // set ivb to default-constructor state
-        ivb.m_filename = "";
-        ivb.m_buffer = int_vector<t_width>();
-        ivb.m_need_to_write = false;
-        ivb.m_offset = 0;
-        ivb.m_buffersize = 8;
-        ivb.m_size = 0;
-        ivb.m_begin = 0;
         return *this;
     }
 

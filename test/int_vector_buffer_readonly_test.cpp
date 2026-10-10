@@ -95,6 +95,60 @@ TEST_P(readonly_buffer_test, explicit_read_write_and_reset)
     EXPECT_EQ(7u, uint64_t(buffer[0]));
 }
 
+TEST_P(readonly_buffer_test, move_assignment_closes_previous_destination)
+{
+    std::string const previous = file + ".previous";
+    {
+        sdsl::int_vector_buffer<> destination(previous, std::ios::out, 8, 7);
+        destination.push_back(19); // still buffered when ownership changes
+        sdsl::int_vector_buffer<> source(file, std::ios::in | std::ios::out, 8);
+        source[1] = 42;
+        destination = std::move(source);
+        EXPECT_FALSE(source.is_open());
+        EXPECT_TRUE(source.filename().empty());
+        EXPECT_EQ(0u, source.size());
+        EXPECT_EQ(64u, source.width());
+        sdsl::int_vector<> saved;
+        ASSERT_TRUE(sdsl::load_from_file(saved, previous));
+        ASSERT_EQ(1u, saved.size());
+        EXPECT_EQ(19u, saved[0]);
+        EXPECT_EQ(42u, uint64_t(destination[1]));
+        auto & alias = destination;
+        destination = std::move(alias);
+        EXPECT_EQ(42u, uint64_t(destination[1]));
+    }
+    sdsl::int_vector<> saved;
+    ASSERT_TRUE(sdsl::load_from_file(saved, file));
+    EXPECT_EQ(42u, saved[1]);
+    sdsl::remove(previous);
+}
+
+TEST_P(readonly_buffer_test, move_keeps_open_file)
+{
+    if (GetParam())
+        GTEST_SKIP() << "This test uses a filesystem rename";
+    sdsl::int_vector_buffer<> source(file, std::ios::in | std::ios::out, 8);
+    source[1] = 42;
+    std::string const renamed = file + ".renamed";
+    std::error_code error;
+    std::filesystem::rename(file, renamed, error);
+    if (error)
+        GTEST_SKIP() << "This filesystem cannot rename the open file: " << error.message();
+    file = renamed;
+    {
+        sdsl::int_vector_buffer<> moved(std::move(source));
+        sdsl::int_vector_buffer<> assigned;
+        assigned = std::move(moved);
+        EXPECT_TRUE(assigned.good());
+        EXPECT_EQ(42u, uint64_t(assigned[1]));
+        // A different block exercises the transferred input stream too.
+        EXPECT_EQ(99u, uint64_t(assigned[99]));
+    }
+    sdsl::int_vector<> saved;
+    ASSERT_TRUE(sdsl::load_from_file(saved, file));
+    EXPECT_EQ(42u, saved[1]);
+}
+
 TEST_P(readonly_buffer_test, reads_file_without_write_permission)
 {
     if (GetParam())
