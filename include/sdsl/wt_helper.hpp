@@ -225,7 +225,10 @@ struct _byte_tree
     // of the path in binary representation
 
     _byte_tree()
-    {}
+    {
+        std::fill_n(m_c_to_leaf, fixed_sigma, undef);
+        std::fill_n(m_path, fixed_sigma, 0);
+    }
 
     _byte_tree(std::vector<pc_node> const & temp_nodes, uint64_t & bv_size, t_wt const *)
     {
