@@ -172,35 +172,57 @@ public:
 
     inline uint256_t operator<<(int x) const
     {
-        if (x < 128)
+        if (x >= 128)
         {
-            uint128_t high = m_high << x;
-            uint128_t low = (((uint128_t)m_mid << 64) | m_lo);
-            // Split the shift to avoid shifting by 128 when x == 0.
-            high |= ((low >> (127 - x)) >> 1);
-            low = low << x;
-            return uint256_t(low, low >> 64, high);
-        }
-        else
-        {                                                                    // x >= 128
-            uint128_t high = (((uint128_t)m_mid << 64) | m_lo) << (x - 128); // TODO: check x==128
+            uint128_t high = (((uint128_t)m_mid << 64) | m_lo) << (x - 128);
             return uint256_t(0, 0, high);
         }
+
+        // Move whole words first, then shift within each 64-bit word.
+        uint64_t lo = m_lo, mid = m_mid, high_lo = m_high, high_hi = m_high >> 64;
+        if (x >= 64)
+        {
+            high_hi = high_lo;
+            high_lo = mid;
+            mid = lo;
+            lo = 0;
+        }
+        int const shift = x & 63;
+        if (shift)
+        {
+            high_hi = (high_hi << shift) | (high_lo >> (64 - shift));
+            high_lo = (high_lo << shift) | (mid >> (64 - shift));
+            mid = (mid << shift) | (lo >> (64 - shift));
+            lo <<= shift;
+        }
+        return uint256_t(lo, mid, (uint128_t(high_hi) << 64) | high_lo);
     }
 
     inline uint256_t operator>>(int x) const
     {
-        if (x < 128)
+        if (x >= 128)
         {
-            uint128_t low = (((uint128_t)m_mid << 64) | m_lo) >> x;
-            low |= ((m_high << (127 - x)) << 1);
-            return uint256_t(low, low >> 64, m_high >> x);
-        }
-        else
-        {                                          // x >= 128
-            uint128_t low = (m_high >> (x - 128)); // TODO: check x=128
+            uint128_t low = m_high >> (x - 128);
             return uint256_t(low, low >> 64, 0);
         }
+
+        uint64_t lo = m_lo, mid = m_mid, high_lo = m_high, high_hi = m_high >> 64;
+        if (x >= 64)
+        {
+            lo = mid;
+            mid = high_lo;
+            high_lo = high_hi;
+            high_hi = 0;
+        }
+        int const shift = x & 63;
+        if (shift)
+        {
+            lo = (lo >> shift) | (mid << (64 - shift));
+            mid = (mid >> shift) | (high_lo << (64 - shift));
+            high_lo = (high_lo >> shift) | (high_hi << (64 - shift));
+            high_hi >>= shift;
+        }
+        return uint256_t(lo, mid, (uint128_t(high_hi) << 64) | high_lo);
     }
 
     inline uint256_t & operator=(uint64_t const & x)
