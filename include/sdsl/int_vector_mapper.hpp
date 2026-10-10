@@ -121,7 +121,6 @@ private:
             // Mapped storage was released above; an unmapped wrapper owns its buffer.
             m_wrapper.m_data = nullptr;
             m_wrapper.m_size = 0;
-            m_wrapper.m_capacity = 0;
         }
         if (m_fd != -1)
         {
@@ -142,11 +141,7 @@ private:
             }
         }
         m_mapped_data = nullptr;
-        m_file_size_bytes = 0;
-        m_data_offset = 0;
         m_fd = -1;
-        m_file_name.clear();
-        m_delete_on_close = false;
     }
 
 public:
