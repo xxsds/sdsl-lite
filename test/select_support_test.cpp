@@ -30,6 +30,8 @@ using testing::Types;
 #ifdef FULL_TEST_SUITE
 
 typedef Types<select_support_mcl<>,
+              select_support_hyb<1>,
+              select_support_hyb<0>,
               select_support_sd<1>,
               select_support_sd<0>,
               select_0_support_sd<>,
@@ -63,6 +65,8 @@ typedef Types<select_support_mcl<>,
 #else
 
 typedef Types<select_support_mcl<>,
+              select_support_hyb<1>,
+              select_support_hyb<0>,
               select_support_rrr<>,
               select_support_sd<1>,
               select_support_sd<0>,

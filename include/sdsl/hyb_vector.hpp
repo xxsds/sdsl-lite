@@ -1020,11 +1020,24 @@ public:
         set_vector(v);
     }
 
-    //! Answers select queries
-    size_type select(size_type) const
+    //! Answers select queries using binary search on rank.
+    size_type select(size_type i) const
     {
-        fprintf(stderr, "\nhyb_vector: select queries are not currently supported\n");
-        std::exit(EXIT_FAILURE);
+        assert(i > 0);
+        rank_support_hyb<t_b, k_sblock_rate> const rank(m_v);
+        if (i > rank(size()))
+            return size();
+
+        size_type begin = 0, end = size();
+        while (end - begin > 1)
+        {
+            size_type const mid = begin + (end - begin) / 2;
+            if (rank(mid) < i)
+                begin = mid;
+            else
+                end = mid;
+        }
+        return begin;
     }
 
     //! Shorthand for select(i)
