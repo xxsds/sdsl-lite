@@ -320,5 +320,5 @@ int main(int argc, char ** argv)
     temp_dir = argv[1];
     bool res = RUN_ALL_TESTS();
     temp_dir = "@";
-    return RUN_ALL_TESTS() and res;
+    return RUN_ALL_TESTS() or res;
 }
