@@ -59,7 +59,7 @@ private:
         std::swap(m_begin, other.m_begin);
     }
 
-    void clear()
+    void close_and_reset_state()
     {
         close();
         m_filename.clear();
@@ -234,7 +234,7 @@ public:
         if (this != &ivb)
         {
             swap(ivb);
-            ivb.clear();
+            ivb.close_and_reset_state();
         }
         return *this;
     }
