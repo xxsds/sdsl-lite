@@ -993,7 +993,7 @@ public:
 /*!
  * \tparam t_b            The bit pattern of size one. (so `0` or `1`)
  * \tparam k_sblock_rate  Superblock rate (number of blocks inside superblock)
- * TODO: implement select queries, currently this is dummy class.
+ * Select queries use a logarithmic number of rank queries.
  */
 template <uint8_t t_b, uint32_t k_sblock_rate>
 class select_support_hyb
