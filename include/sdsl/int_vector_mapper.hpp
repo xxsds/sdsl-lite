@@ -12,6 +12,7 @@
 #include <string.h>
 #include <string>
 #include <unistd.h>
+#include <utility>
 
 #include <sdsl/bits.hpp>
 #include <sdsl/config.hpp>
@@ -129,30 +130,29 @@ public:
         m_wrapper.m_size = 0;
     }
 
-    int_vector_mapper(int_vector_mapper && ivm)
-    {
-        m_wrapper.m_data = ivm.m_wrapper.m_data;
-        m_wrapper.m_size = ivm.m_wrapper.m_size;
-        m_wrapper.width(ivm.m_wrapper.width());
-        m_file_name = ivm.m_file_name;
-        m_delete_on_close = ivm.m_delete_on_close;
-        ivm.m_wrapper.m_data = nullptr;
-        ivm.m_wrapper.m_size = 0;
-        ivm.m_mapped_data = nullptr;
-        ivm.m_fd = -1;
-    }
+    int_vector_mapper(int_vector_mapper && ivm) :
+        m_mapped_data(std::exchange(ivm.m_mapped_data, nullptr)),
+        m_file_size_bytes(std::exchange(ivm.m_file_size_bytes, 0)),
+        m_data_offset(std::exchange(ivm.m_data_offset, 0)),
+        m_fd(std::exchange(ivm.m_fd, -1)),
+        m_wrapper(std::move(ivm.m_wrapper)),
+        m_file_name(std::move(ivm.m_file_name)),
+        m_delete_on_close(std::exchange(ivm.m_delete_on_close, false))
+    {}
 
     int_vector_mapper & operator=(int_vector_mapper && ivm)
     {
-        m_wrapper.m_data = ivm.m_wrapper.m_data;
-        m_wrapper.m_size = ivm.m_wrapper.m_size;
-        m_wrapper.width(ivm.m_wrapper.width());
-        m_file_name = ivm.m_file_name;
-        m_delete_on_close = ivm.m_delete_on_close;
-        ivm.m_wrapper.m_data = nullptr;
-        ivm.m_wrapper.m_size = 0;
-        ivm.m_mapped_data = nullptr;
-        ivm.m_fd = -1;
+        if (this != &ivm)
+        {
+            int_vector_mapper tmp(std::move(ivm));
+            std::swap(m_mapped_data, tmp.m_mapped_data);
+            std::swap(m_file_size_bytes, tmp.m_file_size_bytes);
+            std::swap(m_data_offset, tmp.m_data_offset);
+            std::swap(m_fd, tmp.m_fd);
+            m_wrapper.swap(tmp.m_wrapper);
+            m_file_name.swap(tmp.m_file_name);
+            std::swap(m_delete_on_close, tmp.m_delete_on_close);
+        }
         return (*this);
     }
 
