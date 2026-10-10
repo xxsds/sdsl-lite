@@ -58,7 +58,7 @@ int main(int argc, char * argv[])
             }
         }
     }
-    else if ("CRAFTED-MAT-SELECT")
+    else if ("CRAFTED-MAT-SELECT" == ID)
     {
         // Matthias Petri's test
         srand(4711);
