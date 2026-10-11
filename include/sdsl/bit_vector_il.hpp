@@ -125,7 +125,7 @@ public:
         m_superblocks = (m_size + t_bs) / t_bs;
         m_block_shift = bits::hi(t_bs);
         /* allocate new data */
-        size_type blocks = (m_size + 64) / 64;
+        size_type blocks = m_size / 64 + 1;
         size_type mem = blocks + m_superblocks + 1;
         //                          ^^^^^^^^^^^^^^^   ^^^^^^^^^^^^^   ^
         //                          bit vector data | cum. sum data | sum after last block
@@ -138,7 +138,8 @@ public:
         size_type j = 0; // 64-bit word counter in the m_data
         size_type cum_sum = 0;
         size_type sample_rate = t_bs / 64;
-        for (size_type i = 0, sample_cnt = sample_rate; i < blocks; ++i, ++sample_cnt)
+        size_type sample_cnt = sample_rate;
+        for (size_type i = 0; i + 1 < blocks; ++i, ++sample_cnt)
         {
             if (sample_cnt == sample_rate)
             {
@@ -146,11 +147,16 @@ public:
                 sample_cnt = 0;
                 j++;
             }
-            // Ignore unused input bits, including the extra word for rank(size()).
-            m_data[j] = i < m_size / 64 ? bvp[i] : m_size % 64 ? bvp[i] & bits::lo_set[m_size % 64] : 0;
+            m_data[j] = bvp[i];
             cum_sum += bits::cnt(m_data[j]);
             j++;
         }
+        // Finish with the partial word, or an empty word for rank(size()).
+        if (sample_cnt == sample_rate)
+            m_data[j++] = cum_sum;
+        uint64_t tail = m_size % 64 ? bvp[blocks - 1] & bits::lo_set[m_size % 64] : 0;
+        m_data[j++] = tail;
+        cum_sum += bits::cnt(tail);
         m_data[j] = cum_sum; /* last superblock so we can always
                                     get num_ones fast */
         if (m_block_num > 1024 * 64)
