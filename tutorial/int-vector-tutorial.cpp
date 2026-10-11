@@ -14,8 +14,8 @@ int main()
         store_to_file(v, tmp_file);
     }
     {
-        // use int_vector_buffer to open the file
-        int_vector_buffer<> ivb(tmp_file);
+        // open the existing file for reading and writing
+        int_vector_buffer<> ivb(tmp_file, std::ios::in | std::ios::out);
         // output elements and assign 42 to each of them
         for (auto x : ivb)
         {
