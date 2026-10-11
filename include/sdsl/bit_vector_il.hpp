@@ -125,11 +125,10 @@ public:
         m_superblocks = (m_size + t_bs) / t_bs;
         m_block_shift = bits::hi(t_bs);
         /* allocate new data */
-        size_type blocks = (m_size + 63) / 64;
+        size_type words = (m_size + 63) / 64;
         bool const padding_word = m_size % 64 == 0;
-        size_type mem = blocks + padding_word + m_superblocks + 1;
-        //                          ^^^^^^^^^^^^^^^   ^^^^^^^^^^^^^   ^
-        //                          bit vector data | cum. sum data | sum after last block
+        // Stored words, cumulative rank samples, and the final population count.
+        size_type mem = words + padding_word + m_superblocks + 1;
         m_data = int_vector<64>(mem);
         m_block_num = mem;
 
@@ -152,10 +151,10 @@ public:
             ++j;
             ++sample_cnt;
         };
-        for (size_type i = 0; i + 1 < blocks; ++i)
+        for (size_type i = 0; i + 1 < words; ++i)
             append_word(bvp[i]);
-        if (blocks)
-            append_word(bvp[blocks - 1] & bits::lo_set[m_size - (blocks - 1) * 64]);
+        if (words)
+            append_word(bvp[words - 1] & bits::lo_set[m_size - (words - 1) * 64]);
         if (padding_word)
             append_word(0);  // Preserve the layout's extra word at exact word boundaries.
         m_data[j] = cum_sum; /* last superblock so we can always
