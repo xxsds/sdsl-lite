@@ -146,7 +146,8 @@ public:
                 sample_cnt = 0;
                 j++;
             }
-            m_data[j] = bvp[i];
+            // Ignore unused input bits, including the extra word for rank(size()).
+            m_data[j] = i < m_size / 64 ? bvp[i] : m_size % 64 ? bvp[i] & bits::lo_set[m_size % 64] : 0;
             cum_sum += bits::cnt(m_data[j]);
             j++;
         }
