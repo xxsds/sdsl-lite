@@ -125,8 +125,9 @@ public:
         m_superblocks = (m_size + t_bs) / t_bs;
         m_block_shift = bits::hi(t_bs);
         /* allocate new data */
-        size_type blocks = m_size / 64 + 1;
-        size_type mem = blocks + m_superblocks + 1;
+        size_type blocks = (m_size + 63) / 64;
+        bool const padding_word = m_size % 64 == 0;
+        size_type mem = blocks + padding_word + m_superblocks + 1;
         //                          ^^^^^^^^^^^^^^^   ^^^^^^^^^^^^^   ^
         //                          bit vector data | cum. sum data | sum after last block
         m_data = int_vector<64>(mem);
@@ -139,24 +140,24 @@ public:
         size_type cum_sum = 0;
         size_type sample_rate = t_bs / 64;
         size_type sample_cnt = sample_rate;
-        for (size_type i = 0; i + 1 < blocks; ++i, ++sample_cnt)
+        auto append_word = [&](uint64_t word)
         {
             if (sample_cnt == sample_rate)
             {
-                m_data[j] = cum_sum;
+                m_data[j++] = cum_sum;
                 sample_cnt = 0;
-                j++;
             }
-            m_data[j] = bvp[i];
+            m_data[j] = word;
             cum_sum += bits::cnt(m_data[j]);
-            j++;
-        }
-        // Finish with the partial word, or an empty word for rank(size()).
-        if (sample_cnt == sample_rate)
-            m_data[j++] = cum_sum;
-        uint64_t tail = m_size % 64 ? bvp[blocks - 1] & bits::lo_set[m_size % 64] : 0;
-        m_data[j++] = tail;
-        cum_sum += bits::cnt(tail);
+            ++j;
+            ++sample_cnt;
+        };
+        for (size_type i = 0; i + 1 < blocks; ++i)
+            append_word(bvp[i]);
+        if (blocks)
+            append_word(bvp[blocks - 1] & bits::lo_set[m_size - (blocks - 1) * 64]);
+        if (padding_word)
+            append_word(0);  // Preserve the layout's extra word at exact word boundaries.
         m_data[j] = cum_sum; /* last superblock so we can always
                                     get num_ones fast */
         if (m_block_num > 1024 * 64)
