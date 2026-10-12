@@ -1025,10 +1025,8 @@ public:
     size_type select(size_type i) const
     {
         assert(i > 0);
-        size_type target = i;
-        rank_support_hyb<t_b, k_sblock_rate> const rank(m_v);
         // Exclude queries into the zero padding of the final block.
-        if (i > rank(size()))
+        if (i > rank_support_hyb<t_b, k_sblock_rate>(m_v)(size()))
             return size();
 
         // Superblock headers contain prefix populations relative to their hyperblock.
@@ -1058,6 +1056,8 @@ public:
         if (packed & 0x80000000) // Uniform superblock.
             return base + i - 1;
 
+        auto hblock = begin * k_sblock_rate / bit_vector_type::k_hblock_rate;
+        size_type offset = m_v->m_hblock_header[2 * hblock] + (packed & 0x3fffffff);
         header_ptr += 8;
         uint16_t descriptor;
         uint32_t count;
@@ -1068,11 +1068,64 @@ public:
             if (i <= count)
                 break;
             i -= count;
+            offset += descriptor >> 10;
         }
 
-        auto ranks = random_access_container([&](size_type pos) { return rank(base + pos + 1); },
-                                             std::min(size() - base, size_type(bit_vector_type::k_block_size)));
-        return base + (std::ranges::lower_bound(ranks, target) - ranks.begin());
+        // The descriptor stores the ones count (9 bits), special bit, and encoded size.
+        uint32_t other = bit_vector_type::k_block_size - count;
+        uint32_t encoding_size = descriptor >> 10;
+        uint32_t bit = (descriptor >> 9) & 1;
+        if (!encoding_size) // At most two runs; their lengths follow from the population.
+            return base + (t_b == bit ? 0 : other) + i - 1;
+
+        auto trunk_ptr = m_v->m_trunk.begin() + offset;
+        if (encoding_size == bit_vector_type::k_block_bytes)
+        {
+            // Plain block: skip whole words, then use the word-select primitive.
+            for (uint32_t word = 0; word < bit_vector_type::k_block_bytes / 8; ++word)
+            {
+                uint64_t value;
+                std::memcpy(&value, trunk_ptr + 8 * word, sizeof(value));
+                if constexpr (t_b == 0)
+                    value = ~value;
+                auto count = bits::cnt(value);
+                if (i <= count)
+                    return base + 64 * word + bits::sel(value, i);
+                i -= count;
+            }
+        }
+        else if (encoding_size == std::min(count, other))
+        {
+            // Minority positions are explicit. For the majority, skip those holes.
+            if (t_b == bit)
+                return base + trunk_ptr[i - 1];
+            uint32_t pos = i - 1;
+            for (uint32_t j = 0; j < encoding_size && trunk_ptr[j] <= pos; ++j)
+                ++pos;
+            return base + pos;
+        }
+        else
+        {
+            // Runs alternate, so inspect only runs of the requested bit.
+            // The final two run ends are not stored.
+            uint32_t const matching_bits_after = count - i;
+            uint32_t run = bit != t_b;
+            for (; run < encoding_size; run += 2)
+            {
+                uint32_t start = run ? trunk_ptr[run - 1] + 1 : 0;
+                uint32_t length = trunk_ptr[run] + 1 - start;
+                if (i <= length)
+                    return base + start + i - 1;
+                i -= length;
+            }
+            // In the first implicit run, count from its start; in the last,
+            // count backwards from the block end using the matching-bit suffix.
+            uint32_t pos = run == encoding_size ? trunk_ptr[encoding_size - 1] + i
+                                               : bit_vector_type::k_block_size - 1 - matching_bits_after;
+            return base + pos;
+        }
+        assert(false && "Invalid hybrid block population");
+        return size();
     }
 
     //! Shorthand for select(i)
