@@ -12,6 +12,7 @@
 #include <string.h>
 #include <string>
 #include <unistd.h>
+#include <utility>
 
 #include <sdsl/bits.hpp>
 #include <sdsl/config.hpp>
@@ -47,15 +48,26 @@ private:
     int m_fd = -1;
     int_vector<t_width> m_wrapper;
     std::string m_file_name;
-    bool m_delete_on_close;
+    bool m_delete_on_close = false;
+
+    void swap(int_vector_mapper & other) noexcept
+    {
+        std::swap(m_mapped_data, other.m_mapped_data);
+        std::swap(m_file_size_bytes, other.m_file_size_bytes);
+        std::swap(m_data_offset, other.m_data_offset);
+        std::swap(m_fd, other.m_fd);
+        m_wrapper.swap(other.m_wrapper);
+        m_file_name.swap(other.m_file_name);
+        std::swap(m_delete_on_close, other.m_delete_on_close);
+    }
 
 public:
     int_vector_mapper() = delete;
     int_vector_mapper(int_vector_mapper const &) = delete;
     int_vector_mapper & operator=(int_vector_mapper const &) = delete;
 
-public:
-    ~int_vector_mapper()
+private:
+    void close() noexcept
     {
         if (m_mapped_data)
         {
@@ -106,6 +118,9 @@ public:
                     }
                 }
             }
+            // Mapped storage was released above; an unmapped wrapper owns its buffer.
+            m_wrapper.m_data = nullptr;
+            m_wrapper.m_size = 0;
         }
         if (m_fd != -1)
         {
@@ -125,34 +140,28 @@ public:
                 }
             }
         }
-        m_wrapper.m_data = nullptr;
-        m_wrapper.m_size = 0;
+        m_mapped_data = nullptr;
+        m_fd = -1;
+    }
+
+public:
+    ~int_vector_mapper()
+    {
+        close();
     }
 
     int_vector_mapper(int_vector_mapper && ivm)
     {
-        m_wrapper.m_data = ivm.m_wrapper.m_data;
-        m_wrapper.m_size = ivm.m_wrapper.m_size;
-        m_wrapper.width(ivm.m_wrapper.width());
-        m_file_name = ivm.m_file_name;
-        m_delete_on_close = ivm.m_delete_on_close;
-        ivm.m_wrapper.m_data = nullptr;
-        ivm.m_wrapper.m_size = 0;
-        ivm.m_mapped_data = nullptr;
-        ivm.m_fd = -1;
+        swap(ivm);
     }
 
     int_vector_mapper & operator=(int_vector_mapper && ivm)
     {
-        m_wrapper.m_data = ivm.m_wrapper.m_data;
-        m_wrapper.m_size = ivm.m_wrapper.m_size;
-        m_wrapper.width(ivm.m_wrapper.width());
-        m_file_name = ivm.m_file_name;
-        m_delete_on_close = ivm.m_delete_on_close;
-        ivm.m_wrapper.m_data = nullptr;
-        ivm.m_wrapper.m_size = 0;
-        ivm.m_mapped_data = nullptr;
-        ivm.m_fd = -1;
+        if (this != &ivm)
+        {
+            swap(ivm);
+            ivm.close();
+        }
         return (*this);
     }
 

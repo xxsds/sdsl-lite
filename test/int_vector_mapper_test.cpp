@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <random>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <sdsl/int_vector_mapper.hpp>
@@ -127,6 +128,74 @@ TEST_F(int_vector_mapper_test, iterator)
         }
         sdsl::remove(temp_dir + "/int_vector_mapper_itrtest");
     }
+}
+
+template <uint8_t width>
+void check_move_constructor(std::string const & filename)
+{
+    sdsl::int_vector<width> expected(4, 0, 17);
+    sdsl::util::set_to_id(expected);
+    ASSERT_TRUE(sdsl::store_to_file(expected, filename));
+    {
+        sdsl::int_vector_mapper<width> source(filename, false, true);
+        auto const capacity = source.capacity();
+        sdsl::int_vector_mapper<width> moved(std::move(source));
+        ASSERT_EQ(capacity, moved.capacity());
+        ASSERT_EQ(expected.width(), moved.width());
+        ASSERT_EQ(moved, expected);
+        EXPECT_TRUE(source.empty());
+
+        moved.push_back(7);
+        EXPECT_EQ(5u, moved.size());
+        EXPECT_EQ(7u, moved[4]);
+    }
+    EXPECT_FALSE(sdsl::isfstream(filename).is_open());
+}
+
+TEST_F(int_vector_mapper_test, move_constructor)
+{
+    check_move_constructor<0>(temp_dir + "/mapper_move_dynamic");
+    check_move_constructor<31>(temp_dir + "/mapper_move_fixed");
+}
+
+template <uint8_t width>
+void check_move_assignment(std::string const & filename)
+{
+    auto const replaced_filename = filename + "_replaced";
+    sdsl::int_vector<width> expected(4, 0, 17);
+    sdsl::util::set_to_id(expected);
+    ASSERT_TRUE(sdsl::store_to_file(expected, filename));
+    ASSERT_TRUE(sdsl::store_to_file(sdsl::int_vector<width>(2, 1, 9), replaced_filename));
+    {
+        sdsl::int_vector_mapper<width> source(filename, false, true);
+        sdsl::int_vector_mapper<width> destination(replaced_filename, false, true);
+        auto const capacity = source.capacity();
+        destination = std::move(source);
+        EXPECT_FALSE(sdsl::isfstream(replaced_filename).is_open());
+        ASSERT_EQ(capacity, destination.capacity());
+        ASSERT_EQ(expected.width(), destination.width());
+        ASSERT_EQ(destination, expected);
+        EXPECT_TRUE(source.empty());
+
+        auto & alias = destination;
+        destination = std::move(alias);
+        ASSERT_EQ(destination, expected);
+        destination.push_back(7);
+        EXPECT_EQ(5u, destination.size());
+        EXPECT_EQ(7u, destination[4]);
+
+        source = std::move(destination);
+        EXPECT_TRUE(destination.empty());
+        EXPECT_EQ(5u, source.size());
+        EXPECT_EQ(7u, source[4]);
+    }
+    EXPECT_FALSE(sdsl::isfstream(filename).is_open());
+}
+
+TEST_F(int_vector_mapper_test, move_assignment)
+{
+    check_move_assignment<0>(temp_dir + "/mapper_assign_dynamic");
+    check_move_assignment<31>(temp_dir + "/mapper_assign_fixed");
 }
 
 TEST_F(int_vector_mapper_test, push_back)
