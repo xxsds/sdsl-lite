@@ -325,13 +325,22 @@ std::string class_to_hash(T const & t)
 template <class T>
 std::string class_name(T const & t)
 {
-    std::string result = demangle2(typeid(t).name());
-    size_t template_pos = result.find("<");
-    if (template_pos != std::string::npos)
+    auto get_name = [&]
     {
-        result = result.erase(template_pos);
+        std::string result = demangle2(typeid(t).name());
+        size_t template_pos = result.find("<");
+        if (template_pos != std::string::npos)
+            result.erase(template_pos);
+        return result;
+    };
+    // Only polymorphic objects can have a dynamic type different from T.
+    if constexpr (std::is_polymorphic_v<T>)
+        return get_name();
+    else
+    {
+        static std::string const name = get_name();
+        return name;
     }
-    return result;
 }
 
 // convert an errno number to a readable msg
@@ -547,23 +556,13 @@ void util::expand_width(t_int_vec & v, uint8_t new_width)
 template <class t_int_vec>
 void util::_set_zero_bits(t_int_vec & v)
 {
-    std::for_each(v.data(),
-                  v.data() + ((v.bit_size() + 63) >> 6),
-                  [](uint64_t & value)
-                  {
-                      value = 0ULL;
-                  });
+    std::fill_n(v.data(), (v.bit_size() + 63) >> 6, 0ULL);
 }
 
 template <class t_int_vec>
 void util::_set_one_bits(t_int_vec & v)
 {
-    std::for_each(v.data(),
-                  v.data() + ((v.bit_size() + 63) >> 6),
-                  [](uint64_t & value)
-                  {
-                      value = -1ULL;
-                  });
+    std::fill_n(v.data(), (v.bit_size() + 63) >> 6, -1ULL);
 }
 
 inline void util::cyclic_shifts(uint64_t * vec, uint8_t & n, uint64_t k, uint8_t int_width)

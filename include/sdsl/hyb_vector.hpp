@@ -1044,22 +1044,10 @@ public:
             return rank_result<t_b>::adapt(m_v->m_hblock_header[2 * hblock + 1] + local,
                                            sblock * bit_vector_type::k_sblock_size);
         };
-        size_type begin = 1;
-        size_type remaining = (size() + bit_vector_type::k_sblock_size - 1) / bit_vector_type::k_sblock_size - 1;
-        // Find the first superblock whose prefix contains at least i matching bits.
-        while (remaining)
-        {
-            auto step = remaining / 2;
-            auto mid = begin + step;
-            if (population(mid) < i)
-            {
-                begin = mid + 1;
-                remaining -= step + 1;
-            }
-            else
-                remaining = step;
-        }
-        --begin;
+        auto prefixes = random_access_container(population, (size() - 1) / bit_vector_type::k_sblock_size + 1);
+        auto first = std::ranges::lower_bound(prefixes.begin() + 1, prefixes.end(), i);
+        // Prefix zero is below i, so the target superblock precedes the lower bound.
+        size_type begin = first - prefixes.begin() - 1;
 
         i -= population(begin);
         size_type base = begin * bit_vector_type::k_sblock_size;
