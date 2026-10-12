@@ -14,12 +14,14 @@ function (generate_target_for_special_inputs tc_name abs_tc_name)
         if ("${tc_name}" MATCHES "${int_vec_regex}")
             string (REPLACE "int-vec." "" tc_suf ${tc_name})
             string (REPLACE "." ";" tc_param ${tc_suf}) #  insert semicolons to get a list :)
+            set (generator int_vector_generator)
         else ()
             string (REPLACE "bit-vec." "" tc_param ${tc_name})
+            set (generator bit_vector_generator)
         endif ()
         add_custom_command (OUTPUT ${abs_tc_name}
-                            COMMAND $<TARGET_FILE:bit_vector_generator> ${abs_tc_name} ${tc_param}
-                            DEPENDS bit_vector_generator
+                            COMMAND $<TARGET_FILE:${generator}> ${abs_tc_name} ${tc_param}
+                            DEPENDS ${generator}
                             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
                             COMMENT "Generating test case ${tc_name}."
                             VERBATIM)

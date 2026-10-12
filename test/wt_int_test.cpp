@@ -286,6 +286,9 @@ void test_lex_count(typename enable_if<t_wt::lex_ordered, t_wt>::type & wt)
     load_from_file(iv, test_file);
     ASSERT_TRUE(load_from_file(wt, temp_file));
     ASSERT_EQ(iv.size(), wt.size());
+    if (iv.empty())
+        return;
+
     mt19937_64 rng;
     uint64_t min = numeric_limits<uint64_t>::max(), max = 0;
     for (size_type j = 0; j < iv.size(); ++j)
@@ -355,6 +358,9 @@ void test_lex_smaller_count(typename enable_if<t_wt::lex_ordered, t_wt>::type & 
     load_from_file(iv, test_file);
     ASSERT_TRUE(load_from_file(wt, temp_file));
     ASSERT_EQ(iv.size(), wt.size());
+    if (iv.empty())
+        return;
+
     mt19937_64 rng;
     uint64_t min = numeric_limits<uint64_t>::max(), max = 0;
     for (size_type j = 0; j < iv.size(); ++j)
