@@ -325,13 +325,22 @@ std::string class_to_hash(T const & t)
 template <class T>
 std::string class_name(T const & t)
 {
-    std::string result = demangle2(typeid(t).name());
-    size_t template_pos = result.find("<");
-    if (template_pos != std::string::npos)
+    auto get_name = [&]
     {
-        result = result.erase(template_pos);
+        std::string result = demangle2(typeid(t).name());
+        size_t template_pos = result.find("<");
+        if (template_pos != std::string::npos)
+            result.erase(template_pos);
+        return result;
+    };
+    // Only polymorphic objects can have a dynamic type different from T.
+    if constexpr (std::is_polymorphic_v<T>)
+        return get_name();
+    else
+    {
+        static std::string const name = get_name();
+        return name;
     }
-    return result;
 }
 
 // convert an errno number to a readable msg

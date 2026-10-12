@@ -18,7 +18,7 @@ int main(int argc, char * argv[])
     }
     uint64_t x = atoi(argv[2]);
     uint64_t y = atoi(argv[3]);
-    int_vector_buffer<> v(argv[1]);
+    int_vector_buffer<> v(argv[1], std::ios::in | std::ios::out);
     if (v.good())
     {
         for (size_t i = 0; i < v.size(); ++i)
