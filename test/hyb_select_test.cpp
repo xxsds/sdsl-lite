@@ -16,9 +16,14 @@ void check_select(sdsl::bit_vector const & bits)
     sdsl::hyb_vector<rate> vector(bits);
     typename sdsl::hyb_vector<rate>::select_0_type select0(&vector);
     typename sdsl::hyb_vector<rate>::select_1_type select1(&vector);
+    typename sdsl::hyb_vector<rate>::rank_0_type rank0(&vector);
+    typename sdsl::hyb_vector<rate>::rank_1_type rank1(&vector);
     uint64_t zeros = 0, ones = 0;
     for (uint64_t pos = 0; pos < bits.size(); ++pos)
     {
+        ASSERT_EQ(bits[pos], vector[pos]);
+        ASSERT_EQ(zeros, rank0(pos));
+        ASSERT_EQ(ones, rank1(pos));
         if (bits[pos])
             ASSERT_EQ(pos, select1(++ones));
         else
@@ -26,6 +31,8 @@ void check_select(sdsl::bit_vector const & bits)
     }
     EXPECT_EQ(bits.size(), select0(zeros + 1));
     EXPECT_EQ(bits.size(), select1(ones + 1));
+    EXPECT_EQ(zeros, rank0(bits.size()));
+    EXPECT_EQ(ones, rank1(bits.size()));
 }
 
 template <typename T>
