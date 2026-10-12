@@ -50,7 +50,7 @@ TYPED_TEST(hyb_select_test, block_encodings)
 {
     // Uniform, two-run, minority, run-length and plain blocks, in both polarities.
     // Their different encoded lengths also leave plain blocks unaligned in the trunk.
-    std::array<std::string, 11> patterns = {std::string(256, '0'),
+    std::array<std::string, 13> patterns = {std::string(256, '0'),
                                             std::string(256, '1'),
                                             std::string(63, '0') + std::string(193, '1'),
                                             std::string(193, '1') + std::string(63, '0'),
@@ -60,7 +60,10 @@ TYPED_TEST(hyb_select_test, block_encodings)
                                             "1111111100000000",
                                             "000000000111111111",
                                             "111111111000000000",
-                                            "01"};
+                                            "01",
+                                            // One-bit outer runs around a long implicit run.
+                                            "0" + std::string(254, '1') + "0",
+                                            "1" + std::string(254, '0') + "1"};
     sdsl::bit_vector bits(256 * patterns.size());
     for (uint64_t block = 0; block < patterns.size(); ++block)
         for (uint64_t i = 0; i < 256; ++i)
