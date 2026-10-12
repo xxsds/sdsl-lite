@@ -20,9 +20,6 @@ namespace sdsl
 #    define COMPILER_GCC
 #endif
 
-// eliminate fallthrough warnings
-#define SDSL_FALLTHROUGH [[fallthrough]];
-
 } // end namespace sdsl
 
 #endif

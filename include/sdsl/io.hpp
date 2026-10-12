@@ -261,7 +261,7 @@ bool load_vector_from_file(t_int_vec & v, std::string const & file, uint8_t num_
                 do
                 {
                     in.read((char *)buf.data(), block_size);
-                    for (uint8_t byte : std::span(buf).first(static_cast<size_t>(in.gcount())))
+                    for (uint8_t byte : std::span(buf).first(in.gcount()))
                     {
                         x |= uint64_t(byte) << (cur_byte * 8);
                         ++cur_byte;
@@ -631,7 +631,7 @@ void csXprintf(std::ostream & out,
                 break;
             case 'U':
                 truncate = true;
-                SDSL_FALLTHROUGH
+                [[fallthrough]];
             case 'T':
                 for (uint64_t k = 0; (w > 0 and k < w) or (0 == w and k < csa.size()); ++k)
                 {
@@ -652,7 +652,7 @@ void csXprintf(std::ostream & out,
                 break;
             case 'u':
                 truncate = true;
-                SDSL_FALLTHROUGH
+                [[fallthrough]];
             case 't':
                 for (uint64_t k = 0; (w > 0 and k < w) or (0 == w and k < csa.size()); ++k)
                 {
