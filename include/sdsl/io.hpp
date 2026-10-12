@@ -14,8 +14,10 @@
 #include <iostream>
 #include <map>
 #include <memory>
+#include <span>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 #include <type_traits>
 #include <typeinfo>
 #include <unordered_map>
@@ -259,12 +261,9 @@ bool load_vector_from_file(t_int_vec & v, std::string const & file, uint8_t num_
                 do
                 {
                     in.read((char *)buf.data(), block_size);
-                    size_t read = in.gcount();
-                    uint8_t * begin = buf.data();
-                    uint8_t * end = begin + read;
-                    while (begin < end)
+                    for (uint8_t byte : std::span(buf).first(static_cast<size_t>(in.gcount())))
                     {
-                        x |= ((uint64_t)(*begin)) << (cur_byte * 8);
+                        x |= uint64_t(byte) << (cur_byte * 8);
                         ++cur_byte;
                         if (cur_byte == num_bytes)
                         {
@@ -272,7 +271,6 @@ bool load_vector_from_file(t_int_vec & v, std::string const & file, uint8_t num_
                             cur_byte = 0;
                             x = 0ULL;
                         }
-                        ++begin;
                     }
                 }
                 while (idx < v.size());
@@ -581,8 +579,9 @@ void csXprintf(std::ostream & out,
             ++c; // string before the next `%`
         if (c > s)
         { // copy format string part
-            std::vector<std::string> to_copy(csa.size(), std::string(s, c));
-            transform(res.begin(), res.end(), to_copy.begin(), res.begin(), std::plus<std::string>());
+            std::string_view literal(s, c);
+            for (auto & line : res)
+                line += literal;
         }
         if (c == format.end())
             break;
