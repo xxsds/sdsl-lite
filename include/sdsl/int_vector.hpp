@@ -246,15 +246,19 @@ public:
     friend class coder::comma;
     friend class memory_manager;
     static constexpr uint8_t fixed_int_width = t_width;
-    float growth_factor = 1.5; //!< Growth factor for amortized constant time operations
-                               // see the explanation in the documentation of FBVector on different growth factors
-                               // https://github.com/facebook/folly/blob/master/folly/docs/FBVector.md#memory-handling
 
 private:
     size_type m_size;       //!< Number of bits needed to store int_vector.
     size_type m_capacity;   //!< Number of bits reserved by int_vector.
     uint64_t * m_data;      //!< Pointer to the memory for the bits.
     int_width_type m_width; //!< Width of the integers.
+
+public:
+    float growth_factor = 1.5; //!< Growth factor for amortized constant time operations
+                               // see the explanation in the documentation of FBVector on different growth factors
+                               // https://github.com/facebook/folly/blob/master/folly/docs/FBVector.md#memory-handling
+
+private:
 
     // Hidden, since number of bits (size) does not go well together with int value.
     void bit_resize(size_type const size, value_type const value);
