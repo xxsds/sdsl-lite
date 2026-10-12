@@ -15,6 +15,7 @@
 
 #include <array>
 #include <assert.h>
+#include <bit>
 #include <iosfwd>
 #include <stddef.h>
 #include <stdint.h>
@@ -37,12 +38,13 @@ namespace sdsl
 
 constexpr size_t floor_log2(size_t const n)
 {
-    return (n == 1) ? 0 : 1 + floor_log2(n >> 1);
+    assert(n != 0);
+    return std::bit_width(n) - 1;
 }
 
 constexpr size_t ceil_log2(size_t const n)
 {
-    return (n == 1) ? 0 : floor_log2(n - 1) + 1;
+    return std::bit_width(n - 1);
 }
 
 //!\brief The base class of classes supporting rank_queries for a sdsl::int_vector in constant time.

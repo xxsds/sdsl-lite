@@ -1,3 +1,4 @@
+#include <sstream>
 #include <string>
 
 #include <sdsl/bit_vector_il.hpp>
@@ -63,6 +64,50 @@ typedef Types<bit_vector, bit_vector_il<>, rrr_vector<>, sd_vector<>, hyb_vector
 typedef Types<bit_vector> Implementations_BV_Only;
 
 TYPED_TEST_SUITE(bit_vector_test, Implementations, );
+
+template <class T>
+class interleaved_padding_test : public ::testing::Test
+{};
+
+using interleaved_vectors = Types<bit_vector_il<64>, bit_vector_il<512>, bit_vector_il<4096>>;
+TYPED_TEST_SUITE(interleaved_padding_test, interleaved_vectors, );
+
+TYPED_TEST(interleaved_padding_test, ignores_bits_outside_logical_size)
+{
+    for (uint64_t n : {0, 1, 63, 64, 65, 511, 512, 513, 4095, 4096, 4097})
+    {
+        SCOPED_TRACE(n);
+        bit_vector bv(n, 0);
+        bv.reserve(n + 64); // Make the extra word accessible even for an empty vector.
+        for (uint64_t i = 0; i < n; ++i)
+            bv[i] = i % 3 == 1;
+
+        std::string expected;
+        for (uint64_t padding : {0ULL, ~0ULL, 0xa5a5a5a5a5a5a5a5ULL})
+        {
+            auto mask = bits::lo_set[n % 64];
+            bv.data()[n / 64] = (bv.data()[n / 64] & mask) | (padding & ~mask);
+            TypeParam v(bv);
+            typename TypeParam::rank_1_type rank(&v);
+            typename TypeParam::select_1_type select1(&v);
+            typename TypeParam::select_0_type select0(&v);
+            uint64_t ones = 0, zeros = 0;
+            for (uint64_t i = 0; i < n; ++i)
+            {
+                ASSERT_EQ(ones, rank(i));
+                ASSERT_EQ(bv[i], v[i]);
+                ASSERT_EQ(i, bv[i] ? select1(++ones) : select0(++zeros));
+            }
+            ASSERT_EQ(ones, rank(n));
+            std::ostringstream out;
+            v.serialize(out);
+            if (padding == 0)
+                expected = out.str();
+            else
+                ASSERT_EQ(expected, out.str());
+        }
+    }
+}
 
 //! Test operator==
 TYPED_TEST(bit_vector_test, equality_operator)

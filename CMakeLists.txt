@@ -35,6 +35,10 @@ option (SDSL_GENERATE_DOC "Set ON to genrate doxygen API reference in build/doc 
 option (SDSL_USE_LIBCPP "Use the LLVM libc++ instead of GCC libstdc++ on OS X" ON)
 
 ## (6) Compiler requirements and compile options
+if (NOT DEFINED CMAKE_CXX_STANDARD)
+    set (CMAKE_CXX_STANDARD 20)
+endif ()
+set (CMAKE_CXX_STANDARD_REQUIRED ON)
 if (PROJECT_IS_TOP_LEVEL OR SDSL_BUILD_TESTS OR SDSL_HEADER_TEST OR SDSL_BUILD_TUTORIAL OR SDSL_BUILD_EXAMPLES)
     include (CompilerFlags)
 endif ()
@@ -61,7 +65,7 @@ add_custom_target (sdsl SOURCES ${HEADERS})
 
 add_library(sdsl-lite INTERFACE)
 target_include_directories(sdsl-lite SYSTEM INTERFACE ${sdsl_include_directory})
-target_compile_features(sdsl-lite INTERFACE cxx_std_17)
+target_compile_features(sdsl-lite INTERFACE cxx_std_20)
 add_library(sdsl-lite::sdsl-lite ALIAS sdsl-lite)
 
 # (9) test targets

@@ -34,14 +34,16 @@ public:
     typedef random_access_const_iterator<t_rac> iterator;
 
 private:
-    t_rac const * m_rac; // pointer to the random access container
-    typename t_rac::size_type m_idx;
+    t_rac const * m_rac = nullptr; // pointer to the random access container
+    typename t_rac::size_type m_idx = 0;
 
     template <class t_RAC>
     friend typename random_access_const_iterator<t_RAC>::difference_type
     operator-(random_access_const_iterator<t_RAC> const & x, random_access_const_iterator<t_RAC> const & y);
 
 public:
+    random_access_const_iterator() = default;
+
     //! Constructor
     random_access_const_iterator(t_rac const * rac, size_type idx = 0) : m_rac(rac), m_idx(idx)
     {}

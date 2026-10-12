@@ -138,10 +138,15 @@ TYPED_TEST(csa_int_test, bwt_access)
         load_from_file(bwt, test_case_file_map[conf::KEY_BWT_INT]);
         size_type n = bwt.size();
         ASSERT_EQ(n, csa.size());
+        vector<size_type> occurrences(csa.sigma, 0);
         for (size_type j = 0; j < n; ++j)
         {
             ASSERT_EQ(bwt[j], csa.bwt[j]) << " j=" << j;
+            auto const c = bwt[j];
+            ASSERT_EQ(j, csa.bwt.select(++occurrences[csa.char2comp[c]], c));
         }
+        for (size_type c = 0; c < csa.sigma; ++c)
+            ASSERT_EQ(n, csa.bwt.select(occurrences[c] + 1, csa.comp2char[c]));
     }
 }
 
