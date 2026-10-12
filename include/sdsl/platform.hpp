@@ -21,19 +21,7 @@ namespace sdsl
 #endif
 
 // eliminate fallthrough warnings
-#define SDSL_FALLTHROUGH
-#if defined(__has_cpp_attribute)
-#    if __has_cpp_attribute(fallthrough)
-#        undef SDSL_FALLTHROUGH
-#        if __cplusplus < 201500 && defined(COMPILER_GCC)
-#            define SDSL_FALLTHROUGH [[gnu::fallthrough]];
-#        elif __cplusplus < 201500 && defined(COMPILER_CLANG)
-#            define SDSL_FALLTHROUGH [[clang::fallthrough]];
-#        else
-#            define SDSL_FALLTHROUGH [[fallthrough]];
-#        endif
-#    endif
-#endif
+#define SDSL_FALLTHROUGH [[fallthrough]];
 
 } // end namespace sdsl
 

@@ -10,6 +10,7 @@
 #define INCLUDED_SDSL_BP_SUPPORT_SADA
 
 #include <assert.h>
+#include <bit>
 #include <stdint.h>
 
 #include <sdsl/bp_support_algorithm.hpp>
@@ -440,14 +441,8 @@ public:
         util::init_support(m_bp_rank, bp);
         util::init_support(m_bp_select, bp);
 
-        m_med_inner_blocks = 1;
-        // m_med_inner_blocks = (next power of 2 greater than or equal to m_med_blocks)-1
-        while (m_med_inner_blocks < m_med_blocks)
-        {
-            m_med_inner_blocks <<= 1;
-            assert(m_med_inner_blocks != 0);
-        }
-        --m_med_inner_blocks;
+        assert(m_med_blocks <= (size_type{1} << 63));
+        m_med_inner_blocks = std::bit_ceil(m_med_blocks) - 1;
         assert((m_med_inner_blocks == 0) or (m_med_inner_blocks % 2 == 1));
 
         m_sml_block_min_max = int_vector<>(2 * m_sml_blocks, 0, bits::hi(t_sml_blk + 2) + 1);
