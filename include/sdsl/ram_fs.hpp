@@ -175,14 +175,7 @@ inline size_t file_size(int const fd)
 //! Determines if the given file is a RAM-file.
 inline bool is_ram_file(std::string const & file)
 {
-    if (file.size() > 0)
-    {
-        if (file[0] == '@')
-        {
-            return true;
-        }
-    }
-    return false;
+    return file.starts_with('@');
 }
 
 //! Determines if the given file is a RAM-file.

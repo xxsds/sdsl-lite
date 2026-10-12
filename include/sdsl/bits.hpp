@@ -19,6 +19,7 @@
 #    include <altivec.h>
 #endif
 
+#include <bit>
 #include <stddef.h>
 #include <stdint.h> // for uint64_t uint32_t declaration
 #ifdef __SSE4_2__
@@ -683,29 +684,10 @@ constexpr uint32_t bits_impl<T>::hi(uint64_t x)
 #endif
 }
 
-// details see: http://citeseer.ist.psu.edu/leiserson98using.html
-// or page 10, Knuth TAOCP Vol 4 F1A
 template <typename T>
 constexpr uint32_t bits_impl<T>::lo(uint64_t x)
 {
-#ifdef __SSE4_2__
-    if (x == 0)
-        return 0;
-    return __builtin_ctzll(x);
-#else
-    if (x & 1)
-        return 0;
-    if (x & 3)
-        return 1;
-    if (x & 7)
-        return 2;
-    if (x & 0x7FF)
-    { // in average every second random number x can be answered this way
-        return lt_lo[(x & 0x7FF) >> 3] + 3;
-    }
-    // x&-x equals x with only the lsb set
-    return lt_deBruijn_to_idx[((x & -x) * deBruijn64) >> 58];
-#endif
+    return x ? std::countr_zero(x) : 0;
 }
 
 template <typename T>
