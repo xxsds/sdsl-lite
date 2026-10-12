@@ -10,6 +10,7 @@
 
 #include <fstream>
 #include <string>
+#include <utility>
 
 #include <sdsl/ram_filebuf.hpp>
 #include <sdsl/ram_fs.hpp>
@@ -39,6 +40,22 @@ public:
     {
         this->init(m_streambuf);
         open(file, mode);
+    }
+
+    //! Exchange stream state and ownership of the underlying file buffer.
+    void swap(osfstream & other)
+    {
+        std::ostream::swap(other);
+        std::swap(m_streambuf, other.m_streambuf);
+        m_file.swap(other.m_file);
+        // basic_ios::swap leaves rdbuf unchanged; rebind without clearing rdstate.
+        set_rdbuf(m_streambuf);
+        other.set_rdbuf(other.m_streambuf);
+    }
+
+    friend void swap(osfstream & left, osfstream & right)
+    {
+        left.swap(right);
     }
 
     //! Open the stream.
@@ -161,6 +178,22 @@ public:
     {
         this->init(m_streambuf);
         open(file, mode);
+    }
+
+    //! Exchange stream state and ownership of the underlying file buffer.
+    void swap(isfstream & other)
+    {
+        std::istream::swap(other);
+        std::swap(m_streambuf, other.m_streambuf);
+        m_file.swap(other.m_file);
+        // basic_ios::swap leaves rdbuf unchanged; rebind without clearing rdstate.
+        set_rdbuf(m_streambuf);
+        other.set_rdbuf(other.m_streambuf);
+    }
+
+    friend void swap(isfstream & left, isfstream & right)
+    {
+        left.swap(right);
     }
 
     //! Open the stream.
