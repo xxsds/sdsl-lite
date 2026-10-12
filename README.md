@@ -9,7 +9,7 @@
 
 * header-only library
 * support for serialisation via [cereal](https://github.com/USCiLab/cereal)
-* compatible with C++17, C++20, and C++23
+* requires C++20 or newer
 
 ## Supported compilers
 
@@ -19,7 +19,7 @@ each listed major compiler version is supported.
 * GCC 14, 15, 16
 * clang 20, 21, 22
 
-Tests are run with C++23.
+Linux and header tests use C++20; macOS and sanitizer tests also cover C++23.
 
 ## Dependencies
 
