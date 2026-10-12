@@ -1028,8 +1028,7 @@ public:
         if (i > rank(size()))
             return size();
 
-        // C++20 could use std::ranges::lower_bound over an iota view,
-        // projecting positions p to rank(p + 1). Keep this loop for C++17.
+        // Keep the explicit loop: ranges-based alternatives were slower in local select benchmarks.
         size_type begin = 0, end = size();
         while (end - begin > 1)
         {
