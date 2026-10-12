@@ -458,79 +458,7 @@ private:
         }
 
         auto trunk = m_trunk.begin() + offset;
-        if (encoding_size < k_block_bytes)
-        {
-            if (encoding_size == std::min(ones, zeros))
-            {
-                // Minority positions are explicit; majority select skips these holes.
-                if constexpr (t_query == block_query::select)
-                    if (t_b == special_bit)
-                        return trunk[i - 1];
-                uint32_t seen = 0, limit = i;
-                while (seen < encoding_size && trunk[seen] < limit)
-                {
-                    ++seen;
-                    if constexpr (t_query == block_query::select)
-                        ++limit;
-                }
-                if constexpr (t_query == block_query::select)
-                    return limit - 1;
-                else if constexpr (t_query == block_query::access)
-                    return (seen && trunk[seen - 1] == i - 1) ? special_bit : !special_bit;
-                else
-                    return special_bit ? seen : i - seen;
-            }
-
-            // Positional queries start with the first run; select visits its requested bit.
-            uint32_t matching_bit = t_query == block_query::select ? t_b : special_bit;
-            uint32_t count = matching_bit ? ones : zeros;
-            uint32_t accumulated = 0;
-            uint32_t original_i = i;
-            uint32_t run = special_bit != matching_bit;
-            for (; run < encoding_size; run += 2)
-            {
-                uint32_t start = run ? trunk[run - 1] + 1 : 0;
-                uint32_t end = trunk[run] + 1;
-                uint32_t length = end - start;
-                if constexpr (t_query == block_query::select)
-                {
-                    if (i <= length)
-                        return start + i - 1;
-                    i -= length;
-                }
-                else
-                {
-                    if (i <= end)
-                    {
-                        if constexpr (t_query == block_query::access)
-                            return i > start ? matching_bit : !matching_bit;
-                        else
-                        {
-                            uint32_t prefix = accumulated + (i > start ? i - start : 0);
-                            return matching_bit ? prefix : i - prefix;
-                        }
-                    }
-                    accumulated += length;
-                }
-            }
-
-            // The final two run ends are implicit in the total population.
-            if constexpr (t_query == block_query::select)
-                return run == encoding_size ? trunk[encoding_size - 1] + i : k_block_size - 1 - (count - original_i);
-            else
-            {
-                uint32_t length = count - accumulated;
-                uint32_t start = run == encoding_size ? trunk[encoding_size - 1] + 1 : k_block_size - length;
-                if constexpr (t_query == block_query::access)
-                    return start < i && i <= start + length ? matching_bit : !matching_bit;
-                else
-                {
-                    uint32_t prefix = accumulated + (i > start ? std::min(i - start, length) : 0);
-                    return matching_bit ? prefix : i - prefix;
-                }
-            }
-        }
-        else
+        if (encoding_size >= k_block_bytes)
         {
             // Plain words are packed without an alignment guarantee.
             auto word_at = [&](uint32_t word)
@@ -541,33 +469,84 @@ private:
             };
             if constexpr (t_query == block_query::access)
                 return (word_at((i - 1) / 64) >> ((i - 1) % 64)) & 1;
-            else
+            uint32_t accumulated = 0;
+            for (uint32_t word = 0; word < k_block_bytes / 8; ++word)
             {
-                uint32_t accumulated = 0;
-                for (uint32_t word = 0; word < k_block_bytes / 8; ++word)
+                uint64_t value = word_at(word);
+                if constexpr (t_query == block_query::select)
                 {
-                    uint64_t value = word_at(word);
-                    if constexpr (t_query == block_query::select)
-                    {
-                        if constexpr (t_b == 0)
-                            value = ~value;
-                        auto count = bits::cnt(value);
-                        if (i <= count)
-                            return 64 * word + bits::sel(value, i);
-                        i -= count;
-                    }
-                    else
-                    {
-                        if (i <= 64)
-                            return accumulated + bits::cnt(value << (64 - i));
-                        accumulated += bits::cnt(value);
-                        i -= 64;
-                    }
+                    if constexpr (t_b == 0)
+                        value = ~value;
+                    auto count = bits::cnt(value);
+                    if (i <= count)
+                        return 64 * word + bits::sel(value, i);
+                    i -= count;
                 }
-                assert(false && "Invalid hybrid block population");
-                return 0;
+                else
+                {
+                    if (i <= 64)
+                        return accumulated + bits::cnt(value << (64 - i));
+                    accumulated += bits::cnt(value);
+                    i -= 64;
+                }
             }
+            assert(false && "Invalid hybrid block population");
+            return 0;
         }
+
+        if (encoding_size == std::min(ones, zeros))
+        {
+            // Minority positions are explicit; majority select skips these holes.
+            if constexpr (t_query == block_query::select)
+                if (t_b == special_bit)
+                    return trunk[i - 1];
+            uint32_t seen = 0, limit = i;
+            while (seen < encoding_size && trunk[seen] < limit)
+            {
+                ++seen;
+                if constexpr (t_query == block_query::select)
+                    ++limit;
+            }
+            if constexpr (t_query == block_query::select)
+                return limit - 1;
+            else if constexpr (t_query == block_query::access)
+                return (seen && trunk[seen - 1] == i - 1) ? special_bit : !special_bit;
+            else
+                return special_bit ? seen : i - seen;
+        }
+
+        // Access/rank follow the first bit's runs; select follows t_b's runs.
+        uint32_t matching_bit = t_query == block_query::select ? t_b : special_bit;
+        uint32_t count = matching_bit ? ones : zeros;
+        uint32_t accumulated = 0;
+        uint32_t start = 0, end = 0;
+        uint32_t run = special_bit != matching_bit;
+        for (; run < encoding_size; run += 2)
+        {
+            start = run ? trunk[run - 1] + 1 : 0;
+            end = trunk[run] + 1;
+            if (i <= (t_query == block_query::select ? accumulated + end - start : end))
+            {
+                if constexpr (t_query == block_query::access)
+                    return i > start ? matching_bit : !matching_bit;
+                break;
+            }
+            accumulated += end - start;
+        }
+        // The final two run ends are implicit in the total population.
+        if (run >= encoding_size)
+        {
+            uint32_t length = count - accumulated;
+            start = run == encoding_size ? trunk[encoding_size - 1] + 1 : k_block_size - length;
+            end = start + length;
+        }
+
+        if constexpr (t_query == block_query::select)
+            return start + i - accumulated - 1;
+        if constexpr (t_query == block_query::access)
+            return start < i && i <= end ? matching_bit : !matching_bit;
+        uint32_t prefix = accumulated + std::clamp(i, start, end) - start;
+        return matching_bit ? prefix : i - prefix;
     }
 
     //! Given i returns bv[i - 1].
