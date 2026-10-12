@@ -150,7 +150,8 @@ public:
     {
         if (x < 64)
         {
-            auto high = (m_high << x) | (m_lo >> (64 - x));
+            // Split the carry shift so x == 0 never shifts by the word size.
+            auto high = (m_high << x) | ((m_lo >> (63 - x)) >> 1);
             auto lo = m_lo << x;
             return uint128_t(lo, high);
         }
@@ -165,7 +166,7 @@ public:
     {
         if (x < 64)
         {
-            auto lo = (m_lo >> x) | (m_high << (64 - x));
+            auto lo = (m_lo >> x) | ((m_high << (63 - x)) << 1);
             return uint128_t(lo, m_high >> x);
         }
         else
