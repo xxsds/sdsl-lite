@@ -35,10 +35,14 @@ option (SDSL_GENERATE_DOC "Set ON to genrate doxygen API reference in build/doc 
 option (SDSL_USE_LIBCPP "Use the LLVM libc++ instead of GCC libstdc++ on OS X" ON)
 
 ## (6) Compiler requirements and compile options
-include (CompilerFlags)
+if (PROJECT_IS_TOP_LEVEL OR SDSL_BUILD_TESTS OR SDSL_HEADER_TEST OR SDSL_BUILD_TUTORIAL OR SDSL_BUILD_EXAMPLES)
+    include (CompilerFlags)
+endif ()
 
 ## (7) Configure scripts
-configure_file ("${CMAKE_CURRENT_SOURCE_DIR}/Make.helper.cmake" "${CMAKE_CURRENT_SOURCE_DIR}/Make.helper" @ONLY)
+if (PROJECT_IS_TOP_LEVEL)
+    configure_file ("${CMAKE_CURRENT_SOURCE_DIR}/Make.helper.cmake" "${CMAKE_CURRENT_SOURCE_DIR}/Make.helper" @ONLY)
+endif ()
 
 
 if (SDSL_BUILD_TESTS)
@@ -56,7 +60,8 @@ file (GLOB HEADERS "${sdsl_include_directory}/sdsl/*.hpp")
 add_custom_target (sdsl SOURCES ${HEADERS})
 
 add_library(sdsl-lite INTERFACE)
-target_include_directories(sdsl-lite INTERFACE SYSTEM ${sdsl_include_directory})
+target_include_directories(sdsl-lite SYSTEM INTERFACE ${sdsl_include_directory})
+target_compile_features(sdsl-lite INTERFACE cxx_std_17)
 add_library(sdsl-lite::sdsl-lite ALIAS sdsl-lite)
 
 # (9) test targets
