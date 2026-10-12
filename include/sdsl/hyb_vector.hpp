@@ -1028,7 +1028,6 @@ public:
         if (i > rank(size()))
             return size();
 
-        // Keep the explicit loop: ranges-based alternatives were slower in local select benchmarks.
         size_type begin = 0, end = size();
         while (end - begin > 1)
         {
