@@ -113,69 +113,44 @@ public:
 
     pos_type seekpos(pos_type sp, std::ios_base::openmode mode = std::ios_base::in | std::ios_base::out) override
     {
-        if (sp >= (pos_type)0 and sp <= (pos_type)m_ram_file->size())
-        {
-            setg(m_ram_file->data(), m_ram_file->data() + sp, m_ram_file->data() + m_ram_file->size());
-            setp(m_ram_file->data(), m_ram_file->data() + m_ram_file->size());
-            pbump64(sp);
-        }
-        else
-        {
-            if (mode & std::ios_base::out)
-            {
-                // extend buffer
-                m_ram_file->reserve(sp);
-                m_ram_file->resize(sp, 0);
-                setg(m_ram_file->data(), m_ram_file->data() + sp, m_ram_file->data() + m_ram_file->size());
-                setp(m_ram_file->data(), m_ram_file->data() + m_ram_file->size());
-                pbump64(sp);
-            }
-            else
-            {
-                return pos_type(off_type(-1));
-            }
-        }
+        if (!m_ram_file || sp < pos_type(0) || !(mode & (std::ios_base::in | std::ios_base::out)))
+            return pos_type(off_type(-1));
+        if (sp > pos_type(m_ram_file->size()) && !(mode & std::ios_base::out))
+            return pos_type(off_type(-1));
+
+        off_type const read_pos = (mode & std::ios_base::in) ? off_type(sp) : get_pos();
+        off_type const write_pos = (mode & std::ios_base::out) ? off_type(sp) : (pbase() ? pptr() - pbase() : 0);
+        if (sp > pos_type(m_ram_file->size()))
+            m_ram_file->resize(off_type(sp), 0);
+        char * begin = m_ram_file->data();
+        char * end = begin ? begin + m_ram_file->size() : nullptr;
+        setg(begin, begin ? begin + read_pos : nullptr, end);
+        setp(begin, end);
+        if (write_pos)
+            pbump64(write_pos);
         return sp;
     }
 
-    pos_type pubseekoff(off_type off,
-                        std::ios_base::seekdir way,
-                        std::ios_base::openmode which = std::ios_base::in | std::ios_base::out)
+    pos_type seekoff(off_type off,
+                     std::ios_base::seekdir way,
+                     std::ios_base::openmode which = std::ios_base::in | std::ios_base::out) override
     {
-        if (std::ios_base::beg == way)
+        if (!m_ram_file)
+            return pos_type(off_type(-1));
+        off_type base = 0;
+        if (way == std::ios_base::cur)
         {
-            if (seekpos(off, which) == pos_type(-1))
-            {
-                return pos_type(-1);
-            }
+            if ((which & std::ios_base::in) && (which & std::ios_base::out))
+                return pos_type(off_type(-1));
+            base = (which & std::ios_base::in) ? get_pos() : (pbase() ? pptr() - pbase() : 0);
         }
-        else if (std::ios_base::cur == way)
-        {
-            if (seekpos(gptr() - eback() + off, which) == pos_type(-1))
-            {
-                return pos_type(-1);
-            }
-        }
-        else if (std::ios_base::end == way)
-        {
-            if (seekpos(egptr() - eback() + off, which) == pos_type(-1))
-            {
-                return pos_type(-1);
-            }
-        }
-        return gptr() - eback();
-    }
-
-    pos_type pubseekpos(pos_type sp, std::ios_base::openmode which = std::ios_base::in | std::ios_base::out)
-    {
-        if (seekpos(sp, which) == pos_type(-1))
-        {
-            return pos_type(-1);
-        }
-        else
-        {
-            return gptr() - eback();
-        }
+        else if (way == std::ios_base::end)
+            base = m_ram_file->size();
+        else if (way != std::ios_base::beg)
+            return pos_type(off_type(-1));
+        if (off < -base || off > std::numeric_limits<off_type>::max() - base)
+            return pos_type(off_type(-1));
+        return seekpos(base + off, which);
     }
 
     std::streamsize xsputn(char_type const * s, std::streamsize n) override

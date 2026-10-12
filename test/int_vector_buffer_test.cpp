@@ -263,7 +263,7 @@ void test_sequential_access(size_type width = 1)
     // iterate over ivb, verify and change values
     {
         rng.seed(13); // To get the same values
-        t_T ivb(file_name, std::ios::in, buffersize, width);
+        t_T ivb(file_name, std::ios::in | std::ios::out, buffersize, width);
         for (typename t_T::iterator it = ivb.begin(); it != ivb.end(); ++it)
         {
             value_type x = rng() & sdsl::bits::lo_set[ivb.width()];

@@ -110,6 +110,8 @@ private:
     void write(uint64_t const idx, uint64_t const value)
     {
         assert(is_open());
+        if (!m_ofile.is_open())
+            throw std::ios_base::failure("int_vector_buffer: not open for writing");
         // If idx is not in current block, write current block and load needed block
         if (idx < m_begin or m_begin + m_buffersize <= idx)
         {
@@ -134,8 +136,9 @@ public:
     //! Constructor for int_vector_buffer.
     /*!\param filename   File that contains the data read from / written to.
      *  \param mode       Openmode:
-     *                    std::ios::in opens an existing file (that must exist already),
-     *                    std::ios::out creates a new file (that may exist already).
+     *                    std::ios::in opens an existing file for reading,
+     *                    std::ios::out creates a new file for reading and writing,
+     *                    std::ios::in | std::ios::out opens an existing file for reading and writing.
      *  \param buffersize Buffersize in bytes. This has to be a multiple of 8, if not the next multiple of 8 will be
      * taken \param int_width  The width of each integer. \param is_plain   If false (default) the file will be
      * interpreted as int_vector. If true the file will be interpreted as plain array with t_width bits per integer. In
@@ -163,8 +166,11 @@ public:
         }
 
         // Open file for IO
-        m_ofile.open(m_filename, mode | std::ios::out | std::ios::binary);
-        assert(m_ofile.good());
+        if (mode & std::ios::out)
+        {
+            m_ofile.open(m_filename, mode | std::ios::binary);
+            assert(m_ofile.good());
+        }
         m_ifile.open(m_filename, std::ios::in | std::ios::binary);
         assert(m_ifile.good());
         if (mode & std::ios::in)
@@ -197,12 +203,22 @@ public:
         m_size(ivb.m_size),
         m_begin(ivb.m_begin)
     {
-        ivb.m_ifile.close();
-        ivb.m_ofile.close();
-        m_ifile.open(m_filename, std::ios::in | std::ios::binary);
-        m_ofile.open(m_filename, std::ios::in | std::ios::out | std::ios::binary);
-        assert(m_ifile.good());
-        assert(m_ofile.good());
+        bool const open = ivb.m_ifile.is_open();
+        bool const writable = ivb.m_ofile.is_open();
+        if (open)
+            ivb.m_ifile.close();
+        if (writable)
+            ivb.m_ofile.close();
+        if (open)
+        {
+            m_ifile.open(m_filename, std::ios::in | std::ios::binary);
+            assert(m_ifile.good());
+        }
+        if (writable)
+        {
+            m_ofile.open(m_filename, std::ios::in | std::ios::out | std::ios::binary);
+            assert(m_ofile.good());
+        }
         // set ivb to default-constructor state
         ivb.m_filename = "";
         ivb.m_buffer = int_vector<t_width>();
@@ -222,14 +238,26 @@ public:
     //! Move assignment operator.
     int_vector_buffer<t_width> & operator=(int_vector_buffer && ivb)
     {
+        if (this == &ivb)
+            return *this;
         close();
-        ivb.m_ifile.close();
-        ivb.m_ofile.close();
+        bool const open = ivb.m_ifile.is_open();
+        bool const writable = ivb.m_ofile.is_open();
+        if (open)
+            ivb.m_ifile.close();
+        if (writable)
+            ivb.m_ofile.close();
         m_filename = ivb.m_filename;
-        m_ifile.open(m_filename, std::ios::in | std::ios::binary);
-        m_ofile.open(m_filename, std::ios::in | std::ios::out | std::ios::binary);
-        assert(m_ifile.good());
-        assert(m_ofile.good());
+        if (open)
+        {
+            m_ifile.open(m_filename, std::ios::in | std::ios::binary);
+            assert(m_ifile.good());
+        }
+        if (writable)
+        {
+            m_ofile.open(m_filename, std::ios::in | std::ios::out | std::ios::binary);
+            assert(m_ofile.good());
+        }
         // assign the values of ivb to this
         m_buffer = (int_vector<t_width> &&)ivb.m_buffer;
         m_need_to_write = ivb.m_need_to_write;
@@ -298,19 +326,20 @@ public:
     //! Returns whether state of underlying streams are good
     bool good()
     {
-        return m_ifile.good() and m_ofile.good();
+        return m_ifile.good() and (!m_ofile.is_open() or m_ofile.good());
     }
 
     //! Returns whether underlying streams are currently associated to a file
     bool is_open()
     {
-        return m_ifile.is_open() and m_ofile.is_open();
-        ;
+        return m_ifile.is_open();
     }
 
     //! Delete all content and set size to 0
     void reset()
     {
+        if (!m_ofile.is_open())
+            throw std::ios_base::failure("int_vector_buffer: not open for writing");
         // reset file
         assert(m_ifile.good());
         assert(m_ofile.good());
@@ -354,7 +383,7 @@ public:
     {
         if (is_open())
         {
-            if (!remove_file)
+            if (!remove_file && m_ofile.is_open())
             {
                 write_block();
                 if (0 < m_offset)
@@ -375,8 +404,11 @@ public:
             }
             m_ifile.close();
             assert(m_ifile.good());
-            m_ofile.close();
-            assert(m_ofile.good());
+            if (m_ofile.is_open())
+            {
+                m_ofile.close();
+                assert(m_ofile.good());
+            }
             if (remove_file)
             {
                 sdsl::remove(m_filename);

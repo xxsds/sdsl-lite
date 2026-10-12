@@ -187,6 +187,10 @@ TEST_F(bits_test, hi)
 
 TEST_F(bits_test, lo)
 {
+    static_assert(sdsl::bits::lo(0) == 0);
+    static_assert(sdsl::bits::lo(1) == 0);
+    static_assert(sdsl::bits::lo(UINT64_MAX) == 0);
+    ASSERT_EQ(0u, sdsl::bits::lo(0));
     for (uint64_t i = 0; i < 64; ++i)
     {
         uint64_t x = 1ULL << i;
