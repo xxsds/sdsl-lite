@@ -425,51 +425,6 @@ public:
     }
 
 private:
-    // Return either the ones before i or the value of bit i - 1 in an RLE block.
-    template <bool t_rank, bool t_starting_bit>
-#if __has_cpp_attribute(gnu::always_inline)
-    // Outlining this shared decoder slowed rank/access benchmarks.
-    [[gnu::always_inline]]
-#endif
-    static uint32_t query_runs(uint8_t const * trunk, uint32_t encoding_size, uint32_t ones, uint32_t i)
-    {
-        uint32_t count = t_starting_bit ? ones : k_block_size - ones;
-        auto result = [&](uint32_t prefix, bool matches_starting_bit) -> uint32_t
-        {
-            if constexpr (t_rank)
-                return t_starting_bit ? prefix : i - prefix;
-            else
-                return matches_starting_bit == t_starting_bit;
-        };
-        uint32_t run = 0, prefix = 0;
-        int32_t last = -1;
-        // RLE payloads contain fewer than k_block_bytes run ends.
-        while (run + 1 < k_block_bytes && run + 1 < encoding_size && trunk[1] < i)
-        {
-            prefix += *trunk - last;
-            ++trunk;
-            last = *trunk;
-            ++trunk;
-            run += 2;
-        }
-        if (run + 1 >= encoding_size)
-        {
-            if (run < encoding_size)
-            {
-                if (i <= uint32_t(*trunk) + 1)
-                    return result(prefix + i - last - 1, int32_t(i) - last - 1 > 0);
-                prefix += *trunk - last;
-                uint32_t remaining = count - prefix;
-                return result(prefix + remaining - std::min(remaining, k_block_size - i),
-                        remaining > k_block_size - i);
-            }
-            uint32_t length = i - last - 1;
-            return result(prefix + std::min(count - prefix, length), count - prefix >= length && length > 0);
-        }
-        return result(prefix + std::min(int32_t(*trunk), int32_t(i) - 1) - last,
-                *trunk >= i - 1 && int32_t(i) - last - 1 > 0);
-    }
-
     //! Given i returns bv[i - 1].
     value_type access0(size_type i) const
     {
@@ -536,9 +491,103 @@ private:
 
             // Runs encoding.
             if (special_bit)
-                return query_runs<false, true>(trunk_p, encoding_size, ones, local_i);
+            {
+                uint32_t j = 0;
+                uint32_t acc = 0;
+
+                int32_t last = -1;
+                while (j + 1 < encoding_size && *(trunk_p + 1) < local_i)
+                {
+                    acc += *trunk_p - last;
+                    ++trunk_p;
+                    last = *trunk_p;
+                    ++trunk_p;
+                    j += 2;
+                }
+
+                uint8_t access_i = 0;
+                if (j + 1 >= encoding_size)
+                {
+                    if (j < encoding_size)
+                    { // j == encoding_size - 1
+                        if (local_i <= (uint32_t)(*trunk_p) + 1)
+                            access_i = (((int32_t)local_i - last - 1) > 0);
+                        else
+                        {
+                            acc += (int32_t)(*trunk_p) - last;
+                            if (ones - acc <= k_block_size - local_i)
+                                access_i = 0;
+                            else
+                                access_i = 1;
+                        }
+                    }
+                    else
+                    { // j == encoding_size
+                        if ((int32_t)(ones - acc) < (int32_t)local_i - last - 1)
+                            access_i = 0;
+                        else
+                            access_i = (((int32_t)local_i - last - 1) > 0);
+                    }
+                }
+                else
+                {
+                    if ((*trunk_p) < local_i - 1)
+                        access_i = 0;
+                    else
+                        access_i = (((int32_t)local_i - last - 1) > 0);
+                }
+
+                return access_i;
+            }
             else
-                return query_runs<false, false>(trunk_p, encoding_size, ones, local_i);
+            {
+                uint32_t j = 0;
+                uint32_t acc = 0;
+                int32_t last = -1;
+
+                while (j + 1 < encoding_size && *(trunk_p + 1) < local_i)
+                {
+                    acc += *trunk_p - last;
+                    ++trunk_p;
+                    last = *trunk_p;
+                    ++trunk_p;
+                    j += 2;
+                }
+
+                uint8_t access_i = 0;
+                if (j + 1 >= encoding_size)
+                {
+                    if (j < encoding_size)
+                    {
+                        if (local_i <= (uint32_t)(*trunk_p) + 1)
+                            access_i = (((int32_t)local_i - last - 1) == 0);
+                        else
+                        {
+                            acc += (*trunk_p) - last;
+                            if (zeros - acc <= k_block_size - local_i)
+                                access_i = 1;
+                            else
+                                access_i = 0;
+                        }
+                    }
+                    else
+                    {
+                        if ((int32_t)(zeros - acc) < (int32_t)local_i - last - 1)
+                            access_i = 1;
+                        else
+                            access_i = ((local_i - last - 1) == 0);
+                    }
+                }
+                else
+                {
+                    if ((*trunk_p) < local_i - 1)
+                        access_i = 1;
+                    else
+                        access_i = (((int32_t)local_i - last - 1) == 0);
+                }
+
+                return access_i;
+            }
         }
         else
         {
@@ -795,12 +844,76 @@ public:
             }
 
             // Runs encoding.
-            uint32_t local_rank;
             if (special_bit)
-                local_rank = m_v->template query_runs<true, true>(trunk_p, encoding_size, ones, local_i);
+            {
+                uint32_t j = 0;
+                uint32_t acc = 0;
+
+                int32_t last = -1;
+                while (j + 1 < encoding_size && *(trunk_p + 1) < local_i)
+                {
+                    acc += *trunk_p - last;
+                    ++trunk_p;
+                    last = *trunk_p;
+                    ++trunk_p;
+                    j += 2;
+                }
+
+                if (j + 1 >= encoding_size)
+                {
+                    if (j < encoding_size)
+                    {
+                        if (*trunk_p >= local_i)
+                            acc += local_i - last - 1;
+                        else
+                        {
+                            acc += (*trunk_p) - last;
+                            acc += (ones - acc) - std::min(ones - acc, bit_vector_type::k_block_size - local_i);
+                        }
+                    }
+                    else
+                        acc += std::min(ones - acc, local_i - last - 1);
+                }
+                else
+                    acc += std::min((int32_t)(*trunk_p), (int32_t)local_i - 1) - last;
+
+                return rank_result<t_b>::adapt(hblock_rank + sblock_rank + block_rank + acc, i);
+            }
             else
-                local_rank = m_v->template query_runs<true, false>(trunk_p, encoding_size, ones, local_i);
-            return rank_result<t_b>::adapt(hblock_rank + sblock_rank + block_rank + local_rank, i);
+            {
+                uint32_t j = 0;
+                uint32_t acc = 0;
+                int32_t last = -1;
+
+                while (j + 1 < encoding_size && *(trunk_p + 1) < local_i)
+                {
+                    acc += *trunk_p - last;
+                    ++trunk_p;
+                    last = *trunk_p;
+                    ++trunk_p;
+                    j += 2;
+                }
+
+                if (j + 1 >= encoding_size)
+                {
+                    if (j < encoding_size)
+                    {
+                        if (*trunk_p >= local_i)
+                            acc += local_i - last - 1;
+                        else
+                        {
+                            acc += (*trunk_p) - last;
+                            acc += (zeros - acc) - std::min(zeros - acc, bit_vector_type::k_block_size - local_i);
+                        }
+                    }
+                    else
+                        acc += std::min(zeros - acc, local_i - last - 1);
+                }
+                else
+                    acc += std::min((int32_t)(*trunk_p), (int32_t)local_i - 1) - last;
+
+                return rank_result<t_b>::adapt(hblock_rank + sblock_rank + block_rank + (local_i - acc), i);
+            }
         }
         else
         {
@@ -912,16 +1025,17 @@ public:
     size_type select(size_type i) const
     {
         assert(i > 0);
+        size_type target = i;
+        rank_support_hyb<t_b, k_sblock_rate> const rank(m_v);
         // Exclude queries into the zero padding of the final block.
-        if (i > rank_support_hyb<t_b, k_sblock_rate>(m_v)(size()))
+        if (i > rank(size()))
             return size();
 
         // Superblock headers contain prefix populations relative to their hyperblock.
         // Read packed metadata with memcpy because the headers need not be aligned.
         auto header = [&](size_type sblock)
         {
-            return reinterpret_cast<uint8_t const *>(m_v->m_sblock_header.data())
-                 + sblock * bit_vector_type::k_sblock_header_size;
+            return m_v->m_sblock_header.begin() + sblock * bit_vector_type::k_sblock_header_size;
         };
         auto population = [&](size_type sblock)
         {
@@ -944,8 +1058,6 @@ public:
         if (packed & 0x80000000) // Uniform superblock.
             return base + i - 1;
 
-        auto hblock = begin * k_sblock_rate / bit_vector_type::k_hblock_rate;
-        size_type offset = m_v->m_hblock_header[2 * hblock] + (packed & 0x3fffffff);
         header_ptr += 8;
         uint16_t descriptor;
         uint32_t count;
@@ -956,64 +1068,11 @@ public:
             if (i <= count)
                 break;
             i -= count;
-            offset += descriptor >> 10;
         }
 
-        // The descriptor stores the ones count (9 bits), special bit, and encoded size.
-        uint32_t other = bit_vector_type::k_block_size - count;
-        uint32_t encoding_size = descriptor >> 10;
-        uint32_t bit = (descriptor >> 9) & 1;
-        if (!encoding_size) // At most two runs; their lengths follow from the population.
-            return base + (t_b == bit ? 0 : other) + i - 1;
-
-        auto trunk_ptr = reinterpret_cast<uint8_t const *>(m_v->m_trunk.data()) + offset;
-        if (encoding_size == bit_vector_type::k_block_bytes)
-        {
-            // Plain block: skip whole words, then use the word-select primitive.
-            for (uint32_t word = 0; word < bit_vector_type::k_block_bytes / 8; ++word)
-            {
-                uint64_t value;
-                std::memcpy(&value, trunk_ptr + 8 * word, sizeof(value));
-                if constexpr (t_b == 0)
-                    value = ~value;
-                auto count = bits::cnt(value);
-                if (i <= count)
-                    return base + 64 * word + bits::sel(value, i);
-                i -= count;
-            }
-        }
-        else if (encoding_size == std::min(count, other))
-        {
-            // Minority positions are explicit. For the majority, skip those holes.
-            if (t_b == bit)
-                return base + trunk_ptr[i - 1];
-            uint32_t pos = i - 1;
-            for (uint32_t j = 0; j < encoding_size && trunk_ptr[j] <= pos; ++j)
-                ++pos;
-            return base + pos;
-        }
-        else
-        {
-            // Runs alternate, so inspect only runs of the requested bit.
-            // The final two run ends are not stored.
-            uint32_t const matching_bits_after = count - i;
-            uint32_t run = bit != t_b;
-            for (; run < encoding_size; run += 2)
-            {
-                uint32_t start = run ? trunk_ptr[run - 1] + 1 : 0;
-                uint32_t length = trunk_ptr[run] + 1 - start;
-                if (i <= length)
-                    return base + start + i - 1;
-                i -= length;
-            }
-            // In the first implicit run, count from its start; in the last,
-            // count backwards from the block end using the matching-bit suffix.
-            uint32_t pos = run == encoding_size ? trunk_ptr[encoding_size - 1] + i
-                                               : bit_vector_type::k_block_size - 1 - matching_bits_after;
-            return base + pos;
-        }
-        assert(false && "Invalid hybrid block population");
-        return size();
+        auto ranks = random_access_container([&](size_type pos) { return rank(base + pos + 1); },
+                                             std::min(size() - base, size_type(bit_vector_type::k_block_size)));
+        return base + (std::ranges::lower_bound(ranks, target) - ranks.begin());
     }
 
     //! Shorthand for select(i)
