@@ -61,6 +61,20 @@ TYPED_TEST(hyb_select_test, block_encodings)
     check_select<TypeParam::value>(bits);
 }
 
+TYPED_TEST(hyb_select_test, run_counts)
+{
+    // Both parities of the final two (implicit) runs, for every encoded run count.
+    for (uint32_t runs = 3; runs <= 33; ++runs)
+    {
+        sdsl::bit_vector bits(256, 0);
+        for (uint64_t pos = 0; pos < bits.size(); ++pos)
+            bits[pos] = (pos * runs / bits.size()) & 1;
+        check_select<TypeParam::value>(bits);
+        bits.flip();
+        check_select<TypeParam::value>(bits);
+    }
+}
+
 TYPED_TEST(hyb_select_test, short_patterns)
 {
     for (uint64_t size = 0; size <= 8; ++size)

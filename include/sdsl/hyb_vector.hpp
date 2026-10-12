@@ -1107,24 +1107,23 @@ public:
         }
         else
         {
-            // All but the final two run ends are stored. The remaining populations
-            // determine those final run lengths without reading past the encoding.
-            uint32_t pos = 0;
-            for (uint32_t j = 0; j < encoding_size; ++j)
+            // Runs alternate, so inspect only runs of the requested bit.
+            // The final two run ends are not stored.
+            uint32_t const matching_bits_after = count - i;
+            uint32_t run = bit != t_b;
+            for (; run < encoding_size; run += 2)
             {
-                uint32_t length = trunk_ptr[j] + 1 - pos;
-                if (bit == t_b)
-                {
-                    if (i <= length)
-                        return base + pos + i - 1;
-                    i -= length;
-                }
-                else
-                    other -= length;
-                pos = trunk_ptr[j] + 1;
-                bit ^= 1;
+                uint32_t start = run ? trunk_ptr[run - 1] + 1 : 0;
+                uint32_t length = trunk_ptr[run] + 1 - start;
+                if (i <= length)
+                    return base + start + i - 1;
+                i -= length;
             }
-            return base + pos + (bit == t_b ? 0 : other) + i - 1;
+            // In the first implicit run, count from its start; in the last,
+            // count backwards from the block end using the matching-bit suffix.
+            uint32_t pos = run == encoding_size ? trunk_ptr[encoding_size - 1] + i
+                                               : bit_vector_type::k_block_size - 1 - matching_bits_after;
+            return base + pos;
         }
         assert(false && "Invalid hybrid block population");
         return size();
