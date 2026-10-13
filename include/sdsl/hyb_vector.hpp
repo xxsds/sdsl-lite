@@ -442,11 +442,11 @@ private:
         select
     };
 
-    enum class query_bit
+    enum query_bit : uint8_t
     {
-        none,
-        zero,
-        one
+        zero = 0,
+        one = 1,
+        none = 2
     };
 
     template <block_query t_query, query_bit t_bit>
@@ -460,7 +460,7 @@ private:
             uint64_t value = read_unaligned<uint64_t>(data, word);
             if constexpr (t_query == block_query::select)
             {
-                if constexpr (t_bit == query_bit::zero)
+                if constexpr (!t_bit)
                     value = ~value;
                 auto count = bits::cnt(value);
                 if (target <= count)
@@ -484,7 +484,7 @@ private:
     {
         // Minority positions are explicit; majority select skips these holes.
         if constexpr (t_query == block_query::select)
-            if ((t_bit == query_bit::one) == minority_bit)
+            if (t_bit == minority_bit)
                 return positions[target - 1];
         uint32_t num_positions = positions.size();
         uint32_t seen = 0, limit = target;
@@ -509,7 +509,9 @@ private:
     static uint32_t query_runs(std::span<uint8_t const> ends, uint32_t ones, uint32_t first_bit, uint32_t target)
     {
         // Access/rank follow the first bit's runs; select follows the requested bit.
-        uint32_t matching_bit = t_query == block_query::select ? t_bit == query_bit::one : first_bit;
+        uint32_t matching_bit = first_bit;
+        if constexpr (t_query == block_query::select)
+            matching_bit = t_bit;
         uint32_t population = matching_bit ? ones : k_block_size - ones;
         uint32_t matched_before = 0; // Matching-bit population before the current run.
         uint32_t start = 0, end = 0;
@@ -552,8 +554,10 @@ private:
 #endif
     uint32_t query_block(size_type offset, uint16_t descriptor, uint32_t target) const
     {
-        static_assert((t_query == block_query::select) == (t_bit != query_bit::none),
-                      "Specify a bit exactly when selecting");
+        static_assert(t_query == block_query::select
+                          ? t_bit == query_bit::zero || t_bit == query_bit::one
+                          : t_bit == query_bit::none,
+                      "Specify zero or one exactly when selecting");
         uint32_t encoding_size = descriptor >> 10;
         uint32_t ones = descriptor & 0x1ff;
         uint32_t zeros = k_block_size - ones;
@@ -564,7 +568,7 @@ private:
         {
             uint32_t first_run_length = special_bit ? ones : zeros;
             if constexpr (t_query == block_query::select)
-                return ((t_bit == query_bit::one) == special_bit ? 0 : first_run_length) + target - 1;
+                return (t_bit == special_bit ? 0 : first_run_length) + target - 1;
             else if constexpr (t_query == block_query::access)
                 return (target >= first_run_length) ^ special_bit;
             else
