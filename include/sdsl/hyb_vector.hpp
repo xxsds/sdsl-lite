@@ -433,7 +433,7 @@ private:
         return value;
     }
 
-    // Access uses position + 1, rank a prefix length, and select an occurrence rank.
+    // Access uses a zero-based position, rank a prefix length, and select a one-based occurrence rank.
     // Access/rank report bits/ones; t_b chooses the bit only for select.
     enum class block_query
     {
@@ -443,10 +443,10 @@ private:
     };
 
     template <block_query t_query, uint8_t t_b>
-    static uint32_t query_plain(uint8_t const * data, uint32_t i)
+    static uint32_t query_plain(uint8_t const * data, uint32_t target)
     {
         if constexpr (t_query == block_query::access)
-            return (read_unaligned<uint64_t>(data + 8 * ((i - 1) / 64)) >> ((i - 1) % 64)) & 1;
+            return (read_unaligned<uint64_t>(data + 8 * (target / 64)) >> (target % 64)) & 1;
         uint32_t accumulated = 0;
         for (uint32_t word = 0; word < k_block_bytes / 8; ++word)
         {
@@ -456,16 +456,16 @@ private:
                 if constexpr (t_b == 0)
                     value = ~value;
                 auto count = bits::cnt(value);
-                if (i <= count)
-                    return 64 * word + bits::sel(value, i);
-                i -= count;
+                if (target <= count)
+                    return 64 * word + bits::sel(value, target);
+                target -= count;
             }
             else
             {
-                if (i <= 64)
-                    return accumulated + bits::cnt(value << (64 - i));
+                if (target <= 64)
+                    return accumulated + bits::cnt(value << (64 - target));
                 accumulated += bits::cnt(value);
-                i -= 64;
+                target -= 64;
             }
         }
         assert(false && "Invalid hybrid block population");
@@ -473,16 +473,16 @@ private:
     }
 
     template <block_query t_query, uint8_t t_b>
-    static uint32_t query_minority(uint8_t const * positions, uint32_t num_positions, uint32_t minority_bit, uint32_t i)
+    static uint32_t query_minority(uint8_t const * positions, uint32_t num_positions, uint32_t minority_bit, uint32_t target)
     {
         // Minority positions are explicit; majority select skips these holes.
         if constexpr (t_query == block_query::select)
             if (t_b == minority_bit)
-                return positions[i - 1];
-        uint32_t seen = 0, limit = i;
+                return positions[target - 1];
+        uint32_t seen = 0, limit = target;
         do
         {
-            if (positions[seen] >= limit)
+            if (t_query == block_query::access ? positions[seen] > limit : positions[seen] >= limit)
                 break;
             ++seen;
             if constexpr (t_query == block_query::select)
@@ -492,13 +492,13 @@ private:
         if constexpr (t_query == block_query::select)
             return limit - 1;
         else if constexpr (t_query == block_query::access)
-            return (seen && positions[seen - 1] == i - 1) ? minority_bit : !minority_bit;
+            return (seen && positions[seen - 1] == target) ? minority_bit : !minority_bit;
         else
-            return minority_bit ? seen : i - seen;
+            return minority_bit ? seen : target - seen;
     }
 
     template <block_query t_query, uint8_t t_b>
-    static uint32_t query_runs(uint8_t const * ends, uint32_t num_ends, uint32_t ones, uint32_t first_bit, uint32_t i)
+    static uint32_t query_runs(uint8_t const * ends, uint32_t num_ends, uint32_t ones, uint32_t first_bit, uint32_t target)
     {
         // Access/rank follow the first bit's runs; select follows t_b's runs.
         uint32_t matching_bit = t_query == block_query::select ? t_b : first_bit;
@@ -506,16 +506,18 @@ private:
         uint32_t matched_before = 0; // Matching-bit population before the current run.
         uint32_t start = 0, end = 0;
         uint32_t run = first_bit != matching_bit;
+        // Stored endpoints are inclusive; decode each run as [start, end).
         // Run encoding stores 1..31 ends; keep this bound visible to the optimizer.
         num_ends = std::min(num_ends, k_block_bytes);
         for (; run < num_ends; run += 2)
         {
             start = run ? ends[run - 1] + 1 : 0;
             end = ends[run] + 1;
-            if (i <= (t_query == block_query::select ? matched_before + end - start : end))
+            uint32_t limit = t_query == block_query::select ? matched_before + end - start : end;
+            if (t_query == block_query::access ? target < limit : target <= limit)
             {
                 if constexpr (t_query == block_query::access)
-                    return i > start ? matching_bit : !matching_bit;
+                    return target >= start ? matching_bit : !matching_bit;
                 break;
             }
             matched_before += end - start;
@@ -529,18 +531,18 @@ private:
         }
 
         if constexpr (t_query == block_query::select)
-            return start + i - matched_before - 1;
+            return start + target - matched_before - 1;
         if constexpr (t_query == block_query::access)
-            return start < i && i <= end ? matching_bit : !matching_bit;
-        uint32_t prefix = matched_before + std::clamp(i, start, end) - start;
-        return matching_bit ? prefix : i - prefix;
+            return start <= target && target < end ? matching_bit : !matching_bit;
+        uint32_t prefix = matched_before + std::clamp(target, start, end) - start;
+        return matching_bit ? prefix : target - prefix;
     }
 
     template <block_query t_query, uint8_t t_b = 1>
 #if __has_cpp_attribute(gnu::always_inline)
     [[gnu::always_inline]] // Keep block decoding inside these hot query paths.
 #endif
-    uint32_t query_block(size_type offset, uint16_t descriptor, uint32_t i) const
+    uint32_t query_block(size_type offset, uint16_t descriptor, uint32_t target) const
     {
         uint32_t encoding_size = descriptor >> 10;
         uint32_t ones = descriptor & 0x1ff;
@@ -552,19 +554,19 @@ private:
         {
             uint32_t first_run_length = special_bit ? ones : zeros;
             if constexpr (t_query == block_query::select)
-                return (t_b == special_bit ? 0 : first_run_length) + i - 1;
+                return (t_b == special_bit ? 0 : first_run_length) + target - 1;
             else if constexpr (t_query == block_query::access)
-                return (i > first_run_length) ^ special_bit;
+                return (target >= first_run_length) ^ special_bit;
             else
-                return special_bit ? std::min(i, first_run_length) : i - std::min(i, first_run_length);
+                return special_bit ? std::min(target, first_run_length) : target - std::min(target, first_run_length);
         }
 
         auto data = m_trunk.begin() + offset;
         if (encoding_size >= k_block_bytes)
-            return query_plain<t_query, t_b>(data, i);
+            return query_plain<t_query, t_b>(data, target);
         if (encoding_size == std::min(ones, zeros))
-            return query_minority<t_query, t_b>(data, encoding_size, special_bit, i);
-        return query_runs<t_query, t_b>(data, encoding_size, ones, special_bit, i);
+            return query_minority<t_query, t_b>(data, encoding_size, special_bit, target);
+        return query_runs<t_query, t_b>(data, encoding_size, ones, special_bit, target);
     }
 
     struct block_location
@@ -629,15 +631,6 @@ private:
         return result;
     }
 
-    //! Given i returns bv[i - 1].
-    value_type access0(size_type i) const
-    {
-        assert(i > 0);
-        assert(i <= m_size);
-        auto location = locate_block((i - 1) / k_block_size);
-        return query_block<block_query::access>(location.offset, location.descriptor, (i - 1) % k_block_size + 1);
-    }
-
 public:
     //! Get the integer value of the binary string of length len starting at position idx.
     /*!\param idx Starting index of the binary representation of the integer.
@@ -661,7 +654,9 @@ public:
     //! Accessing the i-th element of the original bitvector
     value_type operator[](size_type i) const
     {
-        return access0(i + 1);
+        assert(i < m_size);
+        auto location = locate_block(i / k_block_size);
+        return query_block<block_query::access>(location.offset, location.descriptor, i % k_block_size);
     }
 
     //! Returns the size of the original bitvector
