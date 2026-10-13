@@ -427,10 +427,10 @@ public:
 
 private:
     template <typename T>
-    static T read_unaligned(uint8_t const * data)
+    static T read_unaligned(uint8_t const * data, size_type index = 0)
     {
         T value;
-        std::memcpy(&value, data, sizeof(value));
+        std::memcpy(&value, data + sizeof(T) * index, sizeof(value));
         return value;
     }
 
@@ -453,11 +453,11 @@ private:
     static uint32_t query_plain(std::span<uint8_t const, k_block_bytes> data, uint32_t target)
     {
         if constexpr (t_query == block_query::access)
-            return (read_unaligned<uint64_t>(&data[8 * (target / 64)]) >> (target % 64)) & 1;
+            return (read_unaligned<uint64_t>(data.data(), target / 64) >> (target % 64)) & 1;
         uint32_t accumulated = 0;
         for (uint32_t word = 0; word < k_block_bytes / 8; ++word)
         {
-            uint64_t value = read_unaligned<uint64_t>(&data[8 * word]);
+            uint64_t value = read_unaligned<uint64_t>(data.data(), word);
             if constexpr (t_query == block_query::select)
             {
                 if constexpr (t_bit == query_bit::zero)
@@ -595,7 +595,7 @@ private:
         auto hblock = block_id / k_hblock_rate;
         auto header = m_sblock_header.begin() + sblock * k_sblock_header_size;
         auto packed = read_unaligned<uint32_t>(header);
-        auto local_rank = read_unaligned<uint32_t>(header + 4);
+        auto local_rank = read_unaligned<uint32_t>(header, 1);
         block_location result{m_hblock_header[2 * hblock] + (packed & 0x3fffffff),
                               m_hblock_header[2 * hblock + 1] + local_rank, 0};
         header += 8;
@@ -612,7 +612,7 @@ private:
             // Every superblock allocates all sixteen descriptors, including the final one.
             using lanes_type = uint16_t __attribute__((vector_size(16)));
             auto lo = read_unaligned<lanes_type>(header);
-            auto hi = read_unaligned<lanes_type>(header + sizeof(lo));
+            auto hi = read_unaligned<lanes_type>(header, 1);
             lanes_type const indices = {0, 1, 2, 3, 4, 5, 6, 7};
             lo &= static_cast<lanes_type>(indices < static_cast<uint16_t>(preceding));
             hi &= static_cast<lanes_type>(indices + 8 < static_cast<uint16_t>(preceding));
@@ -632,12 +632,12 @@ private:
         {
             for (size_type j = 0; j < preceding; ++j)
             {
-                auto descriptor = read_unaligned<uint16_t>(header + 2 * j);
+                auto descriptor = read_unaligned<uint16_t>(header, j);
                 result.offset += descriptor >> 10;
                 result.ones_before += descriptor & 0x1ff;
             }
         }
-        result.descriptor = read_unaligned<uint16_t>(header + 2 * preceding);
+        result.descriptor = read_unaligned<uint16_t>(header, preceding);
         return result;
     }
 
@@ -925,7 +925,7 @@ public:
         };
         auto population = [&](size_type sblock)
         {
-            auto local = m_v->template read_unaligned<uint32_t>(header(sblock) + 4);
+            auto local = m_v->template read_unaligned<uint32_t>(header(sblock), 1);
             auto hblock = sblock * k_sblock_rate / bit_vector_type::k_hblock_rate;
             return rank_result<t_b>::adapt(m_v->m_hblock_header[2 * hblock + 1] + local,
                                            sblock * bit_vector_type::k_sblock_size);
