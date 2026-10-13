@@ -821,8 +821,9 @@ public:
     }
     static hugepage_allocator & the_allocator()
     {
-        static hugepage_allocator a;
-        return a;
+        // Static vectors can release hugepage allocations during shutdown.
+        static hugepage_allocator * const a = new hugepage_allocator;
+        return *a;
     }
 };
 #endif
