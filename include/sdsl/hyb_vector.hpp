@@ -425,6 +425,14 @@ public:
     }
 
 private:
+    template <typename T>
+    static T read_unaligned(uint8_t const * data)
+    {
+        T value;
+        std::memcpy(&value, data, sizeof(value));
+        return value;
+    }
+
     // Access uses position + 1, rank a prefix length, and select an occurrence rank.
     // Access/rank report bits/ones; t_b chooses the bit only for select.
     enum class block_query
@@ -437,19 +445,12 @@ private:
     template <block_query t_query, uint8_t t_b>
     static uint32_t query_plain(uint8_t const * data, uint32_t i)
     {
-        // Plain words are packed without an alignment guarantee.
-        auto word_at = [&](uint32_t word)
-        {
-            uint64_t value;
-            std::memcpy(&value, data + 8 * word, sizeof(value));
-            return value;
-        };
         if constexpr (t_query == block_query::access)
-            return (word_at((i - 1) / 64) >> ((i - 1) % 64)) & 1;
+            return (read_unaligned<uint64_t>(data + 8 * ((i - 1) / 64)) >> ((i - 1) % 64)) & 1;
         uint32_t accumulated = 0;
         for (uint32_t word = 0; word < k_block_bytes / 8; ++word)
         {
-            uint64_t value = word_at(word);
+            uint64_t value = read_unaligned<uint64_t>(data + 8 * word);
             if constexpr (t_query == block_query::select)
             {
                 if constexpr (t_b == 0)
@@ -581,16 +582,15 @@ private:
         auto sblock = block_id / k_sblock_rate;
         auto hblock = block_id / k_hblock_rate;
         auto header = m_sblock_header.begin() + sblock * k_sblock_header_size;
-        uint32_t packed, local_rank;
-        std::memcpy(&packed, header, sizeof(packed));
-        std::memcpy(&local_rank, header + 4, sizeof(local_rank));
+        auto packed = read_unaligned<uint32_t>(header);
+        auto local_rank = read_unaligned<uint32_t>(header + 4);
         block_location result{m_hblock_header[2 * hblock] + (packed & 0x3fffffff),
                               m_hblock_header[2 * hblock + 1] + local_rank, 0};
         header += 8;
         auto preceding = block_id % k_sblock_rate;
         if (packed & 0x80000000) // Every block in this superblock has the same bit.
         {
-            std::memcpy(&result.descriptor, header, sizeof(result.descriptor));
+            result.descriptor = read_unaligned<uint16_t>(header);
             result.ones_before += (result.descriptor & 0x1ff) * preceding;
             return result;
         }
@@ -599,9 +599,8 @@ private:
         {
             // Every superblock allocates all sixteen descriptors, including the final one.
             using lanes_type = uint16_t __attribute__((vector_size(16)));
-            lanes_type lo, hi;
-            std::memcpy(&lo, header, sizeof(lo));
-            std::memcpy(&hi, header + sizeof(lo), sizeof(hi));
+            auto lo = read_unaligned<lanes_type>(header);
+            auto hi = read_unaligned<lanes_type>(header + sizeof(lo));
             lanes_type const indices = {0, 1, 2, 3, 4, 5, 6, 7};
             lo &= static_cast<lanes_type>(indices < static_cast<uint16_t>(preceding));
             hi &= static_cast<lanes_type>(indices + 8 < static_cast<uint16_t>(preceding));
@@ -621,13 +620,12 @@ private:
         {
             for (size_type j = 0; j < preceding; ++j)
             {
-                uint16_t descriptor;
-                std::memcpy(&descriptor, header + 2 * j, sizeof(descriptor));
+                auto descriptor = read_unaligned<uint16_t>(header + 2 * j);
                 result.offset += descriptor >> 10;
                 result.ones_before += descriptor & 0x1ff;
             }
         }
-        std::memcpy(&result.descriptor, header + 2 * preceding, sizeof(result.descriptor));
+        result.descriptor = read_unaligned<uint16_t>(header + 2 * preceding);
         return result;
     }
 
@@ -924,8 +922,7 @@ public:
         };
         auto population = [&](size_type sblock)
         {
-            uint32_t local;
-            std::memcpy(&local, header(sblock) + 4, sizeof(local));
+            auto local = m_v->template read_unaligned<uint32_t>(header(sblock) + 4);
             auto hblock = sblock * k_sblock_rate / bit_vector_type::k_hblock_rate;
             return rank_result<t_b>::adapt(m_v->m_hblock_header[2 * hblock + 1] + local,
                                            sblock * bit_vector_type::k_sblock_size);
@@ -938,8 +935,7 @@ public:
         i -= population(begin);
         size_type base = begin * bit_vector_type::k_sblock_size;
         auto header_ptr = header(begin);
-        uint32_t packed;
-        std::memcpy(&packed, header_ptr, sizeof(packed));
+        auto packed = m_v->template read_unaligned<uint32_t>(header_ptr);
         if (packed & 0x80000000) // Uniform superblock.
             return base + i - 1;
 
@@ -950,7 +946,7 @@ public:
         uint32_t count;
         for (;; header_ptr += 2, base += bit_vector_type::k_block_size)
         {
-            std::memcpy(&descriptor, header_ptr, sizeof(descriptor));
+            descriptor = m_v->template read_unaligned<uint16_t>(header_ptr);
             count = rank_result<t_b>::adapt(descriptor & 0x1ff, bit_vector_type::k_block_size);
             if (i <= count)
                 break;
