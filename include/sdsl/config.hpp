@@ -8,11 +8,7 @@
 #include <stdint.h>
 #include <string>
 
-#ifndef MSVC_COMPILER
-#    define SDSL_UNUSED __attribute__((unused))
-#else
-#    define SDSL_UNUSED
-#endif
+#define SDSL_UNUSED [[maybe_unused]]
 
 namespace sdsl
 {

@@ -16,7 +16,7 @@ namespace sdsl
 
 #if defined(__GNUC__)
 
-typedef unsigned int uint128_t __attribute__((mode(TI)));
+using uint128_t [[gnu::mode(TI)]] = unsigned int;
 
 #else
 
