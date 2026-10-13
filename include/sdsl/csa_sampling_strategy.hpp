@@ -96,7 +96,7 @@ public:
      * \par Time complexity
      *      Linear in the size of the suffix array.
      */
-    _sa_order_sampling(cache_config const & cconfig, SDSL_UNUSED t_csa const * csa = nullptr)
+    _sa_order_sampling(cache_config const & cconfig, [[maybe_unused]] t_csa const * csa = nullptr)
     {
         int_vector_buffer<> sa_buf(cache_file_name(conf::KEY_SA, cconfig));
         size_type n = sa_buf.size();
@@ -171,7 +171,7 @@ public:
      * \par Time complexity
      *      Linear in the size of the suffix array.
      */
-    _text_order_sampling(cache_config const & cconfig, SDSL_UNUSED t_csa const * csa = nullptr)
+    _text_order_sampling(cache_config const & cconfig, [[maybe_unused]] t_csa const * csa = nullptr)
     {
         int_vector_buffer<> sa_buf(cache_file_name(conf::KEY_SA, cconfig));
         size_type n = sa_buf.size();
@@ -327,7 +327,7 @@ public:
      * \par Time complexity
      *      Linear in the size of the suffix array.
      */
-    _fuzzy_sa_sampling(cache_config & cconfig, SDSL_UNUSED t_csa const * csa = nullptr)
+    _fuzzy_sa_sampling(cache_config & cconfig, [[maybe_unused]] t_csa const * csa = nullptr)
     {
         {
             // (2) check, if the suffix array is cached
@@ -597,7 +597,7 @@ public:
      * \par Time complexity
      *      Linear in the size of the suffix array.
      */
-    _bwt_sampling(cache_config const & cconfig, SDSL_UNUSED t_csa const * csa = nullptr)
+    _bwt_sampling(cache_config const & cconfig, [[maybe_unused]] t_csa const * csa = nullptr)
     {
         int_vector_buffer<> sa_buf(cache_file_name(conf::KEY_SA, cconfig));
         int_vector_buffer<t_csa::alphabet_type::int_width> bwt_buf(
@@ -756,7 +756,7 @@ public:
      * \par Time complexity
      *      Linear in the size of the suffix array.
      */
-    _isa_sampling(cache_config const & cconfig, SDSL_UNUSED sa_type const * sa_sample = nullptr)
+    _isa_sampling(cache_config const & cconfig, [[maybe_unused]] sa_type const * sa_sample = nullptr)
     {
         int_vector_buffer<> sa_buf(cache_file_name(conf::KEY_SA, cconfig));
         size_type n = sa_buf.size();
@@ -799,7 +799,7 @@ public:
     }
 
     //! Load sampling from disk
-    void load(std::istream & in, SDSL_UNUSED sa_type const * sa_sample = nullptr)
+    void load(std::istream & in, [[maybe_unused]] sa_type const * sa_sample = nullptr)
     {
         base_type::load(in);
     }
@@ -816,7 +816,7 @@ public:
         base_type::CEREAL_LOAD_FUNCTION_NAME(ar);
     }
 
-    void set_vector(SDSL_UNUSED sa_type const *)
+    void set_vector([[maybe_unused]] sa_type const *)
     {}
 };
 
@@ -863,7 +863,7 @@ public:
      * \par Time complexity
      *      Linear in the size of the suffix array.
      */
-    _text_order_isa_sampling_support(SDSL_UNUSED cache_config const & cconfig,
+    _text_order_isa_sampling_support([[maybe_unused]] cache_config const & cconfig,
                                      typename std::enable_if<sa_type::text_order, sa_type *>::type const sa_sample)
     {
         // and initialize the select support on bitvector marked
@@ -1026,7 +1026,8 @@ public:
      * \par Time complexity
      *      Linear in the size of the suffix array.
      */
-    _fuzzy_isa_sampling_support(SDSL_UNUSED cache_config const & cconfig, sa_type const * sa_sample) : m_sa_p(sa_sample)
+    _fuzzy_isa_sampling_support([[maybe_unused]] cache_config const & cconfig, sa_type const * sa_sample) :
+        m_sa_p(sa_sample)
     {
         util::init_support(m_select_marked_sa, &(sa_sample->marked_sa));
     }
