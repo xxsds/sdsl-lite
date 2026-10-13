@@ -480,7 +480,7 @@ private:
     }
 
     template <block_query t_query, query_bit t_bit>
-    static uint32_t query_minority(std::span<uint8_t const> positions, uint32_t minority_bit, uint32_t target)
+    static uint32_t query_minority(std::span<uint8_t const> positions, bool minority_bit, uint32_t target)
     {
         // Minority positions are explicit; majority select skips these holes.
         if constexpr (t_query == block_query::select)
