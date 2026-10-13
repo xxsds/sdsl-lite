@@ -566,40 +566,78 @@ private:
         return query_runs<t_query, t_b>(data, encoding_size, ones, special_bit, i);
     }
 
+    struct block_location
+    {
+        size_type offset;
+        size_type ones_before;
+        uint16_t descriptor;
+    };
+
+#if __has_cpp_attribute(gnu::always_inline)
+    [[gnu::always_inline]] // Specialize the locator for the fields its caller uses.
+#endif
+    block_location locate_block(size_type block_id) const
+    {
+        auto sblock = block_id / k_sblock_rate;
+        auto hblock = block_id / k_hblock_rate;
+        auto header = m_sblock_header.begin() + sblock * k_sblock_header_size;
+        uint32_t packed, local_rank;
+        std::memcpy(&packed, header, sizeof(packed));
+        std::memcpy(&local_rank, header + 4, sizeof(local_rank));
+        block_location result{m_hblock_header[2 * hblock] + (packed & 0x3fffffff),
+                              m_hblock_header[2 * hblock + 1] + local_rank, 0};
+        header += 8;
+        auto preceding = block_id % k_sblock_rate;
+        if (packed & 0x80000000) // Every block in this superblock has the same bit.
+        {
+            std::memcpy(&result.descriptor, header, sizeof(result.descriptor));
+            result.ones_before += (result.descriptor & 0x1ff) * preceding;
+            return result;
+        }
+#if defined(__GNUC__) || defined(__clang__)
+        if constexpr (k_sblock_rate == 16)
+        {
+            // Every superblock allocates all sixteen descriptors, including the final one.
+            using lanes_type = uint16_t __attribute__((vector_size(16)));
+            lanes_type lo, hi;
+            std::memcpy(&lo, header, sizeof(lo));
+            std::memcpy(&hi, header + sizeof(lo), sizeof(hi));
+            lanes_type const indices = {0, 1, 2, 3, 4, 5, 6, 7};
+            lo &= static_cast<lanes_type>(indices < static_cast<uint16_t>(preceding));
+            hi &= static_cast<lanes_type>(indices + 8 < static_cast<uint16_t>(preceding));
+            auto sizes = (lo >> 10) + (hi >> 10);
+            auto populations = (lo & 0x1ff) + (hi & 0x1ff);
+            uint32_t bytes = 0, ones = 0;
+            for (uint32_t j = 0; j < 8; ++j)
+            {
+                bytes += sizes[j];
+                ones += populations[j];
+            }
+            result.offset += bytes;
+            result.ones_before += ones;
+        }
+        else
+#endif
+        {
+            for (size_type j = 0; j < preceding; ++j)
+            {
+                uint16_t descriptor;
+                std::memcpy(&descriptor, header + 2 * j, sizeof(descriptor));
+                result.offset += descriptor >> 10;
+                result.ones_before += descriptor & 0x1ff;
+            }
+        }
+        std::memcpy(&result.descriptor, header + 2 * preceding, sizeof(result.descriptor));
+        return result;
+    }
+
     //! Given i returns bv[i - 1].
     value_type access0(size_type i) const
     {
         assert(i > 0);
         assert(i <= m_size);
-
-        size_type block_id = (i - 1) / k_block_size;
-        size_type sblock_id = block_id / k_sblock_rate;
-        size_type hblock_id = block_id / k_hblock_rate;
-
-        size_type trunk_base = m_hblock_header[2 * hblock_id];
-
-        uint32_t local_i = i - block_id * k_block_size;
-
-        // Read superblock header.
-        uint8_t const * header_ptr8 = ((uint8_t const *)m_sblock_header.data()) + (sblock_id * k_sblock_header_size);
-        uint32_t * header_ptr32 = (uint32_t *)header_ptr8;
-        size_type trunk_ptr = trunk_base + ((*header_ptr32) & 0x3fffffff);
-        header_ptr8 += 8;
-
-        uint16_t * header_ptr16 = (uint16_t *)header_ptr8;
-
-        // Uniform superblock optimization.
-        if ((*header_ptr32) & 0x80000000)
-            return (value_type)((*(header_ptr8 + 1)) & 0x01);
-
-        // Fast forward through preceding blocks in the superblock.
-        for (size_type j = sblock_id * k_sblock_rate; j != block_id; ++j)
-        {
-            trunk_ptr += ((*header_ptr16) >> 10); // Update trunk pointer.
-            ++header_ptr16;
-        }
-
-        return query_block<block_query::access>(trunk_ptr, *header_ptr16, local_i);
+        auto location = locate_block((i - 1) / k_block_size);
+        return query_block<block_query::access>(location.offset, location.descriptor, (i - 1) % k_block_size + 1);
     }
 
 public:
@@ -768,46 +806,10 @@ public:
         if (i <= 0)
             return 0;
 
-        size_type block_id = (i - 1) / bit_vector_type::k_block_size;
-        size_type sblock_id = block_id / k_sblock_rate;
-        size_type hblock_id = block_id / bit_vector_type::k_hblock_rate;
-
-        size_type trunk_base = m_v->m_hblock_header[2 * hblock_id];
-        size_type hblock_rank = m_v->m_hblock_header[2 * hblock_id + 1];
-
-        uint32_t local_i = i - block_id * bit_vector_type::k_block_size;
-
-        // Read superblock header.
-        uint8_t const * header_ptr8 =
-            ((uint8_t const *)(m_v->m_sblock_header.data())) + (sblock_id * bit_vector_type::k_sblock_header_size);
-        uint32_t * header_ptr32 = (uint32_t *)header_ptr8;
-        size_type trunk_ptr = trunk_base + ((*header_ptr32) & 0x3fffffff);
-        size_type sblock_rank = *(header_ptr32 + 1);
-        header_ptr8 += 8;
-
-        uint16_t * header_ptr16 = (uint16_t *)header_ptr8;
-
-        // Uniform superblock optimization.
-        if ((*header_ptr32) & 0x80000000)
-        {
-            return rank_result<t_b>::adapt(hblock_rank + sblock_rank
-                                               + ((*(header_ptr8 + 1)) & 0x01)
-                                                     * (i - sblock_id * bit_vector_type::k_sblock_size),
-                                           i);
-        }
-
-        // Fast forward through preceding blocks in the superblock.
-        size_type block_rank = 0;
-        for (size_type j = sblock_id * k_sblock_rate; j != block_id; ++j)
-        {
-            trunk_ptr += ((*header_ptr16) >> 10);    // Update trunk pointer.
-            block_rank += ((*header_ptr16) & 0x1ff); // Add 1s in the block.
-            ++header_ptr16;
-        }
-
-        uint32_t local_rank =
-            m_v->template query_block<bit_vector_type::block_query::rank>(trunk_ptr, *header_ptr16, local_i);
-        return rank_result<t_b>::adapt(hblock_rank + sblock_rank + block_rank + local_rank, i);
+        auto location = m_v->locate_block((i - 1) / bit_vector_type::k_block_size);
+        auto local_rank = m_v->template query_block<bit_vector_type::block_query::rank>(
+            location.offset, location.descriptor, (i - 1) % bit_vector_type::k_block_size + 1);
+        return rank_result<t_b>::adapt(location.ones_before + local_rank, i);
     }
 
     //! Shorthand for rank(i)
@@ -906,8 +908,11 @@ public:
     size_type select(size_type i) const
     {
         assert(i > 0);
-        // Exclude queries into the zero padding of the final block.
-        auto total_ones = rank_support_hyb<1, k_sblock_rate>(m_v)(size());
+        if (!size())
+            return 0;
+        // The final block is zero-padded, so its descriptor gives its full population.
+        auto last = m_v->locate_block((size() - 1) / bit_vector_type::k_block_size);
+        auto total_ones = last.ones_before + (last.descriptor & 0x1ff);
         if (i > rank_result<t_b>::adapt(total_ones, size()))
             return size();
 
