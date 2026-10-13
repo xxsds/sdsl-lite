@@ -273,7 +273,7 @@ uint64_t comma<t_width>::decode_prefix_sum(uint64_t const * data, size_type cons
 template <uint8_t t_width>
 uint64_t comma<t_width>::decode_prefix_sum(uint64_t const * data,
                                            size_type const start_idx,
-                                           SDSL_UNUSED const size_type end_idx,
+                                           [[maybe_unused]] const size_type end_idx,
                                            size_type n)
 {
     // end index does not change anything here...

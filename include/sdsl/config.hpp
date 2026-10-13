@@ -8,8 +8,6 @@
 #include <stdint.h>
 #include <string>
 
-#define SDSL_UNUSED [[maybe_unused]]
-
 namespace sdsl
 {
 
