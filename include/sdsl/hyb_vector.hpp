@@ -437,17 +437,18 @@ private:
     enum class block_query
     {
         access,
-        rank1,
-        select0,
-        select1
+        rank,
+        select
     };
 
-    static constexpr bool is_select(block_query query)
+    enum class query_bit
     {
-        return query == block_query::select0 || query == block_query::select1;
-    }
+        none,
+        zero,
+        one
+    };
 
-    template <block_query t_query>
+    template <block_query t_query, query_bit t_bit>
     static uint32_t query_plain(uint8_t const * data, uint32_t target)
     {
         if constexpr (t_query == block_query::access)
@@ -456,9 +457,9 @@ private:
         for (uint32_t word = 0; word < k_block_bytes / 8; ++word)
         {
             uint64_t value = read_unaligned<uint64_t>(data + 8 * word);
-            if constexpr (is_select(t_query))
+            if constexpr (t_query == block_query::select)
             {
-                if constexpr (t_query == block_query::select0)
+                if constexpr (t_bit == query_bit::zero)
                     value = ~value;
                 auto count = bits::cnt(value);
                 if (target <= count)
@@ -477,12 +478,12 @@ private:
         return 0;
     }
 
-    template <block_query t_query>
+    template <block_query t_query, query_bit t_bit>
     static uint32_t query_minority(uint8_t const * positions, uint32_t num_positions, uint32_t minority_bit, uint32_t target)
     {
         // Minority positions are explicit; majority select skips these holes.
-        if constexpr (is_select(t_query))
-            if ((t_query == block_query::select1) == minority_bit)
+        if constexpr (t_query == block_query::select)
+            if ((t_bit == query_bit::one) == minority_bit)
                 return positions[target - 1];
         uint32_t seen = 0, limit = target;
         do
@@ -490,11 +491,11 @@ private:
             if (t_query == block_query::access ? positions[seen] > limit : positions[seen] >= limit)
                 break;
             ++seen;
-            if constexpr (is_select(t_query))
+            if constexpr (t_query == block_query::select)
                 ++limit;
         }
         while (seen < num_positions);
-        if constexpr (is_select(t_query))
+        if constexpr (t_query == block_query::select)
             return limit - 1;
         else if constexpr (t_query == block_query::access)
             return (seen && positions[seen - 1] == target) ? minority_bit : !minority_bit;
@@ -502,11 +503,11 @@ private:
             return minority_bit ? seen : target - seen;
     }
 
-    template <block_query t_query>
+    template <block_query t_query, query_bit t_bit>
     static uint32_t query_runs(uint8_t const * ends, uint32_t num_ends, uint32_t ones, uint32_t first_bit, uint32_t target)
     {
         // Access/rank follow the first bit's runs; select follows the requested bit.
-        uint32_t matching_bit = is_select(t_query) ? t_query == block_query::select1 : first_bit;
+        uint32_t matching_bit = t_query == block_query::select ? t_bit == query_bit::one : first_bit;
         uint32_t population = matching_bit ? ones : k_block_size - ones;
         uint32_t matched_before = 0; // Matching-bit population before the current run.
         uint32_t start = 0, end = 0;
@@ -518,7 +519,7 @@ private:
         {
             start = run ? ends[run - 1] + 1 : 0;
             end = ends[run] + 1;
-            uint32_t limit = is_select(t_query) ? matched_before + end - start : end;
+            uint32_t limit = t_query == block_query::select ? matched_before + end - start : end;
             if (t_query == block_query::access ? target < limit : target <= limit)
             {
                 if constexpr (t_query == block_query::access)
@@ -535,7 +536,7 @@ private:
             end = start + length;
         }
 
-        if constexpr (is_select(t_query))
+        if constexpr (t_query == block_query::select)
             return start + target - matched_before - 1;
         if constexpr (t_query == block_query::access)
             return start <= target && target < end ? matching_bit : !matching_bit;
@@ -543,12 +544,14 @@ private:
         return matching_bit ? prefix : target - prefix;
     }
 
-    template <block_query t_query>
+    template <block_query t_query, query_bit t_bit = query_bit::none>
 #if __has_cpp_attribute(gnu::always_inline)
     [[gnu::always_inline]] // Keep block decoding inside these hot query paths.
 #endif
     uint32_t query_block(size_type offset, uint16_t descriptor, uint32_t target) const
     {
+        static_assert((t_query == block_query::select) == (t_bit != query_bit::none),
+                      "Specify a bit exactly when selecting");
         uint32_t encoding_size = descriptor >> 10;
         uint32_t ones = descriptor & 0x1ff;
         uint32_t zeros = k_block_size - ones;
@@ -558,8 +561,8 @@ private:
         if (!encoding_size)
         {
             uint32_t first_run_length = special_bit ? ones : zeros;
-            if constexpr (is_select(t_query))
-                return ((t_query == block_query::select1) == special_bit ? 0 : first_run_length) + target - 1;
+            if constexpr (t_query == block_query::select)
+                return ((t_bit == query_bit::one) == special_bit ? 0 : first_run_length) + target - 1;
             else if constexpr (t_query == block_query::access)
                 return (target >= first_run_length) ^ special_bit;
             else
@@ -568,10 +571,10 @@ private:
 
         auto data = m_trunk.begin() + offset;
         if (encoding_size >= k_block_bytes)
-            return query_plain<t_query>(data, target);
+            return query_plain<t_query, t_bit>(data, target);
         if (encoding_size == std::min(ones, zeros))
-            return query_minority<t_query>(data, encoding_size, special_bit, target);
-        return query_runs<t_query>(data, encoding_size, ones, special_bit, target);
+            return query_minority<t_query, t_bit>(data, encoding_size, special_bit, target);
+        return query_runs<t_query, t_bit>(data, encoding_size, ones, special_bit, target);
     }
 
     struct block_location
@@ -805,7 +808,7 @@ public:
             return 0;
 
         auto location = m_v->locate_block((i - 1) / bit_vector_type::k_block_size);
-        auto local_rank = m_v->template query_block<bit_vector_type::block_query::rank1>(
+        auto local_rank = m_v->template query_block<bit_vector_type::block_query::rank>(
             location.offset, location.descriptor, (i - 1) % bit_vector_type::k_block_size + 1);
         return rank_result<t_b>::adapt(location.ones_before + local_rank, i);
     }
@@ -954,8 +957,8 @@ public:
             offset += descriptor >> 10;
         }
 
-        constexpr auto query = t_b ? bit_vector_type::block_query::select1 : bit_vector_type::block_query::select0;
-        return base + m_v->template query_block<query>(offset, descriptor, i);
+        constexpr auto bit = t_b ? bit_vector_type::query_bit::one : bit_vector_type::query_bit::zero;
+        return base + m_v->template query_block<bit_vector_type::block_query::select, bit>(offset, descriptor, i);
     }
 
     //! Shorthand for select(i)
