@@ -453,11 +453,11 @@ private:
     static uint32_t query_plain(std::span<uint8_t const, k_block_bytes> data, uint32_t target)
     {
         if constexpr (t_query == block_query::access)
-            return (read_unaligned<uint64_t>(data.data() + 8 * (target / 64)) >> (target % 64)) & 1;
+            return (read_unaligned<uint64_t>(&data[8 * (target / 64)]) >> (target % 64)) & 1;
         uint32_t accumulated = 0;
         for (uint32_t word = 0; word < k_block_bytes / 8; ++word)
         {
-            uint64_t value = read_unaligned<uint64_t>(data.data() + 8 * word);
+            uint64_t value = read_unaligned<uint64_t>(&data[8 * word]);
             if constexpr (t_query == block_query::select)
             {
                 if constexpr (t_bit == query_bit::zero)
