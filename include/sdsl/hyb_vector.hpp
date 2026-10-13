@@ -39,6 +39,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
+#include <span>
 #include <stdint.h>
 #include <stdio.h>
 #include <string>
@@ -89,7 +90,7 @@ public:
 
 private:
     static uint32_t const k_block_size;
-    static uint32_t const k_block_bytes;
+    static constexpr uint32_t k_block_bytes = 32;
     static uint32_t const k_sblock_header_size;
     static uint32_t const k_sblock_size;
     static uint32_t const k_hblock_rate;
@@ -449,14 +450,14 @@ private:
     };
 
     template <block_query t_query, query_bit t_bit>
-    static uint32_t query_plain(uint8_t const * data, uint32_t target)
+    static uint32_t query_plain(std::span<uint8_t const, k_block_bytes> data, uint32_t target)
     {
         if constexpr (t_query == block_query::access)
-            return (read_unaligned<uint64_t>(data + 8 * (target / 64)) >> (target % 64)) & 1;
+            return (read_unaligned<uint64_t>(data.data() + 8 * (target / 64)) >> (target % 64)) & 1;
         uint32_t accumulated = 0;
         for (uint32_t word = 0; word < k_block_bytes / 8; ++word)
         {
-            uint64_t value = read_unaligned<uint64_t>(data + 8 * word);
+            uint64_t value = read_unaligned<uint64_t>(data.data() + 8 * word);
             if constexpr (t_query == block_query::select)
             {
                 if constexpr (t_bit == query_bit::zero)
@@ -479,12 +480,13 @@ private:
     }
 
     template <block_query t_query, query_bit t_bit>
-    static uint32_t query_minority(uint8_t const * positions, uint32_t num_positions, uint32_t minority_bit, uint32_t target)
+    static uint32_t query_minority(std::span<uint8_t const> positions, uint32_t minority_bit, uint32_t target)
     {
         // Minority positions are explicit; majority select skips these holes.
         if constexpr (t_query == block_query::select)
             if ((t_bit == query_bit::one) == minority_bit)
                 return positions[target - 1];
+        uint32_t num_positions = positions.size();
         uint32_t seen = 0, limit = target;
         do
         {
@@ -504,7 +506,7 @@ private:
     }
 
     template <block_query t_query, query_bit t_bit>
-    static uint32_t query_runs(uint8_t const * ends, uint32_t num_ends, uint32_t ones, uint32_t first_bit, uint32_t target)
+    static uint32_t query_runs(std::span<uint8_t const> ends, uint32_t ones, uint32_t first_bit, uint32_t target)
     {
         // Access/rank follow the first bit's runs; select follows the requested bit.
         uint32_t matching_bit = t_query == block_query::select ? t_bit == query_bit::one : first_bit;
@@ -514,7 +516,7 @@ private:
         uint32_t run = first_bit != matching_bit;
         // Stored endpoints are inclusive; decode each run as [start, end).
         // Run encoding stores 1..31 ends; keep this bound visible to the optimizer.
-        num_ends = std::min(num_ends, k_block_bytes);
+        uint32_t num_ends = std::min<uint32_t>(ends.size(), k_block_bytes);
         for (; run < num_ends; run += 2)
         {
             start = run ? ends[run - 1] + 1 : 0;
@@ -571,10 +573,10 @@ private:
 
         auto data = m_trunk.begin() + offset;
         if (encoding_size >= k_block_bytes)
-            return query_plain<t_query, t_bit>(data, target);
+            return query_plain<t_query, t_bit>(std::span<uint8_t const, k_block_bytes>(data, k_block_bytes), target);
         if (encoding_size == std::min(ones, zeros))
-            return query_minority<t_query, t_bit>(data, encoding_size, special_bit, target);
-        return query_runs<t_query, t_bit>(data, encoding_size, ones, special_bit, target);
+            return query_minority<t_query, t_bit>({data, encoding_size}, special_bit, target);
+        return query_runs<t_query, t_bit>({data, encoding_size}, ones, special_bit, target);
     }
 
     struct block_location
@@ -737,8 +739,6 @@ public:
 
 template <uint32_t k_sblock_rate>
 uint32_t const hyb_vector<k_sblock_rate>::k_block_size = 256;
-template <uint32_t k_sblock_rate>
-uint32_t const hyb_vector<k_sblock_rate>::k_block_bytes = 32;
 template <uint32_t k_sblock_rate>
 uint32_t const hyb_vector<k_sblock_rate>::k_sblock_header_size = 8 + 2 * k_sblock_rate;
 template <uint32_t k_sblock_rate>
