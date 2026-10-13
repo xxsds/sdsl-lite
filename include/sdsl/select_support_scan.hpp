@@ -64,7 +64,7 @@ public:
     {
         return serialize_empty_object(out, v, name, this);
     }
-    void load(std::istream &, [[maybe_unused]] bit_vector const * v = nullptr)
+    void load(std::istream &, SDSL_UNUSED bit_vector const * v = nullptr)
     {
         set_vector(v);
     }

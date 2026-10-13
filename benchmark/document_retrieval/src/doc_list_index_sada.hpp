@@ -402,7 +402,7 @@ private:
 
     void construct_doc_isa(std::string const & text_file,
                            size_type const doc_cnt,
-                           [[maybe_unused]] const size_type doc_max_len,
+                           SDSL_UNUSED const size_type doc_max_len,
                            vector<int_vector<>> & doc_isa)
     {
         doc_isa.resize(doc_cnt);

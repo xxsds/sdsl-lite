@@ -16,8 +16,7 @@ namespace sdsl
 
 #if defined(__GNUC__)
 
-// Clang accepts mode(TI) on some 32-bit targets that reject __int128.
-using uint128_t [[gnu::mode(TI)]] = unsigned int;
+typedef unsigned int uint128_t __attribute__((mode(TI)));
 
 #else
 

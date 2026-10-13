@@ -623,7 +623,7 @@ inline uint64_t fibonacci<T>::decode_prefix_sum(uint64_t const * d, size_type co
 template <typename T>
 inline uint64_t fibonacci<T>::decode_prefix_sum(uint64_t const * d,
                                                 size_type const start_idx,
-                                                [[maybe_unused]] const size_type end_idx,
+                                                SDSL_UNUSED const size_type end_idx,
                                                 size_type n)
 {
     return decode_prefix_sum(d, start_idx, n);

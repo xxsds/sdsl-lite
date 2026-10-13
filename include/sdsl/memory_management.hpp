@@ -615,7 +615,7 @@ private:
     }
 
 public:
-    void init([[maybe_unused]] size_t size_in_bytes = 0)
+    void init(SDSL_UNUSED size_t size_in_bytes = 0)
     {
 #    ifdef MAP_HUGETLB
         if (size_in_bytes == 0)

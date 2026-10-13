@@ -355,7 +355,7 @@ inline std::string create_js_body(std::string const & jsonsize)
 
 template <>
 inline void
-write_structure_tree<HTML_FORMAT>(structure_tree_node const * v, std::ostream & out, [[maybe_unused]] size_t level)
+write_structure_tree<HTML_FORMAT>(structure_tree_node const * v, std::ostream & out, SDSL_UNUSED size_t level)
 {
     std::stringstream json_data;
     write_structure_tree<JSON_FORMAT>(v, json_data);

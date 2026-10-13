@@ -217,7 +217,7 @@ private:
      */
     // possible optimization: calculate also position of nsv,
     // i.e. next ( following position cipos
-    inline size_type nsv([[maybe_unused]] size_type i, size_type ipos) const
+    inline size_type nsv(SDSL_UNUSED size_type i, size_type ipos) const
     {
         size_type cipos = m_bp_support.find_close(ipos);
         size_type result = m_bp_support.rank(cipos);
@@ -234,7 +234,7 @@ private:
      *    can be implemented in \f$\Order{1}\f$ with rank and select.
      */
     inline size_type
-    psv([[maybe_unused]] size_type i, size_type ipos, size_type cipos, size_type & psvpos, size_type & psvcpos) const
+    psv(SDSL_UNUSED size_type i, size_type ipos, size_type cipos, size_type & psvpos, size_type & psvcpos) const
     {
         // if lcp[i]==0 => psv is the 0-th index by definition
         if ((cipos + (size_type)m_csa.sigma) >= m_bp.size())
