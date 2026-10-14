@@ -485,24 +485,20 @@ private:
     {
         if constexpr (t_query == block_query::access)
             return (std::ranges::find(positions, target) == positions.end()) ^ minority_bit;
-        else
-        {
+        if constexpr (t_query == block_query::select)
+            if (t_bit == minority_bit)
+                return positions[target - 1];
+        auto indices = std::views::iota(uint8_t{0}, uint8_t(positions.size()));
+        auto beyond = [&](uint8_t j) {
             if constexpr (t_query == block_query::select)
-                if (t_bit == minority_bit)
-                    return positions[target - 1];
-            auto indices = std::views::iota(uint8_t{0}, uint8_t(positions.size()));
-            auto beyond = [&](uint8_t j) {
-                if constexpr (t_query == block_query::select)
-                    return positions[j] >= target + j; // Skip the j preceding minority positions.
-                else if constexpr (t_query == block_query::rank)
-                    return positions[j] >= target;
-            };
-            uint32_t seen = std::ranges::find_if(indices, beyond) - indices.begin();
-            if constexpr (t_query == block_query::select)
-                return target + seen - 1;
-            else if constexpr (t_query == block_query::rank)
-                return minority_bit ? seen : target - seen;
-        }
+                return positions[j] >= target + j; // Skip the j preceding minority positions.
+            return positions[j] >= target;
+        };
+        uint32_t seen = std::ranges::find_if(indices, beyond) - indices.begin();
+        if constexpr (t_query == block_query::select)
+            return target + seen - 1;
+        else if constexpr (t_query == block_query::rank)
+            return minority_bit ? seen : target - seen;
     }
 
     template <block_query t_query, query_bit t_bit>
