@@ -1,5 +1,6 @@
 #include <array>
 #include <cstring>
+#include <span>
 #include <string>
 
 #include <sdsl/bit_vector_il.hpp>
@@ -87,7 +88,7 @@ typedef Types<select_support_mcl<>,
 
 TYPED_TEST_SUITE(select_support_test, Implementations, );
 
-TEST(plain_select_test, byte_and_word_storage)
+TEST(plain_query_test, byte_and_word_storage)
 {
     std::array<uint64_t, 4> words = {0, uint64_t{1} << 63, 0x5555555555555555ULL, ~uint64_t{0}};
     for (size_t offset = 0; offset < alignof(uint64_t); ++offset)
@@ -95,18 +96,22 @@ TEST(plain_select_test, byte_and_word_storage)
         SCOPED_TRACE(offset);
         std::array<uint8_t, sizeof(words) + alignof(uint64_t) - 1> bytes;
         std::memcpy(bytes.data() + offset, words.data(), sizeof(words));
+        auto byte_data = std::span<uint8_t const>(bytes.data() + offset, sizeof(words));
         uint64_t ones = 0, zeros = 0;
         for (uint64_t position = 0; position < 256; ++position)
         {
-            if ((words[position / 64] >> (position % 64)) & 1)
+            bool bit = (words[position / 64] >> (position % 64)) & 1;
+            ASSERT_EQ(bit, detail::access_in_words(std::span(words), position));
+            ASSERT_EQ(bit, detail::access_in_words(byte_data, position));
+            if (bit)
             {
-                ASSERT_EQ(position, detail::select_in_words<true>(words.data(), ++ones));
-                ASSERT_EQ(position, detail::select_in_words<true>(bytes.data() + offset, ones));
+                ASSERT_EQ(position, detail::select_in_words<1>(std::span(words), ++ones));
+                ASSERT_EQ(position, detail::select_in_words<1>(byte_data, ones));
             }
             else
             {
-                ASSERT_EQ(position, detail::select_in_words<false>(words.data(), ++zeros));
-                ASSERT_EQ(position, detail::select_in_words<false>(bytes.data() + offset, zeros));
+                ASSERT_EQ(position, detail::select_in_words<0>(std::span(words), ++zeros));
+                ASSERT_EQ(position, detail::select_in_words<0>(byte_data, zeros));
             }
         }
     }

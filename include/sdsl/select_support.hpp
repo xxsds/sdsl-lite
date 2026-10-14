@@ -12,12 +12,9 @@
  * This group contains data structures which support an sdsl::bit_vector with the select method.
  */
 
-#include <assert.h>
-#include <cstring>
 #include <iosfwd>
 #include <stdint.h>
 #include <string>
-#include <type_traits>
 
 #include <sdsl/bits.hpp>
 #include <sdsl/int_vector.hpp>
@@ -28,29 +25,6 @@
 namespace sdsl
 {
 class structure_tree_node;
-
-namespace detail
-{
-// Return the position of a one-based occurrence in consecutive 64-bit words.
-// The occurrence must exist. Byte storage may be unaligned.
-template <bool t_bit, typename T>
-inline uint64_t select_in_words(T const * data, uint64_t occurrence)
-{
-    static_assert(std::is_same_v<T, uint8_t> || std::is_same_v<T, uint64_t>);
-    assert(occurrence > 0);
-    for (size_t word = 0;; ++word)
-    {
-        uint64_t value;
-        std::memcpy(&value, data + word * (sizeof(value) / sizeof(T)), sizeof(value));
-        if constexpr (!t_bit)
-            value = ~value;
-        auto count = bits::cnt(value);
-        if (occurrence <= count)
-            return 64 * word + bits::sel(value, occurrence);
-        occurrence -= count;
-    }
-}
-} // namespace detail
 
 //! The base class of classes supporting select queries for a sdsl::bit_vector in constant time.
 /*! Abstract base class for classes supporting select queries.

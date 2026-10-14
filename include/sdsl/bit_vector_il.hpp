@@ -17,13 +17,13 @@
 #include <string>
 #include <type_traits>
 
+#include <sdsl/bit_vector_helper.hpp>
 #include <sdsl/bits.hpp>
 #include <sdsl/cereal.hpp>
 #include <sdsl/int_vector.hpp>
 #include <sdsl/io.hpp>
 #include <sdsl/iterators.hpp>
 #include <sdsl/sdsl_concepts.hpp>
-#include <sdsl/select_support.hpp>
 #include <sdsl/structure_tree.hpp>
 #include <sdsl/util.hpp>
 
@@ -181,7 +181,7 @@ public:
         assert(i < m_size);
         size_type bs = i >> m_block_shift;
         size_type block = bs + (i >> 6) + 1;
-        return ((m_data[block] >> (i & 63)) & 1ULL);
+        return detail::access_in_words(std::span<uint64_t const, 1>(m_data.data() + block, 1), i & 63);
     }
 
     //! Get the integer value of the binary string of length len starting at position idx.
@@ -485,7 +485,8 @@ private:
         uint64_t const * w = m_v->m_data.data() + ((rb - 1) << m_block_size_U64) + (rb - 1);
         i -= *w; // subtract the cumulative sum before the superblock
         ++w;     /* step into the data */
-        return res + detail::select_in_words<true>(w, i);
+        size_type words = (std::min<size_type>(t_bs, m_v->size() - res) + 63) / 64;
+        return res + detail::select_in_words<1>(std::span<uint64_t const>(w, words), i);
     }
 
     //! Returns the position of the i-th occurrence in the bit vector.
@@ -538,7 +539,8 @@ private:
         uint64_t const * w = m_v->m_data.data() + ((rb - 1) << m_block_size_U64) + (rb - 1);
         i = i - (res - *w); // substract the cumulative sum before the superblock
         ++w;                /* step into the data */
-        return res + detail::select_in_words<false>(w, i);
+        size_type words = (std::min<size_type>(t_bs, m_v->size() - res) + 63) / 64;
+        return res + detail::select_in_words<0>(std::span<uint64_t const>(w, words), i);
     }
 
 public:

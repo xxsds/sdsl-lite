@@ -45,12 +45,12 @@
 #include <stdio.h>
 #include <string>
 
+#include <sdsl/bit_vector_helper.hpp>
 #include <sdsl/bits.hpp>
 #include <sdsl/cereal.hpp>
 #include <sdsl/int_vector.hpp>
 #include <sdsl/io.hpp>
 #include <sdsl/iterators.hpp>
-#include <sdsl/select_support.hpp>
 #include <sdsl/structure_tree.hpp>
 #include <sdsl/util.hpp>
 
@@ -428,14 +428,6 @@ public:
     }
 
 private:
-    template <typename T>
-    static T read_unaligned(std::span<uint8_t const> data, size_type index = 0)
-    {
-        T value;
-        std::memcpy(&value, &data[sizeof(T) * index], sizeof(value));
-        return value;
-    }
-
     // Access uses a zero-based position, rank a prefix length, and select a zero-based occurrence index.
     enum class block_query
     {
@@ -444,16 +436,9 @@ private:
         select
     };
 
-    enum query_bit : uint8_t
-    {
-        zero = 0,
-        one = 1,
-        none = 2
-    };
-
     static bool access_plain(std::span<uint8_t const, k_block_bytes> data, uint8_t position)
     {
-        return read_unaligned<uint64_t>(data, position / 64) & (uint64_t{1} << (position % 64));
+        return detail::access_in_words(data, position);
     }
 
     static uint32_t rank_plain(std::span<uint8_t const, k_block_bytes> data, uint32_t prefix_length)
@@ -462,7 +447,7 @@ private:
         uint32_t accumulated = 0;
         for (uint32_t word = 0; word < k_block_bytes / 8; ++word)
         {
-            uint64_t value = read_unaligned<uint64_t>(data, word);
+            uint64_t value = detail::read_unaligned<uint64_t>(data, word);
             if (last_position < 64)
                 return accumulated + bits::cnt(value << (63 - last_position));
             accumulated += bits::cnt(value);
@@ -475,7 +460,7 @@ private:
     template <bool t_bit>
     static uint32_t select_plain(std::span<uint8_t const, k_block_bytes> data, uint8_t select_index)
     {
-        return detail::select_in_words<t_bit>(data.data(), select_index + 1);
+        return detail::select_in_words<t_bit>(data, select_index + 1);
     }
 
     static bool access_minority(std::span<uint8_t const> positions, bool minority_bit, uint8_t position)
@@ -565,7 +550,7 @@ private:
         return start + select_index - matched_before;
     }
 
-    template <block_query t_query, query_bit t_bit = query_bit::none>
+    template <block_query t_query, bool t_bit = 0>
 #if __has_cpp_attribute(gnu::always_inline)
     [[gnu::always_inline]] // Keep block decoding inside these hot query paths.
 #endif
@@ -573,10 +558,6 @@ private:
     {
         static_assert(t_query == block_query::access || t_query == block_query::rank || t_query == block_query::select,
                       "Unsupported hybrid block query");
-        static_assert(t_query == block_query::select
-                          ? t_bit == query_bit::zero || t_bit == query_bit::one
-                          : t_bit == query_bit::none,
-                      "Specify zero or one exactly when selecting");
         uint32_t encoding_size = descriptor >> 10;
         uint32_t ones = descriptor & 0x1ff;
         uint32_t zeros = k_block_size - ones;
@@ -641,15 +622,15 @@ private:
         auto sblock = block_id / k_sblock_rate;
         auto hblock = block_id / k_hblock_rate;
         auto header = superblock_header(sblock);
-        auto packed = read_unaligned<uint32_t>(header);
-        auto local_rank = read_unaligned<uint32_t>(header, 1);
+        auto packed = detail::read_unaligned<uint32_t>(header);
+        auto local_rank = detail::read_unaligned<uint32_t>(header, 1);
         block_location result{m_hblock_header[2 * hblock] + (packed & 0x3fffffff),
                               m_hblock_header[2 * hblock + 1] + local_rank, 0};
         header = header.subspan(8);
         auto preceding = block_id % k_sblock_rate;
         if (packed & 0x80000000) // Every block in this superblock has the same bit.
         {
-            result.descriptor = read_unaligned<uint16_t>(header);
+            result.descriptor = detail::read_unaligned<uint16_t>(header);
             result.ones_before += (result.descriptor & 0x1ff) * preceding;
             return result;
         }
@@ -658,8 +639,8 @@ private:
         {
             // Every superblock allocates all sixteen descriptors, including the final one.
             using lanes_type [[gnu::vector_size(16)]] = uint16_t;
-            auto lo = read_unaligned<lanes_type>(header);
-            auto hi = read_unaligned<lanes_type>(header, 1);
+            auto lo = detail::read_unaligned<lanes_type>(header);
+            auto hi = detail::read_unaligned<lanes_type>(header, 1);
             lanes_type const indices = {0, 1, 2, 3, 4, 5, 6, 7};
             lo &= static_cast<lanes_type>(indices < static_cast<uint16_t>(preceding));
             hi &= static_cast<lanes_type>(indices + 8 < static_cast<uint16_t>(preceding));
@@ -679,12 +660,12 @@ private:
         {
             for (size_type j = 0; j < preceding; ++j)
             {
-                auto descriptor = read_unaligned<uint16_t>(header, j);
+                auto descriptor = detail::read_unaligned<uint16_t>(header, j);
                 result.offset += descriptor >> 10;
                 result.ones_before += descriptor & 0x1ff;
             }
         }
-        result.descriptor = read_unaligned<uint16_t>(header, preceding);
+        result.descriptor = detail::read_unaligned<uint16_t>(header, preceding);
         return result;
     }
 
@@ -969,7 +950,7 @@ public:
         // Read packed metadata with memcpy because the headers need not be aligned.
         auto population = [&](size_type sblock)
         {
-            auto local = m_v->template read_unaligned<uint32_t>(m_v->superblock_header(sblock), 1);
+            auto local = detail::read_unaligned<uint32_t>(m_v->superblock_header(sblock), 1);
             auto hblock = sblock * k_sblock_rate / bit_vector_type::k_hblock_rate;
             return rank_result<t_b>::adapt(m_v->m_hblock_header[2 * hblock + 1] + local,
                                            sblock * bit_vector_type::k_sblock_size);
@@ -982,7 +963,7 @@ public:
         i -= population(begin);
         size_type base = begin * bit_vector_type::k_sblock_size;
         auto header = m_v->superblock_header(begin);
-        auto packed = m_v->template read_unaligned<uint32_t>(header);
+        auto packed = detail::read_unaligned<uint32_t>(header);
         if (packed & 0x80000000) // Uniform superblock.
             return base + i - 1;
 
@@ -993,7 +974,7 @@ public:
         uint32_t count;
         for (;; header = header.subspan(2), base += bit_vector_type::k_block_size)
         {
-            descriptor = m_v->template read_unaligned<uint16_t>(header);
+            descriptor = detail::read_unaligned<uint16_t>(header);
             count = rank_result<t_b>::adapt(descriptor & 0x1ff, bit_vector_type::k_block_size);
             if (i <= count)
                 break;
@@ -1001,8 +982,7 @@ public:
             offset += descriptor >> 10;
         }
 
-        constexpr auto bit = t_b ? bit_vector_type::query_bit::one : bit_vector_type::query_bit::zero;
-        return base + m_v->template query_block<bit_vector_type::block_query::select, bit>(offset, descriptor, i - 1);
+        return base + m_v->template query_block<bit_vector_type::block_query::select, t_b>(offset, descriptor, i - 1);
     }
 
     //! Shorthand for select(i)
