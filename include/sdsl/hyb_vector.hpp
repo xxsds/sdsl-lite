@@ -492,7 +492,8 @@ private:
         auto beyond = [&](uint8_t j) {
             if constexpr (t_query == block_query::select)
                 return positions[j] >= target + j; // Skip the j preceding minority positions.
-            return positions[j] >= target;
+            else
+                return positions[j] >= target;
         };
         uint32_t seen = std::ranges::find_if(indices, beyond) - indices.begin();
         if constexpr (t_query == block_query::select)
