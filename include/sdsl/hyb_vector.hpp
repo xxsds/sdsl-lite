@@ -468,7 +468,7 @@ private:
                     return 64 * word + bits::sel(value, target);
                 target -= count;
             }
-            else
+            else if constexpr (t_query == block_query::rank)
             {
                 if (target <= 64)
                     return accumulated + bits::cnt(value << (64 - target));
@@ -483,23 +483,30 @@ private:
     template <block_query t_query, query_bit t_bit>
     static uint32_t query_minority(std::span<uint8_t const> positions, bool minority_bit, uint32_t target)
     {
-        if constexpr (t_query == block_query::select)
-            if (t_bit == minority_bit)
-                return positions[target - 1];
-        auto indices = std::views::iota(uint32_t{0}, uint32_t(positions.size()));
-        auto prefix = [&](uint32_t j) {
-            if constexpr (t_query == block_query::select)
-                return uint32_t(positions[j]) - j; // Majority bits before this minority position.
-            else
-                return uint32_t(positions[j]);
-        };
-        uint32_t seen = std::ranges::find_if(indices, [&](auto j) { return prefix(j) >= target; }) - indices.begin();
-        if constexpr (t_query == block_query::select)
-            return target + seen - 1;
-        else if constexpr (t_query == block_query::access)
-            return (seen < positions.size() && positions[seen] == target) ? minority_bit : !minority_bit;
+        if constexpr (t_query == block_query::access)
+        {
+            auto found = std::ranges::find_if(positions, [&](auto position) { return position >= target; });
+            bool is_minority = found != positions.end() && *found == target;
+            return is_minority ? minority_bit : !minority_bit;
+        }
         else
-            return minority_bit ? seen : target - seen;
+        {
+            if constexpr (t_query == block_query::select)
+                if (t_bit == minority_bit)
+                    return positions[target - 1];
+            auto indices = std::views::iota(0u, uint32_t(positions.size()));
+            auto prefix = [&](uint32_t j) {
+                if constexpr (t_query == block_query::select)
+                    return uint32_t(positions[j]) - j; // Majority bits before this minority position.
+                else if constexpr (t_query == block_query::rank)
+                    return uint32_t(positions[j]);
+            };
+            uint32_t seen = std::ranges::find_if(indices, [&](auto j) { return prefix(j) >= target; }) - indices.begin();
+            if constexpr (t_query == block_query::select)
+                return target + seen - 1;
+            else if constexpr (t_query == block_query::rank)
+                return minority_bit ? seen : target - seen;
+        }
     }
 
     template <block_query t_query, query_bit t_bit>
@@ -551,6 +558,8 @@ private:
 #endif
     uint32_t query_block(size_type offset, uint16_t descriptor, uint32_t target) const
     {
+        static_assert(t_query == block_query::access || t_query == block_query::rank || t_query == block_query::select,
+                      "Unsupported hybrid block query");
         static_assert(t_query == block_query::select
                           ? t_bit == query_bit::zero || t_bit == query_bit::one
                           : t_bit == query_bit::none,
@@ -568,7 +577,7 @@ private:
                 return (t_bit == special_bit ? 0 : first_run_length) + target - 1;
             else if constexpr (t_query == block_query::access)
                 return (target >= first_run_length) ^ special_bit;
-            else
+            else if constexpr (t_query == block_query::rank)
                 return special_bit ? std::min(target, first_run_length) : target - std::min(target, first_run_length);
         }
 
