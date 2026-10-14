@@ -435,7 +435,7 @@ private:
         return value;
     }
 
-    // Access uses a zero-based position, rank its inclusive last position, and select a one-based occurrence rank.
+    // Access uses a zero-based position, rank a prefix length, and select a zero-based occurrence index.
     enum class block_query
     {
         access,
@@ -455,8 +455,9 @@ private:
         return read_unaligned<uint64_t>(data, position / 64) & (uint64_t{1} << (position % 64));
     }
 
-    static uint32_t rank_plain(std::span<uint8_t const, k_block_bytes> data, uint8_t last_position)
+    static uint32_t rank_plain(std::span<uint8_t const, k_block_bytes> data, uint32_t prefix_length)
     {
+        uint8_t last_position = prefix_length - 1;
         uint32_t accumulated = 0;
         for (uint32_t word = 0; word < k_block_bytes / 8; ++word)
         {
@@ -471,7 +472,7 @@ private:
     }
 
     template <bool t_bit>
-    static uint32_t select_plain(std::span<uint8_t const, k_block_bytes> data, uint32_t occurrence)
+    static uint32_t select_plain(std::span<uint8_t const, k_block_bytes> data, uint8_t select_index)
     {
         for (uint32_t word = 0; word < k_block_bytes / 8; ++word)
         {
@@ -479,9 +480,9 @@ private:
             if constexpr (!t_bit)
                 value = ~value;
             auto count = bits::cnt(value);
-            if (occurrence <= count)
-                return 64 * word + bits::sel(value, occurrence);
-            occurrence -= count;
+            if (select_index < count)
+                return 64 * word + bits::sel(value, select_index + 1);
+            select_index -= count;
         }
         assert(false && "Invalid hybrid block population");
         return 0;
@@ -492,21 +493,22 @@ private:
         return (std::ranges::find(positions, position) == positions.end()) ^ minority_bit;
     }
 
-    static uint32_t rank_minority(std::span<uint8_t const> positions, bool minority_bit, uint8_t last_position)
+    static uint32_t rank_minority(std::span<uint8_t const> positions, bool minority_bit, uint32_t prefix_length)
     {
+        uint8_t last_position = prefix_length - 1;
         uint32_t seen = std::ranges::count_if(positions, [&](uint8_t position) { return position <= last_position; });
-        return minority_bit ? seen : uint32_t(last_position) + 1 - seen;
+        return minority_bit ? seen : prefix_length - seen;
     }
 
     template <bool t_bit>
-    static uint32_t select_minority(std::span<uint8_t const> positions, bool minority_bit, uint32_t occurrence)
+    static uint32_t select_minority(std::span<uint8_t const> positions, bool minority_bit, uint8_t select_index)
     {
         if (t_bit == minority_bit)
-            return positions[occurrence - 1];
+            return positions[select_index];
         auto indices = std::views::iota(uint8_t{0}, uint8_t(positions.size()));
         // Skip the j preceding minority positions.
-        uint32_t seen = std::ranges::count_if(indices, [&](uint8_t j) { return positions[j] < occurrence + j; });
-        return occurrence + seen - 1;
+        uint32_t seen = std::ranges::count_if(indices, [&](uint8_t j) { return positions[j] <= select_index + j; });
+        return select_index + seen;
     }
 
     // Run payloads omit the final two endpoints; the total population determines
@@ -531,9 +533,8 @@ private:
         return (position < start || position >= start + length) ^ first_bit;
     }
 
-    static uint32_t rank_runs(std::span<uint8_t const> ends, uint32_t ones, bool first_bit, uint8_t last_position)
+    static uint32_t rank_runs(std::span<uint8_t const> ends, uint32_t ones, bool first_bit, uint32_t prefix_length)
     {
-        uint32_t prefix_length = uint32_t(last_position) + 1;
         uint32_t matched_before = 0;
         auto result = [&](uint32_t start, uint32_t end) {
             uint32_t prefix = matched_before + std::min(prefix_length, end) - std::min(prefix_length, start);
@@ -556,7 +557,7 @@ private:
     }
 
     template <bool t_bit>
-    static uint32_t select_runs(std::span<uint8_t const> ends, uint32_t ones, bool first_bit, uint32_t occurrence)
+    static uint32_t select_runs(std::span<uint8_t const> ends, uint32_t ones, bool first_bit, uint8_t select_index)
     {
         uint32_t matched_before = 0;
         uint32_t run = first_bit != t_bit;
@@ -565,14 +566,14 @@ private:
         {
             uint32_t start = run ? ends[run - 1] + 1 : 0;
             uint32_t end = ends[run] + 1;
-            if (occurrence <= matched_before + end - start)
-                return start + occurrence - matched_before - 1;
+            if (select_index < matched_before + end - start)
+                return start + select_index - matched_before;
             matched_before += end - start;
         }
         uint32_t population = t_bit ? ones : k_block_size - ones;
         uint32_t length = population - matched_before;
         uint32_t start = run == num_ends ? ends[num_ends - 1] + 1 : k_block_size - length;
-        return start + occurrence - matched_before - 1;
+        return start + select_index - matched_before;
     }
 
     template <block_query t_query, query_bit t_bit = query_bit::none>
@@ -597,15 +598,11 @@ private:
         {
             uint32_t first_run_length = special_bit ? ones : zeros;
             if constexpr (t_query == block_query::select)
-                return (t_bit == special_bit ? 0 : first_run_length) + target - 1;
+                return (t_bit == special_bit ? 0 : first_run_length) + target;
             else if constexpr (t_query == block_query::access)
                 return (target >= first_run_length) ^ special_bit;
             else if constexpr (t_query == block_query::rank)
-            {
-                uint32_t prefix_length = target + 1;
-                return special_bit ? std::min(prefix_length, first_run_length)
-                                   : prefix_length - std::min(prefix_length, first_run_length);
-            }
+                return special_bit ? std::min(target, first_run_length) : target - std::min(target, first_run_length);
         }
 
         std::span<uint8_t const> data{m_trunk.begin() + offset, encoding_size};
@@ -871,7 +868,7 @@ public:
         auto last_position = i - 1;
         auto location = m_v->locate_block(last_position / bit_vector_type::k_block_size);
         auto local_rank = m_v->template query_block<bit_vector_type::block_query::rank>(
-            location.offset, location.descriptor, last_position % bit_vector_type::k_block_size);
+            location.offset, location.descriptor, last_position % bit_vector_type::k_block_size + 1);
         return rank_result<t_b>::adapt(location.ones_before + local_rank, i);
     }
 
@@ -1016,7 +1013,7 @@ public:
         }
 
         constexpr auto bit = t_b ? bit_vector_type::query_bit::one : bit_vector_type::query_bit::zero;
-        return base + m_v->template query_block<bit_vector_type::block_query::select, bit>(offset, descriptor, i);
+        return base + m_v->template query_block<bit_vector_type::block_query::select, bit>(offset, descriptor, i - 1);
     }
 
     //! Shorthand for select(i)
