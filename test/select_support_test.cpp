@@ -1,3 +1,5 @@
+#include <array>
+#include <cstring>
 #include <string>
 
 #include <sdsl/bit_vector_il.hpp>
@@ -84,6 +86,31 @@ typedef Types<select_support_mcl<>,
 #endif
 
 TYPED_TEST_SUITE(select_support_test, Implementations, );
+
+TEST(plain_select_test, byte_and_word_storage)
+{
+    std::array<uint64_t, 4> words = {0, uint64_t{1} << 63, 0x5555555555555555ULL, ~uint64_t{0}};
+    for (size_t offset = 0; offset < alignof(uint64_t); ++offset)
+    {
+        SCOPED_TRACE(offset);
+        std::array<uint8_t, sizeof(words) + alignof(uint64_t) - 1> bytes;
+        std::memcpy(bytes.data() + offset, words.data(), sizeof(words));
+        uint64_t ones = 0, zeros = 0;
+        for (uint64_t position = 0; position < 256; ++position)
+        {
+            if ((words[position / 64] >> (position % 64)) & 1)
+            {
+                ASSERT_EQ(position, detail::select_in_words<true>(words.data(), ++ones));
+                ASSERT_EQ(position, detail::select_in_words<true>(bytes.data() + offset, ones));
+            }
+            else
+            {
+                ASSERT_EQ(position, detail::select_in_words<false>(words.data(), ++zeros));
+                ASSERT_EQ(position, detail::select_in_words<false>(bytes.data() + offset, zeros));
+            }
+        }
+    }
+}
 
 //! Test the select method
 TYPED_TEST(select_support_test, select_method)

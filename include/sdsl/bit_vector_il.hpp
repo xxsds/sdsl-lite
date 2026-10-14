@@ -23,6 +23,7 @@
 #include <sdsl/io.hpp>
 #include <sdsl/iterators.hpp>
 #include <sdsl/sdsl_concepts.hpp>
+#include <sdsl/select_support.hpp>
 #include <sdsl/structure_tree.hpp>
 #include <sdsl/util.hpp>
 
@@ -484,17 +485,7 @@ private:
         uint64_t const * w = m_v->m_data.data() + ((rb - 1) << m_block_size_U64) + (rb - 1);
         i -= *w; // subtract the cumulative sum before the superblock
         ++w;     /* step into the data */
-        size_type ones = bits::cnt(*w);
-        while (ones < i)
-        {
-            i -= ones;
-            ++w;
-            ones = bits::cnt(*w);
-            res += 64;
-        }
-        /* handle last word */
-        res += bits::sel(*w, i);
-        return res;
+        return res + detail::select_in_words<true>(w, i);
     }
 
     //! Returns the position of the i-th occurrence in the bit vector.
@@ -547,17 +538,7 @@ private:
         uint64_t const * w = m_v->m_data.data() + ((rb - 1) << m_block_size_U64) + (rb - 1);
         i = i - (res - *w); // substract the cumulative sum before the superblock
         ++w;                /* step into the data */
-        size_type zeros = bits::cnt(~*w);
-        while (zeros < i)
-        {
-            i -= zeros;
-            ++w;
-            zeros = bits::cnt(~*w);
-            res += 64;
-        }
-        /* handle last word */
-        res += bits::sel(~*w, i);
-        return res;
+        return res + detail::select_in_words<false>(w, i);
     }
 
 public:

@@ -50,6 +50,7 @@
 #include <sdsl/int_vector.hpp>
 #include <sdsl/io.hpp>
 #include <sdsl/iterators.hpp>
+#include <sdsl/select_support.hpp>
 #include <sdsl/structure_tree.hpp>
 #include <sdsl/util.hpp>
 
@@ -474,18 +475,7 @@ private:
     template <bool t_bit>
     static uint32_t select_plain(std::span<uint8_t const, k_block_bytes> data, uint8_t select_index)
     {
-        for (uint32_t word = 0; word < k_block_bytes / 8; ++word)
-        {
-            uint64_t value = read_unaligned<uint64_t>(data, word);
-            if constexpr (!t_bit)
-                value = ~value;
-            auto count = bits::cnt(value);
-            if (select_index < count)
-                return 64 * word + bits::sel(value, select_index + 1);
-            select_index -= count;
-        }
-        assert(false && "Invalid hybrid block population");
-        return 0;
+        return detail::select_in_words<t_bit>(data.data(), select_index + 1);
     }
 
     static bool access_minority(std::span<uint8_t const> positions, bool minority_bit, uint8_t position)
