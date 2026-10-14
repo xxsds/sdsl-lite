@@ -494,9 +494,7 @@ private:
 
     static uint32_t rank_minority(std::span<uint8_t const> positions, bool minority_bit, uint32_t prefix_length)
     {
-        auto indices = std::views::iota(uint8_t{0}, uint8_t(positions.size()));
-        uint32_t seen = std::ranges::find_if(indices, [&](uint8_t j) { return positions[j] >= prefix_length; })
-                      - indices.begin();
+        uint32_t seen = std::ranges::count_if(positions, [&](uint8_t position) { return position < prefix_length; });
         return minority_bit ? seen : prefix_length - seen;
     }
 
@@ -507,8 +505,7 @@ private:
             return positions[occurrence - 1];
         auto indices = std::views::iota(uint8_t{0}, uint8_t(positions.size()));
         // Skip the j preceding minority positions.
-        uint32_t seen = std::ranges::find_if(indices, [&](uint8_t j) { return positions[j] >= occurrence + j; })
-                      - indices.begin();
+        uint32_t seen = std::ranges::count_if(indices, [&](uint8_t j) { return positions[j] < occurrence + j; });
         return occurrence + seen - 1;
     }
 
