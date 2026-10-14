@@ -508,40 +508,33 @@ private:
         bool matching_bit = first_bit;
         if constexpr (t_query == block_query::select)
             matching_bit = t_bit;
-        uint32_t population = matching_bit ? ones : k_block_size - ones;
-        uint32_t matched_before = 0; // Matching-bit population before the current run.
-        uint32_t start = 0, end = 0;
+        uint32_t matched_before = 0;
+        auto result = [&](uint32_t start, uint32_t end) -> uint32_t {
+            if constexpr (t_query == block_query::select)
+                return start + target - matched_before - 1;
+            if constexpr (t_query == block_query::access)
+                return (target < start || target >= end) ^ matching_bit;
+            uint32_t prefix = matched_before + std::min(target, end) - std::min(target, start);
+            return matching_bit ? prefix : target - prefix;
+        };
+
         uint32_t run = first_bit != matching_bit;
-        // Stored endpoints are inclusive; decode each run as [start, end).
-        // Run encoding stores 1..31 ends; keep this bound visible to the optimizer.
         uint32_t num_ends = std::min<uint32_t>(ends.size(), k_block_bytes);
+        // Stored endpoints are inclusive; decode each run as [start, end).
         for (; run < num_ends; run += 2)
         {
-            start = run ? ends[run - 1] + 1 : 0;
-            end = ends[run] + 1;
+            uint32_t start = run ? ends[run - 1] + 1 : 0;
+            uint32_t end = ends[run] + 1;
             uint32_t limit = t_query == block_query::select ? matched_before + end - start : end;
             if (t_query == block_query::access ? target < limit : target <= limit)
-            {
-                if constexpr (t_query == block_query::access)
-                    return (target < start) ^ matching_bit;
-                break;
-            }
+                return result(start, end);
             matched_before += end - start;
         }
-        // The final two run ends are implicit in the total population.
-        if (run >= num_ends)
-        {
-            uint32_t length = population - matched_before;
-            start = run == num_ends ? ends[num_ends - 1] + 1 : k_block_size - length;
-            end = start + length;
-        }
-
-        if constexpr (t_query == block_query::select)
-            return start + target - matched_before - 1;
-        if constexpr (t_query == block_query::access)
-            return (target < start || target >= end) ^ matching_bit;
-        uint32_t prefix = matched_before + std::clamp(target, start, end) - start;
-        return matching_bit ? prefix : target - prefix;
+        // Exactly one matching run remains among the two implicit final runs.
+        uint32_t population = matching_bit ? ones : k_block_size - ones;
+        uint32_t length = population - matched_before;
+        uint32_t start = run == num_ends ? ends[num_ends - 1] + 1 : k_block_size - length;
+        return result(start, start + length);
     }
 
     template <block_query t_query, query_bit t_bit = query_bit::none>
