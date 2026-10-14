@@ -40,6 +40,7 @@
 #include <cstring>
 #include <iostream>
 #include <span>
+#include <ranges>
 #include <stdint.h>
 #include <stdio.h>
 #include <string>
@@ -482,25 +483,21 @@ private:
     template <block_query t_query, query_bit t_bit>
     static uint32_t query_minority(std::span<uint8_t const> positions, bool minority_bit, uint32_t target)
     {
-        // Minority positions are explicit; majority select skips these holes.
         if constexpr (t_query == block_query::select)
             if (t_bit == minority_bit)
                 return positions[target - 1];
-        uint32_t num_positions = positions.size();
-        uint32_t seen = 0, limit = target;
-        do
-        {
-            if (t_query == block_query::access ? positions[seen] > limit : positions[seen] >= limit)
-                break;
-            ++seen;
+        auto indices = std::views::iota(uint32_t{0}, uint32_t(positions.size()));
+        auto prefix = [&](uint32_t j) {
             if constexpr (t_query == block_query::select)
-                ++limit;
-        }
-        while (seen < num_positions);
+                return uint32_t(positions[j]) - j; // Majority bits before this minority position.
+            else
+                return uint32_t(positions[j]);
+        };
+        uint32_t seen = std::ranges::find_if(indices, [&](auto j) { return prefix(j) >= target; }) - indices.begin();
         if constexpr (t_query == block_query::select)
-            return limit - 1;
+            return target + seen - 1;
         else if constexpr (t_query == block_query::access)
-            return (seen && positions[seen - 1] == target) ? minority_bit : !minority_bit;
+            return (seen < positions.size() && positions[seen] == target) ? minority_bit : !minority_bit;
         else
             return minority_bit ? seen : target - seen;
     }
