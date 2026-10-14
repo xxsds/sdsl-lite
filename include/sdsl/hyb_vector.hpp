@@ -507,7 +507,10 @@ private:
             return positions[select_index];
         auto indices = std::views::iota(uint8_t{0}, uint8_t(positions.size()));
         // Skip the j preceding minority positions.
-        uint32_t seen = std::ranges::count_if(indices, [&](uint8_t j) { return positions[j] <= select_index + j; });
+        uint32_t seen = std::ranges::count_if(indices, [&](uint8_t j) {
+            uint8_t majorities_before = positions[j] - j;
+            return majorities_before <= select_index;
+        });
         return select_index + seen;
     }
 
