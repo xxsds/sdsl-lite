@@ -47,7 +47,7 @@ typename t_cst::size_type forward_search(
     typename t_cst::size_type const d,
     typename t_cst::char_type const c,
     typename t_cst::size_type & char_pos,
-    SDSL_UNUSED
+    [[maybe_unused]]
     typename std::enable_if<std::is_same<cst_tag, typename t_cst::index_category>::value, cst_tag>::type x = cst_tag())
 {
     auto cc = cst.csa.char2comp[c]; // check if c occurs in the text of the csa
@@ -95,7 +95,7 @@ typename t_cst::size_type forward_search(
     t_pat_iter begin,
     t_pat_iter end,
     typename t_cst::size_type & char_pos,
-    SDSL_UNUSED
+    [[maybe_unused]]
     typename std::enable_if<std::is_same<cst_tag, typename t_cst::index_category>::value, cst_tag>::type x = cst_tag())
 {
     if (begin == end)
@@ -148,7 +148,7 @@ template <class t_cst, class t_pat_iter, class t_rac = int_vector<64>>
 t_rac locate(t_cst const & cst,
              t_pat_iter begin,
              t_pat_iter end,
-             SDSL_UNUSED
+             [[maybe_unused]]
              typename std::enable_if<std::is_same<cst_tag, typename t_cst::index_category>::value, cst_tag>::type x =
                  cst_tag())
 {
@@ -171,7 +171,7 @@ typename t_cst::size_type extract(
     t_cst const & cst,
     typename t_cst::node_type const & v,
     t_text_iter text,
-    SDSL_UNUSED
+    [[maybe_unused]]
     typename std::enable_if<std::is_same<cst_tag, typename t_cst::index_category>::value, cst_tag>::type x = cst_tag())
 {
     if (v == cst.root())
@@ -198,7 +198,7 @@ template <class t_cst>
 typename t_cst::csa_type::string_type extract(
     t_cst const & cst,
     typename t_cst::node_type const & v,
-    SDSL_UNUSED
+    [[maybe_unused]]
     typename std::enable_if<std::is_same<cst_tag, typename t_cst::index_category>::value, cst_tag>::type x = cst_tag())
 {
     typedef typename t_cst::csa_type::string_type t_rac;

@@ -61,7 +61,7 @@ namespace util
 
 //============= Debug information =========================
 
-SDSL_UNUSED static bool verbose = false;
+[[maybe_unused]] static bool verbose = false;
 
 inline void set_verbose()
 {
