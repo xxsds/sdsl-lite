@@ -502,10 +502,10 @@ private:
     }
 
     template <block_query t_query, query_bit t_bit>
-    static uint32_t query_runs(std::span<uint8_t const> ends, uint32_t ones, uint32_t first_bit, uint32_t target)
+    static uint32_t query_runs(std::span<uint8_t const> ends, uint32_t ones, bool first_bit, uint32_t target)
     {
         // Access/rank follow the first bit's runs; select follows the requested bit.
-        uint32_t matching_bit = first_bit;
+        bool matching_bit = first_bit;
         if constexpr (t_query == block_query::select)
             matching_bit = t_bit;
         uint32_t population = matching_bit ? ones : k_block_size - ones;
@@ -523,7 +523,7 @@ private:
             if (t_query == block_query::access ? target < limit : target <= limit)
             {
                 if constexpr (t_query == block_query::access)
-                    return target >= start ? matching_bit : !matching_bit;
+                    return (target < start) ^ matching_bit;
                 break;
             }
             matched_before += end - start;
@@ -539,7 +539,7 @@ private:
         if constexpr (t_query == block_query::select)
             return start + target - matched_before - 1;
         if constexpr (t_query == block_query::access)
-            return start <= target && target < end ? matching_bit : !matching_bit;
+            return (target < start || target >= end) ^ matching_bit;
         uint32_t prefix = matched_before + std::clamp(target, start, end) - start;
         return matching_bit ? prefix : target - prefix;
     }
@@ -559,7 +559,7 @@ private:
         uint32_t encoding_size = descriptor >> 10;
         uint32_t ones = descriptor & 0x1ff;
         uint32_t zeros = k_block_size - ones;
-        uint32_t special_bit = (descriptor >> 9) & 1;
+        bool special_bit = (descriptor >> 9) & 1;
 
         // At most two runs; their lengths follow from the population.
         if (!encoding_size)
