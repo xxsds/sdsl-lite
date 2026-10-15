@@ -435,109 +435,12 @@ private:
     size_type m_block_shift;
     size_type m_block_size_U64;
 
-    //! Returns the position of the i-th occurrence in the bit vector.
-    size_type select1(size_type i) const
+    size_type count_before(size_type block, size_type ones) const
     {
-        size_type lb = 0, rb = m_v->m_superblocks; // search interval [lb..rb)
-        size_type res = 0;
-        size_type idx = 0; // index in m_rank_samples
-        /* binary search over super blocks */
-        // invariant: lb==0 or m_data[ pos(lb-1) ] < i
-        //            m_data[ pos(rb) ] >= i, initial since i < rank(size())
-        while (lb < rb)
-        {
-            size_type mid = (lb + rb) / 2; // select mid \in [lb..rb)
-#ifndef NOSELCACHE
-            if (idx < m_v->m_rank_samples.size())
-            {
-                if (m_v->m_rank_samples[idx] >= i)
-                {
-                    idx = (idx << 1) + 1;
-                    rb = mid;
-                }
-                else
-                {
-                    idx = (idx << 1) + 2;
-                    lb = mid + 1;
-                }
-            }
-            else
-            {
-#endif
-                size_type pos = (mid << m_block_size_U64) + mid;
-                //                                  ^^^^^^^^^^^^^^^^^^^^^^     ^^^^^^^^^^^^^^^^^^^
-                //                                    data blocks to jump      superblock position
-                if (m_v->m_data[pos] >= i)
-                {
-                    rb = mid;
-                }
-                else
-                {
-                    lb = mid + 1;
-                }
-#ifndef NOSELCACHE
-            }
-#endif
-        }
-        res = (rb - 1) << m_block_shift;
-        /* iterate in 64 bit steps */
-        uint64_t const * w = m_v->m_data.data() + ((rb - 1) << m_block_size_U64) + (rb - 1);
-        i -= *w; // subtract the cumulative sum before the superblock
-        ++w;     /* step into the data */
-        return res + detail::select_in_words<1>(std::span(w, m_v->m_data.end()), i);
-    }
-
-    //! Returns the position of the i-th occurrence in the bit vector.
-    size_type select0(size_type i) const
-    {
-        size_type lb = 0, rb = m_v->m_superblocks; // search interval [lb..rb)
-        size_type res = 0;
-        size_type idx = 0; // index in m_rank_samples
-        /* binary search over super blocks */
-        // invariant: lb==0 or m_data[ pos(lb-1) ] < i
-        //            m_data[ pos(rb) ] >= i, initial since i < rank(size())
-        while (lb < rb)
-        {
-            size_type mid = (lb + rb) / 2; // select mid \in [lb..rb)
-#ifndef NOSELCACHE
-            if (idx < m_v->m_rank_samples.size())
-            {
-                if (((mid << m_block_shift) - m_v->m_rank_samples[idx]) >= i)
-                {
-                    idx = (idx << 1) + 1;
-                    rb = mid;
-                }
-                else
-                {
-                    idx = (idx << 1) + 2;
-                    lb = mid + 1;
-                }
-            }
-            else
-            {
-#endif
-                size_type pos = (mid << m_block_size_U64) + mid;
-                //                                  ^^^^^^^^^^^^^^^^^^^^^^     ^^^^^^^^^^^^^^^^^^^
-                //                                    data blocks to jump      superblock position
-                if (((mid << m_block_shift) - m_v->m_data[pos]) >= i)
-                {
-                    rb = mid;
-                }
-                else
-                {
-                    lb = mid + 1;
-                }
-#ifndef NOSELCACHE
-            }
-#endif
-        }
-        res = (rb - 1) << m_block_shift;
-
-        /* iterate in 64 bit steps */
-        uint64_t const * w = m_v->m_data.data() + ((rb - 1) << m_block_size_U64) + (rb - 1);
-        i = i - (res - *w); // substract the cumulative sum before the superblock
-        ++w;                /* step into the data */
-        return res + detail::select_in_words<0>(std::span(w, m_v->m_data.end()), i);
+        if constexpr (t_b)
+            return ones;
+        else
+            return (block << m_block_shift) - ones;
     }
 
 public:
@@ -551,9 +454,50 @@ public:
     //! Returns the position of the i-th occurrence in the bit vector.
     size_type select(size_type i) const
     {
-        if (t_b)
-            return select1(i);
-        return select0(i);
+        size_type lb = 0, rb = m_v->m_superblocks; // search interval [lb..rb)
+#ifndef NOSELCACHE
+        size_type idx = 0; // index in m_rank_samples
+#endif
+        // Find the first block boundary with at least i matching bits before it.
+        while (lb < rb)
+        {
+            size_type mid = (lb + rb) / 2; // select mid \in [lb..rb)
+#ifndef NOSELCACHE
+            if (idx < m_v->m_rank_samples.size())
+            {
+                if (count_before(mid, m_v->m_rank_samples[idx]) >= i)
+                {
+                    idx = (idx << 1) + 1;
+                    rb = mid;
+                }
+                else
+                {
+                    idx = (idx << 1) + 2;
+                    lb = mid + 1;
+                }
+            }
+            else
+            {
+#endif
+                size_type pos = (mid << m_block_size_U64) + mid;
+                //                                  ^^^^^^^^^^^^^^^^^^^^^^     ^^^^^^^^^^^^^^^^^^^
+                //                                    data blocks to jump      superblock position
+                if (count_before(mid, m_v->m_data[pos]) >= i)
+                {
+                    rb = mid;
+                }
+                else
+                {
+                    lb = mid + 1;
+                }
+#ifndef NOSELCACHE
+            }
+#endif
+        }
+        size_type block = rb - 1;
+        auto data = std::span(m_v->m_data).subspan((block << m_block_size_U64) + block);
+        return (block << m_block_shift)
+             + detail::select_in_words<t_b>(data.subspan(1), i - count_before(block, data.front()));
     }
 
     size_type operator()(size_type i) const

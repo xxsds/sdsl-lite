@@ -27,7 +27,7 @@ inline Value read_unaligned(std::span<T, extent> data, size_t index = 0)
 template <typename T, size_t extent>
 inline bool access_in_words(std::span<T, extent> data, uint64_t position)
 {
-    return read_unaligned<uint64_t>(data, position / 64) & (uint64_t{1} << (position % 64));
+    return (read_unaligned<uint64_t>(data, position / 64) >> (position % 64)) & 1;
 }
 
 // The one-based occurrence must exist in the supplied words.
