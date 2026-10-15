@@ -179,9 +179,8 @@ public:
     value_type operator[](size_type i) const
     {
         assert(i < m_size);
-        size_type bs = i >> m_block_shift;
-        size_type block = bs + (i >> 6) + 1;
-        return detail::access_in_words(std::span<uint64_t const, 1>(m_data.data() + block, 1), i & 63);
+        // Skip the rank samples preceding the word containing i.
+        return detail::access_in_words(std::span(m_data).subspan((i >> m_block_shift) + 1), i);
     }
 
     //! Get the integer value of the binary string of length len starting at position idx.
@@ -485,8 +484,7 @@ private:
         uint64_t const * w = m_v->m_data.data() + ((rb - 1) << m_block_size_U64) + (rb - 1);
         i -= *w; // subtract the cumulative sum before the superblock
         ++w;     /* step into the data */
-        size_type words = (std::min<size_type>(t_bs, m_v->size() - res) + 63) / 64;
-        return res + detail::select_in_words<1>(std::span<uint64_t const>(w, words), i);
+        return res + detail::select_in_words<1>(std::span(w, m_v->m_data.end()), i);
     }
 
     //! Returns the position of the i-th occurrence in the bit vector.
@@ -539,8 +537,7 @@ private:
         uint64_t const * w = m_v->m_data.data() + ((rb - 1) << m_block_size_U64) + (rb - 1);
         i = i - (res - *w); // substract the cumulative sum before the superblock
         ++w;                /* step into the data */
-        size_type words = (std::min<size_type>(t_bs, m_v->size() - res) + 63) / 64;
-        return res + detail::select_in_words<0>(std::span<uint64_t const>(w, words), i);
+        return res + detail::select_in_words<0>(std::span(w, m_v->m_data.end()), i);
     }
 
 public:
