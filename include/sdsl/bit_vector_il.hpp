@@ -495,9 +495,10 @@ public:
 #endif
         }
         size_type block = rb - 1;
-        auto data = std::span(m_v->m_data).subspan((block << m_block_size_U64) + block);
-        return (block << m_block_shift)
-             + detail::select_in_words<t_b>(data.subspan(1), i - count_before(block, data.front()));
+        size_type offset = (block << m_block_size_U64) + block;
+        i -= count_before(block, m_v->m_data[offset]);
+        auto words = std::span(m_v->m_data).subspan(offset + 1);
+        return (block << m_block_shift) + detail::select_in_words<t_b>(words, i);
     }
 
     size_type operator()(size_type i) const
