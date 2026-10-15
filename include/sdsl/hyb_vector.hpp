@@ -443,18 +443,7 @@ private:
 
     static uint32_t rank_plain(std::span<uint8_t const, k_block_bytes> data, uint32_t prefix_length)
     {
-        uint8_t last_position = prefix_length - 1;
-        uint32_t accumulated = 0;
-        for (uint32_t word = 0; word < k_block_bytes / 8; ++word)
-        {
-            uint64_t value = detail::read_unaligned<uint64_t>(data, word);
-            if (last_position < 64)
-                return accumulated + bits::cnt(value << (63 - last_position));
-            accumulated += bits::cnt(value);
-            last_position -= 64;
-        }
-        assert(false && "Invalid hybrid block population");
-        return 0;
+        return detail::rank_in_words(data, prefix_length);
     }
 
     template <bool t_bit>

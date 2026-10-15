@@ -10,6 +10,7 @@
 #define SDSL_BIT_VECTOR_IL
 
 #include <algorithm>
+#include <bit>
 #include <assert.h>
 #include <iosfwd>
 #include <queue>
@@ -303,52 +304,27 @@ public:
 
 private:
     bit_vector_type const * m_v;
-    size_type m_block_shift;
-    size_type m_block_mask;
-    size_type m_block_size_U64; //! Size of superblocks in 64-bit words
+    static constexpr size_type m_block_shift = std::countr_zero(t_bs);
+    static constexpr size_type m_block_mask = t_bs - 1;
+    static constexpr size_type m_block_size_U64 = std::countr_zero(t_bs / 64);
 
     inline size_type rank1(size_type i) const
     {
         size_type SBlockNum = i >> m_block_shift;
         size_type SBlockPos = (SBlockNum << m_block_size_U64) + SBlockNum;
-        uint64_t resp = m_v->m_data[SBlockPos];
-        uint64_t const * B = (m_v->m_data.data() + (SBlockPos + 1));
-        uint64_t rem = i & 63;
-        uint64_t bits = (i & m_block_mask) - rem;
-        while (bits)
-        {
-            resp += bits::cnt(*B++);
-            bits -= 64;
-        }
-        resp += bits::cnt(*B & bits::lo_set[rem]);
-        return resp;
+        auto words = std::span(m_v->m_data).subspan(SBlockPos + 1);
+        return detail::rank_in_words(words, i & m_block_mask, m_v->m_data[SBlockPos]);
     }
 
     inline size_type rank0(size_type i) const
     {
-        size_type SBlockNum = i >> m_block_shift;
-        size_type SBlockPos = (SBlockNum << m_block_size_U64) + SBlockNum;
-        uint64_t resp = (SBlockNum << m_block_shift) - m_v->m_data[SBlockPos];
-        uint64_t const * B = (m_v->m_data.data() + (SBlockPos + 1));
-        uint64_t rem = i & 63;
-        uint64_t bits = (i & m_block_mask) - rem;
-        while (bits)
-        {
-            resp += bits::cnt(~(*B));
-            B++;
-            bits -= 64;
-        }
-        resp += bits::cnt((~(*B)) & bits::lo_set[rem]);
-        return resp;
+        return i - rank1(i);
     }
 
 public:
     rank_support_il(bit_vector_type const * v = nullptr)
     {
         set_vector(v);
-        m_block_shift = bits::hi(t_bs);
-        m_block_mask = t_bs - 1;
-        m_block_size_U64 = bits::hi(t_bs >> 6);
     }
 
     //! Returns the position of the i-th occurrence in the bit vector.
@@ -431,9 +407,8 @@ public:
 
 private:
     bit_vector_type const * m_v;
-    size_type m_superblocks;
-    size_type m_block_shift;
-    size_type m_block_size_U64;
+    static constexpr size_type m_block_shift = std::countr_zero(t_bs);
+    static constexpr size_type m_block_size_U64 = std::countr_zero(t_bs / 64);
 
     size_type count_before(size_type block, size_type ones) const
     {
@@ -447,8 +422,6 @@ public:
     select_support_il(bit_vector_type const * v = nullptr)
     {
         set_vector(v);
-        m_block_shift = bits::hi(t_bs);
-        m_block_size_U64 = bits::hi(t_bs >> 6);
     }
 
     //! Returns the position of the i-th occurrence in the bit vector.
