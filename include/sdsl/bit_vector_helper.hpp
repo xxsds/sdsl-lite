@@ -25,5 +25,22 @@ inline Value read_unaligned(std::span<T, extent> data, size_t index = 0)
     return value;
 }
 
+// The one-based occurrence must exist in the supplied words.
+template <bool t_bit, typename T, size_t extent>
+inline uint64_t select_in_words(std::span<T, extent> data, uint64_t occurrence)
+{
+    assert(occurrence > 0);
+    for (size_t word = 0;; ++word)
+    {
+        uint64_t value = read_unaligned<uint64_t>(data, word);
+        if constexpr (!t_bit)
+            value = ~value;
+        auto count = bits::cnt(value);
+        if (occurrence <= count)
+            return 64 * word + bits::sel(value, occurrence);
+        occurrence -= count;
+    }
+}
+
 } // namespace sdsl::detail
 #endif

@@ -1082,6 +1082,63 @@ public:
 private:
     bit_vector_type const * m_v;
 
+    static uint32_t select_plain(std::span<uint8_t const, bit_vector_type::k_block_bytes> data, uint8_t select_index)
+    {
+        return detail::select_in_words<t_b>(data, select_index + 1);
+    }
+
+    static uint32_t select_minority(std::span<uint8_t const> positions, bool minority_bit, uint8_t select_index)
+    {
+        if (t_b == minority_bit)
+            return positions[select_index];
+        auto indices = std::views::iota(uint8_t{0}, uint8_t(positions.size()));
+        // Skip the j preceding minority positions.
+        uint32_t seen = std::ranges::count_if(indices, [&](uint8_t j) { return positions[j] - j <= select_index; });
+        return select_index + seen;
+    }
+
+    static uint32_t select_runs(std::span<uint8_t const> ends, uint32_t ones, bool first_bit, uint8_t select_index)
+    {
+        uint32_t matched_before = 0;
+        uint32_t run = first_bit != t_b;
+        uint32_t num_ends = std::min<uint32_t>(ends.size(), bit_vector_type::k_block_bytes);
+        for (; run < num_ends; run += 2)
+        {
+            uint32_t start = run ? ends[run - 1] + 1 : 0;
+            uint32_t end = ends[run] + 1;
+            if (select_index < matched_before + end - start)
+                return start + select_index - matched_before;
+            matched_before += end - start;
+        }
+        uint32_t population = t_b ? ones : bit_vector_type::k_block_size - ones;
+        uint32_t length = population - matched_before;
+        uint32_t start = run == num_ends ? ends[num_ends - 1] + 1 : bit_vector_type::k_block_size - length;
+        return start + select_index - matched_before;
+    }
+
+#if __has_cpp_attribute(gnu::always_inline)
+    [[gnu::always_inline]] // Keep block decoding inside the hot query path.
+#endif
+    uint32_t select_block(size_type offset, uint16_t descriptor, uint32_t select_index) const
+    {
+        uint32_t encoding_size = descriptor >> 10;
+        uint32_t ones = descriptor & 0x1ff;
+        bool special_bit = (descriptor >> 9) & 1;
+        uint32_t zeros = bit_vector_type::k_block_size - ones;
+        if (!encoding_size)
+        {
+            uint32_t first_run_length = special_bit ? ones : zeros;
+            return (t_b == special_bit ? 0 : first_run_length) + select_index;
+        }
+        std::span<uint8_t const> data{m_v->m_trunk.begin() + offset, encoding_size};
+        if (encoding_size >= bit_vector_type::k_block_bytes)
+            return select_plain(data.first<bit_vector_type::k_block_bytes>(), select_index);
+        if (encoding_size == std::min(ones, zeros))
+            return select_minority(data, special_bit, select_index);
+        return select_runs(data, ones, special_bit, select_index);
+    }
+
+
 public:
     //! Standard constructor
     explicit select_support_hyb(bit_vector_type const * v = nullptr)
@@ -1089,24 +1146,55 @@ public:
         set_vector(v);
     }
 
-    //! Answers select queries using binary search on rank.
+    //! Search superblock populations, then the selected block.
     size_type select(size_type i) const
     {
         assert(i > 0);
-        rank_support_hyb<t_b, k_sblock_rate> const rank(m_v);
-        if (i > rank(size()))
+        if (!size())
+            return 0;
+        // The final block is zero-padded, so its descriptor gives its full population.
+        auto last = m_v->locate_block((size() - 1) / bit_vector_type::k_block_size);
+        auto total_ones = last.ones_before + (last.descriptor & 0x1ff);
+        if (i > rank_result<t_b>::adapt(total_ones, size()))
             return size();
 
-        size_type begin = 0, end = size();
-        while (end - begin > 1)
+        // Superblock headers contain prefix populations relative to their hyperblock.
+        // Read packed metadata with memcpy because the headers need not be aligned.
+        auto population = [&](size_type sblock)
         {
-            size_type const mid = begin + (end - begin) / 2;
-            if (rank(mid) < i)
-                begin = mid;
-            else
-                end = mid;
+            auto local = detail::read_unaligned<uint32_t>(m_v->superblock_header(sblock), 1);
+            auto hblock = sblock * k_sblock_rate / bit_vector_type::k_hblock_rate;
+            return rank_result<t_b>::adapt(m_v->m_hblock_header[2 * hblock + 1] + local,
+                                           sblock * bit_vector_type::k_sblock_size);
+        };
+        auto prefixes = random_access_container(population, (size() - 1) / bit_vector_type::k_sblock_size + 1);
+        auto first = std::ranges::lower_bound(prefixes.begin() + 1, prefixes.end(), i);
+        // Prefix zero is below i, so the target superblock precedes the lower bound.
+        size_type begin = first - prefixes.begin() - 1;
+
+        i -= population(begin);
+        size_type base = begin * bit_vector_type::k_sblock_size;
+        auto header = m_v->superblock_header(begin);
+        auto packed = detail::read_unaligned<uint32_t>(header);
+        if (packed & 0x80000000) // Uniform superblock.
+            return base + i - 1;
+
+        auto hblock = begin * k_sblock_rate / bit_vector_type::k_hblock_rate;
+        size_type offset = m_v->m_hblock_header[2 * hblock] + (packed & 0x3fffffff);
+        header = header.subspan(8);
+        uint16_t descriptor;
+        uint32_t count;
+        for (;; header = header.subspan(2), base += bit_vector_type::k_block_size)
+        {
+            descriptor = detail::read_unaligned<uint16_t>(header);
+            count = rank_result<t_b>::adapt(descriptor & 0x1ff, bit_vector_type::k_block_size);
+            if (i <= count)
+                break;
+            i -= count;
+            offset += descriptor >> 10;
         }
-        return begin;
+
+        return base + select_block(offset, descriptor, i - 1);
     }
 
     //! Shorthand for select(i)
