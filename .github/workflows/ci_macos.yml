@@ -39,6 +39,12 @@ jobs:
         with:
           compiler: ${{ matrix.compiler }}
 
+      - name: Match GCC SDK to the selected Xcode
+        if: startsWith(matrix.compiler, 'gcc')
+        run: |
+          # The toolchain action can select a newer CLT SDK than Xcode's linker supports.
+          echo "SDKROOT=$(env -u SDKROOT xcrun --sdk macosx --show-sdk-path)" >> "$GITHUB_ENV"
+
       - name: Configure tests
         run: |
           mkdir ci_build && cd ci_build
