@@ -25,5 +25,11 @@ inline Value read_unaligned(std::span<T, extent> data, size_t index = 0)
     return value;
 }
 
+template <typename T, size_t extent>
+inline bool access_in_words(std::span<T, extent> data, uint64_t position)
+{
+    return (read_unaligned<uint64_t>(data, position / 64) >> (position % 64)) & 1;
+}
+
 } // namespace sdsl::detail
 #endif

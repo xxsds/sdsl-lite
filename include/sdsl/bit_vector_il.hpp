@@ -10,6 +10,7 @@
 #define SDSL_BIT_VECTOR_IL
 
 #include <algorithm>
+#include <bit>
 #include <assert.h>
 #include <iosfwd>
 #include <queue>
@@ -17,6 +18,7 @@
 #include <string>
 #include <type_traits>
 
+#include <sdsl/bit_vector_helper.hpp>
 #include <sdsl/bits.hpp>
 #include <sdsl/cereal.hpp>
 #include <sdsl/int_vector.hpp>
@@ -178,9 +180,8 @@ public:
     value_type operator[](size_type i) const
     {
         assert(i < m_size);
-        size_type bs = i >> m_block_shift;
-        size_type block = bs + (i >> 6) + 1;
-        return ((m_data[block] >> (i & 63)) & 1ULL);
+        // Skip the rank samples preceding the word containing i.
+        return detail::access_in_words(std::span(m_data).subspan((i >> m_block_shift) + 1), i);
     }
 
     //! Get the integer value of the binary string of length len starting at position idx.
