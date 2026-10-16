@@ -45,7 +45,6 @@ jobs:
           DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
         run: |
           # Newer SDKs have Mach headers that GCC 14 cannot compile.
-          echo "DEVELOPER_DIR=$DEVELOPER_DIR" >> "$GITHUB_ENV"
           echo "SDKROOT=$(env -u SDKROOT xcrun --sdk macosx --show-sdk-path)" >> "$GITHUB_ENV"
 
       - name: Configure tests
