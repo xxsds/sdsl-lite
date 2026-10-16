@@ -41,7 +41,10 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string>
+#include <span>
+#include <ranges>
 
+#include <sdsl/bit_vector_helper.hpp>
 #include <sdsl/bits.hpp>
 #include <sdsl/cereal.hpp>
 #include <sdsl/int_vector.hpp>
@@ -88,7 +91,7 @@ public:
 
 private:
     static uint32_t const k_block_size;
-    static uint32_t const k_block_bytes;
+    static constexpr uint32_t k_block_bytes = 32;
     static uint32_t const k_sblock_header_size;
     static uint32_t const k_sblock_size;
     static uint32_t const k_hblock_rate;
@@ -424,6 +427,74 @@ public:
     }
 
 private:
+    std::span<uint8_t const> superblock_header(size_type sblock) const
+    {
+        return {m_sblock_header.begin() + sblock * k_sblock_header_size, k_sblock_header_size};
+    }
+
+    struct block_location
+    {
+        size_type offset;
+        size_type ones_before;
+        uint16_t descriptor;
+    };
+
+#if __has_cpp_attribute(gnu::always_inline)
+    [[gnu::always_inline]] // Specialize the locator for the fields its caller uses.
+#endif
+    block_location locate_block(size_type block_id) const
+    {
+        auto sblock = block_id / k_sblock_rate;
+        auto hblock = block_id / k_hblock_rate;
+        auto header = superblock_header(sblock);
+        auto packed = detail::read_unaligned<uint32_t>(header);
+        auto local_rank = detail::read_unaligned<uint32_t>(header, 1);
+        block_location result{m_hblock_header[2 * hblock] + (packed & 0x3fffffff),
+                              m_hblock_header[2 * hblock + 1] + local_rank, 0};
+        header = header.subspan(8);
+        auto preceding = block_id % k_sblock_rate;
+        if (packed & 0x80000000) // Every block in this superblock has the same bit.
+        {
+            result.descriptor = detail::read_unaligned<uint16_t>(header);
+            result.ones_before += (result.descriptor & 0x1ff) * preceding;
+            return result;
+        }
+#if defined(__GNUC__) || defined(__clang__)
+        if constexpr (k_sblock_rate == 16)
+        {
+            // Every superblock allocates all sixteen descriptors, including the final one.
+            using lanes_type [[gnu::vector_size(16)]] = uint16_t;
+            auto lo = detail::read_unaligned<lanes_type>(header);
+            auto hi = detail::read_unaligned<lanes_type>(header, 1);
+            lanes_type const indices = {0, 1, 2, 3, 4, 5, 6, 7};
+            lo &= static_cast<lanes_type>(indices < static_cast<uint16_t>(preceding));
+            hi &= static_cast<lanes_type>(indices + 8 < static_cast<uint16_t>(preceding));
+            auto sizes = (lo >> 10) + (hi >> 10);
+            auto populations = (lo & 0x1ff) + (hi & 0x1ff);
+            uint32_t bytes = 0, ones = 0;
+            for (uint32_t j = 0; j < 8; ++j)
+            {
+                bytes += sizes[j];
+                ones += populations[j];
+            }
+            result.offset += bytes;
+            result.ones_before += ones;
+        }
+        else
+#endif
+        {
+            for (size_type j = 0; j < preceding; ++j)
+            {
+                auto descriptor = detail::read_unaligned<uint16_t>(header, j);
+                result.offset += descriptor >> 10;
+                result.ones_before += descriptor & 0x1ff;
+            }
+        }
+        result.descriptor = detail::read_unaligned<uint16_t>(header, preceding);
+        return result;
+    }
+
+
     //! Given i returns bv[i - 1].
     value_type access0(size_type i) const
     {
@@ -701,8 +772,6 @@ public:
 
 template <uint32_t k_sblock_rate>
 uint32_t const hyb_vector<k_sblock_rate>::k_block_size = 256;
-template <uint32_t k_sblock_rate>
-uint32_t const hyb_vector<k_sblock_rate>::k_block_bytes = 32;
 template <uint32_t k_sblock_rate>
 uint32_t const hyb_vector<k_sblock_rate>::k_sblock_header_size = 8 + 2 * k_sblock_rate;
 template <uint32_t k_sblock_rate>
