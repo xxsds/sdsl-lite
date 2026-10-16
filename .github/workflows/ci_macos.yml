@@ -39,10 +39,13 @@ jobs:
         with:
           compiler: ${{ matrix.compiler }}
 
-      - name: Match GCC SDK to the selected Xcode
-        if: startsWith(matrix.compiler, 'gcc')
+      - name: Select a compatible SDK for GCC 14
+        if: env.CXX == 'g++-14'
+        env:
+          DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
         run: |
-          # The toolchain action can select a newer CLT SDK than Xcode's linker supports.
+          # Newer SDKs have Mach headers that GCC 14 cannot compile.
+          echo "DEVELOPER_DIR=$DEVELOPER_DIR" >> "$GITHUB_ENV"
           echo "SDKROOT=$(env -u SDKROOT xcrun --sdk macosx --show-sdk-path)" >> "$GITHUB_ENV"
 
       - name: Configure tests
