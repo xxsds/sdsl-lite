@@ -11,7 +11,7 @@ namespace
 {
 
 template <uint32_t rate>
-void check_select(sdsl::bit_vector const & bits)
+void check_queries(sdsl::bit_vector const & bits)
 {
     sdsl::hyb_vector<rate> vector(bits);
     typename sdsl::hyb_vector<rate>::select_0_type select0(&vector);
@@ -36,7 +36,7 @@ void check_select(sdsl::bit_vector const & bits)
 }
 
 template <typename T>
-class hyb_select_test : public ::testing::Test
+class hyb_query_test : public ::testing::Test
 {};
 
 using rates = ::testing::Types<std::integral_constant<uint32_t, 1>,
@@ -44,9 +44,9 @@ using rates = ::testing::Types<std::integral_constant<uint32_t, 1>,
                                std::integral_constant<uint32_t, 4>,
                                std::integral_constant<uint32_t, 16>,
                                std::integral_constant<uint32_t, 64>>;
-TYPED_TEST_SUITE(hyb_select_test, rates, );
+TYPED_TEST_SUITE(hyb_query_test, rates, );
 
-TYPED_TEST(hyb_select_test, block_encodings)
+TYPED_TEST(hyb_query_test, block_encodings)
 {
     // Uniform, two-run, minority, run-length and plain blocks, in both polarities.
     // Their different encoded lengths also leave plain blocks unaligned in the trunk.
@@ -68,10 +68,10 @@ TYPED_TEST(hyb_select_test, block_encodings)
     for (uint64_t block = 0; block < patterns.size(); ++block)
         for (uint64_t i = 0; i < 256; ++i)
             bits[block * 256 + i] = patterns[block][i % patterns[block].size()] == '1';
-    check_select<TypeParam::value>(bits);
+    check_queries<TypeParam::value>(bits);
 }
 
-TYPED_TEST(hyb_select_test, run_counts)
+TYPED_TEST(hyb_query_test, run_counts)
 {
     // Both parities of the final two (implicit) runs, for every encoded run count.
     for (uint32_t runs = 3; runs <= 33; ++runs)
@@ -79,13 +79,13 @@ TYPED_TEST(hyb_select_test, run_counts)
         sdsl::bit_vector bits(256, 0);
         for (uint64_t pos = 0; pos < bits.size(); ++pos)
             bits[pos] = (pos * runs / bits.size()) & 1;
-        check_select<TypeParam::value>(bits);
+        check_queries<TypeParam::value>(bits);
         bits.flip();
-        check_select<TypeParam::value>(bits);
+        check_queries<TypeParam::value>(bits);
     }
 }
 
-TYPED_TEST(hyb_select_test, short_patterns)
+TYPED_TEST(hyb_query_test, short_patterns)
 {
     for (uint64_t size = 0; size <= 8; ++size)
         for (uint64_t pattern = 0; pattern < (uint64_t(1) << size); ++pattern)
@@ -93,11 +93,11 @@ TYPED_TEST(hyb_select_test, short_patterns)
             sdsl::bit_vector bits(size, 0);
             for (uint64_t i = 0; i < size; ++i)
                 bits[i] = (pattern >> i) & 1;
-            check_select<TypeParam::value>(bits);
+            check_queries<TypeParam::value>(bits);
         }
 }
 
-TYPED_TEST(hyb_select_test, boundaries_and_densities)
+TYPED_TEST(hyb_query_test, boundaries_and_densities)
 {
     constexpr uint64_t superblock_size = 256 * TypeParam::value;
     std::mt19937_64 random(42);
@@ -120,21 +120,21 @@ TYPED_TEST(hyb_select_test, boundaries_and_densities)
             sdsl::bit_vector bits(size);
             for (uint64_t i = 0; i < size; ++i)
                 bits[i] = random() % 100 < density;
-            check_select<TypeParam::value>(bits);
+            check_queries<TypeParam::value>(bits);
         }
     }
 }
 
-TYPED_TEST(hyb_select_test, empty_superblocks)
+TYPED_TEST(hyb_query_test, empty_superblocks)
 {
     constexpr uint64_t superblock_size = 256 * TypeParam::value;
     sdsl::bit_vector bits(5 * superblock_size, 0);
     // Repeated prefix counts must not move a select query past its occurrence.
     for (uint64_t pos : {superblock_size - 1, superblock_size, 4 * superblock_size})
         bits[pos] = 1;
-    check_select<TypeParam::value>(bits);
+    check_queries<TypeParam::value>(bits);
     bits.flip();
-    check_select<TypeParam::value>(bits);
+    check_queries<TypeParam::value>(bits);
 }
 
 } // namespace

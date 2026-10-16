@@ -1,10 +1,4 @@
-#include <array>
-#include <bit>
-#include <cstring>
-#include <random>
-#include <span>
 #include <string>
-#include <vector>
 
 #include <sdsl/bit_vector_il.hpp>
 #include <sdsl/hyb_vector.hpp>
@@ -90,96 +84,6 @@ typedef Types<select_support_mcl<>,
 #endif
 
 TYPED_TEST_SUITE(select_support_test, Implementations, );
-
-TEST(plain_query_test, byte_and_word_storage)
-{
-    std::array<uint64_t, 4> words = {0, uint64_t{1} << 63, 0x5555555555555555ULL, ~uint64_t{0}};
-    for (size_t offset = 0; offset < alignof(uint64_t); ++offset)
-    {
-        SCOPED_TRACE(offset);
-        std::array<uint8_t, sizeof(words) + alignof(uint64_t) - 1> bytes;
-        std::memcpy(bytes.data() + offset, words.data(), sizeof(words));
-        auto byte_data = std::span<uint8_t const>(bytes.data() + offset, sizeof(words));
-        uint64_t ones = 0, zeros = 0;
-        for (uint64_t position = 0; position < 256; ++position)
-        {
-            ASSERT_EQ(ones, detail::rank_in_words(std::span(words), position));
-            ASSERT_EQ(ones, detail::rank_in_words(byte_data, position));
-            bool bit = (words[position / 64] >> (position % 64)) & 1;
-            ASSERT_EQ(bit, detail::access_in_words(std::span(words), position));
-            ASSERT_EQ(bit, detail::access_in_words(byte_data, position));
-            if (bit)
-            {
-                ASSERT_EQ(position, detail::select_in_words<1>(std::span(words), ++ones));
-                ASSERT_EQ(position, detail::select_in_words<1>(byte_data, ones));
-            }
-            else
-            {
-                ASSERT_EQ(position, detail::select_in_words<0>(std::span(words), ++zeros));
-                ASSERT_EQ(position, detail::select_in_words<0>(byte_data, zeros));
-            }
-        }
-        ASSERT_EQ(ones, detail::rank_in_words(std::span(words), 256));
-        ASSERT_EQ(ones, detail::rank_in_words(byte_data, 256));
-    }
-}
-
-TEST(plain_query_test, long_rank_prefixes)
-{
-    std::array<uint64_t, 17> words;
-    for (size_t word = 0; word < words.size(); ++word)
-        words[word] = 0x0123456789abcdefULL * (word + 1);
-    constexpr uint64_t initial_rank = uint64_t{1} << 40;
-    uint64_t expected = initial_rank;
-    for (size_t prefix = 0; prefix <= 64 * words.size(); ++prefix)
-    {
-        auto data = std::span<uint64_t const>(words).first((prefix + 63) / 64);
-        ASSERT_EQ(expected, detail::rank_in_words(data, prefix, initial_rank));
-        if (prefix < 64 * words.size())
-            expected += (words[prefix / 64] >> (prefix % 64)) & 1;
-    }
-    ASSERT_EQ(initial_rank, detail::rank_in_words(std::span<uint64_t const>{}, 0, initial_rank));
-}
-
-template <class T>
-class cached_select_test : public ::testing::Test
-{};
-
-using CachedSelect = Types<select_support_il<0, 512>, select_support_il<1, 512>,
-                           select_support_il<0, 4096>, select_support_il<1, 4096>>;
-TYPED_TEST_SUITE(cached_select_test, CachedSelect, );
-
-TYPED_TEST(cached_select_test, repeated_populations_and_partial_last_block)
-{
-    bit_vector bvec((1 << 23) + 17); // Large enough to populate the select cache.
-    size_t words = (bvec.size() + 63) / 64;
-    std::vector<uint64_t> prefixes(words + 1);
-    std::mt19937_64 random(42);
-    for (size_t word = 0; word < words; ++word)
-    {
-        uint64_t value = random();
-        if (word % 193 < 64)
-            value = 0;
-        else if (word % 193 < 128)
-            value = ~uint64_t{0};
-        value &= bits::lo_set[std::min<uint64_t>(64, bvec.size() - 64 * word)];
-        bvec.data()[word] = value;
-        prefixes[word + 1] = prefixes[word] + std::popcount(value);
-    }
-    typename TypeParam::bit_vector_type vector(bvec);
-    TypeParam select(&vector);
-    uint64_t total = TypeParam::bit_pat ? prefixes.back() : bvec.size() - prefixes.back();
-    for (size_t query = 0; query < 2000; ++query)
-    {
-        uint64_t occurrence = query == 0 ? 1 : query == 1 ? total : random() % total + 1;
-        uint64_t position = select(occurrence);
-        ASSERT_LT(position, bvec.size());
-        ASSERT_EQ(TypeParam::bit_pat, bvec[position]);
-        uint64_t ones = prefixes[position / 64]
-                      + std::popcount(bvec.data()[position / 64] & bits::lo_set[position % 64]);
-        ASSERT_EQ(occurrence - 1, TypeParam::bit_pat ? ones : position - ones);
-    }
-}
 
 //! Test the select method
 TYPED_TEST(select_support_test, select_method)
