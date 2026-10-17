@@ -95,7 +95,8 @@ public:
         // (1) read size and int_width
         int_vector_trait<fixedIntWidth>::read_header(size, int_width, in);
         // (2) resize the vector
-        m_vec.width(int_width);
+        if constexpr (fixedIntWidth == 0)
+            m_vec.width(int_width);
         m_vec.bit_resize(size);
         // (3) read vbyte encoded entries an put them into the vector
         size_type i = 0;
