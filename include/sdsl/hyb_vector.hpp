@@ -42,6 +42,7 @@
 #include <stdio.h>
 #include <string>
 #include <span>
+#include <type_traits>
 
 #include <sdsl/bit_vector_helper.hpp>
 #include <sdsl/bits.hpp>
@@ -456,35 +457,38 @@ private:
             result.ones_before += (result.descriptor & 0x1ff) * preceding;
             return result;
         }
-        if constexpr (k_sblock_rate == 16)
+        constexpr uint32_t lanes = k_sblock_rate < 8 ? 1 : 8;
+        // Use native-width scalar sums; widen SIMD lanes only when their sums could overflow.
+        constexpr uint64_t max_lane_sum = ((uint64_t{k_sblock_rate} + lanes - 1) / lanes) * 256;
+        using lane_type = std::conditional_t<(lanes != 1 && max_lane_sum <= UINT16_MAX), uint16_t, uint64_t>;
+        using packed_type [[gnu::vector_size(lanes * sizeof(uint16_t))]] = uint16_t;
+        using lanes_type [[gnu::vector_size(lanes * sizeof(lane_type))]] = lane_type;
+        lanes_type indices{};
+        for (uint32_t lane = 0; lane < lanes; ++lane)
+            indices[lane] = lane;
+        lanes_type sizes{}, populations{};
+        auto end = lanes == 1 ? preceding : k_sblock_rate;
+        for (size_type j = 0; j < end; j += lanes)
         {
-            // Every superblock allocates all sixteen descriptors, including the final one.
-            using lanes_type [[gnu::vector_size(16)]] = uint16_t;
-            auto lo = detail::read_unaligned<lanes_type>(header);
-            auto hi = detail::read_unaligned<lanes_type>(header, 1);
-            lanes_type const indices = {0, 1, 2, 3, 4, 5, 6, 7};
-            lo &= static_cast<lanes_type>(indices < static_cast<uint16_t>(preceding));
-            hi &= static_cast<lanes_type>(indices + 8 < static_cast<uint16_t>(preceding));
-            auto sizes = (lo >> 10) + (hi >> 10);
-            auto populations = (lo & 0x1ff) + (hi & 0x1ff);
-            uint32_t bytes = 0, ones = 0;
-            for (uint32_t j = 0; j < 8; ++j)
-            {
-                bytes += sizes[j];
-                ones += populations[j];
-            }
-            result.offset += bytes;
-            result.ones_before += ones;
+            packed_type packed{};
+            std::memcpy(&packed, header.data() + 2 * j,
+                        2 * std::min<size_type>(lanes, k_sblock_rate - j));
+            auto descriptors = __builtin_convertvector(packed, lanes_type);
+            if constexpr (lanes > 1)
+                descriptors &= static_cast<lanes_type>(indices + static_cast<lane_type>(j)
+                                                       < static_cast<lane_type>(preceding));
+            sizes += descriptors >> 10;
+            populations += descriptors & 0x1ff;
         }
-        else
+        using total_type = decltype(lane_type{} + lane_type{});
+        total_type bytes = 0, ones = 0;
+        for (uint32_t lane = 0; lane < lanes; ++lane)
         {
-            for (size_type j = 0; j < preceding; ++j)
-            {
-                auto descriptor = detail::read_unaligned<uint16_t>(header, j);
-                result.offset += descriptor >> 10;
-                result.ones_before += descriptor & 0x1ff;
-            }
+            bytes += sizes[lane];
+            ones += populations[lane];
         }
+        result.offset += bytes;
+        result.ones_before += ones;
         result.descriptor = detail::read_unaligned<uint16_t>(header, preceding);
         return result;
     }
