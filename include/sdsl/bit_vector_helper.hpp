@@ -4,13 +4,10 @@
 #ifndef INCLUDED_SDSL_BIT_VECTOR_HELPER
 #define INCLUDED_SDSL_BIT_VECTOR_HELPER
 
-#include <algorithm>
 #include <cassert>
 #include <cstring>
 #include <span>
 #include <type_traits>
-
-#include <sdsl/bits.hpp>
 
 namespace sdsl::detail
 {
