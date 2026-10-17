@@ -453,7 +453,7 @@ private:
 
     superblock_view superblock_header(size_type sblock) const
     {
-        std::span<uint8_t const> bytes{&m_sblock_header.begin()[sblock * k_sblock_header_size],
+        std::span<uint8_t const> bytes{&m_sblock_header[sblock * k_sblock_header_size],
                                       k_sblock_header_size};
         auto packed = detail::read_unaligned<uint32_t>(bytes);
         return {static_cast<uint32_t>(packed & bits::lo_set[30]),
@@ -475,7 +475,7 @@ private:
 
     hyperblock_reference<uint64_t const> hyperblock_header(size_type hblock) const
     {
-        return {m_hblock_header.data()[2 * hblock], m_hblock_header.data()[2 * hblock + 1]};
+        return {m_hblock_header[2 * hblock], m_hblock_header[2 * hblock + 1]};
     }
 
     template <typename T>
@@ -590,7 +590,7 @@ private:
             return (inside_second_run ^ special_bit);
         }
 
-        uint8_t const * trunk_p = &m_trunk.begin()[location.offset];
+        uint8_t const * trunk_p = &m_trunk[location.offset];
 
         // Number of runs > 2.
         if (encoding_size < k_block_bytes)
@@ -906,7 +906,7 @@ public:
                 block_rank + (special_bit * local_rank + (1 - special_bit) * (local_i - local_rank)), i);
         }
 
-        uint8_t const * trunk_p = &m_v->m_trunk.begin()[location.offset];
+        uint8_t const * trunk_p = &m_v->m_trunk[location.offset];
 
         // Number of runs > 2.
         if (encoding_size < bit_vector_type::k_block_bytes)
