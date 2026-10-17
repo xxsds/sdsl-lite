@@ -29,7 +29,7 @@
  *     - replace std::vectors by int_vectors
  *     - add support for rank0
  *     - added naive implementation of method get_int
- *     - added direct block decoding for select
+ *     - added the initial implementation of select
  */
 #ifndef INCLUDED_SDSL_HYB_VECTOR
 #define INCLUDED_SDSL_HYB_VECTOR
