@@ -121,7 +121,7 @@ struct int_vector_trait<64>
     typedef uint64_t value_type;
     typedef int_vector<64> int_vector_type;
     typedef uint64_t & reference;
-    typedef uint64_t const_reference;
+    typedef uint64_t const & const_reference;
     typedef uint8_t int_width_type;
     typedef uint64_t * iterator;
     typedef uint64_t const * const_iterator;
@@ -141,7 +141,7 @@ struct int_vector_trait<32>
     typedef uint32_t value_type;
     typedef int_vector<32> int_vector_type;
     typedef uint32_t & reference;
-    typedef uint32_t const_reference;
+    typedef uint32_t const & const_reference;
     typedef uint8_t int_width_type;
     typedef uint32_t * iterator;
     typedef uint32_t const * const_iterator;
@@ -161,7 +161,7 @@ struct int_vector_trait<16>
     typedef uint16_t value_type;
     typedef int_vector<16> int_vector_type;
     typedef uint16_t & reference;
-    typedef uint16_t const_reference;
+    typedef uint16_t const & const_reference;
     typedef uint8_t int_width_type;
     typedef uint16_t * iterator;
     typedef uint16_t const * const_iterator;
@@ -181,7 +181,7 @@ struct int_vector_trait<8>
     typedef uint8_t value_type;
     typedef int_vector<8> int_vector_type;
     typedef uint8_t & reference;
-    typedef uint8_t const_reference;
+    typedef uint8_t const & const_reference;
     typedef uint8_t int_width_type;
     typedef uint8_t * iterator;
     typedef uint8_t const * const_iterator;
@@ -723,7 +723,7 @@ public:
 
     //! const version of [] operator
     /*!\param i Index the i-th integer of length width().
-     *  \return The value of the i-th integer of length width().
+     *  \return A const reference for widths 8, 16, 32 and 64; a value otherwise.
      */
     inline const_reference operator[](size_type const & i) const noexcept;
 
@@ -738,7 +738,7 @@ public:
 
     //! const version of at() function
     /*!\param i Index the i-th integer of length width().
-     *  \return The value of the i-th integer of length width().
+     *  \return A const reference for widths 8, 16, 32 and 64; a value otherwise.
      */
     const_reference at(size_type const & i) const
     {
