@@ -119,10 +119,11 @@ template <uint8_t t_width>
     requires (t_width == 8 || t_width == 16 || t_width == 32 || t_width == 64)
 struct int_vector_trait<t_width>
 {
-    using value_type = std::conditional_t<
-        t_width == 8,
-        uint8_t,
-        std::conditional_t<t_width == 16, uint16_t, std::conditional_t<t_width == 32, uint32_t, uint64_t>>>;
+    // clang-format off
+    using value_type = std::conditional_t<t_width == 8,  uint8_t,
+                       std::conditional_t<t_width == 16, uint16_t,
+                       std::conditional_t<t_width == 32, uint32_t, uint64_t>>>;
+    // clang-format on
     using int_vector_type = int_vector<t_width>;
     using reference = value_type &;
     using const_reference = value_type const &;
