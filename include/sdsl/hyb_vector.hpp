@@ -432,6 +432,12 @@ private:
         return {m_sblock_header.begin() + sblock * k_sblock_header_size, k_sblock_header_size};
     }
 
+    // Byte offset of the superblock payload relative to its hyperblock payload.
+    static constexpr uint32_t superblock_relative_offset(uint32_t packed)
+    {
+        return packed & bits::lo_set[30];
+    }
+
     struct block_location
     {
         size_type offset;
@@ -449,7 +455,7 @@ private:
         auto header = superblock_header(sblock);
         auto packed = detail::read_unaligned<uint32_t>(header);
         auto local_rank = detail::read_unaligned<uint32_t>(header, 1);
-        block_location result{m_hblock_header[2 * hblock] + (packed & 0x3fffffff),
+        block_location result{m_hblock_header[2 * hblock] + superblock_relative_offset(packed),
                               m_hblock_header[2 * hblock + 1] + local_rank, 0};
         header = header.subspan(8);
         auto preceding = block_id % k_sblock_rate;
@@ -512,7 +518,7 @@ private:
         // Read superblock header.
         uint8_t const * header_ptr8 = ((uint8_t const *)m_sblock_header.data()) + (sblock_id * k_sblock_header_size);
         uint32_t * header_ptr32 = (uint32_t *)header_ptr8;
-        size_type trunk_ptr = trunk_base + ((*header_ptr32) & 0x3fffffff);
+        size_type trunk_ptr = trunk_base + superblock_relative_offset(*header_ptr32);
         header_ptr8 += 8;
 
         uint16_t * header_ptr16 = (uint16_t *)header_ptr8;
@@ -853,7 +859,7 @@ public:
         uint8_t const * header_ptr8 =
             ((uint8_t const *)(m_v->m_sblock_header.data())) + (sblock_id * bit_vector_type::k_sblock_header_size);
         uint32_t * header_ptr32 = (uint32_t *)header_ptr8;
-        size_type trunk_ptr = trunk_base + ((*header_ptr32) & 0x3fffffff);
+        size_type trunk_ptr = trunk_base + m_v->superblock_relative_offset(*header_ptr32);
         size_type sblock_rank = *(header_ptr32 + 1);
         header_ptr8 += 8;
 
@@ -1180,7 +1186,7 @@ public:
             return base + i - 1;
 
         auto hblock = begin * k_sblock_rate / bit_vector_type::k_hblock_rate;
-        size_type offset = m_v->m_hblock_header[2 * hblock] + (packed & 0x3fffffff);
+        size_type offset = m_v->m_hblock_header[2 * hblock] + m_v->superblock_relative_offset(packed);
         header = header.subspan(8);
         uint16_t descriptor;
         uint32_t count;
