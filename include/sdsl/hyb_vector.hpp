@@ -432,6 +432,12 @@ private:
         return {m_sblock_header.begin() + sblock * k_sblock_header_size, k_sblock_header_size};
     }
 
+    // Byte offset of the superblock payload relative to its hyperblock payload.
+    static constexpr uint32_t superblock_relative_offset(uint32_t packed)
+    {
+        return packed & bits::lo_set[30];
+    }
+
     struct block_location
     {
         size_type offset;
@@ -447,11 +453,11 @@ private:
         auto header = superblock_header(sblock);
         auto packed = detail::read_unaligned<uint32_t>(header);
         auto local_rank = detail::read_unaligned<uint32_t>(header, 1);
-        block_location result{m_hblock_header[2 * hblock] + (packed & bits::lo_set[30]),
+        block_location result{m_hblock_header[2 * hblock] + superblock_relative_offset(packed),
                               m_hblock_header[2 * hblock + 1] + local_rank, 0};
         header = header.subspan(8);
         auto preceding = block_id % k_sblock_rate;
-        if ((packed >> 31) & 1) // Every block in this superblock has the same bit.
+        if (packed & (uint32_t{1} << 31)) // Every block in this superblock has the same bit.
         {
             result.descriptor = detail::read_unaligned<uint16_t>(header);
             result.ones_before += (result.descriptor & 0x1ff) * preceding;
