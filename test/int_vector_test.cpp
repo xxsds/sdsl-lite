@@ -47,6 +47,8 @@ TEST(int_vector_const_access, native_width_references)
     check_const_references<64>();
     static_assert(!std::is_reference_v<sdsl::int_vector<0>::const_reference>);
     static_assert(!std::is_reference_v<sdsl::int_vector<1>::const_reference>);
+    static_assert(!std::is_reference_v<sdsl::int_vector<2>::const_reference>);
+    static_assert(!std::is_reference_v<sdsl::int_vector<4>::const_reference>);
     static_assert(!std::is_reference_v<sdsl::int_vector<7>::const_reference>);
 }
 
