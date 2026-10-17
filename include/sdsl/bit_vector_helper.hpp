@@ -18,7 +18,8 @@ inline Value read_unaligned(std::span<T, extent> data, size_t index = 0)
     static_assert(std::is_trivially_copyable_v<Value>);
     assert(index < data.size_bytes() / sizeof(Value));
     Value value;
-    std::memcpy(&value, std::as_bytes(data).data() + sizeof(Value) * index, sizeof(value));
+    auto bytes = std::as_bytes(data);
+    std::memcpy(&value, &bytes[sizeof(Value) * index], sizeof(value));
     return value;
 }
 
