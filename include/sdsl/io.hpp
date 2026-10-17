@@ -217,8 +217,7 @@ bool load_vector_from_file(t_int_vec & v, std::string const & file, uint8_t num_
                 tmp.push_back(x);
                 max_x = std::max(x, max_x);
             }
-            if constexpr (t_int_vec::fixed_int_width == 0)
-                v.width(bits::hi(max_x) + 1);
+            v.width(bits::hi(max_x) + 1);
             v.resize(tmp.size());
             for (size_t i = 0; i < tmp.size(); ++i)
             {
@@ -244,8 +243,7 @@ bool load_vector_from_file(t_int_vec & v, std::string const & file, uint8_t num_
         isfstream in(file, std::ios::in | std::ios::binary);
         if (in)
         {
-            if constexpr (t_int_vec::fixed_int_width == 0)
-                v.width(std::min((int)8 * num_bytes, (int)max_int_width));
+            v.width(std::min((int)8 * num_bytes, (int)max_int_width));
             v.resize(file_size / num_bytes);
             if (8 == t_int_vec::fixed_int_width and 1 == num_bytes)
             { // if int_vector<8> is created from byte alphabet file
