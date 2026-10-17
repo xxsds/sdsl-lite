@@ -39,10 +39,7 @@ template <typename T>
 class hyb_query_test : public ::testing::Test
 {};
 
-using rates = ::testing::Types<std::integral_constant<uint32_t, 1>,
-                               std::integral_constant<uint32_t, 2>,
-                               std::integral_constant<uint32_t, 4>,
-                               std::integral_constant<uint32_t, 8>,
+using rates = ::testing::Types<std::integral_constant<uint32_t, 8>,
                                std::integral_constant<uint32_t, 16>,
                                std::integral_constant<uint32_t, 32>,
                                std::integral_constant<uint32_t, 64>>;
@@ -141,11 +138,11 @@ TYPED_TEST(hyb_query_test, empty_superblocks)
 
 TEST(hyb_query_test, large_superblock_population)
 {
-    sdsl::bit_vector bits(2048 * 256, 1);
+    sdsl::bit_vector bits(1024 * 256, 1);
     bits[3] = 0; // Keep the superblock nonuniform so the descriptor sums are exercised.
-    sdsl::hyb_vector<2048> vector(bits);
-    sdsl::hyb_vector<2048>::rank_1_type rank1(&vector);
-    sdsl::hyb_vector<2048>::rank_0_type rank0(&vector);
+    sdsl::hyb_vector<1024> vector(bits);
+    sdsl::hyb_vector<1024>::rank_1_type rank1(&vector);
+    sdsl::hyb_vector<1024>::rank_0_type rank0(&vector);
     EXPECT_EQ(bits.size() - 1, rank1(bits.size()));
     EXPECT_EQ(uint64_t{1}, rank0(bits.size()));
 }

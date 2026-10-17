@@ -35,6 +35,7 @@
 #define INCLUDED_SDSL_HYB_VECTOR
 
 #include <algorithm>
+#include <bit>
 #include <assert.h>
 #include <cstdlib>
 #include <iostream>
@@ -43,6 +44,10 @@
 #include <string>
 #include <span>
 #include <type_traits>
+
+#if defined(__AVX2__)
+#include <immintrin.h>
+#endif
 
 #include <sdsl/bit_vector_helper.hpp>
 #include <sdsl/bits.hpp>
@@ -64,7 +69,7 @@ class select_support_hyb;
 
 //! A hybrid-encoded compressed bitvector representation
 /*!
- * \tparam k_sblock_rate  Superblock rate (number of blocks inside superblock)
+ * \tparam k_sblock_rate  Blocks per superblock: a power of two from 8 through 1024.
  *
  * References:
  *  - Juha Karkkainen, Dominik Kempa and Simon J. Puglisi.
@@ -74,6 +79,9 @@ class select_support_hyb;
 template <uint32_t k_sblock_rate = 16>
 class hyb_vector
 {
+    static_assert(std::has_single_bit(k_sblock_rate) && k_sblock_rate >= 8 && k_sblock_rate <= 1024,
+                  "Superblock rate must be a power of two from 8 through 1024");
+
 public:
     typedef bit_vector::size_type size_type;
     typedef bit_vector::value_type value_type;
@@ -485,6 +493,39 @@ private:
                 static_cast<typename block_descriptor<T>::bit_type>((packed >> 9) & 1)};
     }
 
+#if defined(__AVX2__)
+    // Favor the default rate's shorter reduction; widen only for larger superblocks.
+    static constexpr uint32_t k_descriptor_lanes = k_sblock_rate >= 64 ? 16 : 8;
+#else
+    static constexpr uint32_t k_descriptor_lanes = 8;
+#endif
+    using lanes128 [[gnu::vector_size(16)]] = uint16_t;
+    using lanes256 [[gnu::vector_size(32)]] = uint16_t;
+    using descriptor_vector = std::conditional_t<k_descriptor_lanes == 8, lanes128, lanes256>;
+
+    static uint32_t sum_lanes(descriptor_vector values)
+    {
+#if defined(__AVX2__)
+        // Each lane sums at most 64 nine-bit populations, fitting signed 16 bits.
+        __m128i sums;
+        if constexpr (k_descriptor_lanes == 16)
+        {
+            auto pairs = _mm256_madd_epi16(std::bit_cast<__m256i>(values), _mm256_set1_epi16(1));
+            sums = _mm_add_epi32(_mm256_castsi256_si128(pairs), _mm256_extracti128_si256(pairs, 1));
+        }
+        else
+            sums = _mm_madd_epi16(std::bit_cast<__m128i>(values), _mm_set1_epi16(1));
+        sums = _mm_add_epi32(sums, _mm_srli_si128(sums, 8));
+        sums = _mm_add_epi32(sums, _mm_srli_si128(sums, 4));
+        return static_cast<uint32_t>(_mm_cvtsi128_si32(sums));
+#else
+        uint32_t sum = 0;
+        for (uint32_t lane = 0; lane < k_descriptor_lanes; ++lane)
+            sum += values[lane];
+        return sum;
+#endif
+    }
+
     struct block_location
     {
         size_type offset;
@@ -507,43 +548,25 @@ private:
             result.ones_before += result.descriptor.ones * preceding;
             return result;
         }
-        constexpr uint32_t lanes = k_sblock_rate < 8 ? 1 : 8;
-        // Use native-width scalar sums; widen SIMD lanes only when their sums could overflow.
-        constexpr uint64_t max_lane_sum = ((uint64_t{k_sblock_rate} + lanes - 1) / lanes) * 256;
-        using lane_type = std::conditional_t<(lanes != 1 && max_lane_sum <= UINT16_MAX), uint16_t, uint64_t>;
-        using packed_type [[gnu::vector_size(lanes * sizeof(uint16_t))]] = uint16_t;
-        using lanes_type [[gnu::vector_size(lanes * sizeof(lane_type))]] = lane_type;
-        lanes_type indices{};
-        for (uint32_t lane = 0; lane < lanes; ++lane)
+        descriptor_vector indices{};
+        for (uint32_t lane = 0; lane < k_descriptor_lanes; ++lane)
             indices[lane] = lane;
-        lanes_type sizes{}, populations{};
-        auto end = lanes == 1 ? preceding : k_sblock_rate;
-        for (size_type j = 0; j < end; j += lanes)
+        descriptor_vector sizes{}, populations{};
+        for (size_type j = 0; j < k_sblock_rate; j += k_descriptor_lanes)
         {
-            packed_type packed{};
-            std::memcpy(&packed, descriptors.data() + 2 * j,
-                        2 * std::min<size_type>(lanes, k_sblock_rate - j));
-            auto values = __builtin_convertvector(packed, lanes_type);
-            if constexpr (lanes > 1)
-                values &= static_cast<lanes_type>(indices + static_cast<lane_type>(j)
-                                                  < static_cast<lane_type>(preceding));
+            descriptor_vector values;
+            std::memcpy(&values, &descriptors[2 * j], sizeof(values));
+            values &=
+                static_cast<descriptor_vector>(indices + static_cast<uint16_t>(j) < static_cast<uint16_t>(preceding));
             auto decoded = decode_block(values);
             sizes += decoded.payload_bytes;
             populations += decoded.ones;
         }
-        using total_type = decltype(lane_type{} + lane_type{});
-        total_type bytes = 0, ones = 0;
-        for (uint32_t lane = 0; lane < lanes; ++lane)
-        {
-            bytes += sizes[lane];
-            ones += populations[lane];
-        }
-        result.offset += bytes;
-        result.ones_before += ones;
+        result.offset += sum_lanes(sizes);
+        result.ones_before += sum_lanes(populations);
         result.descriptor = decode_block<uint32_t>(detail::read_unaligned<uint16_t>(descriptors, preceding));
         return result;
     }
-
 
     //! Given i returns bv[i - 1].
     value_type access0(size_type i) const
