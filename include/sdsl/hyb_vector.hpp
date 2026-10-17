@@ -221,16 +221,16 @@ public:
             // Update hblock header.
             if (!(block_id % k_hblock_rate))
             {
-                m_hblock_header[2 * hblock_id] = trunk_ptr;
-                m_hblock_header[2 * hblock_id + 1] = tot_rank;
+                m_hblock_header[2 * hblock_id] = trunk_ptr; // Absolute payload byte offset.
+                m_hblock_header[2 * hblock_id + 1] = tot_rank; // Ones before this hyperblock.
             }
 
             // Update sblock header.
             if (!(block_id % k_sblock_rate))
             {
                 uint32_t * ptr = (uint32_t *)(((uint8_t *)m_sblock_header.data()) + k_sblock_header_size * sblock_id);
-                *ptr++ = trunk_ptr - m_hblock_header[2 * hblock_id];
-                *ptr = tot_rank - m_hblock_header[2 * hblock_id + 1];
+                *ptr++ = trunk_ptr - hyperblock_payload_offset(hblock_id);
+                *ptr = tot_rank - hyperblock_ones_before(hblock_id);
 
                 // If the sblock is uniform, flip the bit.
                 if (sblock_id && (!sblock_ones || sblock_ones == k_sblock_size))
@@ -432,6 +432,36 @@ private:
         return {m_sblock_header.begin() + sblock * k_sblock_header_size, k_sblock_header_size};
     }
 
+    size_type hyperblock_payload_offset(size_type hblock) const
+    {
+        return m_hblock_header[2 * hblock];
+    }
+
+    size_type hyperblock_ones_before(size_type hblock) const
+    {
+        return m_hblock_header[2 * hblock + 1];
+    }
+
+    // Shared field definitions for scalar and SIMD descriptor decoding.
+    static constexpr uint32_t block_payload_shift = 10;
+    static constexpr uint16_t block_ones_mask = bits::lo_set[9];
+
+    static constexpr auto block_payload_bytes(uint16_t descriptor)
+    {
+        return descriptor >> block_payload_shift;
+    }
+
+    static constexpr auto block_ones(uint16_t descriptor)
+    {
+        return descriptor & block_ones_mask;
+    }
+
+    // First run's bit for run encoding; minority bit for position encoding.
+    static constexpr auto block_special_bit(uint16_t descriptor)
+    {
+        return (descriptor & 0x200) >> 9;
+    }
+
     // Byte offset of the superblock payload relative to its hyperblock payload.
     static constexpr uint32_t superblock_relative_offset(uint32_t packed)
     {
@@ -453,14 +483,14 @@ private:
         auto header = superblock_header(sblock);
         auto packed = detail::read_unaligned<uint32_t>(header);
         auto local_rank = detail::read_unaligned<uint32_t>(header, 1);
-        block_location result{m_hblock_header[2 * hblock] + superblock_relative_offset(packed),
-                              m_hblock_header[2 * hblock + 1] + local_rank, 0};
+        block_location result{hyperblock_payload_offset(hblock) + superblock_relative_offset(packed),
+                              hyperblock_ones_before(hblock) + local_rank, 0};
         header = header.subspan(8);
         auto preceding = block_id % k_sblock_rate;
         if (packed & (uint32_t{1} << 31)) // Every block in this superblock has the same bit.
         {
             result.descriptor = detail::read_unaligned<uint16_t>(header);
-            result.ones_before += (result.descriptor & 0x1ff) * preceding;
+            result.ones_before += block_ones(result.descriptor) * preceding;
             return result;
         }
         constexpr uint32_t lanes = k_sblock_rate < 8 ? 1 : 8;
@@ -483,8 +513,8 @@ private:
             if constexpr (lanes > 1)
                 descriptors &= static_cast<lanes_type>(indices + static_cast<lane_type>(j)
                                                        < static_cast<lane_type>(preceding));
-            sizes += descriptors >> 10;
-            populations += descriptors & 0x1ff;
+            sizes += descriptors >> block_payload_shift;
+            populations += descriptors & block_ones_mask;
         }
         using total_type = decltype(lane_type{} + lane_type{});
         total_type bytes = 0, ones = 0;
@@ -509,12 +539,12 @@ private:
         size_type block_id = (i - 1) / k_block_size;
         auto location = locate_block(block_id);
         uint32_t local_i = i - block_id * k_block_size;
-        uint32_t encoding_size = location.descriptor >> 10;
-        uint32_t ones = location.descriptor & 0x1ff;
+        uint32_t encoding_size = block_payload_bytes(location.descriptor);
+        uint32_t ones = block_ones(location.descriptor);
         uint32_t zeros = k_block_size - ones;
 
         // Number of runs <= 2.
-        uint32_t special_bit = (location.descriptor & 0x200) >> 9;
+        uint32_t special_bit = block_special_bit(location.descriptor);
         if (!encoding_size)
         {
             uint32_t first_run_length = special_bit * ones + (1 - special_bit) * zeros;
@@ -825,12 +855,12 @@ public:
         auto location = m_v->locate_block(block_id);
         uint32_t local_i = i - block_id * bit_vector_type::k_block_size;
         size_type block_rank = location.ones_before;
-        uint32_t encoding_size = location.descriptor >> 10;
-        uint32_t ones = location.descriptor & 0x1ff;
+        uint32_t encoding_size = m_v->block_payload_bytes(location.descriptor);
+        uint32_t ones = m_v->block_ones(location.descriptor);
         uint32_t zeros = bit_vector_type::k_block_size - ones;
 
         // Number of runs <= 2.
-        uint32_t special_bit = (location.descriptor & 0x200) >> 9;
+        uint32_t special_bit = m_v->block_special_bit(location.descriptor);
         if (!encoding_size)
         {
             uint32_t first_run_length = special_bit * ones + (1 - special_bit) * zeros;
