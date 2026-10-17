@@ -100,9 +100,13 @@ public:
 private:
     static uint32_t const k_block_size;
     static constexpr uint32_t k_block_bytes = 32;
+    static constexpr uint32_t k_sblock_prefix_size = 2 * sizeof(uint32_t);
     static uint32_t const k_sblock_header_size;
     static uint32_t const k_sblock_size;
     static uint32_t const k_hblock_rate;
+    static constexpr uint32_t k_uniform_mask = uint32_t{1} << 31;
+    static constexpr uint32_t k_special_bit_shift = 9;
+    static constexpr uint32_t k_special_bit_mask = uint32_t{1} << k_special_bit_shift;
 
     size_type m_size = 0;           // original bitvector size
     int_vector<8> m_trunk;          // body of encoded blocks
@@ -225,6 +229,8 @@ public:
             size_type block_end = block_beg + k_block_size;
             size_type sblock_id = block_id / k_sblock_rate;
             size_type hblock_id = block_id / k_hblock_rate;
+            std::span<uint8_t> header{&m_sblock_header[sblock_id * k_sblock_header_size],
+                                     k_sblock_header_size};
 
             // Update hblock header.
             if (!(block_id % k_hblock_rate))
@@ -237,8 +243,6 @@ public:
             // Update sblock header.
             if (!(block_id % k_sblock_rate))
             {
-                std::span<uint8_t> header{&m_sblock_header[sblock_id * k_sblock_header_size],
-                                         k_sblock_header_size};
                 auto [payload_offset, ones_before] = hyperblock_header(hblock_id);
                 detail::write_unaligned<uint32_t>(header, trunk_ptr - payload_offset);
                 detail::write_unaligned<uint32_t>(header, tot_rank - ones_before, 1);
@@ -249,7 +253,7 @@ public:
                     std::span<uint8_t> previous{&m_sblock_header[(sblock_id - 1) * k_sblock_header_size],
                                                k_sblock_header_size};
                     auto packed = detail::read_unaligned<uint32_t>(previous);
-                    detail::write_unaligned(previous, packed | (uint32_t{1} << 31));
+                    detail::write_unaligned(previous, packed | k_uniform_mask);
                 }
 
                 // Reset the number of ones in sblock.
@@ -304,7 +308,7 @@ public:
             // Store block popcount.
             uint16_t descriptor = ones;
             if (ones == k_block_size)
-                descriptor |= 0x200;
+                descriptor |= k_special_bit_mask;
 
             if (0 < ones && ones < k_block_size)
             { // non uniform block
@@ -349,7 +353,7 @@ public:
 
                         // Use runs encoding.
                         descriptor |= (runs_enc_size << 10);
-                        descriptor |= (bv[block_beg] << 9);
+                        descriptor |= (bv[block_beg] << k_special_bit_shift);
 
                         if (block_end <= m_size)
                         {
@@ -396,7 +400,7 @@ public:
                         // Update sblock header.
                         descriptor |= (minority_enc_size << 10);
                         if (ones < zeros)
-                            descriptor |= 0x200;
+                            descriptor |= k_special_bit_mask;
                         uint8_t keybit = (ones < zeros);
 
                         // Find positions of 1-bits, fast.
@@ -428,9 +432,8 @@ public:
                 }
             }
 
-            std::span<uint8_t> descriptors{&m_sblock_header[sblock_id * k_sblock_header_size + 8],
-                                          2 * k_sblock_rate};
-            detail::write_unaligned(descriptors, descriptor, block_id % k_sblock_rate);
+            detail::write_unaligned(header, descriptor,
+                                    k_sblock_prefix_size / sizeof(descriptor) + block_id % k_sblock_rate);
 
             // Update global rank.
             tot_rank += ones;
@@ -450,12 +453,12 @@ private:
 
     superblock_view superblock_header(size_type sblock) const
     {
-        std::span<uint8_t const> bytes{m_sblock_header.begin() + sblock * k_sblock_header_size,
+        std::span<uint8_t const> bytes{&m_sblock_header.begin()[sblock * k_sblock_header_size],
                                       k_sblock_header_size};
         auto packed = detail::read_unaligned<uint32_t>(bytes);
         return {static_cast<uint32_t>(packed & bits::lo_set[30]),
                 detail::read_unaligned<uint32_t>(bytes, 1),
-                (packed & (uint32_t{1} << 31)) != 0, bytes.subspan(8)};
+                (packed & k_uniform_mask) != 0, bytes.subspan(k_sblock_prefix_size)};
     }
 
     template <typename T>
@@ -472,8 +475,7 @@ private:
 
     hyperblock_reference<uint64_t const> hyperblock_header(size_type hblock) const
     {
-        auto data = m_hblock_header.data() + 2 * hblock;
-        return {data[0], data[1]};
+        return {m_hblock_header.data()[2 * hblock], m_hblock_header.data()[2 * hblock + 1]};
     }
 
     template <typename T>
@@ -490,7 +492,7 @@ private:
     static block_descriptor<T> decode_block(T const & packed)
     {
         return {packed >> 10, packed & 0x1ff,
-                static_cast<typename block_descriptor<T>::bit_type>((packed >> 9) & 1)};
+                static_cast<typename block_descriptor<T>::bit_type>((packed >> k_special_bit_shift) & 1)};
     }
 
 #if defined(__AVX2__)
@@ -588,7 +590,7 @@ private:
             return (inside_second_run ^ special_bit);
         }
 
-        uint8_t const * trunk_p = m_trunk.begin() + location.offset;
+        uint8_t const * trunk_p = &m_trunk.begin()[location.offset];
 
         // Number of runs > 2.
         if (encoding_size < k_block_bytes)
@@ -820,7 +822,7 @@ public:
 template <uint32_t k_sblock_rate>
 uint32_t const hyb_vector<k_sblock_rate>::k_block_size = 256;
 template <uint32_t k_sblock_rate>
-uint32_t const hyb_vector<k_sblock_rate>::k_sblock_header_size = 8 + 2 * k_sblock_rate;
+uint32_t const hyb_vector<k_sblock_rate>::k_sblock_header_size = k_sblock_prefix_size + 2 * k_sblock_rate;
 template <uint32_t k_sblock_rate>
 uint32_t const hyb_vector<k_sblock_rate>::k_sblock_size = 256 * k_sblock_rate;
 template <uint32_t k_sblock_rate>
@@ -904,7 +906,7 @@ public:
                 block_rank + (special_bit * local_rank + (1 - special_bit) * (local_i - local_rank)), i);
         }
 
-        uint8_t const * trunk_p = m_v->m_trunk.begin() + location.offset;
+        uint8_t const * trunk_p = &m_v->m_trunk.begin()[location.offset];
 
         // Number of runs > 2.
         if (encoding_size < bit_vector_type::k_block_bytes)
