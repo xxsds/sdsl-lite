@@ -229,16 +229,19 @@ public:
             // Update sblock header.
             if (!(block_id % k_sblock_rate))
             {
-                uint32_t * ptr = (uint32_t *)(((uint8_t *)m_sblock_header.data()) + k_sblock_header_size * sblock_id);
+                std::span<uint8_t> header{&m_sblock_header[sblock_id * k_sblock_header_size],
+                                         k_sblock_header_size};
                 auto [payload_offset, ones_before] = hyperblock_header(hblock_id);
-                *ptr++ = trunk_ptr - payload_offset;
-                *ptr = tot_rank - ones_before;
+                detail::write_unaligned<uint32_t>(header, trunk_ptr - payload_offset);
+                detail::write_unaligned<uint32_t>(header, tot_rank - ones_before, 1);
 
                 // If the sblock is uniform, flip the bit.
                 if (sblock_id && (!sblock_ones || sblock_ones == k_sblock_size))
                 {
-                    ptr = (uint32_t *)(((uint8_t *)m_sblock_header.data()) + k_sblock_header_size * (sblock_id - 1));
-                    *ptr |= 0x80000000;
+                    std::span<uint8_t> previous{&m_sblock_header[(sblock_id - 1) * k_sblock_header_size],
+                                               k_sblock_header_size};
+                    auto packed = detail::read_unaligned<uint32_t>(previous);
+                    detail::write_unaligned(previous, packed | (uint32_t{1} << 31));
                 }
 
                 // Reset the number of ones in sblock.
@@ -291,13 +294,9 @@ public:
             uint32_t zeros = k_block_size - ones;
 
             // Store block popcount.
-            uint16_t * header_ptr16 =
-                (uint16_t *)(((uint8_t *)m_sblock_header.data()) + sblock_id * k_sblock_header_size + 8
-                             + (block_id % k_sblock_rate) * 2);
-
-            (*header_ptr16) = ones;
+            uint16_t descriptor = ones;
             if (ones == k_block_size)
-                (*header_ptr16) |= 0x200;
+                descriptor |= 0x200;
 
             if (0 < ones && ones < k_block_size)
             { // non uniform block
@@ -308,7 +307,7 @@ public:
                 if (k_block_bytes <= best_enc_size)
                 {
                     // Use plain encoding.
-                    (*header_ptr16) |= (k_block_bytes << 10);
+                    descriptor |= (k_block_bytes << 10);
 
                     // Copy original 256 bits from bv into trunk.
                     if (block_end <= m_size)
@@ -341,8 +340,8 @@ public:
                     {
 
                         // Use runs encoding.
-                        (*header_ptr16) |= (runs_enc_size << 10);
-                        (*header_ptr16) |= (bv[block_beg] << 9);
+                        descriptor |= (runs_enc_size << 10);
+                        descriptor |= (bv[block_beg] << 9);
 
                         if (block_end <= m_size)
                         {
@@ -387,9 +386,9 @@ public:
                     {
                         // Use minority encoding.
                         // Update sblock header.
-                        (*header_ptr16) |= (minority_enc_size << 10);
+                        descriptor |= (minority_enc_size << 10);
                         if (ones < zeros)
-                            (*header_ptr16) |= 0x200;
+                            descriptor |= 0x200;
                         uint8_t keybit = (ones < zeros);
 
                         // Find positions of 1-bits, fast.
@@ -420,6 +419,10 @@ public:
                     }
                 }
             }
+
+            std::span<uint8_t> descriptors{&m_sblock_header[sblock_id * k_sblock_header_size + 8],
+                                          2 * k_sblock_rate};
+            detail::write_unaligned(descriptors, descriptor, block_id % k_sblock_rate);
 
             // Update global rank.
             tot_rank += ones;
