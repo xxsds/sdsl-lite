@@ -221,18 +221,18 @@ public:
             // Update hblock header.
             if (!(block_id % k_hblock_rate))
             {
-                auto header = hyperblock_header(hblock_id);
-                header.payload_offset = trunk_ptr;
-                header.ones_before = tot_rank;
+                auto [payload_offset, ones_before] = hyperblock_header(hblock_id);
+                payload_offset = trunk_ptr;
+                ones_before = tot_rank;
             }
 
             // Update sblock header.
             if (!(block_id % k_sblock_rate))
             {
                 uint32_t * ptr = (uint32_t *)(((uint8_t *)m_sblock_header.data()) + k_sblock_header_size * sblock_id);
-                auto header = hyperblock_header(hblock_id);
-                *ptr++ = trunk_ptr - header.payload_offset;
-                *ptr = tot_rank - header.ones_before;
+                auto [payload_offset, ones_before] = hyperblock_header(hblock_id);
+                *ptr++ = trunk_ptr - payload_offset;
+                *ptr = tot_rank - ones_before;
 
                 // If the sblock is uniform, flip the bit.
                 if (sblock_id && (!sblock_ones || sblock_ones == k_sblock_size))
@@ -429,9 +429,22 @@ public:
     }
 
 private:
-    std::span<uint8_t const> superblock_header(size_type sblock) const
+    struct superblock_view
     {
-        return {m_sblock_header.begin() + sblock * k_sblock_header_size, k_sblock_header_size};
+        uint32_t relative_offset;
+        uint32_t relative_ones;
+        bool uniform;
+        std::span<uint8_t const> descriptors;
+    };
+
+    superblock_view superblock_header(size_type sblock) const
+    {
+        std::span<uint8_t const> bytes{m_sblock_header.begin() + sblock * k_sblock_header_size,
+                                      k_sblock_header_size};
+        auto packed = detail::read_unaligned<uint32_t>(bytes);
+        return {static_cast<uint32_t>(packed & bits::lo_set[30]),
+                detail::read_unaligned<uint32_t>(bytes, 1),
+                (packed & (uint32_t{1} << 31)) != 0, bytes.subspan(8)};
     }
 
     template <typename T>
@@ -452,37 +465,28 @@ private:
         return {data[0], data[1]};
     }
 
-    // Shared field definitions for scalar and SIMD descriptor decoding.
-    static constexpr uint32_t block_payload_shift = 10;
-    static constexpr uint16_t block_ones_mask = bits::lo_set[9];
-
-    static constexpr auto block_payload_bytes(uint16_t descriptor)
+    template <typename T>
+    struct block_descriptor
     {
-        return descriptor >> block_payload_shift;
-    }
+        T payload_bytes;
+        T ones;
+        // First run's bit for run encoding; minority bit for position encoding.
+        using bit_type = std::conditional_t<std::is_integral_v<T>, bool, T>;
+        bit_type special_bit;
+    };
 
-    static constexpr auto block_ones(uint16_t descriptor)
+    template <typename T>
+    static block_descriptor<T> decode_block(T const & packed)
     {
-        return descriptor & block_ones_mask;
-    }
-
-    // First run's bit for run encoding; minority bit for position encoding.
-    static constexpr auto block_special_bit(uint16_t descriptor)
-    {
-        return (descriptor & 0x200) >> 9;
-    }
-
-    // Byte offset of the superblock payload relative to its hyperblock payload.
-    static constexpr uint32_t superblock_relative_offset(uint32_t packed)
-    {
-        return packed & bits::lo_set[30];
+        return {packed >> 10, packed & 0x1ff,
+                static_cast<typename block_descriptor<T>::bit_type>((packed >> 9) & 1)};
     }
 
     struct block_location
     {
         size_type offset;
         size_type ones_before;
-        uint16_t descriptor;
+        block_descriptor<uint32_t> descriptor;
     };
 
     [[gnu::always_inline]] // Specialize the locator for the fields its caller uses.
@@ -490,18 +494,14 @@ private:
     {
         auto sblock = block_id / k_sblock_rate;
         auto hblock = block_id / k_hblock_rate;
-        auto header = superblock_header(sblock);
-        auto packed = detail::read_unaligned<uint32_t>(header);
-        auto local_rank = detail::read_unaligned<uint32_t>(header, 1);
-        auto base = hyperblock_header(hblock);
-        block_location result{base.payload_offset + superblock_relative_offset(packed),
-                              base.ones_before + local_rank, 0};
-        header = header.subspan(8);
+        auto [relative_offset, relative_ones, uniform, descriptors] = superblock_header(sblock);
+        auto [base_offset, base_ones] = hyperblock_header(hblock);
+        block_location result{base_offset + relative_offset, base_ones + relative_ones, {}};
         auto preceding = block_id % k_sblock_rate;
-        if (packed & (uint32_t{1} << 31)) // Every block in this superblock has the same bit.
+        if (uniform)
         {
-            result.descriptor = detail::read_unaligned<uint16_t>(header);
-            result.ones_before += block_ones(result.descriptor) * preceding;
+            result.descriptor = decode_block<uint32_t>(detail::read_unaligned<uint16_t>(descriptors));
+            result.ones_before += result.descriptor.ones * preceding;
             return result;
         }
         constexpr uint32_t lanes = k_sblock_rate < 8 ? 1 : 8;
@@ -518,14 +518,15 @@ private:
         for (size_type j = 0; j < end; j += lanes)
         {
             packed_type packed{};
-            std::memcpy(&packed, header.data() + 2 * j,
+            std::memcpy(&packed, descriptors.data() + 2 * j,
                         2 * std::min<size_type>(lanes, k_sblock_rate - j));
-            auto descriptors = __builtin_convertvector(packed, lanes_type);
+            auto values = __builtin_convertvector(packed, lanes_type);
             if constexpr (lanes > 1)
-                descriptors &= static_cast<lanes_type>(indices + static_cast<lane_type>(j)
-                                                       < static_cast<lane_type>(preceding));
-            sizes += descriptors >> block_payload_shift;
-            populations += descriptors & block_ones_mask;
+                values &= static_cast<lanes_type>(indices + static_cast<lane_type>(j)
+                                                  < static_cast<lane_type>(preceding));
+            auto decoded = decode_block(values);
+            sizes += decoded.payload_bytes;
+            populations += decoded.ones;
         }
         using total_type = decltype(lane_type{} + lane_type{});
         total_type bytes = 0, ones = 0;
@@ -536,7 +537,7 @@ private:
         }
         result.offset += bytes;
         result.ones_before += ones;
-        result.descriptor = detail::read_unaligned<uint16_t>(header, preceding);
+        result.descriptor = decode_block<uint32_t>(detail::read_unaligned<uint16_t>(descriptors, preceding));
         return result;
     }
 
@@ -550,12 +551,10 @@ private:
         size_type block_id = (i - 1) / k_block_size;
         auto location = locate_block(block_id);
         uint32_t local_i = i - block_id * k_block_size;
-        uint32_t encoding_size = block_payload_bytes(location.descriptor);
-        uint32_t ones = block_ones(location.descriptor);
+        auto [encoding_size, ones, special_bit] = location.descriptor;
         uint32_t zeros = k_block_size - ones;
 
         // Number of runs <= 2.
-        uint32_t special_bit = block_special_bit(location.descriptor);
         if (!encoding_size)
         {
             uint32_t first_run_length = special_bit * ones + (1 - special_bit) * zeros;
@@ -866,12 +865,10 @@ public:
         auto location = m_v->locate_block(block_id);
         uint32_t local_i = i - block_id * bit_vector_type::k_block_size;
         size_type block_rank = location.ones_before;
-        uint32_t encoding_size = m_v->block_payload_bytes(location.descriptor);
-        uint32_t ones = m_v->block_ones(location.descriptor);
+        auto [encoding_size, ones, special_bit] = location.descriptor;
         uint32_t zeros = bit_vector_type::k_block_size - ones;
 
         // Number of runs <= 2.
-        uint32_t special_bit = m_v->block_special_bit(location.descriptor);
         if (!encoding_size)
         {
             uint32_t first_run_length = special_bit * ones + (1 - special_bit) * zeros;
