@@ -1151,83 +1151,187 @@ protected:
     uint8_t m_offset;
     uint8_t m_len;
 
-    template <typename Iterator>
-    static Iterator & increment(Iterator & it)
+public:
+    int_vector_iterator_base(uint8_t offset, uint8_t len) : m_offset(offset), m_len(len)
+    {}
+
+    int_vector_iterator_base(t_int_vector const * v = nullptr, size_type idx = 0) :
+        m_offset(idx % 64),
+        m_len(v == nullptr ? 0 : v->m_width)
+    {}
+};
+
+namespace detail
+{
+
+// Shared cursor operations for the two public iterator types.
+template <class Vector, class Derived>
+class int_vector_iterator_ops : public int_vector_iterator_base<std::remove_const_t<Vector>>
+{
+    using base_type = int_vector_iterator_base<std::remove_const_t<Vector>>;
+
+protected:
+    using base_type::m_len;
+    using base_type::m_offset;
+    using word_type =
+        std::conditional_t<std::is_const_v<Vector>, typename Vector::value_type const, typename Vector::value_type>;
+    word_type * m_word;
+
+    int_vector_iterator_ops(Vector * v = nullptr, uint64_t idx = 0) :
+        base_type(v, idx),
+        m_word(v ? v->data() + idx / 64 : nullptr)
+    {}
+
+    int_vector_iterator_ops(uint8_t offset, uint8_t len, word_type * word) : base_type(offset, len), m_word(word)
+    {}
+
+public:
+    using difference_type = typename Vector::difference_type;
+
+    Derived & operator++()
     {
-        it.m_offset += it.m_len;
-        if (it.m_offset >= 64)
+        auto & self = static_cast<Derived &>(*this);
+        self.m_offset += self.m_len;
+        if (self.m_offset >= 64)
         {
-            it.m_offset &= 0x3F;
-            ++it.m_word;
+            self.m_offset %= 64;
+            ++self.m_word;
         }
+        return self;
+    }
+
+    Derived operator++(int)
+    {
+        auto & self = static_cast<Derived &>(*this);
+        Derived it = self;
+        ++(*this);
         return it;
     }
 
-    template <typename Iterator>
-    static Iterator & decrement(Iterator & it)
+    Derived & operator--()
     {
-        it.m_offset -= it.m_len;
-        if (it.m_offset >= 64)
+        auto & self = static_cast<Derived &>(*this);
+        self.m_offset -= self.m_len;
+        if (self.m_offset >= 64)
         {
-            it.m_offset &= 0x3F;
-            --it.m_word;
+            self.m_offset %= 64;
+            --self.m_word;
         }
+        return self;
+    }
+
+    Derived operator--(int)
+    {
+        auto & self = static_cast<Derived &>(*this);
+        Derived it = self;
+        --(*this);
         return it;
     }
 
-    template <typename Iterator>
-    static Iterator & advance(Iterator & it, difference_type i)
+    Derived & operator+=(difference_type i)
     {
+        auto & self = static_cast<Derived &>(*this);
         if (i < 0)
-            return retreat(it, -i);
-        difference_type t = i * it.m_len;
-        it.m_word += (t >> 6);
-        if ((it.m_offset += (t & 0x3F)) & ~0x3F)
-        {                        // if new offset is >= 64
-            ++it.m_word;         // add one to the word
-            it.m_offset &= 0x3F; // offset = offset mod 64
+            return *this -= (-i);
+        difference_type t = i * self.m_len;
+        self.m_word += t / 64;
+        if ((self.m_offset += t % 64) >= 64)
+        {
+            ++self.m_word;
+            self.m_offset %= 64;
         }
-        return it;
+        return self;
     }
 
-    template <typename Iterator>
-    static Iterator & retreat(Iterator & it, difference_type i)
+    Derived & operator-=(difference_type i)
     {
+        auto & self = static_cast<Derived &>(*this);
         if (i < 0)
-            return advance(it, -i);
-        difference_type t = i * it.m_len;
-        it.m_word -= (t >> 6);
-        if ((it.m_offset -= (t & 0x3F)) & ~0x3F)
-        { // if new offset is < 0
-            --it.m_word;
-            it.m_offset &= 0x3F;
+            return *this += (-i);
+        difference_type t = i * self.m_len;
+        self.m_word -= t / 64;
+        if ((self.m_offset -= t % 64) >= 64)
+        {
+            --self.m_word;
+            self.m_offset %= 64;
         }
-        return it;
+        return self;
     }
 
-    template <typename Iterator>
-    static auto element_at(Iterator it, difference_type index)
+    Derived operator+(difference_type i) const
     {
-        difference_type bit = it.m_offset + index * it.m_len;
+        auto const & self = static_cast<Derived const &>(*this);
+        Derived it = self;
+        return it += i;
+    }
+
+    Derived operator-(difference_type i) const
+    {
+        auto const & self = static_cast<Derived const &>(*this);
+        Derived it = self;
+        return it -= i;
+    }
+
+    decltype(auto) operator[](difference_type i) const
+    {
+        auto const & self = static_cast<Derived const &>(*this);
+        Derived it = self;
+        difference_type bit = self.m_offset + i * self.m_len;
         // Signed shift rounds down, including when indexing before this iterator.
         it.m_word += bit >> 6;
         it.m_offset = bit & 63;
         return *it;
     }
 
-public:
-    int_vector_iterator_base(uint8_t offset, uint8_t len) : m_offset(offset), m_len(len)
-    {}
+    bool operator==(Derived const & it) const noexcept
+    {
+        auto const & self = static_cast<Derived const &>(*this);
+        return it.m_word == self.m_word && it.m_offset == self.m_offset;
+    }
 
-    int_vector_iterator_base(t_int_vector const * v = nullptr, size_type idx = 0) :
-        m_offset(idx & 0x3F),
-        m_len(v == nullptr ? 0 : v->m_width)
-    {}
+    bool operator!=(Derived const & it) const noexcept
+    {
+        auto const & self = static_cast<Derived const &>(*this);
+        return !(self == it);
+    }
+
+    bool operator<(Derived const & it) const noexcept
+    {
+        auto const & self = static_cast<Derived const &>(*this);
+        return std::pair{self.m_word, self.m_offset} < std::pair{it.m_word, it.m_offset};
+    }
+
+    bool operator>(Derived const & it) const noexcept
+    {
+        auto const & self = static_cast<Derived const &>(*this);
+        return std::pair{self.m_word, self.m_offset} > std::pair{it.m_word, it.m_offset};
+    }
+
+    bool operator>=(Derived const & it) const noexcept
+    {
+        auto const & self = static_cast<Derived const &>(*this);
+        return !(self < it);
+    }
+
+    bool operator<=(Derived const & it) const noexcept
+    {
+        auto const & self = static_cast<Derived const &>(*this);
+        return !(self > it);
+    }
 };
 
+} // namespace detail
+
 template <class t_int_vector>
-class int_vector_iterator : public int_vector_iterator_base<t_int_vector>
+class int_vector_iterator : public detail::int_vector_iterator_ops<t_int_vector, int_vector_iterator<t_int_vector>>
 {
+    using base_type = detail::int_vector_iterator_ops<t_int_vector, int_vector_iterator>;
+    friend base_type;
+
+    using base_type::m_len;
+    using base_type::m_offset;
+    using base_type::m_word;
+
 public:
     typedef int_vector_reference<t_int_vector> reference;
     typedef uint64_t value_type;
@@ -1237,72 +1341,14 @@ public:
     typedef typename t_int_vector::difference_type difference_type;
 
     friend class int_vector_const_iterator<t_int_vector>;
-    friend class int_vector_iterator_base<t_int_vector>;
 
-private:
-    using int_vector_iterator_base<t_int_vector>::m_offset; // make m_offset easy usable
-    using int_vector_iterator_base<t_int_vector>::m_len;    // make m_len easy usable
-
-    typename t_int_vector::value_type * m_word;
-
-public:
-    int_vector_iterator(t_int_vector * v = nullptr, size_type idx = 0) :
-        int_vector_iterator_base<t_int_vector>(v, idx),
-        m_word((v != nullptr) ? v->m_data + (idx >> 6) : nullptr)
+    int_vector_iterator(t_int_vector * v = nullptr, size_type idx = 0) : base_type(v, idx)
     {}
 
-    int_vector_iterator(int_vector_iterator<t_int_vector> const & it) :
-        int_vector_iterator_base<t_int_vector>(it),
-        m_word(it.m_word)
-    {
-        m_offset = it.m_offset;
-        m_len = it.m_len;
-    }
+    int_vector_iterator(int_vector_iterator const & it) : base_type(it.m_offset, it.m_len, it.m_word)
+    {}
 
-    reference operator*() const
-    {
-        return reference(m_word, m_offset, m_len);
-    }
-
-    //! Prefix increment of the Iterator
-    iterator & operator++()
-    {
-        return this->increment(*this);
-    }
-
-    //! Postfix increment of the Iterator
-    iterator operator++(int)
-    {
-        int_vector_iterator it = *this;
-        ++(*this);
-        return it;
-    }
-
-    //! Prefix decrement of the Iterator
-    iterator & operator--()
-    {
-        return this->decrement(*this);
-    }
-
-    //! Postfix decrement of the Iterator
-    iterator operator--(int)
-    {
-        int_vector_iterator it = *this;
-        --(*this);
-        return it;
-    }
-
-    iterator & operator+=(difference_type i)
-    {
-        return this->advance(*this, i);
-    }
-
-    iterator & operator-=(difference_type i)
-    {
-        return this->retreat(*this, i);
-    }
-
-    iterator & operator=(int_vector_iterator<t_int_vector> const & it)
+    iterator & operator=(int_vector_iterator const & it)
     {
         if (this != &it)
         {
@@ -1313,66 +1359,17 @@ public:
         return *this;
     }
 
-    iterator operator+(difference_type i) const
+    reference operator*() const
     {
-        iterator it = *this;
-        return it += i;
+        return reference(m_word, m_offset, m_len);
     }
 
-    iterator operator-(difference_type i) const
-    {
-        iterator it = *this;
-        return it -= i;
-    }
-
-    reference operator[](difference_type i) const
-    {
-        return this->element_at(*this, i);
-    }
-
-    bool operator==(int_vector_iterator const & it) const noexcept
-    {
-        return it.m_word == m_word && it.m_offset == m_offset;
-    }
-
-    bool operator!=(int_vector_iterator const & it) const noexcept
-    {
-        return !(*this == it);
-    }
-
-    bool operator<(int_vector_iterator const & it) const noexcept
-    {
-        if (m_word == it.m_word)
-            return m_offset < it.m_offset;
-        return m_word < it.m_word;
-    }
-
-    bool operator>(int_vector_iterator const & it) const noexcept
-    {
-        if (m_word == it.m_word)
-            return m_offset > it.m_offset;
-        return m_word > it.m_word;
-    }
-
-    bool operator>=(int_vector_iterator const & it) const noexcept
-    {
-        return !(*this < it);
-    }
-
-    bool operator<=(int_vector_iterator const & it) const noexcept
-    {
-        return !(*this > it);
-    }
-    inline difference_type operator-(int_vector_iterator const & it) const noexcept
+    using base_type::operator-;
+    difference_type operator-(int_vector_iterator const & it) const noexcept
     {
         return (((m_word - it.m_word) << 6) + m_offset - it.m_offset) / m_len;
     }
 };
-
-// template<class t_int_vector>
-// void swap(const int_vector_iterator<t_int_vector> &x, const int_vector_iterator<t_int_vector> &y){
-//  x->swap(*y);
-//}
 
 template <class t_int_vector>
 inline int_vector_iterator<t_int_vector> operator+(typename int_vector_iterator<t_int_vector>::difference_type n,
@@ -1382,8 +1379,16 @@ inline int_vector_iterator<t_int_vector> operator+(typename int_vector_iterator<
 }
 
 template <class t_int_vector>
-class int_vector_const_iterator : public int_vector_iterator_base<t_int_vector>
+class int_vector_const_iterator :
+    public detail::int_vector_iterator_ops<t_int_vector const, int_vector_const_iterator<t_int_vector>>
 {
+    using base_type = detail::int_vector_iterator_ops<t_int_vector const, int_vector_const_iterator>;
+    friend base_type;
+
+    using base_type::m_len;
+    using base_type::m_offset;
+    using base_type::m_word;
+
 public:
     typedef typename t_int_vector::value_type const_reference;
     typedef typename t_int_vector::value_type const * pointer;
@@ -1397,26 +1402,14 @@ public:
     friend class int_vector_iterator<t_int_vector>;
     friend class int_vector_iterator_base<t_int_vector>;
 
-private:
-    using int_vector_iterator_base<t_int_vector>::m_offset; // make m_offset easy usable
-    using int_vector_iterator_base<t_int_vector>::m_len;    // make m_len easy usable
-
-    typename t_int_vector::value_type const * m_word;
-
-public:
-    int_vector_const_iterator(t_int_vector const * v = nullptr, size_type idx = 0) :
-        int_vector_iterator_base<t_int_vector>(v, idx),
-        m_word((v != nullptr) ? v->m_data + (idx >> 6) : nullptr)
+    int_vector_const_iterator(t_int_vector const * v = nullptr, size_type idx = 0) : base_type(v, idx)
     {}
 
-    int_vector_const_iterator(int_vector_iterator<t_int_vector> const & it) : m_word(it.m_word)
-    {
-        m_offset = it.m_offset;
-        m_len = it.m_len;
-    }
+    int_vector_const_iterator(int_vector_iterator<t_int_vector> const & it) :
+        base_type(it.m_offset, it.m_len, it.m_word)
+    {}
 
     int_vector_const_iterator(int_vector_const_iterator const &) = default;
-
     int_vector_const_iterator & operator=(int_vector_const_iterator const &) = default;
 
     const_reference operator*() const
@@ -1425,96 +1418,7 @@ public:
         {
             return ((*m_word) >> m_offset) & bits::lo_set[m_len];
         }
-        return ((*m_word) >> m_offset) | ((*(m_word + 1) & bits::lo_set[(m_offset + m_len) & 0x3F]) << (64 - m_offset));
-    }
-
-    //! Prefix increment of the Iterator
-    const_iterator & operator++()
-    {
-        return this->increment(*this);
-    }
-
-    //! Postfix increment of the Iterator
-    const_iterator operator++(int)
-    {
-        int_vector_const_iterator it = *this;
-        ++(*this);
-        return it;
-    }
-
-    //! Prefix decrement of the Iterator
-    const_iterator & operator--()
-    {
-        return this->decrement(*this);
-    }
-
-    //! Postfix decrement of the Iterator
-    const_iterator operator--(int)
-    {
-        int_vector_const_iterator it = *this;
-        --(*this);
-        return it;
-    }
-
-    const_iterator & operator+=(difference_type i)
-    {
-        return this->advance(*this, i);
-    }
-
-    const_iterator & operator-=(difference_type i)
-    {
-        return this->retreat(*this, i);
-    }
-
-    const_iterator operator+(difference_type i) const
-    {
-        const_iterator it = *this;
-        return it += i;
-    }
-
-    const_iterator operator-(difference_type i) const
-    {
-        const_iterator it = *this;
-        return it -= i;
-    }
-
-    const_reference operator[](difference_type i) const
-    {
-        return this->element_at(*this, i);
-    }
-
-    bool operator==(int_vector_const_iterator const & it) const noexcept
-    {
-        return it.m_word == m_word && it.m_offset == m_offset;
-    }
-
-    bool operator!=(int_vector_const_iterator const & it) const noexcept
-    {
-        return !(*this == it);
-    }
-
-    bool operator<(int_vector_const_iterator const & it) const noexcept
-    {
-        if (m_word == it.m_word)
-            return m_offset < it.m_offset;
-        return m_word < it.m_word;
-    }
-
-    bool operator>(int_vector_const_iterator const & it) const noexcept
-    {
-        if (m_word == it.m_word)
-            return m_offset > it.m_offset;
-        return m_word > it.m_word;
-    }
-
-    bool operator>=(int_vector_const_iterator const & it) const noexcept
-    {
-        return !(*this < it);
-    }
-
-    bool operator<=(int_vector_const_iterator const & it) const noexcept
-    {
-        return !(*this > it);
+        return ((*m_word) >> m_offset) | ((m_word[1] & bits::lo_set[(m_offset + m_len) % 64]) << (64 - m_offset));
     }
 };
 

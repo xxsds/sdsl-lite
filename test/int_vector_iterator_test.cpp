@@ -26,12 +26,17 @@ void check_iterators(uint8_t width)
     static_assert(std::is_same_v<decltype(std::declval<iterator &>()++), iterator>);
     static_assert(std::is_same_v<decltype(std::declval<const_iterator &>()++), const_iterator>);
 
-    static_assert(std::is_same_v<decltype(&iterator::operator+=), iterator & (iterator::*)(difference_type)>);
-    static_assert(
-        std::is_same_v<decltype(&const_iterator::operator+=), const_iterator & (const_iterator::*)(difference_type)>);
+    constexpr iterator & (iterator::*advance)(difference_type) = &iterator::operator+=;
+    constexpr const_iterator & (const_iterator::*const_advance)(difference_type) = &const_iterator::operator+=;
     EXPECT_EQ(iterator{}, iterator{});
     EXPECT_EQ(const_iterator{}, const_iterator{});
     vector_type values(193, 0, width);
+    auto via_member = values.begin();
+    (via_member.*advance)(values.size());
+    EXPECT_EQ(via_member, values.end());
+    auto const_via_member = values.cbegin();
+    (const_via_member.*const_advance)(values.size());
+    EXPECT_EQ(const_via_member, values.cend());
     uint64_t mask = sdsl::bits::lo_set[width];
     for (size_t i = 0; i < values.size(); ++i)
         values[i] = (i * 73 + 11) & mask;
