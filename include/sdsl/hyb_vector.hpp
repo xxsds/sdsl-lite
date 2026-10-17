@@ -447,7 +447,7 @@ private:
         auto header = superblock_header(sblock);
         auto packed = detail::read_unaligned<uint32_t>(header);
         auto local_rank = detail::read_unaligned<uint32_t>(header, 1);
-        block_location result{m_hblock_header[2 * hblock] + (packed & 0x3fffffff),
+        block_location result{m_hblock_header[2 * hblock] + (packed & bits::lo_set[30]),
                               m_hblock_header[2 * hblock + 1] + local_rank, 0};
         header = header.subspan(8);
         auto preceding = block_id % k_sblock_rate;
