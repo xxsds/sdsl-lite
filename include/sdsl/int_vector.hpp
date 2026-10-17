@@ -102,6 +102,8 @@ public:
         std::conditional_t<native_width, value_type const *, int_vector_const_iterator<int_vector_type>>;
 
 private:
+    friend int_vector_type;
+
     template <typename Vector>
     static auto iterator_at(Vector * v, int_vector_size_type index) noexcept
     {
@@ -195,25 +197,19 @@ public:
                                // https://github.com/facebook/folly/blob/master/folly/docs/FBVector.md#memory-handling
 
 private:
-
     template <typename Self>
     static decltype(auto) element_at(Self & self, size_type idx) noexcept
     {
         assert(idx < self.size());
-        if constexpr (std::is_reference_v<reference>)
-            return self.begin()[idx];
-        else if constexpr (t_width == 1 && std::is_const_v<Self>)
+        if constexpr (t_width == 1 && std::is_const_v<Self>)
             return (self.data()[idx / 64] >> (idx % 64)) & 1;
-        else if constexpr (std::is_const_v<Self>)
+        else if constexpr (std::is_const_v<Self> && !std::is_reference_v<reference>)
         {
             uint8_t const width = t_width ? t_width : self.width();
             return self.get_int(idx * width, width);
         }
         else
-        {
-            size_type bit = idx * self.width();
-            return reference(self.data() + bit / 64, bit % 64, self.width());
-        }
+            return *int_vector_trait<t_width>::iterator_at(&self, idx);
     }
 
     // Hidden, since number of bits (size) does not go well together with int value.
@@ -1155,6 +1151,70 @@ protected:
     uint8_t m_offset;
     uint8_t m_len;
 
+    template <typename Iterator>
+    static Iterator & increment(Iterator & it)
+    {
+        it.m_offset += it.m_len;
+        if (it.m_offset >= 64)
+        {
+            it.m_offset &= 0x3F;
+            ++it.m_word;
+        }
+        return it;
+    }
+
+    template <typename Iterator>
+    static Iterator & decrement(Iterator & it)
+    {
+        it.m_offset -= it.m_len;
+        if (it.m_offset >= 64)
+        {
+            it.m_offset &= 0x3F;
+            --it.m_word;
+        }
+        return it;
+    }
+
+    template <typename Iterator>
+    static Iterator & advance(Iterator & it, difference_type i)
+    {
+        if (i < 0)
+            return retreat(it, -i);
+        difference_type t = i * it.m_len;
+        it.m_word += (t >> 6);
+        if ((it.m_offset += (t & 0x3F)) & ~0x3F)
+        {                        // if new offset is >= 64
+            ++it.m_word;         // add one to the word
+            it.m_offset &= 0x3F; // offset = offset mod 64
+        }
+        return it;
+    }
+
+    template <typename Iterator>
+    static Iterator & retreat(Iterator & it, difference_type i)
+    {
+        if (i < 0)
+            return advance(it, -i);
+        difference_type t = i * it.m_len;
+        it.m_word -= (t >> 6);
+        if ((it.m_offset -= (t & 0x3F)) & ~0x3F)
+        { // if new offset is < 0
+            --it.m_word;
+            it.m_offset &= 0x3F;
+        }
+        return it;
+    }
+
+    template <typename Iterator>
+    static auto element_at(Iterator it, difference_type index)
+    {
+        difference_type bit = it.m_offset + index * it.m_len;
+        // Signed shift rounds down, including when indexing before this iterator.
+        it.m_word += bit >> 6;
+        it.m_offset = bit & 63;
+        return *it;
+    }
+
 public:
     int_vector_iterator_base(uint8_t offset, uint8_t len) : m_offset(offset), m_len(len)
     {}
@@ -1177,6 +1237,7 @@ public:
     typedef typename t_int_vector::difference_type difference_type;
 
     friend class int_vector_const_iterator<t_int_vector>;
+    friend class int_vector_iterator_base<t_int_vector>;
 
 private:
     using int_vector_iterator_base<t_int_vector>::m_offset; // make m_offset easy usable
@@ -1206,13 +1267,7 @@ public:
     //! Prefix increment of the Iterator
     iterator & operator++()
     {
-        m_offset += m_len;
-        if (m_offset >= 64)
-        {
-            m_offset &= 0x3F;
-            ++m_word;
-        }
-        return *this;
+        return this->increment(*this);
     }
 
     //! Postfix increment of the Iterator
@@ -1226,13 +1281,7 @@ public:
     //! Prefix decrement of the Iterator
     iterator & operator--()
     {
-        m_offset -= m_len;
-        if (m_offset >= 64)
-        {
-            m_offset &= 0x3F;
-            --m_word;
-        }
-        return *this;
+        return this->decrement(*this);
     }
 
     //! Postfix decrement of the Iterator
@@ -1245,30 +1294,12 @@ public:
 
     iterator & operator+=(difference_type i)
     {
-        if (i < 0)
-            return *this -= (-i);
-        difference_type t = i * m_len;
-        m_word += (t >> 6);
-        if ((m_offset += (t & 0x3F)) & ~0x3F)
-        {                     // if new offset is >= 64
-            ++m_word;         // add one to the word
-            m_offset &= 0x3F; // offset = offset mod 64
-        }
-        return *this;
+        return this->advance(*this, i);
     }
 
     iterator & operator-=(difference_type i)
     {
-        if (i < 0)
-            return *this += (-i);
-        difference_type t = i * m_len;
-        m_word -= (t >> 6);
-        if ((m_offset -= (t & 0x3F)) & ~0x3F)
-        { // if new offset is < 0
-            --m_word;
-            m_offset &= 0x3F;
-        }
-        return *this;
+        return this->retreat(*this, i);
     }
 
     iterator & operator=(int_vector_iterator<t_int_vector> const & it)
@@ -1296,7 +1327,7 @@ public:
 
     reference operator[](difference_type i) const
     {
-        return *(*this + i);
+        return this->element_at(*this, i);
     }
 
     bool operator==(int_vector_iterator const & it) const noexcept
@@ -1400,13 +1431,7 @@ public:
     //! Prefix increment of the Iterator
     const_iterator & operator++()
     {
-        m_offset += m_len;
-        if (m_offset >= 64)
-        {
-            m_offset &= 0x3F;
-            ++m_word;
-        }
-        return *this;
+        return this->increment(*this);
     }
 
     //! Postfix increment of the Iterator
@@ -1420,13 +1445,7 @@ public:
     //! Prefix decrement of the Iterator
     const_iterator & operator--()
     {
-        m_offset -= m_len;
-        if (m_offset >= 64)
-        {
-            m_offset &= 0x3F;
-            --m_word;
-        }
-        return *this;
+        return this->decrement(*this);
     }
 
     //! Postfix decrement of the Iterator
@@ -1439,30 +1458,12 @@ public:
 
     const_iterator & operator+=(difference_type i)
     {
-        if (i < 0)
-            return *this -= (-i);
-        difference_type t = i * m_len;
-        m_word += (t >> 6);
-        if ((m_offset += (t & 0x3F)) & ~0x3F)
-        {                     // if new offset >= 64
-            ++m_word;         // add one to the word
-            m_offset &= 0x3F; // offset = offset mod 64
-        }
-        return *this;
+        return this->advance(*this, i);
     }
 
     const_iterator & operator-=(difference_type i)
     {
-        if (i < 0)
-            return *this += (-i);
-        difference_type t = i * m_len;
-        m_word -= (t >> 6);
-        if ((m_offset -= (t & 0x3F)) & ~0x3F)
-        { // if new offset is < 0
-            --m_word;
-            m_offset &= 0x3F;
-        }
-        return *this;
+        return this->retreat(*this, i);
     }
 
     const_iterator operator+(difference_type i) const
@@ -1479,7 +1480,7 @@ public:
 
     const_reference operator[](difference_type i) const
     {
-        return *(*this + i);
+        return this->element_at(*this, i);
     }
 
     bool operator==(int_vector_const_iterator const & it) const noexcept
