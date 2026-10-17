@@ -203,16 +203,16 @@ private:
         if constexpr (std::is_reference_v<reference>)
             return self.begin()[idx];
         else if constexpr (t_width == 1 && std::is_const_v<Self>)
-            return (self.data()[idx >> 6] >> (idx & 0x3F)) & 1;
+            return (self.data()[idx / 64] >> (idx % 64)) & 1;
         else if constexpr (std::is_const_v<Self>)
         {
-            uint8_t width = t_width ? t_width : self.width();
+            uint8_t const width = t_width ? t_width : self.width();
             return self.get_int(idx * width, width);
         }
         else
         {
             size_type bit = idx * self.width();
-            return reference(self.data() + (bit >> 6), bit & 0x3F, self.width());
+            return reference(self.data() + bit / 64, bit % 64, self.width());
         }
     }
 
@@ -1682,97 +1682,13 @@ inline void int_vector<t_width>::set_int(size_type idx, value_type x, uint8_t co
 template <uint8_t t_width>
 inline typename int_vector<t_width>::size_type int_vector<t_width>::size() const noexcept
 {
-    return m_size / t_width;
-}
-
-// specialized size method for 64-bit integer vector
-template <>
-inline typename int_vector<64>::size_type int_vector<64>::size() const noexcept
-{
-    return m_size >> 6;
-}
-
-// specialized size method for 32-bit integer vector
-template <>
-inline typename int_vector<32>::size_type int_vector<32>::size() const noexcept
-{
-    return m_size >> 5;
-}
-
-// specialized size method for 16-bit integer vector
-template <>
-inline typename int_vector<16>::size_type int_vector<16>::size() const noexcept
-{
-    return m_size >> 4;
-}
-
-// specialized size method for 8-bit integer vector
-template <>
-inline typename int_vector<8>::size_type int_vector<8>::size() const noexcept
-{
-    return m_size >> 3;
-}
-
-// specialized size method for bit_vector
-template <>
-inline typename int_vector<1>::size_type int_vector<1>::size() const noexcept
-{
-    return m_size;
-}
-
-// specialized size method for dyanmic int_vector
-template <>
-inline typename int_vector<0>::size_type int_vector<0>::size() const noexcept
-{
-    return m_size / m_width;
+    return m_size / (t_width ? t_width : m_width);
 }
 
 template <uint8_t t_width>
 inline typename int_vector<t_width>::size_type int_vector<t_width>::capacity() const noexcept
 {
-    return m_capacity / t_width;
-}
-
-// specialized capacity method for 64-bit integer vector
-template <>
-inline typename int_vector<64>::size_type int_vector<64>::capacity() const noexcept
-{
-    return m_capacity >> 6;
-}
-
-// specialized capacity method for 32-bit integer vector
-template <>
-inline typename int_vector<32>::size_type int_vector<32>::capacity() const noexcept
-{
-    return m_capacity >> 5;
-}
-
-// specialized capacity method for 16-bit integer vector
-template <>
-inline typename int_vector<16>::size_type int_vector<16>::capacity() const noexcept
-{
-    return m_capacity >> 4;
-}
-
-// specialized capacity method for 8-bit integer vector
-template <>
-inline typename int_vector<8>::size_type int_vector<8>::capacity() const noexcept
-{
-    return m_capacity >> 3;
-}
-
-// specialized capacity method for bit_vector
-template <>
-inline typename int_vector<1>::size_type int_vector<1>::capacity() const noexcept
-{
-    return m_capacity;
-}
-
-// specialized capacity method for dynamic int_vector
-template <>
-inline typename int_vector<0>::size_type int_vector<0>::capacity() const noexcept
-{
-    return m_capacity / m_width;
+    return m_capacity / (t_width ? t_width : m_width);
 }
 
 template <uint8_t t_width>
