@@ -128,13 +128,6 @@ public:
     {
         return iterator_at(v, v->size());
     }
-
-    static void set_width(uint8_t new_width,
-                          std::conditional_t<native_width, int_width_type, int_width_type &> width) noexcept
-    {
-        if constexpr (t_width == 0)
-            width = new_width ? std::min(new_width, uint8_t{64u}) : 64u;
-    }
 };
 
 //! A generic vector class for integers of width \f$w\in [1..64]\f$.
@@ -629,7 +622,8 @@ public:
      */
     void width(uint8_t new_width) noexcept
     {
-        int_vector_trait<t_width>::set_width(new_width, m_width);
+        if constexpr (t_width == 0)
+            m_width = new_width ? std::min(new_width, uint8_t{64u}) : 64u;
     }
 
     // Write data (without header) to a stream.
