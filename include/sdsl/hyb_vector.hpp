@@ -451,7 +451,7 @@ private:
                               m_hblock_header[2 * hblock + 1] + local_rank, 0};
         header = header.subspan(8);
         auto preceding = block_id % k_sblock_rate;
-        if (packed & (uint32_t{1} << 31)) // Every block in this superblock has the same bit.
+        if (packed >> 31) // Every block in this superblock has the same bit.
         {
             result.descriptor = detail::read_unaligned<uint16_t>(header);
             result.ones_before += (result.descriptor & 0x1ff) * preceding;
