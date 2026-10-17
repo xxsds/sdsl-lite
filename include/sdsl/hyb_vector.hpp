@@ -221,16 +221,18 @@ public:
             // Update hblock header.
             if (!(block_id % k_hblock_rate))
             {
-                m_hblock_header[2 * hblock_id] = trunk_ptr; // Absolute payload byte offset.
-                m_hblock_header[2 * hblock_id + 1] = tot_rank; // Ones before this hyperblock.
+                auto header = hyperblock_header(hblock_id);
+                header.payload_offset = trunk_ptr;
+                header.ones_before = tot_rank;
             }
 
             // Update sblock header.
             if (!(block_id % k_sblock_rate))
             {
                 uint32_t * ptr = (uint32_t *)(((uint8_t *)m_sblock_header.data()) + k_sblock_header_size * sblock_id);
-                *ptr++ = trunk_ptr - hyperblock_payload_offset(hblock_id);
-                *ptr = tot_rank - hyperblock_ones_before(hblock_id);
+                auto header = hyperblock_header(hblock_id);
+                *ptr++ = trunk_ptr - header.payload_offset;
+                *ptr = tot_rank - header.ones_before;
 
                 // If the sblock is uniform, flip the bit.
                 if (sblock_id && (!sblock_ones || sblock_ones == k_sblock_size))
@@ -432,14 +434,22 @@ private:
         return {m_sblock_header.begin() + sblock * k_sblock_header_size, k_sblock_header_size};
     }
 
-    size_type hyperblock_payload_offset(size_type hblock) const
+    template <typename T>
+    struct hyperblock_reference
     {
-        return m_hblock_header[2 * hblock];
+        T & payload_offset;
+        T & ones_before;
+    };
+
+    hyperblock_reference<uint64_t> hyperblock_header(size_type hblock)
+    {
+        return {m_hblock_header[2 * hblock], m_hblock_header[2 * hblock + 1]};
     }
 
-    size_type hyperblock_ones_before(size_type hblock) const
+    hyperblock_reference<uint64_t const> hyperblock_header(size_type hblock) const
     {
-        return m_hblock_header[2 * hblock + 1];
+        auto data = m_hblock_header.data() + 2 * hblock;
+        return {data[0], data[1]};
     }
 
     // Shared field definitions for scalar and SIMD descriptor decoding.
@@ -483,8 +493,9 @@ private:
         auto header = superblock_header(sblock);
         auto packed = detail::read_unaligned<uint32_t>(header);
         auto local_rank = detail::read_unaligned<uint32_t>(header, 1);
-        block_location result{hyperblock_payload_offset(hblock) + superblock_relative_offset(packed),
-                              hyperblock_ones_before(hblock) + local_rank, 0};
+        auto base = hyperblock_header(hblock);
+        block_location result{base.payload_offset + superblock_relative_offset(packed),
+                              base.ones_before + local_rank, 0};
         header = header.subspan(8);
         auto preceding = block_id % k_sblock_rate;
         if (packed & (uint32_t{1} << 31)) // Every block in this superblock has the same bit.
