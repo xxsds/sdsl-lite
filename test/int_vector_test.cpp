@@ -2,6 +2,8 @@
 #include <chrono>
 #include <random>
 #include <string>
+#include <type_traits>
+#include <utility>
 #include <vector>
 
 #include <sdsl/int_vector.hpp>
@@ -17,6 +19,38 @@ typedef sdsl::int_vector<>::size_type size_type;
 typedef sdsl::int_vector<>::value_type value_type;
 
 std::string temp_dir;
+
+template <uint8_t width>
+void check_const_references()
+{
+    using vector_type = sdsl::int_vector<width>;
+    using const_reference = typename vector_type::value_type const &;
+    static_assert(std::is_same_v<typename vector_type::const_reference, const_reference>);
+    static_assert(std::is_same_v<decltype(std::declval<vector_type const &>()[0]), const_reference>);
+
+    vector_type values{1, 2, 3};
+    auto const & view = values;
+    EXPECT_EQ(view.begin(), &view[0]);
+    EXPECT_EQ(view.begin(), &view.front());
+    EXPECT_EQ(view.begin() + 1, &view.at(1));
+    EXPECT_EQ(view.begin() + 2, &view.back());
+    auto const & element = view[1];
+    values[1] = 7;
+    EXPECT_EQ(typename vector_type::value_type{7}, element);
+}
+
+TEST(int_vector_const_access, native_width_references)
+{
+    check_const_references<8>();
+    check_const_references<16>();
+    check_const_references<32>();
+    check_const_references<64>();
+    static_assert(!std::is_reference_v<sdsl::int_vector<0>::const_reference>);
+    static_assert(!std::is_reference_v<sdsl::int_vector<1>::const_reference>);
+    static_assert(!std::is_reference_v<sdsl::int_vector<2>::const_reference>);
+    static_assert(!std::is_reference_v<sdsl::int_vector<4>::const_reference>);
+    static_assert(!std::is_reference_v<sdsl::int_vector<7>::const_reference>);
+}
 
 // The fixture for testing class int_vector.
 class int_vector_test : public ::testing::Test

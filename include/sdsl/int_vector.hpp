@@ -9,6 +9,7 @@
 #define INCLUDED_SDSL_INT_VECTOR
 
 #include <algorithm>
+#include <bit>
 #include <cassert>
 #include <cinttypes>
 #include <cmath>
@@ -83,116 +84,53 @@ struct int_vec_category_trait<1>
 template <uint8_t t_width>
 struct int_vector_trait
 {
-    typedef uint64_t value_type;
-    typedef int_vector<t_width> int_vector_type;
-    typedef int_vector_reference<int_vector_type> reference;
-    typedef uint64_t const_reference;
-    typedef uint8_t int_width_type;
-    typedef int_vector_iterator<int_vector_type> iterator;
-    typedef int_vector_const_iterator<int_vector_type> const_iterator;
+private:
+    static constexpr bool native_width = t_width >= 8 && std::has_single_bit(t_width);
 
+public:
+    // clang-format off
+    using value_type = std::conditional_t<t_width == 8,  uint8_t,
+                       std::conditional_t<t_width == 16, uint16_t,
+                       std::conditional_t<t_width == 32, uint32_t, uint64_t>>>;
+    // clang-format on
+    using int_vector_type = int_vector<t_width>;
+    using reference = std::conditional_t<native_width, value_type &, int_vector_reference<int_vector_type>>;
+    using const_reference = std::conditional_t<native_width, value_type const &, value_type>;
+    using int_width_type = uint8_t;
+    using iterator = std::conditional_t<native_width, value_type *, int_vector_iterator<int_vector_type>>;
+    using const_iterator =
+        std::conditional_t<native_width, value_type const *, int_vector_const_iterator<int_vector_type>>;
+
+private:
+    friend int_vector_type;
+
+    template <typename Vector>
+    static auto iterator_at(Vector * v, int_vector_size_type index) noexcept
+    {
+        using result_type = std::conditional_t<std::is_const_v<Vector>, const_iterator, iterator>;
+        if constexpr (native_width)
+            return reinterpret_cast<result_type>(v->data()) + index;
+        else
+            return result_type(v, index * v->width());
+    }
+
+public:
     static iterator begin(int_vector_type * v) noexcept
     {
-        return iterator(v, 0);
+        return iterator_at(v, 0);
     }
     static iterator end(int_vector_type * v) noexcept
     {
-        return iterator(v, v->size() * v->width());
+        return iterator_at(v, v->size());
     }
     static const_iterator begin(int_vector_type const * v) noexcept
     {
-        return const_iterator(v, 0);
+        return iterator_at(v, 0);
     }
     static const_iterator end(int_vector_type const * v) noexcept
     {
-        return const_iterator(v, v->size() * v->width());
+        return iterator_at(v, v->size());
     }
-
-    static void set_width(uint8_t new_width, int_width_type & width) noexcept
-    {
-        if constexpr (t_width == 0)
-            width = new_width ? std::min(new_width, uint8_t{64u}) : 64u;
-    }
-};
-
-template <>
-struct int_vector_trait<64>
-{
-    typedef uint64_t value_type;
-    typedef int_vector<64> int_vector_type;
-    typedef uint64_t & reference;
-    typedef uint64_t const_reference;
-    typedef uint8_t int_width_type;
-    typedef uint64_t * iterator;
-    typedef uint64_t const * const_iterator;
-
-    static iterator begin(int_vector_type * v) noexcept;
-    static iterator end(int_vector_type * v) noexcept;
-    static const_iterator begin(int_vector_type const * v) noexcept;
-    static const_iterator end(int_vector_type const * v) noexcept;
-
-    static void set_width(uint8_t, int_width_type) noexcept
-    {}
-};
-
-template <>
-struct int_vector_trait<32>
-{
-    typedef uint32_t value_type;
-    typedef int_vector<32> int_vector_type;
-    typedef uint32_t & reference;
-    typedef uint32_t const_reference;
-    typedef uint8_t int_width_type;
-    typedef uint32_t * iterator;
-    typedef uint32_t const * const_iterator;
-
-    static iterator begin(int_vector_type * v) noexcept;
-    static iterator end(int_vector_type * v) noexcept;
-    static const_iterator begin(int_vector_type const * v) noexcept;
-    static const_iterator end(int_vector_type const * v) noexcept;
-
-    static void set_width(uint8_t, int_width_type) noexcept
-    {}
-};
-
-template <>
-struct int_vector_trait<16>
-{
-    typedef uint16_t value_type;
-    typedef int_vector<16> int_vector_type;
-    typedef uint16_t & reference;
-    typedef uint16_t const_reference;
-    typedef uint8_t int_width_type;
-    typedef uint16_t * iterator;
-    typedef uint16_t const * const_iterator;
-
-    static iterator begin(int_vector_type * v) noexcept;
-    static iterator end(int_vector_type * v) noexcept;
-    static const_iterator begin(int_vector_type const * v) noexcept;
-    static const_iterator end(int_vector_type const * v) noexcept;
-
-    static void set_width(uint8_t, int_width_type) noexcept
-    {}
-};
-
-template <>
-struct int_vector_trait<8>
-{
-    typedef uint8_t value_type;
-    typedef int_vector<8> int_vector_type;
-    typedef uint8_t & reference;
-    typedef uint8_t const_reference;
-    typedef uint8_t int_width_type;
-    typedef uint8_t * iterator;
-    typedef uint8_t const * const_iterator;
-
-    static iterator begin(int_vector_type * v) noexcept;
-    static iterator end(int_vector_type * v) noexcept;
-    static const_iterator begin(int_vector_type const * v) noexcept;
-    static const_iterator end(int_vector_type const * v) noexcept;
-
-    static void set_width(uint8_t, int_width_type) noexcept
-    {}
 };
 
 //! A generic vector class for integers of width \f$w\in [1..64]\f$.
@@ -259,6 +197,20 @@ public:
                                // https://github.com/facebook/folly/blob/master/folly/docs/FBVector.md#memory-handling
 
 private:
+    template <typename Self>
+    static decltype(auto) element_at(Self & self, size_type idx) noexcept
+    {
+        assert(idx < self.size());
+        if constexpr (t_width == 1 && std::is_const_v<Self>)
+            return (self.data()[idx / 64] >> (idx % 64)) & 1;
+        else if constexpr (std::is_const_v<Self> && !std::is_reference_v<reference>)
+        {
+            uint8_t const width = t_width ? t_width : self.width();
+            return self.get_int(idx * width, width);
+        }
+        else
+            return *int_vector_trait<t_width>::iterator_at(&self, idx);
+    }
 
     // Hidden, since number of bits (size) does not go well together with int value.
     void bit_resize(size_type const size, value_type const value);
@@ -667,7 +619,8 @@ public:
      */
     void width(uint8_t new_width) noexcept
     {
-        int_vector_trait<t_width>::set_width(new_width, m_width);
+        if constexpr (t_width == 0)
+            m_width = new_width ? std::min(new_width, uint8_t{64u}) : 64u;
     }
 
     // Write data (without header) to a stream.
@@ -723,7 +676,7 @@ public:
 
     //! const version of [] operator
     /*!\param i Index the i-th integer of length width().
-     *  \return The value of the i-th integer of length width().
+     *  \return A const reference for widths 8, 16, 32 and 64; a value otherwise.
      */
     inline const_reference operator[](size_type const & i) const noexcept;
 
@@ -738,7 +691,7 @@ public:
 
     //! const version of at() function
     /*!\param i Index the i-th integer of length width().
-     *  \return The value of the i-th integer of length width().
+     *  \return A const reference for widths 8, 16, 32 and 64; a value otherwise.
      */
     const_reference at(size_type const & i) const
     {
@@ -1198,6 +1151,70 @@ protected:
     uint8_t m_offset;
     uint8_t m_len;
 
+    template <typename Iterator>
+    static Iterator & increment(Iterator & it)
+    {
+        it.m_offset += it.m_len;
+        if (it.m_offset >= 64)
+        {
+            it.m_offset &= 0x3F;
+            ++it.m_word;
+        }
+        return it;
+    }
+
+    template <typename Iterator>
+    static Iterator & decrement(Iterator & it)
+    {
+        it.m_offset -= it.m_len;
+        if (it.m_offset >= 64)
+        {
+            it.m_offset &= 0x3F;
+            --it.m_word;
+        }
+        return it;
+    }
+
+    template <typename Iterator>
+    static Iterator & advance(Iterator & it, difference_type i)
+    {
+        if (i < 0)
+            return retreat(it, -i);
+        difference_type t = i * it.m_len;
+        it.m_word += (t >> 6);
+        if ((it.m_offset += (t & 0x3F)) & ~0x3F)
+        {                        // if new offset is >= 64
+            ++it.m_word;         // add one to the word
+            it.m_offset &= 0x3F; // offset = offset mod 64
+        }
+        return it;
+    }
+
+    template <typename Iterator>
+    static Iterator & retreat(Iterator & it, difference_type i)
+    {
+        if (i < 0)
+            return advance(it, -i);
+        difference_type t = i * it.m_len;
+        it.m_word -= (t >> 6);
+        if ((it.m_offset -= (t & 0x3F)) & ~0x3F)
+        { // if new offset is < 0
+            --it.m_word;
+            it.m_offset &= 0x3F;
+        }
+        return it;
+    }
+
+    template <typename Iterator>
+    static auto element_at(Iterator it, difference_type index)
+    {
+        difference_type bit = it.m_offset + index * it.m_len;
+        // Signed shift rounds down, including when indexing before this iterator.
+        it.m_word += bit >> 6;
+        it.m_offset = bit & 63;
+        return *it;
+    }
+
 public:
     int_vector_iterator_base(uint8_t offset, uint8_t len) : m_offset(offset), m_len(len)
     {}
@@ -1220,6 +1237,7 @@ public:
     typedef typename t_int_vector::difference_type difference_type;
 
     friend class int_vector_const_iterator<t_int_vector>;
+    friend class int_vector_iterator_base<t_int_vector>;
 
 private:
     using int_vector_iterator_base<t_int_vector>::m_offset; // make m_offset easy usable
@@ -1249,13 +1267,7 @@ public:
     //! Prefix increment of the Iterator
     iterator & operator++()
     {
-        m_offset += m_len;
-        if (m_offset >= 64)
-        {
-            m_offset &= 0x3F;
-            ++m_word;
-        }
-        return *this;
+        return this->increment(*this);
     }
 
     //! Postfix increment of the Iterator
@@ -1269,13 +1281,7 @@ public:
     //! Prefix decrement of the Iterator
     iterator & operator--()
     {
-        m_offset -= m_len;
-        if (m_offset >= 64)
-        {
-            m_offset &= 0x3F;
-            --m_word;
-        }
-        return *this;
+        return this->decrement(*this);
     }
 
     //! Postfix decrement of the Iterator
@@ -1288,30 +1294,12 @@ public:
 
     iterator & operator+=(difference_type i)
     {
-        if (i < 0)
-            return *this -= (-i);
-        difference_type t = i * m_len;
-        m_word += (t >> 6);
-        if ((m_offset += (t & 0x3F)) & ~0x3F)
-        {                     // if new offset is >= 64
-            ++m_word;         // add one to the word
-            m_offset &= 0x3F; // offset = offset mod 64
-        }
-        return *this;
+        return this->advance(*this, i);
     }
 
     iterator & operator-=(difference_type i)
     {
-        if (i < 0)
-            return *this += (-i);
-        difference_type t = i * m_len;
-        m_word -= (t >> 6);
-        if ((m_offset -= (t & 0x3F)) & ~0x3F)
-        { // if new offset is < 0
-            --m_word;
-            m_offset &= 0x3F;
-        }
-        return *this;
+        return this->retreat(*this, i);
     }
 
     iterator & operator=(int_vector_iterator<t_int_vector> const & it)
@@ -1339,7 +1327,7 @@ public:
 
     reference operator[](difference_type i) const
     {
-        return *(*this + i);
+        return this->element_at(*this, i);
     }
 
     bool operator==(int_vector_iterator const & it) const noexcept
@@ -1443,13 +1431,7 @@ public:
     //! Prefix increment of the Iterator
     const_iterator & operator++()
     {
-        m_offset += m_len;
-        if (m_offset >= 64)
-        {
-            m_offset &= 0x3F;
-            ++m_word;
-        }
-        return *this;
+        return this->increment(*this);
     }
 
     //! Postfix increment of the Iterator
@@ -1463,13 +1445,7 @@ public:
     //! Prefix decrement of the Iterator
     const_iterator & operator--()
     {
-        m_offset -= m_len;
-        if (m_offset >= 64)
-        {
-            m_offset &= 0x3F;
-            --m_word;
-        }
-        return *this;
+        return this->decrement(*this);
     }
 
     //! Postfix decrement of the Iterator
@@ -1482,30 +1458,12 @@ public:
 
     const_iterator & operator+=(difference_type i)
     {
-        if (i < 0)
-            return *this -= (-i);
-        difference_type t = i * m_len;
-        m_word += (t >> 6);
-        if ((m_offset += (t & 0x3F)) & ~0x3F)
-        {                     // if new offset >= 64
-            ++m_word;         // add one to the word
-            m_offset &= 0x3F; // offset = offset mod 64
-        }
-        return *this;
+        return this->advance(*this, i);
     }
 
     const_iterator & operator-=(difference_type i)
     {
-        if (i < 0)
-            return *this += (-i);
-        difference_type t = i * m_len;
-        m_word -= (t >> 6);
-        if ((m_offset -= (t & 0x3F)) & ~0x3F)
-        { // if new offset is < 0
-            --m_word;
-            m_offset &= 0x3F;
-        }
-        return *this;
+        return this->retreat(*this, i);
     }
 
     const_iterator operator+(difference_type i) const
@@ -1522,7 +1480,7 @@ public:
 
     const_reference operator[](difference_type i) const
     {
-        return *(*this + i);
+        return this->element_at(*this, i);
     }
 
     bool operator==(int_vector_const_iterator const & it) const noexcept
@@ -1725,186 +1683,25 @@ inline void int_vector<t_width>::set_int(size_type idx, value_type x, uint8_t co
 template <uint8_t t_width>
 inline typename int_vector<t_width>::size_type int_vector<t_width>::size() const noexcept
 {
-    return m_size / t_width;
-}
-
-// specialized size method for 64-bit integer vector
-template <>
-inline typename int_vector<64>::size_type int_vector<64>::size() const noexcept
-{
-    return m_size >> 6;
-}
-
-// specialized size method for 32-bit integer vector
-template <>
-inline typename int_vector<32>::size_type int_vector<32>::size() const noexcept
-{
-    return m_size >> 5;
-}
-
-// specialized size method for 16-bit integer vector
-template <>
-inline typename int_vector<16>::size_type int_vector<16>::size() const noexcept
-{
-    return m_size >> 4;
-}
-
-// specialized size method for 8-bit integer vector
-template <>
-inline typename int_vector<8>::size_type int_vector<8>::size() const noexcept
-{
-    return m_size >> 3;
-}
-
-// specialized size method for bit_vector
-template <>
-inline typename int_vector<1>::size_type int_vector<1>::size() const noexcept
-{
-    return m_size;
-}
-
-// specialized size method for dyanmic int_vector
-template <>
-inline typename int_vector<0>::size_type int_vector<0>::size() const noexcept
-{
-    return m_size / m_width;
+    return m_size / (t_width ? t_width : m_width);
 }
 
 template <uint8_t t_width>
 inline typename int_vector<t_width>::size_type int_vector<t_width>::capacity() const noexcept
 {
-    return m_capacity / t_width;
-}
-
-// specialized capacity method for 64-bit integer vector
-template <>
-inline typename int_vector<64>::size_type int_vector<64>::capacity() const noexcept
-{
-    return m_capacity >> 6;
-}
-
-// specialized capacity method for 32-bit integer vector
-template <>
-inline typename int_vector<32>::size_type int_vector<32>::capacity() const noexcept
-{
-    return m_capacity >> 5;
-}
-
-// specialized capacity method for 16-bit integer vector
-template <>
-inline typename int_vector<16>::size_type int_vector<16>::capacity() const noexcept
-{
-    return m_capacity >> 4;
-}
-
-// specialized capacity method for 8-bit integer vector
-template <>
-inline typename int_vector<8>::size_type int_vector<8>::capacity() const noexcept
-{
-    return m_capacity >> 3;
-}
-
-// specialized capacity method for bit_vector
-template <>
-inline typename int_vector<1>::size_type int_vector<1>::capacity() const noexcept
-{
-    return m_capacity;
-}
-
-// specialized capacity method for dynamic int_vector
-template <>
-inline typename int_vector<0>::size_type int_vector<0>::capacity() const noexcept
-{
-    return m_capacity / m_width;
+    return m_capacity / (t_width ? t_width : m_width);
 }
 
 template <uint8_t t_width>
 inline auto int_vector<t_width>::operator[](size_type const & idx) noexcept -> reference
 {
-    assert(idx < this->size());
-    size_type i = idx * m_width;
-    return reference(this->m_data + (i >> 6), i & 0x3F, m_width);
-}
-
-// specialized [] operator for 64 bit access.
-template <>
-inline auto int_vector<64>::operator[](size_type const & idx) noexcept -> reference
-{
-    assert(idx < this->size());
-    return *(this->m_data + idx);
-}
-
-// specialized [] operator for 32 bit access.
-template <>
-inline auto int_vector<32>::operator[](size_type const & idx) noexcept -> reference
-{
-    assert(idx < this->size());
-    return *(((uint32_t *)(this->m_data)) + idx);
-}
-
-// specialized [] operator for 16 bit access.
-template <>
-inline auto int_vector<16>::operator[](size_type const & idx) noexcept -> reference
-{
-    assert(idx < this->size());
-    return *(((uint16_t *)(this->m_data)) + idx);
-}
-
-// specialized [] operator for 8 bit access.
-template <>
-inline auto int_vector<8>::operator[](size_type const & idx) noexcept -> reference
-{
-    assert(idx < this->size());
-    return *(((uint8_t *)(this->m_data)) + idx);
+    return element_at(*this, idx);
 }
 
 template <uint8_t t_width>
 inline auto int_vector<t_width>::operator[](size_type const & idx) const noexcept -> const_reference
 {
-    assert(idx < this->size());
-    return get_int(idx * t_width, t_width);
-}
-
-template <>
-inline auto int_vector<0>::operator[](size_type const & idx) const noexcept -> const_reference
-{
-    assert(idx < this->size());
-    return get_int(idx * m_width, m_width);
-}
-
-template <>
-inline auto int_vector<64>::operator[](size_type const & idx) const noexcept -> const_reference
-{
-    assert(idx < this->size());
-    return *(this->m_data + idx);
-}
-
-template <>
-inline auto int_vector<32>::operator[](size_type const & idx) const noexcept -> const_reference
-{
-    assert(idx < this->size());
-    return *(((uint32_t *)this->m_data) + idx);
-}
-
-template <>
-inline auto int_vector<16>::operator[](size_type const & idx) const noexcept -> const_reference
-{
-    assert(idx < this->size());
-    return *(((uint16_t *)this->m_data) + idx);
-}
-
-template <>
-inline auto int_vector<8>::operator[](size_type const & idx) const noexcept -> const_reference
-{
-    assert(idx < this->size());
-    return *(((uint8_t *)this->m_data) + idx);
-}
-
-template <>
-inline auto int_vector<1>::operator[](size_type const & idx) const noexcept -> const_reference
-{
-    assert(idx < this->size());
-    return ((*(m_data + (idx >> 6))) >> (idx & 0x3F)) & 1;
+    return element_at(*this, idx);
 }
 
 template <uint8_t t_width>
@@ -2085,90 +1882,6 @@ int_vector<t_width>::CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
         ar(tmp);
         operator[](i) = tmp;
     }
-}
-
-inline typename int_vector_trait<64>::iterator
-int_vector_trait<64>::begin(typename int_vector_trait<64>::int_vector_type * v) noexcept
-{
-    return v->data();
-}
-inline typename int_vector_trait<64>::iterator
-int_vector_trait<64>::end(typename int_vector_trait<64>::int_vector_type * v) noexcept
-{
-    return v->data() + v->size();
-}
-inline typename int_vector_trait<64>::const_iterator
-int_vector_trait<64>::begin(typename int_vector_trait<64>::int_vector_type const * v) noexcept
-{
-    return v->data();
-}
-inline typename int_vector_trait<64>::const_iterator
-int_vector_trait<64>::end(typename int_vector_trait<64>::int_vector_type const * v) noexcept
-{
-    return v->data() + v->size();
-}
-
-inline typename int_vector_trait<32>::iterator
-int_vector_trait<32>::begin(typename int_vector_trait<32>::int_vector_type * v) noexcept
-{
-    return (uint32_t *)v->data();
-}
-inline typename int_vector_trait<32>::iterator
-int_vector_trait<32>::end(typename int_vector_trait<32>::int_vector_type * v) noexcept
-{
-    return ((uint32_t *)v->data()) + v->size();
-}
-inline typename int_vector_trait<32>::const_iterator
-int_vector_trait<32>::begin(typename int_vector_trait<32>::int_vector_type const * v) noexcept
-{
-    return (uint32_t *)v->data();
-}
-inline typename int_vector_trait<32>::const_iterator
-int_vector_trait<32>::end(typename int_vector_trait<32>::int_vector_type const * v) noexcept
-{
-    return ((uint32_t *)v->data()) + v->size();
-}
-
-inline typename int_vector_trait<16>::iterator
-int_vector_trait<16>::begin(typename int_vector_trait<16>::int_vector_type * v) noexcept
-{
-    return (uint16_t *)v->data();
-}
-inline typename int_vector_trait<16>::iterator
-int_vector_trait<16>::end(typename int_vector_trait<16>::int_vector_type * v) noexcept
-{
-    return ((uint16_t *)v->data()) + v->size();
-}
-inline typename int_vector_trait<16>::const_iterator
-int_vector_trait<16>::begin(typename int_vector_trait<16>::int_vector_type const * v) noexcept
-{
-    return (uint16_t *)v->data();
-}
-inline typename int_vector_trait<16>::const_iterator
-int_vector_trait<16>::end(typename int_vector_trait<16>::int_vector_type const * v) noexcept
-{
-    return ((uint16_t *)v->data()) + v->size();
-}
-
-inline typename int_vector_trait<8>::iterator
-int_vector_trait<8>::begin(typename int_vector_trait<8>::int_vector_type * v) noexcept
-{
-    return (uint8_t *)v->data();
-}
-inline typename int_vector_trait<8>::iterator
-int_vector_trait<8>::end(typename int_vector_trait<8>::int_vector_type * v) noexcept
-{
-    return ((uint8_t *)v->data()) + v->size();
-}
-inline typename int_vector_trait<8>::const_iterator
-int_vector_trait<8>::begin(typename int_vector_trait<8>::int_vector_type const * v) noexcept
-{
-    return (uint8_t *)v->data();
-}
-inline typename int_vector_trait<8>::const_iterator
-int_vector_trait<8>::end(typename int_vector_trait<8>::int_vector_type const * v) noexcept
-{
-    return ((uint8_t *)v->data()) + v->size();
 }
 
 } // end namespace sdsl
