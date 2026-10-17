@@ -438,9 +438,7 @@ private:
         uint16_t descriptor;
     };
 
-#if __has_cpp_attribute(gnu::always_inline)
     [[gnu::always_inline]] // Specialize the locator for the fields its caller uses.
-#endif
     block_location locate_block(size_type block_id) const
     {
         auto sblock = block_id / k_sblock_rate;
@@ -458,7 +456,6 @@ private:
             result.ones_before += (result.descriptor & 0x1ff) * preceding;
             return result;
         }
-#if defined(__GNUC__) || defined(__clang__)
         if constexpr (k_sblock_rate == 16)
         {
             // Every superblock allocates all sixteen descriptors, including the final one.
@@ -480,7 +477,6 @@ private:
             result.ones_before += ones;
         }
         else
-#endif
         {
             for (size_type j = 0; j < preceding; ++j)
             {
