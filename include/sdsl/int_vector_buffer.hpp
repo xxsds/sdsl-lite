@@ -153,7 +153,8 @@ public:
         m_filename = filename;
         assert(!(mode & std::ios::app));
         mode &= ~std::ios::app;
-        m_buffer.width(int_width);
+        if constexpr (t_width == 0)
+            m_buffer.width(int_width);
         if (is_plain)
         {
             m_offset = 0;
@@ -185,7 +186,8 @@ public:
             {
                 uint8_t width = 0;
                 int_vector<0>::read_header(size, width, m_ifile);
-                m_buffer.width(width);
+                if constexpr (t_width == 0)
+                    m_buffer.width(width);
             }
             assert(m_ifile.good());
             m_size = size / width();
