@@ -42,7 +42,6 @@
 #include <stdio.h>
 #include <string>
 #include <span>
-#include <ranges>
 
 #include <sdsl/bit_vector_helper.hpp>
 #include <sdsl/bits.hpp>
@@ -502,46 +501,22 @@ private:
         assert(i <= m_size);
 
         size_type block_id = (i - 1) / k_block_size;
-        size_type sblock_id = block_id / k_sblock_rate;
-        size_type hblock_id = block_id / k_hblock_rate;
-
-        size_type trunk_base = m_hblock_header[2 * hblock_id];
-
+        auto location = locate_block(block_id);
         uint32_t local_i = i - block_id * k_block_size;
-
-        // Read superblock header.
-        uint8_t const * header_ptr8 = ((uint8_t const *)m_sblock_header.data()) + (sblock_id * k_sblock_header_size);
-        uint32_t * header_ptr32 = (uint32_t *)header_ptr8;
-        size_type trunk_ptr = trunk_base + ((*header_ptr32) & 0x3fffffff);
-        header_ptr8 += 8;
-
-        uint16_t * header_ptr16 = (uint16_t *)header_ptr8;
-
-        // Uniform superblock optimization.
-        if ((*header_ptr32) & 0x80000000)
-            return (value_type)((*(header_ptr8 + 1)) & 0x01);
-
-        // Fast forward through preceding blocks in the superblock.
-        for (size_type j = sblock_id * k_sblock_rate; j != block_id; ++j)
-        {
-            trunk_ptr += ((*header_ptr16) >> 10); // Update trunk pointer.
-            ++header_ptr16;
-        }
-
-        uint8_t const * trunk_p = ((uint8_t const *)m_trunk.data()) + trunk_ptr;
-
-        uint32_t encoding_size = ((*header_ptr16) >> 10);
-        uint32_t ones = ((*header_ptr16) & 0x1ff);
+        uint32_t encoding_size = location.descriptor >> 10;
+        uint32_t ones = location.descriptor & 0x1ff;
         uint32_t zeros = k_block_size - ones;
 
         // Number of runs <= 2.
-        uint32_t special_bit = (((*header_ptr16) & 0x200) >> 9);
+        uint32_t special_bit = (location.descriptor & 0x200) >> 9;
         if (!encoding_size)
         {
             uint32_t first_run_length = special_bit * ones + (1 - special_bit) * zeros;
             uint8_t inside_second_run = (first_run_length < local_i);
             return (inside_second_run ^ special_bit);
         }
+
+        uint8_t const * trunk_p = m_trunk.begin() + location.offset;
 
         // Number of runs > 2.
         if (encoding_size < k_block_bytes)
@@ -662,7 +637,7 @@ private:
         else
         {
             // plain encoding.
-            uint64_t * trunk_ptr64 = (uint64_t *)(((uint8_t *)m_trunk.data()) + trunk_ptr);
+            uint64_t * trunk_ptr64 = (uint64_t *)(((uint8_t *)m_trunk.data()) + location.offset);
             uint32_t bit;
             for (bit = 0; bit + 64 <= local_i; bit += 64)
                 trunk_ptr64++;
@@ -841,60 +816,25 @@ public:
             return 0;
 
         size_type block_id = (i - 1) / bit_vector_type::k_block_size;
-        size_type sblock_id = block_id / k_sblock_rate;
-        size_type hblock_id = block_id / bit_vector_type::k_hblock_rate;
-
-        size_type trunk_base = m_v->m_hblock_header[2 * hblock_id];
-        size_type hblock_rank = m_v->m_hblock_header[2 * hblock_id + 1];
-
+        auto location = m_v->locate_block(block_id);
         uint32_t local_i = i - block_id * bit_vector_type::k_block_size;
-
-        // Read superblock header.
-        uint8_t const * header_ptr8 =
-            ((uint8_t const *)(m_v->m_sblock_header.data())) + (sblock_id * bit_vector_type::k_sblock_header_size);
-        uint32_t * header_ptr32 = (uint32_t *)header_ptr8;
-        size_type trunk_ptr = trunk_base + ((*header_ptr32) & 0x3fffffff);
-        size_type sblock_rank = *(header_ptr32 + 1);
-        header_ptr8 += 8;
-
-        uint16_t * header_ptr16 = (uint16_t *)header_ptr8;
-
-        // Uniform superblock optimization.
-        if ((*header_ptr32) & 0x80000000)
-        {
-            return rank_result<t_b>::adapt(hblock_rank + sblock_rank
-                                               + ((*(header_ptr8 + 1)) & 0x01)
-                                                     * (i - sblock_id * bit_vector_type::k_sblock_size),
-                                           i);
-        }
-
-        // Fast forward through preceding blocks in the superblock.
-        size_type block_rank = 0;
-        for (size_type j = sblock_id * k_sblock_rate; j != block_id; ++j)
-        {
-            trunk_ptr += ((*header_ptr16) >> 10);    // Update trunk pointer.
-            block_rank += ((*header_ptr16) & 0x1ff); // Add 1s in the block.
-            ++header_ptr16;
-        }
-
-        uint8_t const * trunk_p = ((uint8_t *)m_v->m_trunk.data()) + trunk_ptr;
-
-        uint32_t encoding_size = ((*header_ptr16) >> 10);
-        uint32_t ones = ((*header_ptr16) & 0x1ff);
+        size_type block_rank = location.ones_before;
+        uint32_t encoding_size = location.descriptor >> 10;
+        uint32_t ones = location.descriptor & 0x1ff;
         uint32_t zeros = bit_vector_type::k_block_size - ones;
 
         // Number of runs <= 2.
-        uint32_t special_bit = (((*header_ptr16) & 0x200) >> 9);
+        uint32_t special_bit = (location.descriptor & 0x200) >> 9;
         if (!encoding_size)
         {
             uint32_t first_run_length = special_bit * ones + (1 - special_bit) * zeros;
             uint32_t local_rank = std::min(local_i, first_run_length);
 
             return rank_result<t_b>::adapt(
-                hblock_rank + sblock_rank + block_rank
-                    + (special_bit * local_rank + (1 - special_bit) * (local_i - local_rank)),
-                i);
+                block_rank + (special_bit * local_rank + (1 - special_bit) * (local_i - local_rank)), i);
         }
+
+        uint8_t const * trunk_p = m_v->m_trunk.begin() + location.offset;
 
         // Number of runs > 2.
         if (encoding_size < bit_vector_type::k_block_bytes)
@@ -906,9 +846,7 @@ public:
                 while (tot < encoding_size && (*trunk_p++) < local_i)
                     ++tot;
 
-                return rank_result<t_b>::adapt(hblock_rank + sblock_rank + block_rank + special_bit * tot
-                                                   + (1 - special_bit) * (local_i - tot),
-                                               i);
+                return rank_result<t_b>::adapt(block_rank + special_bit * tot + (1 - special_bit) * (local_i - tot), i);
             }
 
             // Runs encoding.
@@ -945,7 +883,7 @@ public:
                 else
                     acc += std::min((int32_t)(*trunk_p), (int32_t)local_i - 1) - last;
 
-                return rank_result<t_b>::adapt(hblock_rank + sblock_rank + block_rank + acc, i);
+                return rank_result<t_b>::adapt(block_rank + acc, i);
             }
             else
             {
@@ -980,20 +918,20 @@ public:
                 else
                     acc += std::min((int32_t)(*trunk_p), (int32_t)local_i - 1) - last;
 
-                return rank_result<t_b>::adapt(hblock_rank + sblock_rank + block_rank + (local_i - acc), i);
+                return rank_result<t_b>::adapt(block_rank + (local_i - acc), i);
             }
         }
         else
         {
             // plain encoding.
-            uint64_t * trunk_ptr64 = (uint64_t *)(((uint8_t *)m_v->m_trunk.data()) + trunk_ptr);
+            uint64_t * trunk_ptr64 = (uint64_t *)(((uint8_t *)m_v->m_trunk.data()) + location.offset);
             uint32_t bit;
             for (bit = 0; bit + 64 <= local_i; bit += 64)
                 block_rank += bits::cnt(*trunk_ptr64++);
             if (bit != local_i)
                 block_rank += bits::cnt((*trunk_ptr64) & (((uint64_t)1 << (local_i - bit)) - 1));
 
-            return rank_result<t_b>::adapt(hblock_rank + sblock_rank + block_rank, i);
+            return rank_result<t_b>::adapt(block_rank, i);
         }
     }
 
