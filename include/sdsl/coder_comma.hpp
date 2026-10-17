@@ -222,8 +222,7 @@ bool comma<t_width>::encode(int_vector const & v, int_vector & z)
     }
 
     // trim vector z to correct size
-    if constexpr (int_vector::fixed_int_width == 0)
-        z.width(v.width());
+    z.width(v.width());
     z.bit_resize(z_bit_size); // for future may check if resizing works
     z.shrink_to_fit();
 
@@ -312,8 +311,7 @@ bool comma<t_width>::decode(int_vector const & z, int_vector & v)
         return false;
 
     // resize vector v
-    if constexpr (int_vector::fixed_int_width == 0)
-        v.width(z.width());
+    v.width(z.width());
     v.resize(n);
     v.shrink_to_fit();
 

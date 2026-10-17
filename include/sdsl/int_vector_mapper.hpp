@@ -221,8 +221,7 @@ public:
         }
 
         // prepare for mmap
-        if constexpr (t_width == 0)
-            m_wrapper.width(int_width);
+        m_wrapper.width(int_width);
         // mmap data
         m_mapped_data = (uint8_t *)memory_manager::mmap_file(m_fd, m_file_size_bytes, t_mode);
         if (m_mapped_data == nullptr)
@@ -245,16 +244,10 @@ public:
     {
         return m_wrapper.width();
     }
-    void width(uint8_t const new_int_width) requires (t_width == 0)
+    void width(uint8_t const new_int_width)
     {
         static_assert(t_mode & std::ios_base::out, "int_vector_mapper: must be opened in in+out mode for 'width'");
         m_wrapper.width(new_int_width);
-    }
-
-    [[deprecated("Fixed-width vectors ignore width changes; remove this call")]]
-    void width(uint8_t) requires (t_width != 0)
-    {
-        static_assert(t_mode & std::ios_base::out, "int_vector_mapper: must be opened in in+out mode for 'width'");
     }
     size_type size() const
     {

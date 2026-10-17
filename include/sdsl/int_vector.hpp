@@ -616,20 +616,16 @@ public:
         return m_width;
     }
 
-    //! Sets the element width of a variable-width int_vector.
+    //! Sets the width of the integers which are accessed via the [] operator, if t_width equals 0.
     /*!\param new_width New width of the integers accessed via the [] operator.
-     * \note Available only for int_vector<0>. This does not repack existing elements.
+     * \note This method has no effect if t_width is in the range [1..64].
      * \sa width
      */
-    void width(uint8_t new_width) noexcept requires (t_width == 0)
+    void width(uint8_t new_width) noexcept
     {
-        m_width = new_width ? std::min(new_width, uint8_t{64u}) : 64u;
+        if constexpr (t_width == 0)
+            m_width = new_width ? std::min(new_width, uint8_t{64u}) : 64u;
     }
-
-    //! Compatibility overload: fixed-width vectors cannot change their width.
-    [[deprecated("Fixed-width vectors ignore width changes; remove this call")]]
-    void width(uint8_t) noexcept requires (t_width != 0)
-    {}
 
     // Write data (without header) to a stream.
     size_type write_data(std::ostream & out) const;
@@ -1556,8 +1552,7 @@ inline int_vector<t_width>::int_vector(size_type size, value_type default_value,
     m_data(nullptr),
     m_width(t_width)
 {
-    if constexpr (t_width == 0)
-        width(int_width);
+    width(int_width);
     assign(size, default_value);
 }
 
@@ -1580,8 +1575,7 @@ inline int_vector<t_width>::int_vector(int_vector const & v) :
     m_data(nullptr),
     m_width(v.m_width)
 {
-    if constexpr (t_width == 0)
-        width(v.m_width);
+    width(v.m_width);
     resize(v.size());
     if (v.m_size > 0)
     {
@@ -1960,8 +1954,7 @@ inline typename std::enable_if<
 int_vector<t_width>::CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
 {
     ar(CEREAL_NVP(m_width));
-    if constexpr (t_width == 0)
-        width(width());
+    width(width());
     ar(CEREAL_NVP(growth_factor));
     ar(CEREAL_NVP(m_size));
     resize(size());

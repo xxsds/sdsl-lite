@@ -100,8 +100,7 @@ public:
     {
         int_vector_buffer<> sa_buf(cache_file_name(conf::KEY_SA, cconfig));
         size_type n = sa_buf.size();
-        if constexpr (t_width == 0)
-            this->width(bits::hi(n) + 1);
+        this->width(bits::hi(n) + 1);
         this->resize((n + sample_dens - 1) / sample_dens);
 
         for (size_type i = 0, cnt_mod = sample_dens, cnt_sum = 0; i < n; ++i, ++cnt_mod)
@@ -177,8 +176,7 @@ public:
         int_vector_buffer<> sa_buf(cache_file_name(conf::KEY_SA, cconfig));
         size_type n = sa_buf.size();
         bit_vector marked(n, 0); // temporary bitvector for the marked text positions
-        if constexpr (t_width == 0)
-            this->width(bits::hi(n / sample_dens) + 1);
+        this->width(bits::hi(n / sample_dens) + 1);
         this->resize((n + sample_dens - 1) / sample_dens);
 
         for (size_type i = 0, sa_cnt = 0; i < n; ++i)
@@ -606,8 +604,7 @@ public:
             cache_file_name(key_bwt<t_csa::alphabet_type::int_width>(), cconfig));
         size_type n = sa_buf.size();
         bit_vector marked(n, 0); // temporary bitvector for the marked text positions
-        if constexpr (t_width == 0)
-            this->width(bits::hi(n) + 1);
+        this->width(bits::hi(n) + 1);
         int_vector<> sample_char;
         typedef typename t_csa::char_type char_type;
         std::set<char_type> char_map;
@@ -765,8 +762,7 @@ public:
         size_type n = sa_buf.size();
         if (n >= 1)
         { // so n+t_csa::isa_sample_dens >= 2
-            if constexpr (t_width == 0)
-                this->width(bits::hi(n) + 1);
+            this->width(bits::hi(n) + 1);
             this->resize((n - 1) / sample_dens + 1);
         }
         for (size_type i = 0; i < this->size(); ++i)
