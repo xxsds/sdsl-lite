@@ -284,7 +284,8 @@ inline bool fibonacci<T>::encode(int_vector1 const & v, int_vector2 & z)
             bits::write_int_and_move(z_data, fibword_low, offset, (len_1 & 0x3F) + 1);
         }
     }
-    z.width(v.width());
+    if constexpr (int_vector2::fixed_int_width == 0)
+        z.width(v.width());
     return true;
 }
 
@@ -372,7 +373,8 @@ inline bool fibonacci<T>::decode(int_vector1 const & z, int_vector2 & v)
     // Determine size of v
     if (z.empty())
     { // if z is empty we are ready with decoding
-        v.width(z.width());
+        if constexpr (int_vector2::fixed_int_width == 0)
+            v.width(z.width());
         v.resize(0);
         v.shrink_to_fit();
         return true;
@@ -389,7 +391,8 @@ inline bool fibonacci<T>::decode(int_vector1 const & z, int_vector2 & v)
     {
         n += bits::cnt11(*data, carry);
     }
-    v.width(z.width());
+    if constexpr (int_vector2::fixed_int_width == 0)
+        v.width(z.width());
     v.resize(n);
     v.shrink_to_fit();
     return decode<false, true>(z.data(), 0, n, v.begin());

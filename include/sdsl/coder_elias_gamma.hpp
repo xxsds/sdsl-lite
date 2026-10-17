@@ -170,7 +170,8 @@ template <class int_vector>
 inline bool elias_gamma<T>::encode(int_vector const & v, int_vector & z)
 {
     typedef typename int_vector::size_type size_type;
-    z.width(v.width());
+    if constexpr (int_vector::fixed_int_width == 0)
+        z.width(v.width());
     size_type z_bit_size = 0;
     uint64_t w;
     uint64_t const zero_val = v.width() < 64 ? (1ULL) << v.width() : 0;
@@ -257,7 +258,8 @@ inline bool elias_gamma<T>::decode(int_vector const & z, int_vector & v)
         }
         ++n;
     }
-    v.width(z.width());
+    if constexpr (int_vector::fixed_int_width == 0)
+        v.width(z.width());
     v.resize(n);
     v.shrink_to_fit();
     return decode<false, true>(z.data(), 0, n, v.begin());
