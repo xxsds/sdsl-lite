@@ -29,7 +29,7 @@
  *     - replace std::vectors by int_vectors
  *     - add support for rank0
  *     - added naive implementation of method get_int
- *     - TODO: added a naive implementation of select
+ *     - added the initial implementation of select
  */
 #ifndef INCLUDED_SDSL_HYB_VECTOR
 #define INCLUDED_SDSL_HYB_VECTOR
@@ -44,6 +44,7 @@
 #include <stdio.h>
 #include <string>
 #include <span>
+#include <ranges>
 #include <type_traits>
 
 #if defined(__AVX2__)
@@ -1116,7 +1117,9 @@ public:
 /*!
  * \tparam t_b            The bit pattern of size one. (so `0` or `1`)
  * \tparam k_sblock_rate  Superblock rate (number of blocks inside superblock)
- * Select queries use a logarithmic number of rank queries.
+ * Select samples occurrence positions to narrow the superblock search, then decodes the selected block.
+ * Samples occupy about size()/128 bits per support and are rebuilt when attaching or loading.
+ * They are not serialized; size_in_bytes therefore excludes this derived memory.
  */
 template <uint8_t t_b, uint32_t k_sblock_rate>
 class select_support_hyb
@@ -1136,6 +1139,107 @@ public:
 private:
     bit_vector_type const * m_v;
 
+    // Chiu and Kempa, SEA 2026, Section 4: sample occurrences to bound the search.
+    // The directory is derived state, rebuilt on attachment rather than serialized.
+    static constexpr size_type sample_ratio = 128;
+    size_type m_sample_interval = 1;
+    int_vector<64> m_samples;
+
+    auto populations() const
+    {
+        auto population = [this](size_type sblock)
+        {
+            auto local = m_v->superblock_header(sblock).relative_ones;
+            auto hblock = sblock * k_sblock_rate / bit_vector_type::k_hblock_rate;
+            return rank_result<t_b>::adapt(m_v->hyperblock_header(hblock).ones_before + local,
+                                           sblock * bit_vector_type::k_sblock_size);
+        };
+        return random_access_container(population, (size() - 1) / bit_vector_type::k_sblock_size + 1);
+    }
+
+    void initialize_samples()
+    {
+        if (!m_v || !size())
+        {
+            m_sample_interval = 1;
+            m_samples = int_vector<64>();
+            return;
+        }
+        auto last = m_v->locate_block((size() - 1) / bit_vector_type::k_block_size);
+        size_type total = rank_result<t_b>::adapt(last.ones_before + last.descriptor.ones, size());
+        size_type budget = std::max<size_type>(size() / sample_ratio / 64, 2) - 1;
+        m_sample_interval = std::max<size_type>((total + budget - 1) / budget, 1);
+        size_type count = (total + m_sample_interval - 1) / m_sample_interval;
+        m_samples = int_vector<64>(count + 1);
+        auto prefixes = populations();
+        size_type sblock = 0;
+        for (size_type sample = 0; sample < count; ++sample)
+        {
+            size_type target = sample * m_sample_interval + 1;
+            while (sblock + 1 < prefixes.size() && prefixes[sblock + 1] < target)
+                ++sblock;
+            m_samples[sample] = sblock;
+        }
+        m_samples[count] = prefixes.size() - 1;
+    }
+
+    using descriptor_type = typename bit_vector_type::template block_descriptor<uint32_t>;
+
+    static uint32_t select_plain(std::span<uint8_t const, bit_vector_type::k_block_bytes> data, uint8_t select_index)
+    {
+        return detail::select_in_words<t_b>(data, select_index + 1);
+    }
+
+    static uint32_t select_minority(std::span<uint8_t const> positions, bool minority_bit, uint8_t select_index)
+    {
+        if (t_b == minority_bit)
+            return positions[select_index];
+        auto indices = std::views::iota(uint8_t{0}, uint8_t(positions.size()));
+        // Skip the j preceding minority positions.
+        uint32_t seen = std::ranges::count_if(indices, [&](uint8_t j) { return positions[j] - j <= select_index; });
+        return select_index + seen;
+    }
+
+    static uint32_t select_runs(std::span<uint8_t const> ends, uint32_t ones, bool first_bit, uint8_t select_index)
+    {
+        uint32_t matched_before = 0;
+        uint32_t run = first_bit != t_b;
+        uint32_t num_ends = std::min<uint32_t>(ends.size(), bit_vector_type::k_block_bytes);
+        for (; run < num_ends; run += 2)
+        {
+            uint32_t start = run ? ends[run - 1] + 1 : 0;
+            uint32_t end = ends[run] + 1;
+            if (select_index < matched_before + end - start)
+                return start + select_index - matched_before;
+            matched_before += end - start;
+        }
+        uint32_t population = t_b ? ones : bit_vector_type::k_block_size - ones;
+        uint32_t length = population - matched_before;
+        uint32_t start = run == num_ends ? ends[num_ends - 1] + 1 : bit_vector_type::k_block_size - length;
+        return start + select_index - matched_before;
+    }
+
+#if __has_cpp_attribute(gnu::always_inline)
+    [[gnu::always_inline]] // Keep block decoding inside the hot query path.
+#endif
+    uint32_t select_block(size_type offset, descriptor_type descriptor, uint32_t select_index) const
+    {
+        auto [encoding_size, ones, special_bit] = descriptor;
+        uint32_t zeros = bit_vector_type::k_block_size - ones;
+        if (!encoding_size)
+        {
+            uint32_t first_run_length = special_bit ? ones : zeros;
+            return (t_b == special_bit ? 0 : first_run_length) + select_index;
+        }
+        std::span<uint8_t const> data{&m_v->m_trunk[offset], encoding_size};
+        if (encoding_size >= bit_vector_type::k_block_bytes)
+            return select_plain(data.first<bit_vector_type::k_block_bytes>(), select_index);
+        if (encoding_size == std::min(ones, zeros))
+            return select_minority(data, special_bit, select_index);
+        return select_runs(data, ones, special_bit, select_index);
+    }
+
+
 public:
     //! Standard constructor
     explicit select_support_hyb(bit_vector_type const * v = nullptr)
@@ -1143,24 +1247,46 @@ public:
         set_vector(v);
     }
 
-    //! Answers select queries using binary search on rank.
+    //! Search superblock populations, then the selected block.
     size_type select(size_type i) const
     {
         assert(i > 0);
-        rank_support_hyb<t_b, k_sblock_rate> const rank(m_v);
-        if (i > rank(size()))
+        if (!size())
+            return 0;
+        // The final block is zero-padded, so its descriptor gives its full population.
+        auto last = m_v->locate_block((size() - 1) / bit_vector_type::k_block_size);
+        auto total_ones = last.ones_before + last.descriptor.ones;
+        if (i > rank_result<t_b>::adapt(total_ones, size()))
             return size();
 
-        size_type begin = 0, end = size();
-        while (end - begin > 1)
+        auto prefixes = populations();
+        size_type sample = (i - 1) / m_sample_interval;
+        auto first = std::ranges::lower_bound(prefixes.begin() + m_samples[sample] + 1,
+                                              prefixes.begin() + m_samples[sample + 1] + 1, i);
+        // Prefix zero is below i, so the target superblock precedes the lower bound.
+        size_type begin = first - prefixes.begin() - 1;
+
+        i -= prefixes[begin];
+        size_type base = begin * bit_vector_type::k_sblock_size;
+        auto [relative_offset, relative_ones, uniform, descriptors] = m_v->superblock_header(begin);
+        if (uniform)
+            return base + i - 1;
+
+        auto hblock = begin * k_sblock_rate / bit_vector_type::k_hblock_rate;
+        size_type offset = m_v->hyperblock_header(hblock).payload_offset + relative_offset;
+        descriptor_type descriptor;
+        uint32_t count;
+        for (;; descriptors = descriptors.subspan(2), base += bit_vector_type::k_block_size)
         {
-            size_type const mid = begin + (end - begin) / 2;
-            if (rank(mid) < i)
-                begin = mid;
-            else
-                end = mid;
+            descriptor = bit_vector_type::template decode_block<uint32_t>(detail::read_unaligned<uint16_t>(descriptors));
+            count = rank_result<t_b>::adapt(descriptor.ones, bit_vector_type::k_block_size);
+            if (i <= count)
+                break;
+            i -= count;
+            offset += descriptor.payload_bytes;
         }
-        return begin;
+
+        return base + select_block(offset, descriptor, i - 1);
     }
 
     //! Shorthand for select(i)
@@ -1179,16 +1305,7 @@ public:
     void set_vector(bit_vector_type const * v = nullptr)
     {
         m_v = v;
-    }
-
-    //! Assignment operator
-    select_support_hyb & operator=(select_support_hyb const & rs)
-    {
-        if (this != &rs)
-        {
-            set_vector(rs.m_v);
-        }
-        return *this;
+        initialize_samples();
     }
 
     //! Load the data structure from a stream and set the supported vector
@@ -1211,7 +1328,9 @@ public:
 
     template <typename archive_t>
     void CEREAL_LOAD_FUNCTION_NAME(archive_t &)
-    {}
+    {
+        initialize_samples();
+    }
 
     bool operator==(select_support_hyb const & other) const noexcept
     {
