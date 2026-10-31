@@ -872,6 +872,63 @@ public:
 private:
     bit_vector_type const * m_v;
 
+    static uint32_t rank_plain(std::span<uint8_t const, bit_vector_type::k_block_bytes> data, uint32_t prefix_length)
+    {
+        return detail::rank_in_words(data, prefix_length);
+    }
+
+    static uint32_t rank_minority(std::span<uint8_t const> positions, bool minority_bit, uint32_t prefix_length)
+    {
+        uint32_t seen = std::ranges::count_if(positions, [&](uint8_t position) { return position < prefix_length; });
+        return minority_bit ? seen : prefix_length - seen;
+    }
+
+    static uint32_t rank_runs(std::span<uint8_t const> ends, uint32_t ones, bool first_bit, uint32_t prefix_length)
+    {
+        uint32_t matched_before = 0;
+        auto result = [&](uint32_t start, uint32_t end) {
+            uint32_t prefix = matched_before + std::min(prefix_length, end) - std::min(prefix_length, start);
+            return first_bit ? prefix : prefix_length - prefix;
+        };
+        uint32_t run = 0;
+        uint32_t num_ends = std::min<uint32_t>(ends.size(), bit_vector_type::k_block_bytes);
+        for (; run < num_ends; run += 2)
+        {
+            uint32_t start = run ? ends[run - 1] + 1 : 0;
+            uint32_t end = ends[run] + 1;
+            if (prefix_length <= end)
+                return result(start, end);
+            matched_before += end - start;
+        }
+        uint32_t population = first_bit ? ones : bit_vector_type::k_block_size - ones;
+        uint32_t length = population - matched_before;
+        uint32_t start = run == num_ends ? ends[num_ends - 1] + 1 : bit_vector_type::k_block_size - length;
+        return result(start, start + length);
+    }
+
+#if __has_cpp_attribute(gnu::always_inline)
+    [[gnu::always_inline]] // Keep block decoding inside the hot query path.
+#endif
+    uint32_t rank_block(size_type offset,
+                        typename bit_vector_type::template block_descriptor<uint32_t> descriptor,
+                        uint32_t prefix_length) const
+    {
+        auto [encoding_size, ones, special_bit] = descriptor;
+        uint32_t zeros = bit_vector_type::k_block_size - ones;
+        if (!encoding_size)
+        {
+            uint32_t first_run_length = special_bit ? ones : zeros;
+            return special_bit ? std::min(prefix_length, first_run_length)
+                               : prefix_length - std::min(prefix_length, first_run_length);
+        }
+        std::span<uint8_t const> data{&m_v->m_trunk[offset], encoding_size};
+        if (encoding_size >= bit_vector_type::k_block_bytes)
+            return rank_plain(data.first<bit_vector_type::k_block_bytes>(), prefix_length);
+        if (encoding_size == std::min(ones, zeros))
+            return rank_minority(data, special_bit, prefix_length);
+        return rank_runs(data, ones, special_bit, prefix_length);
+    }
+
 public:
     //! Standard constructor
     explicit rank_support_hyb(bit_vector_type const * v = nullptr)
@@ -889,122 +946,11 @@ public:
         if (i <= 0)
             return 0;
 
-        size_type block_id = (i - 1) / bit_vector_type::k_block_size;
-        auto location = m_v->locate_block(block_id);
-        uint32_t local_i = i - block_id * bit_vector_type::k_block_size;
-        size_type block_rank = location.ones_before;
-        auto [encoding_size, ones, special_bit] = location.descriptor;
-        uint32_t zeros = bit_vector_type::k_block_size - ones;
-
-        // Number of runs <= 2.
-        if (!encoding_size)
-        {
-            uint32_t first_run_length = special_bit * ones + (1 - special_bit) * zeros;
-            uint32_t local_rank = std::min(local_i, first_run_length);
-
-            return rank_result<t_b>::adapt(
-                block_rank + (special_bit * local_rank + (1 - special_bit) * (local_i - local_rank)), i);
-        }
-
-        uint8_t const * trunk_p = &m_v->m_trunk[location.offset];
-
-        // Number of runs > 2.
-        if (encoding_size < bit_vector_type::k_block_bytes)
-        {
-            if (std::min(ones, zeros) == encoding_size)
-            {
-                // Minority encoding.
-                uint32_t tot = 0;
-                while (tot < encoding_size && (*trunk_p++) < local_i)
-                    ++tot;
-
-                return rank_result<t_b>::adapt(block_rank + special_bit * tot + (1 - special_bit) * (local_i - tot), i);
-            }
-
-            // Runs encoding.
-            if (special_bit)
-            {
-                uint32_t j = 0;
-                uint32_t acc = 0;
-
-                int32_t last = -1;
-                while (j + 1 < encoding_size && *(trunk_p + 1) < local_i)
-                {
-                    acc += *trunk_p - last;
-                    ++trunk_p;
-                    last = *trunk_p;
-                    ++trunk_p;
-                    j += 2;
-                }
-
-                if (j + 1 >= encoding_size)
-                {
-                    if (j < encoding_size)
-                    {
-                        if (*trunk_p >= local_i)
-                            acc += local_i - last - 1;
-                        else
-                        {
-                            acc += (*trunk_p) - last;
-                            acc += (ones - acc) - std::min(ones - acc, bit_vector_type::k_block_size - local_i);
-                        }
-                    }
-                    else
-                        acc += std::min(ones - acc, local_i - last - 1);
-                }
-                else
-                    acc += std::min((int32_t)(*trunk_p), (int32_t)local_i - 1) - last;
-
-                return rank_result<t_b>::adapt(block_rank + acc, i);
-            }
-            else
-            {
-                uint32_t j = 0;
-                uint32_t acc = 0;
-                int32_t last = -1;
-
-                while (j + 1 < encoding_size && *(trunk_p + 1) < local_i)
-                {
-                    acc += *trunk_p - last;
-                    ++trunk_p;
-                    last = *trunk_p;
-                    ++trunk_p;
-                    j += 2;
-                }
-
-                if (j + 1 >= encoding_size)
-                {
-                    if (j < encoding_size)
-                    {
-                        if (*trunk_p >= local_i)
-                            acc += local_i - last - 1;
-                        else
-                        {
-                            acc += (*trunk_p) - last;
-                            acc += (zeros - acc) - std::min(zeros - acc, bit_vector_type::k_block_size - local_i);
-                        }
-                    }
-                    else
-                        acc += std::min(zeros - acc, local_i - last - 1);
-                }
-                else
-                    acc += std::min((int32_t)(*trunk_p), (int32_t)local_i - 1) - last;
-
-                return rank_result<t_b>::adapt(block_rank + (local_i - acc), i);
-            }
-        }
-        else
-        {
-            // plain encoding.
-            uint64_t * trunk_ptr64 = (uint64_t *)(((uint8_t *)m_v->m_trunk.data()) + location.offset);
-            uint32_t bit;
-            for (bit = 0; bit + 64 <= local_i; bit += 64)
-                block_rank += bits::cnt(*trunk_ptr64++);
-            if (bit != local_i)
-                block_rank += bits::cnt((*trunk_ptr64) & (((uint64_t)1 << (local_i - bit)) - 1));
-
-            return rank_result<t_b>::adapt(block_rank, i);
-        }
+        auto last_position = i - 1;
+        auto location = m_v->locate_block(last_position / bit_vector_type::k_block_size);
+        auto local_rank = rank_block(
+            location.offset, location.descriptor, last_position % bit_vector_type::k_block_size + 1);
+        return rank_result<t_b>::adapt(location.ones_before + local_rank, i);
     }
 
     //! Shorthand for rank(i)
