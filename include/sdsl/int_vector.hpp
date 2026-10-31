@@ -94,128 +94,56 @@ class comma; // IWYU pragma: keep
 template <uint8_t t_width>
 struct int_vec_category_trait
 {
-    typedef iv_tag type;
-};
-
-template <>
-struct int_vec_category_trait<1>
-{
-    typedef bv_tag type;
+    using type = std::conditional_t<t_width == 1, bv_tag, iv_tag>;
 };
 
 template <uint8_t t_width>
 struct int_vector_trait
 {
-    typedef uint64_t value_type;
-    typedef int_vector<t_width> int_vector_type;
-    typedef int_vector_reference<int_vector_type> reference;
-    typedef uint64_t const_reference;
-    typedef uint8_t int_width_type;
-    typedef int_vector_iterator<int_vector_type> iterator;
-    typedef int_vector_const_iterator<int_vector_type> const_iterator;
+private:
+    static constexpr bool native_width = t_width >= 8 && 64 % t_width == 0;
 
-    static iterator begin(int_vector_type * v) noexcept
+public:
+    using value_type =
+        std::conditional_t<t_width == 8,  uint8_t,
+        std::conditional_t<t_width == 16, uint16_t,
+        std::conditional_t<t_width == 32, uint32_t,
+                                         uint64_t>>>;
+    using int_vector_type = int_vector<t_width>;
+    using reference = std::conditional_t<native_width, value_type &, int_vector_reference<int_vector_type>>;
+    using const_reference = std::conditional_t<native_width, value_type const &, value_type>;
+    using int_width_type = uint8_t;
+    using iterator = std::conditional_t<native_width, value_type *, int_vector_iterator<int_vector_type>>;
+    using const_iterator =
+        std::conditional_t<native_width, value_type const *, int_vector_const_iterator<int_vector_type>>;
+
+private:
+    template <typename Vector>
+    static auto iterator_at(Vector * v, int_vector_size_type index = 0) noexcept
     {
-        return iterator(v, 0);
-    }
-    static iterator end(int_vector_type * v) noexcept
-    {
-        return iterator(v, v->size() * (t_width ? t_width : v->width()));
-    }
-    static const_iterator begin(int_vector_type const * v) noexcept
-    {
-        return const_iterator(v, 0);
-    }
-    static const_iterator end(int_vector_type const * v) noexcept
-    {
-        return const_iterator(v, v->size() * (t_width ? t_width : v->width()));
+        using result_type = std::conditional_t<std::is_const_v<Vector>, const_iterator, iterator>;
+        if constexpr (native_width)
+            return reinterpret_cast<result_type>(v->data()) + index;
+        else
+            return result_type(v, index * (t_width ? t_width : v->width()));
     }
 
-    static void set_width(uint8_t new_width, int_width_type & width) noexcept
+public:
+    static auto begin(auto * v) noexcept
+    {
+        return iterator_at(v);
+    }
+    static auto end(auto * v) noexcept
+    {
+        return iterator_at(v, v->size());
+    }
+
+    static void set_width(uint8_t new_width,
+                          std::conditional_t<native_width, int_width_type, int_width_type &> width) noexcept
     {
         if constexpr (t_width == 0)
             width = new_width ? std::min(new_width, uint8_t{64u}) : 64u;
     }
-};
-
-template <>
-struct int_vector_trait<64>
-{
-    typedef uint64_t value_type;
-    typedef int_vector<64> int_vector_type;
-    typedef uint64_t & reference;
-    typedef uint64_t const_reference;
-    typedef uint8_t int_width_type;
-    typedef uint64_t * iterator;
-    typedef uint64_t const * const_iterator;
-
-    static iterator begin(int_vector_type * v) noexcept;
-    static iterator end(int_vector_type * v) noexcept;
-    static const_iterator begin(int_vector_type const * v) noexcept;
-    static const_iterator end(int_vector_type const * v) noexcept;
-
-    static void set_width(uint8_t, int_width_type) noexcept
-    {}
-};
-
-template <>
-struct int_vector_trait<32>
-{
-    typedef uint32_t value_type;
-    typedef int_vector<32> int_vector_type;
-    typedef uint32_t & reference;
-    typedef uint32_t const_reference;
-    typedef uint8_t int_width_type;
-    typedef uint32_t * iterator;
-    typedef uint32_t const * const_iterator;
-
-    static iterator begin(int_vector_type * v) noexcept;
-    static iterator end(int_vector_type * v) noexcept;
-    static const_iterator begin(int_vector_type const * v) noexcept;
-    static const_iterator end(int_vector_type const * v) noexcept;
-
-    static void set_width(uint8_t, int_width_type) noexcept
-    {}
-};
-
-template <>
-struct int_vector_trait<16>
-{
-    typedef uint16_t value_type;
-    typedef int_vector<16> int_vector_type;
-    typedef uint16_t & reference;
-    typedef uint16_t const_reference;
-    typedef uint8_t int_width_type;
-    typedef uint16_t * iterator;
-    typedef uint16_t const * const_iterator;
-
-    static iterator begin(int_vector_type * v) noexcept;
-    static iterator end(int_vector_type * v) noexcept;
-    static const_iterator begin(int_vector_type const * v) noexcept;
-    static const_iterator end(int_vector_type const * v) noexcept;
-
-    static void set_width(uint8_t, int_width_type) noexcept
-    {}
-};
-
-template <>
-struct int_vector_trait<8>
-{
-    typedef uint8_t value_type;
-    typedef int_vector<8> int_vector_type;
-    typedef uint8_t & reference;
-    typedef uint8_t const_reference;
-    typedef uint8_t int_width_type;
-    typedef uint8_t * iterator;
-    typedef uint8_t const * const_iterator;
-
-    static iterator begin(int_vector_type * v) noexcept;
-    static iterator end(int_vector_type * v) noexcept;
-    static const_iterator begin(int_vector_type const * v) noexcept;
-    static const_iterator end(int_vector_type const * v) noexcept;
-
-    static void set_width(uint8_t, int_width_type) noexcept
-    {}
 };
 
 //! A generic vector class for integers of width \f$w\in [1..64]\f$.
@@ -2054,90 +1982,6 @@ int_vector<t_width>::CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
         ar(tmp);
         operator[](i) = tmp;
     }
-}
-
-inline typename int_vector_trait<64>::iterator
-int_vector_trait<64>::begin(typename int_vector_trait<64>::int_vector_type * v) noexcept
-{
-    return v->data();
-}
-inline typename int_vector_trait<64>::iterator
-int_vector_trait<64>::end(typename int_vector_trait<64>::int_vector_type * v) noexcept
-{
-    return v->data() + v->size();
-}
-inline typename int_vector_trait<64>::const_iterator
-int_vector_trait<64>::begin(typename int_vector_trait<64>::int_vector_type const * v) noexcept
-{
-    return v->data();
-}
-inline typename int_vector_trait<64>::const_iterator
-int_vector_trait<64>::end(typename int_vector_trait<64>::int_vector_type const * v) noexcept
-{
-    return v->data() + v->size();
-}
-
-inline typename int_vector_trait<32>::iterator
-int_vector_trait<32>::begin(typename int_vector_trait<32>::int_vector_type * v) noexcept
-{
-    return (uint32_t *)v->data();
-}
-inline typename int_vector_trait<32>::iterator
-int_vector_trait<32>::end(typename int_vector_trait<32>::int_vector_type * v) noexcept
-{
-    return ((uint32_t *)v->data()) + v->size();
-}
-inline typename int_vector_trait<32>::const_iterator
-int_vector_trait<32>::begin(typename int_vector_trait<32>::int_vector_type const * v) noexcept
-{
-    return (uint32_t *)v->data();
-}
-inline typename int_vector_trait<32>::const_iterator
-int_vector_trait<32>::end(typename int_vector_trait<32>::int_vector_type const * v) noexcept
-{
-    return ((uint32_t *)v->data()) + v->size();
-}
-
-inline typename int_vector_trait<16>::iterator
-int_vector_trait<16>::begin(typename int_vector_trait<16>::int_vector_type * v) noexcept
-{
-    return (uint16_t *)v->data();
-}
-inline typename int_vector_trait<16>::iterator
-int_vector_trait<16>::end(typename int_vector_trait<16>::int_vector_type * v) noexcept
-{
-    return ((uint16_t *)v->data()) + v->size();
-}
-inline typename int_vector_trait<16>::const_iterator
-int_vector_trait<16>::begin(typename int_vector_trait<16>::int_vector_type const * v) noexcept
-{
-    return (uint16_t *)v->data();
-}
-inline typename int_vector_trait<16>::const_iterator
-int_vector_trait<16>::end(typename int_vector_trait<16>::int_vector_type const * v) noexcept
-{
-    return ((uint16_t *)v->data()) + v->size();
-}
-
-inline typename int_vector_trait<8>::iterator
-int_vector_trait<8>::begin(typename int_vector_trait<8>::int_vector_type * v) noexcept
-{
-    return (uint8_t *)v->data();
-}
-inline typename int_vector_trait<8>::iterator
-int_vector_trait<8>::end(typename int_vector_trait<8>::int_vector_type * v) noexcept
-{
-    return ((uint8_t *)v->data()) + v->size();
-}
-inline typename int_vector_trait<8>::const_iterator
-int_vector_trait<8>::begin(typename int_vector_trait<8>::int_vector_type const * v) noexcept
-{
-    return (uint8_t *)v->data();
-}
-inline typename int_vector_trait<8>::const_iterator
-int_vector_trait<8>::end(typename int_vector_trait<8>::int_vector_type const * v) noexcept
-{
-    return ((uint8_t *)v->data()) + v->size();
 }
 
 } // end namespace sdsl
