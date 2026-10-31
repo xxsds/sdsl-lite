@@ -1,5 +1,6 @@
 #include <array>
 #include <random>
+#include <sstream>
 #include <string>
 #include <type_traits>
 
@@ -148,3 +149,69 @@ TEST(hyb_query_test, large_superblock_population)
 }
 
 } // namespace
+
+TEST(hyb_select_test, sampled_support_rebinding)
+{
+    sdsl::bit_vector bits(65536, 0);
+    for (uint64_t i = 0; i < bits.size() / 2; ++i)
+        bits[i] = 1;
+    sdsl::hyb_vector<> vector(bits);
+    sdsl::hyb_vector<>::select_1_type ones;
+    sdsl::hyb_vector<>::select_0_type zeros;
+    ones.set_vector(&vector);
+    zeros.set_vector(&vector);
+    EXPECT_EQ(uint64_t{0}, ones(1));
+    EXPECT_EQ(uint64_t{32768}, zeros(1));
+
+    // Same size and populations, but a different directory in the same object.
+    bits.flip();
+    vector = sdsl::hyb_vector<>(bits);
+    ones.set_vector(&vector);
+    zeros.set_vector(&vector);
+    for (uint64_t i = 1; i <= 32768; ++i)
+    {
+        ASSERT_EQ(i + 32767, ones(i));
+        ASSERT_EQ(i - 1, zeros(i));
+    }
+    ones.set_vector();
+    ones.set_vector(&vector);
+    EXPECT_EQ(uint64_t{32768}, ones(1));
+    EXPECT_EQ(vector.size(), ones(32769));
+}
+
+TEST(hyb_select_test, derived_samples_preserve_support_stream)
+{
+    sdsl::bit_vector bits(65539, 0);
+    bits[17] = bits[32768] = bits[65538] = 1;
+    sdsl::hyb_vector<> vector(bits);
+    sdsl::hyb_vector<>::select_1_type ones(&vector);
+    sdsl::hyb_vector<>::select_0_type zeros(&vector);
+    std::stringstream stream;
+    EXPECT_EQ(uint64_t{0}, ones.serialize(stream));
+    EXPECT_EQ(uint64_t{0}, zeros.serialize(stream));
+    stream << "following field";
+
+    sdsl::hyb_vector<>::select_1_type loaded_ones;
+    sdsl::hyb_vector<>::select_0_type loaded_zeros;
+    loaded_ones.load(static_cast<std::istream &>(stream), &vector);
+    loaded_zeros.load(static_cast<std::istream &>(stream), &vector);
+    EXPECT_EQ(uint64_t{17}, loaded_ones(1));
+    EXPECT_EQ(uint64_t{32768}, loaded_ones(2));
+    EXPECT_EQ(uint64_t{65538}, loaded_ones(3));
+    EXPECT_EQ(uint64_t{0}, loaded_zeros(1));
+    EXPECT_EQ(uint64_t{65537}, loaded_zeros(65536));
+    std::string following;
+    std::getline(stream, following);
+    EXPECT_EQ("following field", following);
+}
+
+TEST(hyb_select_test, larger_superblock_rates)
+{
+    sdsl::bit_vector bits(3 * 1024 * 256 + 123, 0);
+    for (uint64_t i = 0; i < bits.size(); ++i)
+        bits[i] = (i / 13) % 2 && (i < 1024 * 256 || i >= 2 * 1024 * 256);
+    check_queries<128>(bits);
+    check_queries<256>(bits);
+    check_queries<512>(bits);
+    check_queries<1024>(bits);
+}

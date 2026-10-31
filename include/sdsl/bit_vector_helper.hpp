@@ -9,6 +9,8 @@
 #include <span>
 #include <type_traits>
 
+#include <sdsl/bits.hpp>
+
 namespace sdsl::detail
 {
 // Index counts values of the requested type, independently of the storage type.
@@ -31,6 +33,23 @@ inline void write_unaligned(std::span<T, extent> data, Value value, size_t index
     assert(index < data.size_bytes() / sizeof(Value));
     auto bytes = std::as_writable_bytes(data);
     std::memcpy(&bytes[sizeof(Value) * index], &value, sizeof(value));
+}
+
+// The one-based occurrence must exist in the supplied words.
+template <bool t_bit, typename T, size_t extent>
+inline uint64_t select_in_words(std::span<T, extent> data, uint64_t occurrence)
+{
+    assert(occurrence > 0);
+    for (size_t word = 0;; ++word)
+    {
+        uint64_t value = read_unaligned<uint64_t>(data, word);
+        if constexpr (!t_bit)
+            value = ~value;
+        auto count = bits::cnt(value);
+        if (occurrence <= count)
+            return 64 * word + bits::sel(value, occurrence);
+        occurrence -= count;
+    }
 }
 
 } // namespace sdsl::detail
