@@ -351,7 +351,7 @@ public:
     insert(const_iterator it, input_iterator_t first, input_iterator_t last)
     {
         size_type pos = it - cbegin();
-        amortized_resize(size() + last - first);
+        amortized_resize(size() + (last - first));
         iterator it_new = begin() + pos;
         std::copy_backward(it_new, end() - (last - first), end());
         std::copy(first, last, it_new);
