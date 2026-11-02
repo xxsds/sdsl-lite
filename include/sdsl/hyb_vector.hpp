@@ -570,159 +570,143 @@ private:
         return result;
     }
 
-    //! Given i returns bv[i - 1].
-    value_type access0(size_type i) const
+    static bool access_plain(std::span<uint8_t const, k_block_bytes> data, uint8_t position)
     {
-        assert(i > 0);
-        assert(i <= m_size);
+        return detail::access_in_words(data, position);
+    }
 
-        size_type block_id = (i - 1) / k_block_size;
-        auto location = locate_block(block_id);
-        uint32_t local_i = i - block_id * k_block_size;
-        auto [encoding_size, ones, special_bit] = location.descriptor;
+    static bool access_minority(std::span<uint8_t const> positions, bool minority_bit, uint8_t position)
+    {
+        return (std::ranges::find(positions, position) == positions.end()) ^ minority_bit;
+    }
+
+    static bool access_runs(std::span<uint8_t const> ends, uint32_t ones, bool first_bit, uint8_t position)
+    {
+        uint32_t matched_before = 0;
+        uint32_t run = 0;
+        uint32_t num_ends = std::min<uint32_t>(ends.size(), k_block_bytes);
+        for (; run < num_ends; run += 2)
+        {
+            uint32_t start = run ? ends[run - 1] + 1 : 0;
+            uint32_t end = ends[run] + 1;
+            if (position < end)
+                return (position < start) ^ first_bit;
+            matched_before += end - start;
+        }
+        // Exactly one first-bit run remains among the two implicit final runs.
+        uint32_t population = first_bit ? ones : k_block_size - ones;
+        uint32_t length = population - matched_before;
+        uint32_t start = run == num_ends ? ends[num_ends - 1] + 1 : k_block_size - length;
+        return (position < start || position >= start + length) ^ first_bit;
+    }
+
+#if __has_cpp_attribute(gnu::always_inline)
+    [[gnu::always_inline]] // Keep block decoding inside the hot query path.
+#endif
+    bool access_block(size_type offset, block_descriptor<uint32_t> descriptor, uint32_t position) const
+    {
+        auto [encoding_size, ones, special_bit] = descriptor;
         uint32_t zeros = k_block_size - ones;
-
-        // Number of runs <= 2.
         if (!encoding_size)
         {
-            uint32_t first_run_length = special_bit * ones + (1 - special_bit) * zeros;
-            uint8_t inside_second_run = (first_run_length < local_i);
-            return (inside_second_run ^ special_bit);
+            uint32_t first_run_length = special_bit ? ones : zeros;
+            return (position >= first_run_length) ^ special_bit;
         }
+        std::span<uint8_t const> data{&m_trunk[offset], encoding_size};
+        if (encoding_size >= k_block_bytes)
+            return access_plain(data.first<k_block_bytes>(), position);
+        if (encoding_size == std::min(ones, zeros))
+            return access_minority(data, special_bit, position);
+        return access_runs(data, ones, special_bit, position);
+    }
 
-        uint8_t const * trunk_p = &m_trunk[location.offset];
-
-        // Number of runs > 2.
-        if (encoding_size < k_block_bytes)
+    uint64_t get_int_block(block_location const & location, uint32_t position, uint32_t length) const
+    {
+        auto [encoding_size, ones, special_bit] = location.descriptor;
+        uint64_t mask = bits::lo_set[length];
+        // The result's low bit represents position, even when the interval crosses a run.
+        auto run_mask = [&](uint32_t start, uint32_t end) {
+            start = std::clamp(start, position, position + length) - position;
+            end = std::clamp(end, position, position + length) - position;
+            return bits::lo_set[end] ^ bits::lo_set[start];
+        };
+        if (!encoding_size)
         {
-            if (std::min(ones, zeros) == encoding_size)
-            {
-                // Minority encoding.
-                uint32_t tot = 0;
-                while (tot < encoding_size && *trunk_p < local_i)
-                {
-                    ++trunk_p;
-                    ++tot;
-                }
-                uint8_t last_was_majority = ((!tot) || (*(trunk_p - 1) != local_i - 1));
-                return (last_was_majority ^ special_bit);
-            }
-
-            // Runs encoding.
-            if (special_bit)
-            {
-                uint32_t j = 0;
-                uint32_t acc = 0;
-
-                int32_t last = -1;
-                while (j + 1 < encoding_size && *(trunk_p + 1) < local_i)
-                {
-                    acc += *trunk_p - last;
-                    ++trunk_p;
-                    last = *trunk_p;
-                    ++trunk_p;
-                    j += 2;
-                }
-
-                uint8_t access_i = 0;
-                if (j + 1 >= encoding_size)
-                {
-                    if (j < encoding_size)
-                    { // j == encoding_size - 1
-                        if (local_i <= (uint32_t)(*trunk_p) + 1)
-                            access_i = (((int32_t)local_i - last - 1) > 0);
-                        else
-                        {
-                            acc += (int32_t)(*trunk_p) - last;
-                            if (ones - acc <= k_block_size - local_i)
-                                access_i = 0;
-                            else
-                                access_i = 1;
-                        }
-                    }
-                    else
-                    { // j == encoding_size
-                        if ((int32_t)(ones - acc) < (int32_t)local_i - last - 1)
-                            access_i = 0;
-                        else
-                            access_i = (((int32_t)local_i - last - 1) > 0);
-                    }
-                }
-                else
-                {
-                    if ((*trunk_p) < local_i - 1)
-                        access_i = 0;
-                    else
-                        access_i = (((int32_t)local_i - last - 1) > 0);
-                }
-
-                return access_i;
-            }
-            else
-            {
-                uint32_t j = 0;
-                uint32_t acc = 0;
-                int32_t last = -1;
-
-                while (j + 1 < encoding_size && *(trunk_p + 1) < local_i)
-                {
-                    acc += *trunk_p - last;
-                    ++trunk_p;
-                    last = *trunk_p;
-                    ++trunk_p;
-                    j += 2;
-                }
-
-                uint8_t access_i = 0;
-                if (j + 1 >= encoding_size)
-                {
-                    if (j < encoding_size)
-                    {
-                        if (local_i <= (uint32_t)(*trunk_p) + 1)
-                            access_i = (((int32_t)local_i - last - 1) == 0);
-                        else
-                        {
-                            acc += (*trunk_p) - last;
-                            if (zeros - acc <= k_block_size - local_i)
-                                access_i = 1;
-                            else
-                                access_i = 0;
-                        }
-                    }
-                    else
-                    {
-                        if ((int32_t)(zeros - acc) < (int32_t)local_i - last - 1)
-                            access_i = 1;
-                        else
-                            access_i = ((local_i - last - 1) == 0);
-                    }
-                }
-                else
-                {
-                    if ((*trunk_p) < local_i - 1)
-                        access_i = 1;
-                    else
-                        access_i = (((int32_t)local_i - last - 1) == 0);
-                }
-
-                return access_i;
-            }
+            auto first_end = special_bit ? ones : k_block_size - ones;
+            auto first_run = run_mask(0, first_end);
+            return special_bit ? first_run : first_run ^ mask;
         }
-        else
+        std::span<uint8_t const> data{&m_trunk[location.offset], encoding_size};
+        if (encoding_size >= k_block_bytes)
         {
-            // plain encoding.
-            uint64_t * trunk_ptr64 = (uint64_t *)(((uint8_t *)m_trunk.data()) + location.offset);
-            uint32_t bit;
-            for (bit = 0; bit + 64 <= local_i; bit += 64)
-                trunk_ptr64++;
-
-            uint8_t access_i = 0;
-            if (bit != local_i)
-                access_i = (((*trunk_ptr64) >> (local_i - bit - 1)) & 1);
-            else
-                access_i = (((*(trunk_ptr64 - 1)) >> 63) & 1);
-            return access_i;
+            auto word = position / 64;
+            auto shift = position % 64;
+            auto value = detail::read_unaligned<uint64_t>(data, word) >> shift;
+            if (length > 64 - shift)
+                value |= detail::read_unaligned<uint64_t>(data, word + 1) << (64 - shift);
+            return value & mask;
         }
+        if (encoding_size == std::min(ones, k_block_size - ones))
+        {
+            uint64_t value = special_bit ? 0 : mask;
+            for (auto bit_position : data)
+            {
+                if (bit_position >= position + length)
+                    break;
+                if (bit_position >= position)
+                    value ^= uint64_t{1} << (bit_position - position);
+            }
+            return value;
+        }
+        uint64_t first_runs = 0;
+        uint32_t matched_before = 0, run = 0;
+        for (; run < data.size(); run += 2)
+        {
+            uint32_t start = run ? data[run - 1] + 1 : 0;
+            uint32_t end = data[run] + 1;
+            first_runs |= run_mask(start, end);
+            matched_before += end - start;
+            if (end >= position + length)
+                return special_bit ? first_runs : first_runs ^ mask;
+        }
+        // The final two run endings are implicit; one of those runs has the first bit.
+        uint32_t population = special_bit ? ones : k_block_size - ones;
+        uint32_t remaining = population - matched_before;
+        uint32_t start = run == data.size() ? data.back() + 1 : k_block_size - remaining;
+        first_runs |= run_mask(start, start + remaining);
+        return special_bit ? first_runs : first_runs ^ mask;
+    }
+
+#if __has_cpp_attribute(gnu::always_inline) && !defined(__clang__)
+    [[gnu::always_inline]] // GCC otherwise outlines this loop after inlining the block decoder.
+#endif
+    uint64_t get_int_blocks(size_type idx, uint8_t len) const
+    {
+        uint64_t value = 0;
+        for (uint32_t copied = 0; copied < len;)
+        {
+            auto position = idx % k_block_size;
+            auto length = std::min<uint32_t>(len - copied, k_block_size - position);
+            value |= get_int_block(locate_block(idx / k_block_size), position, length) << copied;
+            idx += length;
+            copied += length;
+        }
+        return value;
+    }
+
+    uint64_t get_int_short(size_type idx, uint8_t len) const
+    {
+        if (!len)
+            return 0;
+        uint32_t position = idx % k_block_size;
+        auto location = locate_block(idx / k_block_size);
+        uint64_t value = 0;
+        for (uint32_t bit = len; bit > 0; --bit)
+        {
+            value <<= 1;
+            value |= access_block(location.offset, location.descriptor, position + bit - 1);
+        }
+        return value;
     }
 
 public:
@@ -734,21 +718,33 @@ public:
      *  \pre idx+len-1 in [0..size()-1]
      *  \pre len in [1..64]
      */
+#if __has_cpp_attribute(gnu::always_inline)
+    [[gnu::always_inline]] // Keep the length dispatch inside the caller.
+#endif
     uint64_t get_int(size_type idx, uint8_t const len = 64) const
     {
-        uint64_t res = 0;
-        for (size_t i = 0; i < len; ++i)
+        assert(len <= 64 && idx <= m_size && len <= m_size - idx);
+        if (len >= 4)
+            return get_int_blocks(idx, len);
+        if (len == 1)
+            return (*this)[idx];
+        if (idx % k_block_size + len <= k_block_size)
+            return get_int_short(idx, len);
+        uint64_t value = 0;
+        for (size_type bit = 0; bit < len; ++bit)
         {
-            res <<= 1;
-            res |= (*this)[idx + len - 1 - i];
+            value <<= 1;
+            value |= (*this)[idx + len - 1 - bit];
         }
-        return res;
+        return value;
     }
 
     //! Accessing the i-th element of the original bitvector
     value_type operator[](size_type i) const
     {
-        return access0(i + 1);
+        assert(i < m_size);
+        auto location = locate_block(i / k_block_size);
+        return access_block(location.offset, location.descriptor, i % k_block_size);
     }
 
     //! Returns the size of the original bitvector

@@ -148,3 +148,59 @@ TEST(hyb_query_test, large_superblock_population)
 }
 
 } // namespace
+
+TYPED_TEST(hyb_query_test, get_int_intervals)
+{
+    sdsl::bit_vector bits(2 * TypeParam::value * 256 + 67);
+    std::mt19937_64 random(921);
+    for (uint64_t i = 0; i < bits.size(); ++i)
+    {
+        auto position = i % 256;
+        switch ((i / 256) % 8)
+        {
+            case 0: bits[i] = 0; break;
+            case 1: bits[i] = 1; break;
+            case 2: bits[i] = position >= 83; break;
+            case 3: bits[i] = position == 7 || position == 129 || position == 250; break;
+            case 4: bits[i] = position != 5 && position != 130; break;
+            case 5: bits[i] = (position / 13) % 2; break;
+            case 6: bits[i] = random() % 2; break;
+            case 7: bits[i] = position > 0 && position < 255; break;
+        }
+    }
+    sdsl::hyb_vector<TypeParam::value> vector(bits);
+    for (uint64_t position = 0; position < bits.size(); ++position)
+        for (uint8_t length = 1; length <= 64 && length <= bits.size() - position; ++length)
+            ASSERT_EQ(bits.get_int(position, length), vector.get_int(position, length));
+    EXPECT_EQ(uint64_t{0}, vector.get_int(vector.size(), 0));
+}
+
+TEST(hyb_query_test, get_int_run_counts)
+{
+    for (uint32_t runs = 3; runs <= 33; ++runs)
+    {
+        sdsl::bit_vector bits(256);
+        for (uint64_t position = 0; position < bits.size(); ++position)
+            bits[position] = (position * runs / bits.size()) & 1;
+        for (int polarity = 0; polarity < 2; ++polarity)
+        {
+            sdsl::hyb_vector<> vector(bits);
+            for (uint64_t position = 0; position < bits.size(); ++position)
+                for (uint8_t length = 1; length <= 64 && length <= bits.size() - position; ++length)
+                    ASSERT_EQ(bits.get_int(position, length), vector.get_int(position, length));
+            bits.flip();
+        }
+    }
+}
+
+TEST(hyb_query_test, get_int_uniform_superblocks)
+{
+    for (bool bit : {false, true})
+    {
+        sdsl::bit_vector bits(3 * 4096 + 17, bit);
+        sdsl::hyb_vector<> vector(bits);
+        for (uint64_t position = 0; position < bits.size(); ++position)
+            for (uint8_t length = 1; length <= 64 && length <= bits.size() - position; ++length)
+                ASSERT_EQ(bits.get_int(position, length), vector.get_int(position, length));
+    }
+}
