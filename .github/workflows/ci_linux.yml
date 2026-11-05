@@ -22,26 +22,26 @@ defaults:
 jobs:
   build:
     runs-on: ubuntu-latest
-    name: linux ${{ matrix.compiler }} ${{ matrix.cereal == 'ON' && 'cereal' || '' }} ${{ matrix.build_type == 'Release' && 'Release' || '' }}
+    name: linux ${{ matrix.toolchain }} ${{ matrix.cereal == 'ON' && 'cereal' || '' }} ${{ matrix.build_type == 'Release' && 'Release' || '' }}
     if: github.repository_owner == 'xxsds' || github.event_name == 'workflow_dispatch'
     strategy:
       fail-fast: false
       matrix:
-        compiler: ["clang-latest", "clang-second-latest", "clang-third-latest", "gcc-latest", "gcc-second-latest", "gcc-third-latest"]
+        toolchain: ["clang-latest", "clang-second-latest", "clang-third-latest", "gcc-latest", "gcc-second-latest", "gcc-third-latest"]
         cereal: ["OFF", "ON"]
         build_type: ["RelWithDebInfo"]
         include:
-          - compiler: "clang-latest"
+          - toolchain: "clang-latest"
             cereal: "ON"
             build_type: "Release"
-          - compiler: "gcc-latest"
+          - toolchain: "gcc-latest"
             cereal: "ON"
             build_type: "Release"
-          - compiler: "intel"
+          - toolchain: "intel"
             cereal: "ON"
             build_type: "Release"
     container:
-      image: ghcr.io/seqan/${{ matrix.compiler }}
+      image: ghcr.io/seqan/${{ matrix.toolchain }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7

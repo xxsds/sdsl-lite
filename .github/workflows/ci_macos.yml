@@ -22,12 +22,12 @@ defaults:
 jobs:
   build:
     runs-on: macos-latest
-    name: macos ${{ matrix.compiler }} ${{ matrix.cereal == 'ON' && 'cereal' || '' }}
+    name: macos ${{ matrix.toolchain }} ${{ matrix.cereal == 'ON' && 'cereal' || '' }}
     if: github.repository_owner == 'xxsds' || github.event_name == 'workflow_dispatch'
     strategy:
       fail-fast: false
       matrix:
-        compiler: ["clang-latest", "gcc-latest"]
+        toolchain: ["clang-latest", "gcc-latest"]
         cereal: ["OFF", "ON"]
     steps:
       - name: Checkout
@@ -38,7 +38,7 @@ jobs:
       - name: Setup toolchain
         uses: seqan/actions/setup-toolchain@main
         with:
-          compiler: ${{ matrix.compiler }}
+          compiler: ${{ matrix.toolchain }}
           ccache_size: 150M
 
       - name: Configure tests

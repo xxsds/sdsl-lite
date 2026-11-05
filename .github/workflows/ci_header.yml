@@ -22,15 +22,15 @@ defaults:
 jobs:
   build:
     runs-on: ubuntu-latest
-    name: header ${{ matrix.compiler }} ${{ matrix.type }}
+    name: header ${{ matrix.toolchain }} ${{ matrix.type }}
     if: github.repository_owner == 'xxsds' || github.event_name == 'workflow_dispatch'
     strategy:
       fail-fast: false
       matrix:
-        compiler: ["clang-latest", "clang-third-latest", "gcc-latest", "gcc-third-latest"]
+        toolchain: ["clang-latest", "clang-third-latest", "gcc-latest", "gcc-third-latest"]
         type: ["Release", "Debug"]
     container:
-      image: ghcr.io/seqan/${{ matrix.compiler }}
+      image: ghcr.io/seqan/${{ matrix.toolchain }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
