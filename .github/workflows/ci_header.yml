@@ -22,15 +22,14 @@ defaults:
 jobs:
   build:
     runs-on: ubuntu-latest
-    name: ${{ matrix.compiler }} ${{ matrix.type }}
+    name: header ${{ matrix.toolchain }}
     if: github.repository_owner == 'xxsds' || github.event_name == 'workflow_dispatch'
     strategy:
       fail-fast: false
       matrix:
-        compiler: ["clang-latest", "clang-third-latest", "gcc-latest", "gcc-third-latest"]
-        type: ["Release", "Debug"]
+        toolchain: ["clang-latest", "clang-third-latest", "gcc-latest", "gcc-third-latest"]
     container:
-      image: ghcr.io/seqan/${{ matrix.compiler }}
+      image: ghcr.io/seqan/${{ matrix.toolchain }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -39,17 +38,19 @@ jobs:
 
       - name: Setup cache
         uses: seqan/actions/setup-actions-cache@main
+        with:
+          ccache_size: 150M
 
       - name: Configure tests
         run: |
           mkdir ci_build && cd ci_build
-          cmake .. -DCMAKE_BUILD_TYPE=Release \
+          cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+                   -DCMAKE_CXX_FLAGS_RELWITHDEBINFO="-O2 -g" \
                    -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
                    -DCMAKE_C_COMPILER_LAUNCHER=ccache \
-                   -DCMAKE_CXX_FLAGS="-pedantic -Wall -Wextra -Werror ${{ matrix.cxx_flags }}" \
+                   -DCMAKE_CXX_FLAGS="-pedantic -Wall -Wextra -Werror" \
                    -DCMAKE_CXX_STANDARD=20 \
-                   -DSDSL_HEADER_TEST=ON \
-                   -DSDSL_CEREAL=${{ matrix.cereal }}
+                   -DSDSL_HEADER_TEST=ON
           make gtest_build
 
       - name: Build tests

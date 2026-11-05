@@ -22,13 +22,13 @@ defaults:
 jobs:
   build:
     runs-on: macos-latest
-    name: ${{ matrix.compiler }} ${{ matrix.cereal == '1' && 'cereal' || '' }}
+    name: macos ${{ matrix.toolchain }} ${{ matrix.cereal == 'ON' && 'cereal' || '' }}
     if: github.repository_owner == 'xxsds' || github.event_name == 'workflow_dispatch'
     strategy:
       fail-fast: false
       matrix:
-        compiler: ["clang-latest", "clang-second-latest", "clang-third-latest", "gcc-latest", "gcc-second-latest", "gcc-third-latest"]
-        cereal: ["0", "1"]
+        toolchain: ["clang-latest", "gcc-latest"]
+        cereal: ["OFF", "ON"]
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -38,12 +38,14 @@ jobs:
       - name: Setup toolchain
         uses: seqan/actions/setup-toolchain@main
         with:
-          compiler: ${{ matrix.compiler }}
+          compiler: ${{ matrix.toolchain }}
+          ccache_size: 150M
 
       - name: Configure tests
         run: |
           mkdir ci_build && cd ci_build
-          cmake .. -DCMAKE_BUILD_TYPE=Release \
+          cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+                   -DCMAKE_CXX_FLAGS_RELWITHDEBINFO="-O2 -g" \
                    -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
                    -DCMAKE_C_COMPILER_LAUNCHER=ccache \
                    -DCMAKE_CXX_FLAGS="-pedantic -Wall -Wextra -Werror" \
