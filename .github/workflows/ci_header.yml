@@ -22,7 +22,7 @@ defaults:
 jobs:
   build:
     runs-on: ubuntu-latest
-    name: ${{ matrix.compiler }} ${{ matrix.type }}
+    name: header ${{ matrix.compiler }} ${{ matrix.type }}
     if: github.repository_owner == 'xxsds' || github.event_name == 'workflow_dispatch'
     strategy:
       fail-fast: false

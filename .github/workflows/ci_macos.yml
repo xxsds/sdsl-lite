@@ -22,7 +22,7 @@ defaults:
 jobs:
   build:
     runs-on: macos-latest
-    name: ${{ matrix.compiler }} ${{ matrix.cereal == 'ON' && 'cereal' || '' }}
+    name: macos ${{ matrix.compiler }} ${{ matrix.cereal == 'ON' && 'cereal' || '' }}
     if: github.repository_owner == 'xxsds' || github.event_name == 'workflow_dispatch'
     strategy:
       fail-fast: false

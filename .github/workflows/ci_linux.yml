@@ -22,7 +22,7 @@ defaults:
 jobs:
   build:
     runs-on: ubuntu-latest
-    name: ${{ matrix.compiler }} ${{ matrix.cereal == 'ON' && 'cereal' || '' }} ${{ matrix.build_type == 'Release' && 'Release' || '' }}
+    name: linux ${{ matrix.compiler }} ${{ matrix.cereal == 'ON' && 'cereal' || '' }} ${{ matrix.build_type == 'Release' && 'Release' || '' }}
     if: github.repository_owner == 'xxsds' || github.event_name == 'workflow_dispatch'
     strategy:
       fail-fast: false
