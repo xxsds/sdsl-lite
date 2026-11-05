@@ -1023,11 +1023,11 @@ inline void construct_lcp_bwt_based(cache_config & config)
 
     // Calculate how many bit are for each lcp value available, to limit the memory usage to 20n bit = 2,5n byte, use at
     // moste 8 bit
-    size_type bb = (n * 20 - size_in_bytes(wt_bwt) * 8 * 1.25 - 5 * n)
-                 / n; // 20n - size of wavelet tree * 1.25 for rank support - 5n for bit arrays - n for index_done array
-    if (n * 20 < size_in_bytes(wt_bwt) * 8 * 1.25 + 5 * n)
+    size_type bb = 6;
+    if (n * 20 >= size_in_bytes(wt_bwt) * 8 * 1.25 + 5 * n)
     {
-        bb = 6;
+        // 20n - size of wavelet tree * 1.25 for rank support - 5n for bit arrays - n for index_done array
+        bb = (n * 20 - size_in_bytes(wt_bwt) * 8 * 1.25 - 5 * n) / n;
     }
     bb = std::min(bb, (size_type)8);
 
