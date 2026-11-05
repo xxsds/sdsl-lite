@@ -27,16 +27,17 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        compiler: ["clang-latest", "clang-second-latest", "clang-third-latest", "gcc-latest", "gcc-second-latest", "gcc-third-latest", "intel"]
+        compiler: ["clang-latest", "clang-second-latest", "clang-third-latest", "gcc-latest", "gcc-second-latest", "gcc-third-latest"]
         cereal: ["OFF", "ON"]
         build_type: ["RelWithDebInfo"]
         include:
-          - compiler: "intel"
-            cxx_flags: "-fp-model=strict -Wno-overriding-option"
           - compiler: "clang-latest"
             cereal: "ON"
             build_type: "Release"
           - compiler: "gcc-latest"
+            cereal: "ON"
+            build_type: "Release"
+          - compiler: "intel"
             cereal: "ON"
             build_type: "Release"
     container:
@@ -57,7 +58,7 @@ jobs:
                    -DCMAKE_CXX_FLAGS_RELWITHDEBINFO="-O2 -g" \
                    -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
                    -DCMAKE_C_COMPILER_LAUNCHER=ccache \
-                   -DCMAKE_CXX_FLAGS="-pedantic -Wall -Wextra -Werror ${{ matrix.cxx_flags }}" \
+                   -DCMAKE_CXX_FLAGS="-pedantic -Wall -Wextra -Werror" \
                    -DCMAKE_CXX_STANDARD=20 \
                    -DSDSL_CEREAL=${{ matrix.cereal }}
           make gtest_build
