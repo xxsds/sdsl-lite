@@ -27,6 +27,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        compiler: ["clang-latest", "gcc-latest"]
         cereal: ["OFF", "ON"]
         include:
           - compiler: clang-latest
