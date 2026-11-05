@@ -58,4 +58,28 @@ TYPED_TEST(hyb_vector_test, access_rank_select)
     }
     ASSERT_EQ(ones, rank_1(bv.size()));
 }
+
+// A rate of 15 does not divide 2^23 blocks, so superblocks must not be assumed to end at bit 2^31.
+TEST(hyb_vector_hblock_test, boundary)
+{
+    using hyb_type = sdsl::hyb_vector<15>;
+    size_t const begin = (size_t{1} << 31) - 16 * 256;
+
+    // The bits before begin stay zero, which only takes a moment to encode.
+    sdsl::bit_vector bv((size_t{1} << 31) + 16 * 256, 0);
+    std::mt19937_64 rng{};
+    for (size_t i = begin; i < bv.size(); ++i)
+        bv[i] = rng() & 1;
+
+    hyb_type const hyb(bv);
+    hyb_type::rank_1_type const rank_1(&hyb);
+
+    size_t ones = 0;
+    for (size_t i = begin; i < bv.size(); ++i)
+    {
+        ASSERT_EQ(bv[i], hyb[i]) << "i=" << i;
+        ASSERT_EQ(ones, rank_1(i)) << "i=" << i;
+        ones += bv[i];
+    }
+}
 } // namespace

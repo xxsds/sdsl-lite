@@ -724,7 +724,7 @@ uint32_t const hyb_vector<k_sblock_rate>::k_sblock_header_size = 8 + 2 * k_sbloc
 template <uint32_t k_sblock_rate>
 uint32_t const hyb_vector<k_sblock_rate>::k_sblock_size = 256 * k_sblock_rate;
 template <uint32_t k_sblock_rate>
-uint32_t const hyb_vector<k_sblock_rate>::k_hblock_rate = (1U << 31) / 256;
+uint32_t const hyb_vector<k_sblock_rate>::k_hblock_rate = (1U << 31) / 256 / k_sblock_rate * k_sblock_rate;
 
 template <uint8_t t_bp>
 struct rank_result
