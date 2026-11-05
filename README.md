@@ -31,4 +31,4 @@ GoogleTest and cereal are provided as submodules within this repository.
 * required: [GoogleTest 1.17.0](https://github.com/google/googletest/releases/tag/v1.17.0)
 * optional: [cereal 1.3.2](https://github.com/USCiLab/cereal/releases/tag/v1.3.2)
 
-cereal can be activated by passing `-DSDSL_CEREAL=1` to CMake.
+cereal can be activated by passing `-DSDSL_CEREAL=ON` to CMake.

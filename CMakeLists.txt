@@ -33,6 +33,7 @@ option (SDSL_BUILD_TUTORIAL "Set ON to build tutorials" ${PROJECT_IS_TOP_LEVEL})
 option (SDSL_BUILD_EXAMPLES "Set ON to build examples" ${PROJECT_IS_TOP_LEVEL})
 option (SDSL_GENERATE_DOC "Set ON to genrate doxygen API reference in build/doc directory" OFF)
 option (SDSL_USE_LIBCPP "Use the LLVM libc++ instead of GCC libstdc++ on OS X" ON)
+option (SDSL_CEREAL "Set ON to enable cereal support in tests" OFF)
 
 ## (6) Compiler requirements and compile options
 if (NOT DEFINED CMAKE_CXX_STANDARD)

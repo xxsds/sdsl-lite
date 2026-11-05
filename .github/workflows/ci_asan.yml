@@ -22,7 +22,7 @@ defaults:
 jobs:
   build:
     runs-on: ubuntu-latest
-    name: ${{ matrix.compiler }} ${{ matrix.cereal == '1' && 'cereal' || '' }}
+    name: ${{ matrix.compiler }} ${{ matrix.cereal == 'ON' && 'cereal' || '' }}
     if: github.repository_owner == 'xxsds' || github.event_name == 'workflow_dispatch'
     env:
       ASAN_OPTIONS: strict_string_checks=1:detect_stack_use_after_return=1:check_initialization_order=1:strict_init_order=1:detect_leaks=1
@@ -30,7 +30,7 @@ jobs:
       fail-fast: false
       matrix:
         compiler: ["clang-latest", "gcc-latest"]
-        cereal: ["0", "1"]
+        cereal: ["OFF", "ON"]
     container:
       image: ghcr.io/seqan/${{ matrix.compiler }}
     steps:

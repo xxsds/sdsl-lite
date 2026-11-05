@@ -22,13 +22,13 @@ defaults:
 jobs:
   build:
     runs-on: ubuntu-latest
-    name: ${{ matrix.compiler }} ${{ matrix.cereal == '1' && 'cereal' || '' }}
+    name: ${{ matrix.compiler }} ${{ matrix.cereal == 'ON' && 'cereal' || '' }}
     if: github.repository_owner == 'xxsds' || github.event_name == 'workflow_dispatch'
     strategy:
       fail-fast: false
       matrix:
         compiler: ["clang-latest", "clang-second-latest", "clang-third-latest", "gcc-latest", "gcc-second-latest", "gcc-third-latest", "intel"]
-        cereal: ["0", "1"]
+        cereal: ["OFF", "ON"]
         include:
           - compiler: "intel"
             cxx_flags: "-fp-model=strict -Wno-overriding-option"
