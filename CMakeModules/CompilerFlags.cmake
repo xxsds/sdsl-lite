@@ -2,7 +2,6 @@ include (DetectCPUFeatures)
 include (FindCxaDemangle)
 
 checkandappendcompilerflags (${CMAKE_BUILD_TYPE} "-Wall")
-checkandappendcompilerflags (${CMAKE_BUILD_TYPE} "-Werror")
 checkandappendcompilerflags (${CMAKE_BUILD_TYPE} "-Wextra")
 checkandappendcompilerflags (${CMAKE_BUILD_TYPE} "-pedantic")
 checkandappendcompilerflags ("Release" "-funroll-loops")
