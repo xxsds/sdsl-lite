@@ -22,16 +22,23 @@ defaults:
 jobs:
   build:
     runs-on: ubuntu-latest
-    name: ${{ matrix.compiler }} ${{ matrix.cereal == 'ON' && 'cereal' || '' }}
+    name: ${{ matrix.compiler }} ${{ matrix.cereal == 'ON' && 'cereal' || '' }} ${{ matrix.build_type == 'Release' && 'Release' || '' }}
     if: github.repository_owner == 'xxsds' || github.event_name == 'workflow_dispatch'
     strategy:
       fail-fast: false
       matrix:
         compiler: ["clang-latest", "clang-second-latest", "clang-third-latest", "gcc-latest", "gcc-second-latest", "gcc-third-latest", "intel"]
         cereal: ["OFF", "ON"]
+        build_type: ["RelWithDebInfo"]
         include:
           - compiler: "intel"
             cxx_flags: "-fp-model=strict -Wno-overriding-option"
+          - compiler: "clang-latest"
+            cereal: "ON"
+            build_type: "Release"
+          - compiler: "gcc-latest"
+            cereal: "ON"
+            build_type: "Release"
     container:
       image: ghcr.io/seqan/${{ matrix.compiler }}
     steps:
@@ -46,7 +53,7 @@ jobs:
       - name: Configure tests
         run: |
           mkdir ci_build && cd ci_build
-          cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+          cmake .. -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
                    -DCMAKE_CXX_FLAGS_RELWITHDEBINFO="-O2 -g" \
                    -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
                    -DCMAKE_C_COMPILER_LAUNCHER=ccache \
