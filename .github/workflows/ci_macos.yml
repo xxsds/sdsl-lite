@@ -27,7 +27,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        compiler: ["clang-latest", "clang-second-latest", "clang-third-latest", "gcc-latest", "gcc-second-latest", "gcc-third-latest"]
+        compiler: ["clang-latest", "gcc-latest"]
         cereal: ["OFF", "ON"]
     steps:
       - name: Checkout
