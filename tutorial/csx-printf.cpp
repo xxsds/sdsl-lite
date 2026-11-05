@@ -1,6 +1,4 @@
 #include <iostream>
-#include <regex>
-#include <sstream>
 
 #include <sdsl/csa_bitcompressed.hpp>
 #include <sdsl/cst_sct3.hpp>
@@ -31,7 +29,7 @@ FORMAT  : Format string. Default=`"
               << format << "`.\n\
 HEADER  : Header string. Default=`"
               << header << "`.\n\
-SENTINEL: Sentinel character. \n\
+SENTINEL: Sentinel character. Default=`$`.\n\
 \n\
 Each line of the output will be formatted according to the format string.\
 All content, except tokens which start with `%` will be copied. Tokens\
@@ -74,10 +72,7 @@ int main(int argc, char * argv[])
         {
             cst_byte_t cst;
             construct_im(cst, (char const *)line, 1);
-            std::stringstream ss;
-            csXprintf(ss, format, cst, ((argc > 4) ? argv[4][0] : '$'));
-            std::string line(ss.str());
-            std::cout << std::regex_replace(line, std::regex(R"(\$)"), "\\$") << std::endl;
+            csXprintf(std::cout, format, cst, ((argc > 4) ? argv[4][0] : '$'));
         }
         else if ('d' == argv[1][0])
         {
