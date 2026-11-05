@@ -1,0 +1,79 @@
+name: Sanitizer
+
+on:
+  schedule:
+    - cron: "0 4 * * SAT"
+  workflow_dispatch:
+
+concurrency:
+  group: sanitizer-actions
+  cancel-in-progress: true
+
+env:
+  TZ: Europe/Berlin
+  UBSAN_OPTIONS: print_stacktrace=1
+
+defaults:
+  run:
+    shell: bash -Eexuo pipefail {0}
+
+jobs:
+  build:
+    name: ${{ matrix.os }} ${{ matrix.compiler }} ${{ matrix.cereal == 'ON' && 'cereal' || '' }}
+    runs-on: ${{ matrix.os }}
+    if: github.repository_owner == 'xxsds' || github.event_name == 'workflow_dispatch'
+    env:
+      ASAN_OPTIONS: strict_string_checks=1:detect_stack_use_after_return=1:check_initialization_order=1:strict_init_order=1:detect_leaks=${{ contains(matrix.os, 'macos') && '0' || '1' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        cereal: ["OFF", "ON"]
+        include:
+          # UBSan only prints by default. `-fno-sanitize-recover=undefined` would not cover float-divide-by-zero.
+          - os: macos-latest
+            compiler: clang-latest
+            # No implicit-conversion: it reports defined behaviour, which the bit arithmetic in sdsl relies on.
+            cxx_flags: "-fno-omit-frame-pointer -fsanitize=address,undefined,float-divide-by-zero,local-bounds,nullability -fno-sanitize-recover=all -Wno-pass-failed"
+            # Apple's ld from Command Line Tools 26.6 can write an __unwind_info that does not cover the last function;
+            # an exception then terminates with "libunwind: malformed __unwind_info".
+            # Remove once macos-latest ships a fixed ld (Command Line Tools 27.0 works).
+            ldflags: "-fuse-ld=lld"
+
+          - os: ubuntu-latest
+            compiler: gcc-latest
+            image: ghcr.io/seqan/gcc-latest
+            cxx_flags: "-fno-omit-frame-pointer -fsanitize=address,undefined,float-divide-by-zero -fno-sanitize-recover=all"
+    container:
+      image: ${{ matrix.image || '' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          submodules: true
+
+      - name: Setup compiler
+        if: contains(matrix.os, 'macos')
+        uses: seqan/actions/setup-compiler@main
+        with:
+          compiler: ${{ matrix.compiler }}
+
+      - name: Configure tests
+        run: |
+          mkdir ci_build && cd ci_build
+          if [[ -n "${{ matrix.ldflags }}" ]]; then
+            export LDFLAGS="${LDFLAGS:-} ${{ matrix.ldflags }}"
+          fi
+          cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+                   -DCMAKE_CXX_FLAGS="-pedantic -Wall -Wextra -Werror ${{ matrix.cxx_flags }}" \
+                   -DCMAKE_CXX_STANDARD=23 \
+                   -DSDSL_CEREAL=${{ matrix.cereal }}
+          make gtest_build
+
+      - name: Build tests
+        working-directory: ci_build
+        run: make -k sdsl_test_targets sdsl_examples sdsl_tutorials
+
+      - name: Run tests
+        working-directory: ci_build
+        run: ctest . -j --output-on-failure --no-tests=error -E 'faust|moby' -R '\-im'
