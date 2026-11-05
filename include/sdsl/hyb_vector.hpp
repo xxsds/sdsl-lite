@@ -107,6 +107,14 @@ private:
         return word;
     }
 
+    //! Reads a 32-bit word from m_sblock_header, whose entries are not 4-byte aligned for an odd k_sblock_rate.
+    static uint32_t read_header_word(uint8_t const * ptr)
+    {
+        uint32_t word;
+        std::memcpy(&word, ptr, sizeof(word));
+        return word;
+    }
+
 public:
     //! Default constructor
     hyb_vector() = default;
@@ -234,15 +242,18 @@ public:
             // Update sblock header.
             if (!(block_id % k_sblock_rate))
             {
-                uint32_t * ptr = (uint32_t *)(((uint8_t *)m_sblock_header.data()) + k_sblock_header_size * sblock_id);
-                *ptr++ = trunk_ptr - m_hblock_header[2 * hblock_id];
-                *ptr = tot_rank - m_hblock_header[2 * hblock_id + 1];
+                uint8_t * ptr = ((uint8_t *)m_sblock_header.data()) + k_sblock_header_size * sblock_id;
+                uint32_t const sblock_trunk_ptr = trunk_ptr - m_hblock_header[2 * hblock_id];
+                uint32_t const sblock_rank = tot_rank - m_hblock_header[2 * hblock_id + 1];
+                std::memcpy(ptr, &sblock_trunk_ptr, sizeof(sblock_trunk_ptr));
+                std::memcpy(ptr + 4, &sblock_rank, sizeof(sblock_rank));
 
                 // If the sblock is uniform, flip the bit.
                 if (sblock_id && (!sblock_ones || sblock_ones == k_sblock_size))
                 {
-                    ptr = (uint32_t *)(((uint8_t *)m_sblock_header.data()) + k_sblock_header_size * (sblock_id - 1));
-                    *ptr |= 0x80000000;
+                    ptr -= k_sblock_header_size;
+                    uint32_t const flagged_trunk_ptr = read_header_word(ptr) | 0x80000000;
+                    std::memcpy(ptr, &flagged_trunk_ptr, sizeof(flagged_trunk_ptr));
                 }
 
                 // Reset the number of ones in sblock.
@@ -446,14 +457,14 @@ private:
 
         // Read superblock header.
         uint8_t const * header_ptr8 = ((uint8_t const *)m_sblock_header.data()) + (sblock_id * k_sblock_header_size);
-        uint32_t * header_ptr32 = (uint32_t *)header_ptr8;
-        size_type trunk_ptr = trunk_base + ((*header_ptr32) & 0x3fffffff);
+        uint32_t const sblock_trunk_ptr = read_header_word(header_ptr8);
+        size_type trunk_ptr = trunk_base + (sblock_trunk_ptr & 0x3fffffff);
         header_ptr8 += 8;
 
         uint16_t * header_ptr16 = (uint16_t *)header_ptr8;
 
         // Uniform superblock optimization.
-        if ((*header_ptr32) & 0x80000000)
+        if (sblock_trunk_ptr & 0x80000000)
             return (value_type)((*(header_ptr8 + 1)) & 0x01);
 
         // Fast forward through preceding blocks in the superblock.
@@ -788,15 +799,15 @@ public:
         // Read superblock header.
         uint8_t const * header_ptr8 =
             ((uint8_t const *)(m_v->m_sblock_header.data())) + (sblock_id * bit_vector_type::k_sblock_header_size);
-        uint32_t * header_ptr32 = (uint32_t *)header_ptr8;
-        size_type trunk_ptr = trunk_base + ((*header_ptr32) & 0x3fffffff);
-        size_type sblock_rank = *(header_ptr32 + 1);
+        uint32_t const sblock_trunk_ptr = bit_vector_type::read_header_word(header_ptr8);
+        size_type trunk_ptr = trunk_base + (sblock_trunk_ptr & 0x3fffffff);
+        size_type sblock_rank = bit_vector_type::read_header_word(header_ptr8 + 4);
         header_ptr8 += 8;
 
         uint16_t * header_ptr16 = (uint16_t *)header_ptr8;
 
         // Uniform superblock optimization.
-        if ((*header_ptr32) & 0x80000000)
+        if (sblock_trunk_ptr & 0x80000000)
         {
             return rank_result<t_b>::adapt(hblock_rank + sblock_rank
                                                + ((*(header_ptr8 + 1)) & 0x01)
