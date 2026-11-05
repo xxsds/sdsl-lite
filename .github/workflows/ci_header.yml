@@ -22,13 +22,12 @@ defaults:
 jobs:
   build:
     runs-on: ubuntu-latest
-    name: header ${{ matrix.toolchain }} ${{ matrix.type }}
+    name: header ${{ matrix.toolchain }}
     if: github.repository_owner == 'xxsds' || github.event_name == 'workflow_dispatch'
     strategy:
       fail-fast: false
       matrix:
         toolchain: ["clang-latest", "clang-third-latest", "gcc-latest", "gcc-third-latest"]
-        type: ["Release", "Debug"]
     container:
       image: ghcr.io/seqan/${{ matrix.toolchain }}
     steps:
@@ -45,7 +44,8 @@ jobs:
       - name: Configure tests
         run: |
           mkdir ci_build && cd ci_build
-          cmake .. -DCMAKE_BUILD_TYPE=${{ matrix.type }} \
+          cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+                   -DCMAKE_CXX_FLAGS_RELWITHDEBINFO="-O2 -g" \
                    -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
                    -DCMAKE_C_COMPILER_LAUNCHER=ccache \
                    -DCMAKE_CXX_FLAGS="-pedantic -Wall -Wextra -Werror" \
