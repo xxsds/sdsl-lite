@@ -37,6 +37,7 @@
 #include <algorithm>
 #include <assert.h>
 #include <cstdlib>
+#include <cstring>
 #include <iostream>
 #include <stdint.h>
 #include <stdio.h>
@@ -97,6 +98,14 @@ private:
     int_vector<8> m_trunk;          // body of encoded blocks
     int_vector<8> m_sblock_header;  // sblock headers
     int_vector<64> m_hblock_header; // hblock headers
+
+    //! Reads a 64-bit word from m_trunk, where encoded blocks start at arbitrary byte offsets.
+    static uint64_t read_trunk_word(uint8_t const * ptr)
+    {
+        uint64_t word;
+        std::memcpy(&word, ptr, sizeof(word));
+        return word;
+    }
 
 public:
     //! Default constructor
@@ -308,11 +317,8 @@ public:
                     // Copy original 256 bits from bv into trunk.
                     if (block_end <= m_size)
                     {
-                        for (uint8_t i = 0; i < 4; ++i)
-                        {
-                            *((uint64_t *)(((uint8_t *)m_trunk.data()) + trunk_ptr)) = *(bv_ptr + i);
-                            trunk_ptr += 8;
-                        }
+                        std::memcpy(((uint8_t *)m_trunk.data()) + trunk_ptr, bv_ptr, k_block_bytes);
+                        trunk_ptr += k_block_bytes;
                     }
                     else
                     {
@@ -325,7 +331,7 @@ public:
                                 if (bit)
                                     w |= ((uint64_t)1 << (j - i));
                             }
-                            *((uint64_t *)(((uint8_t *)m_trunk.data()) + trunk_ptr)) = w;
+                            std::memcpy(((uint8_t *)m_trunk.data()) + trunk_ptr, &w, sizeof(w));
                             trunk_ptr += 8;
                         }
                     }
@@ -591,16 +597,15 @@ private:
         else
         {
             // plain encoding.
-            uint64_t * trunk_ptr64 = (uint64_t *)(((uint8_t *)m_trunk.data()) + trunk_ptr);
             uint32_t bit;
             for (bit = 0; bit + 64 <= local_i; bit += 64)
-                trunk_ptr64++;
+                trunk_p += 8;
 
             uint8_t access_i = 0;
             if (bit != local_i)
-                access_i = (((*trunk_ptr64) >> (local_i - bit - 1)) & 1);
+                access_i = ((read_trunk_word(trunk_p) >> (local_i - bit - 1)) & 1);
             else
-                access_i = (((*(trunk_ptr64 - 1)) >> 63) & 1);
+                access_i = ((read_trunk_word(trunk_p - 8) >> 63) & 1);
             return access_i;
         }
     }
@@ -917,12 +922,12 @@ public:
         else
         {
             // plain encoding.
-            uint64_t * trunk_ptr64 = (uint64_t *)(((uint8_t *)m_v->m_trunk.data()) + trunk_ptr);
             uint32_t bit;
-            for (bit = 0; bit + 64 <= local_i; bit += 64)
-                block_rank += bits::cnt(*trunk_ptr64++);
+            for (bit = 0; bit + 64 <= local_i; bit += 64, trunk_p += 8)
+                block_rank += bits::cnt(bit_vector_type::read_trunk_word(trunk_p));
             if (bit != local_i)
-                block_rank += bits::cnt((*trunk_ptr64) & (((uint64_t)1 << (local_i - bit)) - 1));
+                block_rank +=
+                    bits::cnt(bit_vector_type::read_trunk_word(trunk_p) & (((uint64_t)1 << (local_i - bit)) - 1));
 
             return rank_result<t_b>::adapt(hblock_rank + sblock_rank + block_rank, i);
         }
