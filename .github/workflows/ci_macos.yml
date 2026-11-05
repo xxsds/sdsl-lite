@@ -39,6 +39,7 @@ jobs:
         uses: seqan/actions/setup-toolchain@main
         with:
           compiler: ${{ matrix.compiler }}
+          ccache_size: 150M
 
       - name: Configure tests
         run: |
