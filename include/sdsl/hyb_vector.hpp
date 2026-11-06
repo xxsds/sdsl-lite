@@ -831,7 +831,7 @@ public:
         uint32_t zeros = bit_vector_type::k_block_size - ones;
 
         // Number of runs <= 2.
-        uint32_t special_bit = (((*header_ptr16) & 0x200) >> 9);
+        size_type special_bit = (((*header_ptr16) & 0x200) >> 9);
         if (!encoding_size)
         {
             uint32_t first_run_length = special_bit * ones + (1 - special_bit) * zeros;

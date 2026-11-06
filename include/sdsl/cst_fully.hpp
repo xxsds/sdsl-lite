@@ -1010,7 +1010,7 @@ cst_fully<t_csa, t_delta, t_s_support, t_b, t_depth, t_sample_leaves>::cst_fully
     else
     {
         size_type const n = cst.size();
-        m_delta = (bits::hi(n - 1) + 1) * (bits::hi(bits::hi(n - 1)) + 1);
+        m_delta = (size_type)(bits::hi(n - 1) + 1) * (bits::hi(bits::hi(n - 1)) + 1);
         if (m_delta < 2)
         {
             m_delta = 2;

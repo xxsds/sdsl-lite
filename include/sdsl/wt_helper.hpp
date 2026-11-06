@@ -279,10 +279,10 @@ struct _byte_tree
         // initialize m_c_to_leaf
         for (uint32_t i = 0; i < fixed_sigma; ++i)
             m_c_to_leaf[i] = undef; // if c is not in the alphabet m_c_to_leaf[c] = undef
-        for (node_type v = 0; v < m_nodes.size(); ++v)
+        for (size_t v = 0; v < m_nodes.size(); ++v)
         {
-            if (m_nodes[v].child[0] == undef)                     // if node is a leaf
-                m_c_to_leaf[(uint8_t)m_nodes[v].bv_pos_rank] = v; // calculate value
+            if (m_nodes[v].child[0] == undef)                                // if node is a leaf
+                m_c_to_leaf[(uint8_t)m_nodes[v].bv_pos_rank] = (node_type)v; // calculate value
         }
         // initialize path information
         // Note: In the case of a bfs search order,
