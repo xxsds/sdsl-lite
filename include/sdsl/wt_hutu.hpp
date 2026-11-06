@@ -444,7 +444,7 @@ struct _hutu_shape
             {
                 if (r->mpql)
                     r->mpql->myhpq->delete_element(r->ql);
-                l->ql = nullptr;
+                r->ql = nullptr;
 
                 if (r->mpqr)
                     r->mpqr->myhpq->delete_element(r->qr);
@@ -638,7 +638,7 @@ struct _hutu_shape
         assign_level(A[0], 0);
 
         // reconstruction phase using the stack algorithm
-        std::vector<ht_node *> stack(sigma, nullptr);
+        std::vector<ht_node> stack(sigma);
 
         for (size_type i = 0; i < sigma; i++)
         {
@@ -650,35 +650,27 @@ struct _hutu_shape
         uint64_t qpointer = 0; // use the Array T as a stack
         while (qpointer < sigma or spointer >= 1LL)
         {
-            if (spointer >= 1LL and (stack[spointer]->level == stack[spointer - 1]->level))
+            if (spointer >= 1LL and (stack[spointer].level == stack[spointer - 1].level))
             {
-                ht_node * n_node = new ht_node();
-                n_node->t = false;
-                n_node->left = stack[spointer - 1];
-                n_node->right = stack[spointer];
-                n_node->level = stack[spointer]->level - 1;
-                n_node->w = stack[spointer]->w + stack[spointer - 1]->w;
-                n_node->c = '|';
+                ht_node n_node;
+                n_node.t = false;
+                n_node.level = stack[spointer].level - 1;
+                n_node.w = stack[spointer].w + stack[spointer - 1].w;
+                n_node.c = '|';
 
-                n_node->pos = temp_nodes.size();
-                temp_nodes[stack[spointer - 1]->pos].parent = temp_nodes.size();
-                temp_nodes[stack[spointer]->pos].parent = temp_nodes.size();
+                n_node.pos = temp_nodes.size();
+                temp_nodes[stack[spointer - 1].pos].parent = temp_nodes.size();
+                temp_nodes[stack[spointer].pos].parent = temp_nodes.size();
                 temp_nodes.emplace_back(
-                    pc_node(n_node->w, 0, pc_node::undef, stack[spointer - 1]->pos, stack[spointer]->pos));
-
-                if (!stack[spointer - 1]->t)
-                    delete stack[spointer - 1];
-                if (!stack[spointer]->t)
-                    delete stack[spointer];
+                    pc_node(n_node.w, 0, pc_node::undef, stack[spointer - 1].pos, stack[spointer].pos));
 
                 stack[--spointer] = n_node;
             }
             else
             {
-                stack[++spointer] = &T[qpointer++];
+                stack[++spointer] = T[qpointer++];
             }
         }
-        delete stack[0];
     }
 
     static void assign_level(ht_node * n, int64_t lvl)

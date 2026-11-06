@@ -937,7 +937,7 @@ public:
         uint64_t path_len = path >> 56;
         // reverse the path till we fix the ordering
         path = bits::rev(path);
-        path = path >> (64 - path_len); // remove the length
+        path = path_len ? path >> (64 - path_len) : 0; // remove the length
         return {path_len, path};
     }
 

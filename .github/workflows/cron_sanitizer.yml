@@ -1,18 +1,17 @@
-name: ASAN
+name: Sanitizer
 
 on:
-  push:
-    branches:
-      - 'master'
-  pull_request:
+  schedule:
+    - cron: "0 4 * * SAT"
   workflow_dispatch:
 
 concurrency:
-  group: asan-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: ${{ github.event_name != 'push' }}
+  group: sanitizer-actions
+  cancel-in-progress: true
 
 env:
   TZ: Europe/Berlin
+  UBSAN_OPTIONS: print_stacktrace=1
 
 defaults:
   run:
@@ -20,8 +19,8 @@ defaults:
 
 jobs:
   build:
+    name: ${{ matrix.compiler }} ${{ matrix.cereal == 'ON' && 'cereal' || '' }}
     runs-on: ubuntu-latest
-    name: ${{ matrix.compiler }} ${{ matrix.cereal == '1' && 'cereal' || '' }}
     if: github.repository_owner == 'xxsds' || github.event_name == 'workflow_dispatch'
     env:
       ASAN_OPTIONS: strict_string_checks=1:detect_stack_use_after_return=1:check_initialization_order=1:strict_init_order=1:detect_leaks=1
@@ -29,7 +28,13 @@ jobs:
       fail-fast: false
       matrix:
         compiler: ["clang-latest", "gcc-latest"]
-        cereal: ["0", "1"]
+        cereal: ["OFF", "ON"]
+        include:
+          - compiler: clang-latest
+            cxx_flags: "-fno-omit-frame-pointer -fsanitize=address,undefined,float-divide-by-zero,local-bounds,nullability -fno-sanitize-recover=all"
+
+          - compiler: gcc-latest
+            cxx_flags: "-fno-omit-frame-pointer -fsanitize=address,undefined,float-divide-by-zero -fno-sanitize-recover=all"
     container:
       image: ghcr.io/seqan/${{ matrix.compiler }}
     steps:
@@ -38,26 +43,19 @@ jobs:
         with:
           submodules: true
 
-      - name: Setup cache
-        uses: seqan/actions/setup-actions-cache@main
-
       - name: Configure tests
         run: |
           mkdir ci_build && cd ci_build
-          cmake .. -DCMAKE_BUILD_TYPE=Debug \
-                   -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
-                   -DCMAKE_C_COMPILER_LAUNCHER=ccache \
-                   -DCMAKE_CXX_FLAGS="-pedantic -Wall -Wextra -Werror -fsanitize=address" \
+          cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+                   -DCMAKE_CXX_FLAGS_RELWITHDEBINFO="-O2 -g" \
+                   -DCMAKE_CXX_FLAGS="-pedantic -Wall -Wextra -Werror ${{ matrix.cxx_flags }}" \
                    -DCMAKE_CXX_STANDARD=23 \
                    -DSDSL_CEREAL=${{ matrix.cereal }}
           make gtest_build
 
       - name: Build tests
         working-directory: ci_build
-        run: |
-          ccache -z
-          make -k sdsl_test_targets sdsl_examples sdsl_tutorials
-          ccache -svvx
+        run: make -k sdsl_test_targets sdsl_examples sdsl_tutorials
 
       - name: Run tests
         working-directory: ci_build

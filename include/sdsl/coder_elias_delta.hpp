@@ -433,7 +433,8 @@ start_decoding:
                 //					std::cerr<<"len_1="<<len_1<<" buffered = "<<buffered<<std::endl;
                 //				}
                 //				assert(len_1 <= buffered);
-                value += (w & bits::lo_set[len_1]) + (len_1 < 64) * (1ULL << (len_1));
+                // lo_set[k] + 1 is 2^k and wraps to 0 for k = 64, avoiding an undefined 64-bit shift.
+                value += (w & bits::lo_set[len_1]) + (bits::lo_set[len_1] + 1);
                 buffered -= len_1;
                 if (len_1 < 64)
                 {
@@ -584,7 +585,7 @@ start_decoding:
             i++;
             uint16_t len_1_len = bits::read_unary_and_move(d, offset); // read length of length of x
             uint16_t len_1 = bits::read_int_and_move(d, offset, len_1_len) + (1ULL << len_1_len) - 1;
-            value += bits::read_int_and_move(d, offset, len_1) + (len_1 < 64) * (1ULL << (len_1));
+            value += bits::read_int_and_move(d, offset, len_1) + (bits::lo_set[len_1] + 1);
             //			std::cout<<"decode single ("<<len_1_len<<","<<len_1<<","<<value<<")"<<std::endl;
         }
     }
@@ -636,7 +637,7 @@ inline uint64_t elias_delta<T>::decode(uint64_t const * d, size_type const start
         else
         {
             len = bits::read_int_and_move(d, offset, len_1_len) + (1ULL << len_1_len);
-            value += bits::read_int_and_move(d, offset, len - 1) + (len - 1 < 64) * (1ULL << (len - 1));
+            value += bits::read_int_and_move(d, offset, len - 1) + (bits::lo_set[len - 1] + 1);
         }
         if (t_inc)
             *(it++) = value;

@@ -5,6 +5,7 @@ on:
     branches:
       - 'master'
   pull_request:
+  merge_group:
   workflow_dispatch:
 
 concurrency:
@@ -21,18 +22,26 @@ defaults:
 jobs:
   build:
     runs-on: ubuntu-latest
-    name: ${{ matrix.compiler }} ${{ matrix.cereal == '1' && 'cereal' || '' }}
+    name: linux ${{ matrix.toolchain }} ${{ matrix.cereal == 'ON' && 'cereal' || '' }} ${{ matrix.build_type == 'Release' && 'Release' || '' }}
     if: github.repository_owner == 'xxsds' || github.event_name == 'workflow_dispatch'
     strategy:
       fail-fast: false
       matrix:
-        compiler: ["clang-latest", "clang-second-latest", "clang-third-latest", "gcc-latest", "gcc-second-latest", "gcc-third-latest", "intel"]
-        cereal: ["0", "1"]
+        toolchain: ["clang-latest", "clang-second-latest", "clang-third-latest", "gcc-latest", "gcc-second-latest", "gcc-third-latest"]
+        cereal: ["OFF", "ON"]
+        build_type: ["RelWithDebInfo"]
         include:
-          - compiler: "intel"
-            cxx_flags: "-fp-model=strict -Wno-overriding-option"
+          - toolchain: "clang-latest"
+            cereal: "ON"
+            build_type: "Release"
+          - toolchain: "gcc-latest"
+            cereal: "ON"
+            build_type: "Release"
+          - toolchain: "intel"
+            cereal: "ON"
+            build_type: "Release"
     container:
-      image: ghcr.io/seqan/${{ matrix.compiler }}
+      image: ghcr.io/seqan/${{ matrix.toolchain }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -41,14 +50,19 @@ jobs:
 
       - name: Setup cache
         uses: seqan/actions/setup-actions-cache@main
+        with:
+          ccache_size: 150M
 
       - name: Configure tests
         run: |
           mkdir ci_build && cd ci_build
-          cmake .. -DCMAKE_BUILD_TYPE=Release \
+          cmake .. -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+                   -DCMAKE_CXX_FLAGS_RELWITHDEBINFO="-O2 -g" \
                    -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
                    -DCMAKE_C_COMPILER_LAUNCHER=ccache \
-                   -DCMAKE_CXX_FLAGS="-pedantic -Wall -Wextra -Werror ${{ matrix.cxx_flags }}" \
+                   -DCMAKE_CXX_LINKER_LAUNCHER=ccache \
+                   -DCMAKE_C_LINKER_LAUNCHER=ccache \
+                   -DCMAKE_CXX_FLAGS="-pedantic -Wall -Wextra -Werror" \
                    -DCMAKE_CXX_STANDARD=20 \
                    -DSDSL_CEREAL=${{ matrix.cereal }}
           make gtest_build

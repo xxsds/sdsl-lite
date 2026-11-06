@@ -119,7 +119,7 @@ private:
         size_type ones_before_end = m_tree_rank(offset + node_size) - ones_before_o;
 
         // goto left child
-        if ((j - i) - (ones_before_j - ones_before_i) > 0)
+        if ((j - i) != (ones_before_j - ones_before_i))
         {
             size_type new_offset = offset + m_size;
             size_type new_node_size = node_size - ones_before_end;
