@@ -405,7 +405,7 @@ private:
         comp_char_type cc = char2comp[c];
         if (cc == 0 and c != 0) // character is not in the text => return 0
             return size();
-        assert(cc != 255);
+        assert(cc < sigma);
         if (C[cc] + i - 1 < C[cc + 1])
         {
             return m_psi[C[cc] + i - 1];

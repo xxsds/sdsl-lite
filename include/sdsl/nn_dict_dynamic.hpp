@@ -178,7 +178,7 @@ public:
 
         // Go up until a 1-bit is found
         node = m_tree[v_node_position - m_offset[dep]] >> off;
-        while (!node or off == 64)
+        while (!node)
         {
             // Not in the root
             if (v_node_position)
@@ -187,7 +187,8 @@ public:
                 --v_node_position;
                 off = (v_node_position & 0x3F) + 1;
                 v_node_position >>= 6;
-                node = m_tree[v_node_position - m_offset[dep]] >> off;
+                // off == 64: Came from the last child, there is no sibling to the right.
+                node = off < 64 ? m_tree[v_node_position - m_offset[dep]] >> off : 0;
             }
             else
             {
@@ -228,7 +229,7 @@ public:
 
         // Go up until a 1-bit is found
         node = m_tree[v_node_position - m_offset[dep]] << (63 - off);
-        while (!node or off == (uint8_t)-1)
+        while (!node)
         {
 
             // Not in the root
@@ -240,7 +241,8 @@ public:
                 off = ((uint8_t)(v_node_position & 0x3F)) - 1;
                 v_node_position >>= 6;
 
-                node = m_tree[v_node_position - m_offset[dep]] << (63 - off);
+                // off == (uint8_t)-1: Came from the first child, there is no sibling to the left.
+                node = off != (uint8_t)-1 ? m_tree[v_node_position - m_offset[dep]] << (63 - off) : 0;
             }
             else
             {

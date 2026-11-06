@@ -1,5 +1,6 @@
 #include <array>
 #include <random>
+#include <sstream>
 #include <string>
 #include <type_traits>
 
@@ -39,7 +40,10 @@ template <typename T>
 class hyb_query_test : public ::testing::Test
 {};
 
-using rates = ::testing::Types<std::integral_constant<uint32_t, 8>,
+using rates = ::testing::Types<std::integral_constant<uint32_t, 1>,
+                               std::integral_constant<uint32_t, 15>,
+                               std::integral_constant<uint32_t, 24>,
+                               std::integral_constant<uint32_t, 8>,
                                std::integral_constant<uint32_t, 16>,
                                std::integral_constant<uint32_t, 32>,
                                std::integral_constant<uint32_t, 64>>;
@@ -124,6 +128,30 @@ TYPED_TEST(hyb_query_test, boundaries_and_densities)
     }
 }
 
+TYPED_TEST(hyb_query_test, serialization)
+{
+    using vector_type = sdsl::hyb_vector<TypeParam::value>;
+    sdsl::bit_vector bits(7 * 256 + 3, 0);
+    for (uint64_t i = 0; i < bits.size(); ++i)
+        bits[i] = (i % 5) < 2;
+    vector_type vector(bits);
+    std::stringstream stream;
+    vector.serialize(stream);
+    vector_type loaded;
+    loaded.load(static_cast<std::istream &>(stream));
+    typename vector_type::rank_1_type rank1(&loaded);
+    typename vector_type::select_1_type select1(&loaded);
+    uint64_t ones = 0;
+    for (uint64_t i = 0; i < bits.size(); ++i)
+    {
+        ASSERT_EQ(bits[i], loaded[i]);
+        ASSERT_EQ(ones, rank1(i));
+        if (bits[i])
+            ASSERT_EQ(i, select1(++ones));
+    }
+    EXPECT_EQ(ones, rank1(bits.size()));
+}
+
 TYPED_TEST(hyb_query_test, empty_superblocks)
 {
     constexpr uint64_t superblock_size = 256 * TypeParam::value;
@@ -136,15 +164,23 @@ TYPED_TEST(hyb_query_test, empty_superblocks)
     check_queries<TypeParam::value>(bits);
 }
 
-TEST(hyb_query_test, large_superblock_population)
+template <uint32_t rate>
+void check_large_superblock_population()
 {
-    sdsl::bit_vector bits(1024 * 256, 1);
+    sdsl::bit_vector bits(rate * 256, 1);
     bits[3] = 0; // Keep the superblock nonuniform so the descriptor sums are exercised.
-    sdsl::hyb_vector<1024> vector(bits);
-    sdsl::hyb_vector<1024>::rank_1_type rank1(&vector);
-    sdsl::hyb_vector<1024>::rank_0_type rank0(&vector);
+    sdsl::hyb_vector<rate> vector(bits);
+    typename sdsl::hyb_vector<rate>::rank_1_type rank1(&vector);
+    typename sdsl::hyb_vector<rate>::rank_0_type rank0(&vector);
     EXPECT_EQ(bits.size() - 1, rank1(bits.size()));
     EXPECT_EQ(uint64_t{1}, rank0(bits.size()));
+}
+
+TEST(hyb_query_test, large_superblock_population)
+{
+    check_large_superblock_population<1024>();
+    check_large_superblock_population<1025>();
+    check_large_superblock_population<2048>();
 }
 
 } // namespace

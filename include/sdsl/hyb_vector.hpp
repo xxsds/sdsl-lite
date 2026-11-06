@@ -38,6 +38,7 @@
 #include <bit>
 #include <assert.h>
 #include <cstdlib>
+#include <cstring>
 #include <iostream>
 #include <stdint.h>
 #include <stdio.h>
@@ -69,7 +70,7 @@ class select_support_hyb;
 
 //! A hybrid-encoded compressed bitvector representation
 /*!
- * \tparam k_sblock_rate  Blocks per superblock: a power of two from 8 through 1024.
+ * \tparam k_sblock_rate  Superblock rate (number of blocks inside superblock)
  *
  * References:
  *  - Juha Karkkainen, Dominik Kempa and Simon J. Puglisi.
@@ -79,9 +80,6 @@ class select_support_hyb;
 template <uint32_t k_sblock_rate = 16>
 class hyb_vector
 {
-    static_assert(std::has_single_bit(k_sblock_rate) && k_sblock_rate >= 8 && k_sblock_rate <= 1024,
-                  "Superblock rate must be a power of two from 8 through 1024");
-
 public:
     typedef bit_vector::size_type size_type;
     typedef bit_vector::value_type value_type;
@@ -112,6 +110,15 @@ private:
     int_vector<8> m_trunk;          // body of encoded blocks
     int_vector<8> m_sblock_header;  // sblock headers
     int_vector<64> m_hblock_header; // hblock headers
+
+    //! Reads a 64-bit word from m_trunk, where encoded blocks start at arbitrary byte offsets.
+    static uint64_t read_trunk_word(uint8_t const * ptr)
+    {
+        uint64_t word;
+        std::memcpy(&word, ptr, sizeof(word));
+        return word;
+    }
+
 
 public:
     //! Default constructor
@@ -324,11 +331,8 @@ public:
                     // Copy original 256 bits from bv into trunk.
                     if (block_end <= m_size)
                     {
-                        for (uint8_t i = 0; i < 4; ++i)
-                        {
-                            *((uint64_t *)(((uint8_t *)m_trunk.data()) + trunk_ptr)) = *(bv_ptr + i);
-                            trunk_ptr += 8;
-                        }
+                        std::memcpy(((uint8_t *)m_trunk.data()) + trunk_ptr, bv_ptr, k_block_bytes);
+                        trunk_ptr += k_block_bytes;
                     }
                     else
                     {
@@ -341,7 +345,7 @@ public:
                                 if (bit)
                                     w |= ((uint64_t)1 << (j - i));
                             }
-                            *((uint64_t *)(((uint8_t *)m_trunk.data()) + trunk_ptr)) = w;
+                            std::memcpy(((uint8_t *)m_trunk.data()) + trunk_ptr, &w, sizeof(w));
                             trunk_ptr += 8;
                         }
                     }
@@ -550,22 +554,36 @@ private:
             result.ones_before += result.descriptor.ones * preceding;
             return result;
         }
-        descriptor_vector indices{};
-        for (uint32_t lane = 0; lane < k_descriptor_lanes; ++lane)
-            indices[lane] = lane;
-        descriptor_vector sizes{}, populations{};
-        for (size_type j = 0; j < k_sblock_rate; j += k_descriptor_lanes)
+        if constexpr (std::has_single_bit(k_sblock_rate) && k_sblock_rate >= 8 && k_sblock_rate <= 1024)
         {
-            descriptor_vector values;
-            std::memcpy(&values, &descriptors[2 * j], sizeof(values));
-            values &=
-                static_cast<descriptor_vector>(indices + static_cast<uint16_t>(j) < static_cast<uint16_t>(preceding));
-            auto decoded = decode_block(values);
-            sizes += decoded.payload_bytes;
-            populations += decoded.ones;
+            descriptor_vector indices{};
+            for (uint32_t lane = 0; lane < k_descriptor_lanes; ++lane)
+                indices[lane] = lane;
+            descriptor_vector sizes{}, populations{};
+            for (size_type j = 0; j < k_sblock_rate; j += k_descriptor_lanes)
+            {
+                descriptor_vector values;
+                std::memcpy(&values, &descriptors[2 * j], sizeof(values));
+                values &=
+                    static_cast<descriptor_vector>(indices + static_cast<uint16_t>(j) < static_cast<uint16_t>(preceding));
+                auto decoded = decode_block(values);
+                sizes += decoded.payload_bytes;
+                populations += decoded.ones;
+            }
+            result.offset += sum_lanes(sizes);
+            result.ones_before += sum_lanes(populations);
         }
-        result.offset += sum_lanes(sizes);
-        result.ones_before += sum_lanes(populations);
+        else
+        {
+            // Preserve the general-rate interface without partial SIMD loads
+            // or overflow in the bounded 16-bit lane accumulators.
+            for (size_type j = 0; j < preceding; ++j)
+            {
+                auto decoded = decode_block<uint32_t>(detail::read_unaligned<uint16_t>(descriptors, j));
+                result.offset += decoded.payload_bytes;
+                result.ones_before += decoded.ones;
+            }
+        }
         result.descriptor = decode_block<uint32_t>(detail::read_unaligned<uint16_t>(descriptors, preceding));
         return result;
     }
@@ -711,16 +729,15 @@ private:
         else
         {
             // plain encoding.
-            uint64_t * trunk_ptr64 = (uint64_t *)(((uint8_t *)m_trunk.data()) + location.offset);
             uint32_t bit;
             for (bit = 0; bit + 64 <= local_i; bit += 64)
-                trunk_ptr64++;
+                trunk_p += 8;
 
             uint8_t access_i = 0;
             if (bit != local_i)
-                access_i = (((*trunk_ptr64) >> (local_i - bit - 1)) & 1);
+                access_i = ((read_trunk_word(trunk_p) >> (local_i - bit - 1)) & 1);
             else
-                access_i = (((*(trunk_ptr64 - 1)) >> 63) & 1);
+                access_i = ((read_trunk_word(trunk_p - 8) >> 63) & 1);
             return access_i;
         }
     }
@@ -826,7 +843,7 @@ uint32_t const hyb_vector<k_sblock_rate>::k_sblock_header_size = k_sblock_prefix
 template <uint32_t k_sblock_rate>
 uint32_t const hyb_vector<k_sblock_rate>::k_sblock_size = 256 * k_sblock_rate;
 template <uint32_t k_sblock_rate>
-uint32_t const hyb_vector<k_sblock_rate>::k_hblock_rate = (1U << 31) / 256;
+uint32_t const hyb_vector<k_sblock_rate>::k_hblock_rate = (1U << 31) / 256 / k_sblock_rate * k_sblock_rate;
 
 template <uint8_t t_bp>
 struct rank_result
@@ -893,7 +910,8 @@ public:
         auto location = m_v->locate_block(block_id);
         uint32_t local_i = i - block_id * bit_vector_type::k_block_size;
         size_type block_rank = location.ones_before;
-        auto [encoding_size, ones, special_bit] = location.descriptor;
+        auto [encoding_size, ones, first_bit] = location.descriptor;
+        size_type const special_bit = first_bit;
         uint32_t zeros = bit_vector_type::k_block_size - ones;
 
         // Number of runs <= 2.
@@ -996,12 +1014,12 @@ public:
         else
         {
             // plain encoding.
-            uint64_t * trunk_ptr64 = (uint64_t *)(((uint8_t *)m_v->m_trunk.data()) + location.offset);
             uint32_t bit;
-            for (bit = 0; bit + 64 <= local_i; bit += 64)
-                block_rank += bits::cnt(*trunk_ptr64++);
+            for (bit = 0; bit + 64 <= local_i; bit += 64, trunk_p += 8)
+                block_rank += bits::cnt(bit_vector_type::read_trunk_word(trunk_p));
             if (bit != local_i)
-                block_rank += bits::cnt((*trunk_ptr64) & (((uint64_t)1 << (local_i - bit)) - 1));
+                block_rank +=
+                    bits::cnt(bit_vector_type::read_trunk_word(trunk_p) & (((uint64_t)1 << (local_i - bit)) - 1));
 
             return rank_result<t_b>::adapt(block_rank, i);
         }

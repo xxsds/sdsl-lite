@@ -299,10 +299,10 @@ private:
     size_type select_bwt(size_type i, char_type const c) const
     {
         assert(i > 0);
-        char_type cc = char2comp[c];
+        comp_char_type cc = char2comp[c];
         if (cc == 0 and c != 0) // character is not in the text => return size()
             return size();
-        assert(cc != 255);
+        assert(cc < sigma);
         if (C[cc] + i - 1 < C[cc + 1])
         {
             return m_wavelet_tree.select(i, c);
