@@ -237,7 +237,7 @@ typename t_csa::size_type backward_search(
     typename std::enable_if<std::is_same<csa_tag, typename t_csa::index_category>::value, csa_tag>::type x = csa_tag())
 {
     t_pat_iter it = end;
-    while (begin < it and r + 1 - l > 0)
+    while (begin < it and r + 1 != l)
     {
         --it;
         backward_search(csa, l, r, (typename t_csa::char_type) * it, l, r);
@@ -352,7 +352,7 @@ typename csa_wt<>::size_type bidirectional_search_backward(
     [[maybe_unused]] typename std::enable_if<t_wt::lex_ordered, csa_tag>::type x = csa_tag())
 {
     t_pat_iter it = end;
-    while (begin < it and r_fwd + 1 - l_fwd > 0)
+    while (begin < it and r_fwd + 1 != l_fwd)
     {
         --it;
         bidirectional_search(csa_fwd,
@@ -426,7 +426,7 @@ typename csa_wt<t_wt>::size_type bidirectional_search_forward(
     [[maybe_unused]] typename std::enable_if<t_wt::lex_ordered, csa_tag>::type x = csa_tag())
 {
     t_pat_iter it = begin;
-    while (it < end and r_fwd + 1 - l_fwd > 0)
+    while (it < end and r_fwd + 1 != l_fwd)
     {
         bidirectional_search(csa_bwd,
                              l_bwd,
