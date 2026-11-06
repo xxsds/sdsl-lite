@@ -444,7 +444,7 @@ struct _hutu_shape
             {
                 if (r->mpql)
                     r->mpql->myhpq->delete_element(r->ql);
-                l->ql = nullptr;
+                r->ql = nullptr;
 
                 if (r->mpqr)
                     r->mpqr->myhpq->delete_element(r->qr);
