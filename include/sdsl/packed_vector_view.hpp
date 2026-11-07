@@ -9,6 +9,7 @@
 
 #include <sdsl/int_vector.hpp>
 #include <sdsl/int_vector_mapper.hpp>
+#include <sdsl/iterators.hpp>
 #include <sdsl/packed_word_iterator.hpp>
 namespace sdsl
 {
@@ -126,10 +127,7 @@ public:
             return 0;
         auto p = data() + (bit >> 6);
         auto shift = bit & 63;
-        auto result = *p >> shift;
-        if (shift + length > 64)
-            result |= p[1] << (64 - shift);
-        return result & bits::lo_set[length];
+        return bits::read_int(p, shift, length);
     }
     uint64_t operator[](uint64_t i) const
     {
@@ -156,93 +154,15 @@ public:
         }
         return to_owned();
     }
-    class iterator
-    {
-        packed_vector_view const * v_ = nullptr;
-        ptrdiff_t i_ = 0;
-
-    public:
-        using iterator_category = std::random_access_iterator_tag;
-        using iterator_concept = std::random_access_iterator_tag;
-        using value_type = uint64_t;
-        using difference_type = ptrdiff_t;
-        iterator() = default;
-        iterator(packed_vector_view const * v, ptrdiff_t i) : v_(v), i_(i)
-        {}
-        uint64_t operator*() const
-        {
-            return (*v_)[i_];
-        }
-        uint64_t operator[](ptrdiff_t n) const
-        {
-            return (*v_)[i_ + n];
-        }
-        iterator & operator++()
-        {
-            ++i_;
-            return *this;
-        }
-        iterator operator++(int)
-        {
-            auto x = *this;
-            ++*this;
-            return x;
-        }
-        iterator & operator--()
-        {
-            --i_;
-            return *this;
-        }
-        iterator operator--(int)
-        {
-            auto x = *this;
-            --*this;
-            return x;
-        }
-        iterator & operator+=(ptrdiff_t n)
-        {
-            i_ += n;
-            return *this;
-        }
-        iterator & operator-=(ptrdiff_t n)
-        {
-            i_ -= n;
-            return *this;
-        }
-        friend iterator operator+(iterator p, ptrdiff_t n)
-        {
-            return p += n;
-        }
-        friend iterator operator+(ptrdiff_t n, iterator p)
-        {
-            return p += n;
-        }
-        friend iterator operator-(iterator p, ptrdiff_t n)
-        {
-            return p -= n;
-        }
-        friend ptrdiff_t operator-(iterator a, iterator b)
-        {
-            assert(a.v_ == b.v_);
-            return a.i_ - b.i_;
-        }
-        friend bool operator==(iterator a, iterator b)
-        {
-            return a.v_ == b.v_ && a.i_ == b.i_;
-        }
-        friend auto operator<=>(iterator a, iterator b)
-        {
-            assert(a.v_ == b.v_);
-            return a.i_ <=> b.i_;
-        }
-    };
+    using const_iterator = random_access_const_iterator<packed_vector_view>;
+    using iterator = const_iterator;
     iterator begin() const
     {
         return {this, 0};
     }
     iterator end() const
     {
-        return {this, static_cast<ptrdiff_t>(size())};
+        return {this, size()};
     }
     bool operator==(packed_vector_view const & v) const
     {

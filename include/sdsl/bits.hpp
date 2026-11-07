@@ -20,6 +20,7 @@
 #endif
 
 #include <bit>
+#include <type_traits>
 #include <stddef.h>
 #include <stdint.h> // for uint64_t uint32_t declaration
 #ifdef __SSE4_2__
@@ -442,6 +443,10 @@ struct bits_impl
 
     //! Reads a value from a bit position in an array.
     static constexpr uint64_t read_int(uint64_t const * word, uint8_t offset = 0, uint8_t const len = 64);
+    template <class WordIterator>
+    static constexpr uint64_t read_int(WordIterator word,
+                                       std::conditional_t<std::is_pointer_v<WordIterator>, uint8_t, uint64_t> offset = 0,
+                                       uint8_t const len = 64);
     static constexpr uint64_t read_int_bounded(uint64_t const * word, uint8_t offset = 0, uint8_t const len = 64);
 
     //! Reads a value from a bit position in an array and moved the bit-pointer.
@@ -758,17 +763,26 @@ constexpr void bits_impl<T>::write_int_and_move(uint64_t *& word, uint64_t x, ui
 template <typename T>
 constexpr uint64_t bits_impl<T>::read_int(uint64_t const * word, uint8_t offset, uint8_t const len)
 {
-    uint64_t w1 = (*word) >> offset;
-    if ((offset + len) > 64)
-    {                                                                       // if offset+len > 64
-        return w1 |                                                         // w1 or w2 adepted:
-               ((*(word + 1) & bits_impl<T>::lo_set[(offset + len) & 0x3F]) // set higher bits zero
-                << (64 - offset));                                          // move bits to the left
-    }
-    else
+    return read_int<uint64_t const *>(word, offset, len);
+}
+
+template <typename T>
+template <class WordIterator>
+constexpr uint64_t bits_impl<T>::read_int(WordIterator word,
+                                          std::conditional_t<std::is_pointer_v<WordIterator>, uint8_t, uint64_t> offset,
+                                          uint8_t const len)
+{
+    uint64_t value = (*word) >> offset;
+    if (offset + len > 64)
     {
-        return w1 & bits_impl<T>::lo_set[len];
+        uint64_t high = word[1];
+        // Preserve the native pointer decoder's mask-before-shift sequence.
+        // Byte-backed readers mask the assembled value, as in the mapped view.
+        if constexpr (std::is_pointer_v<WordIterator>)
+            return value | ((high & bits_impl<T>::lo_set[(offset + len) & 63]) << (64 - offset));
+        value |= high << (64 - offset);
     }
+    return value & bits_impl<T>::lo_set[len];
 }
 
 template <typename T>

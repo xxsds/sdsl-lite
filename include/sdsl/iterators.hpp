@@ -8,6 +8,7 @@
 #ifndef INCLUDED_SDSL_ITERATORS
 #define INCLUDED_SDSL_ITERATORS
 
+#include <cassert>
 #include <iterator>
 #include <type_traits> // std::invoke_result_t
 
@@ -129,11 +130,13 @@ public:
 
     bool operator<(iterator const & it) const
     {
+        assert(m_rac == it.m_rac);
         return m_idx < it.m_idx;
     }
 
     bool operator>(iterator const & it) const
     {
+        assert(m_rac == it.m_rac);
         return m_idx > it.m_idx;
     }
 
@@ -152,6 +155,7 @@ template <class t_rac>
 inline typename random_access_const_iterator<t_rac>::difference_type
 operator-(random_access_const_iterator<t_rac> const & x, random_access_const_iterator<t_rac> const & y)
 {
+    assert(x.m_rac == y.m_rac);
     return (typename random_access_const_iterator<t_rac>::difference_type)x.m_idx
          - (typename random_access_const_iterator<t_rac>::difference_type)y.m_idx;
 }

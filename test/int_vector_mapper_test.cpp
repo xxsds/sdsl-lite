@@ -499,6 +499,54 @@ TEST_F(int_vector_mapper_test, packed_view_ownership_and_bounds)
     EXPECT_THROW(view_type::from_bytes(bytes, *bytes, UINT64_MAX), std::invalid_argument);
 }
 
+TEST_F(int_vector_mapper_test, packed_view_reuses_const_iterator)
+{
+    using view_type = sdsl::packed_vector_view<>;
+    static_assert(std::same_as<view_type::const_iterator, sdsl::random_access_const_iterator<view_type>>);
+    static_assert(std::random_access_iterator<view_type::const_iterator>);
+    view_type empty;
+    EXPECT_EQ(empty.end() - empty.begin(), 0);
+    EXPECT_EQ(view_type::const_iterator{} - view_type::const_iterator{}, 0);
+    for (uint8_t width = 1; width <= 64; ++width)
+    {
+        for (uint64_t size : {0, 1, 63, 64, 65, 129, 257})
+        {
+            sdsl::int_vector<> values(size, 0, width);
+            for (uint64_t i = 0; i < size; ++i)
+                values[i] = (i * 0x9e3779b97f4a7c15ULL) ^ (i >> 2);
+            auto const & native = values;
+            for (size_t offset = 0; offset < 8; ++offset)
+            {
+                auto bytes = std::make_shared<std::vector<std::byte>>(offset + (((values.bit_size() + 63) / 64) * 8));
+                if (values.bit_size())
+                    std::memcpy(bytes->data() + offset, values.data(), ((values.bit_size() + 63) / 64) * 8);
+                auto view = view_type::from_bytes(bytes, std::span(*bytes).subspan(offset), values.bit_size(), width);
+                EXPECT_EQ(view.end() - view.begin(), ptrdiff_t(size));
+                EXPECT_EQ(view.begin() - view.end(), -ptrdiff_t(size));
+                auto first = view.begin(), last = view.end();
+                for (uint64_t i = 0; i < size; ++i)
+                {
+                    EXPECT_EQ(*first++, native[i]);
+                    EXPECT_EQ(*--last, native[size - i - 1]);
+                    EXPECT_EQ(view.begin()[i], native[i]);
+                    EXPECT_EQ(*(ptrdiff_t(i) + view.begin()), native[i]);
+                    auto cursor = view.end();
+                    cursor += ptrdiff_t(i) - ptrdiff_t(size);
+                    EXPECT_EQ(*cursor, native[i]);
+                    cursor -= ptrdiff_t(i);
+                    EXPECT_EQ(cursor, view.begin());
+                }
+                EXPECT_EQ(first, view.end());
+                EXPECT_EQ(last, view.begin());
+                // Decoder equivalence at every bit offset, including cross-word reads.
+                for (uint64_t bit = 0; bit < std::min<uint64_t>(129, values.bit_size()); ++bit)
+                    for (uint8_t length = 1; length <= std::min<uint64_t>(64, values.bit_size() - bit); ++length)
+                        EXPECT_EQ(view.get_int(bit, length), native.get_int(bit, length));
+            }
+        }
+    }
+}
+
 } // namespace
 
 int main(int argc, char ** argv)
