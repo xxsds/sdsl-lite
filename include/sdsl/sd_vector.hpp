@@ -335,8 +335,11 @@ public:
         size_type val_low = i & bits::lo_set[m_wl]; // extract the low m_wl = log n -log m bits
         --sel_high;
         --rank_low;
-        while (m_high[sel_high] and m_low[rank_low] > val_low)
+        while (m_high[sel_high])
         {
+            size_type const low = m_low[rank_low];
+            if (low <= val_low)
+                return low == val_low;
             if (sel_high > 0)
             {
                 --sel_high;
@@ -345,7 +348,7 @@ public:
             else
                 return 0;
         }
-        return m_high[sel_high] and m_low[rank_low] == val_low;
+        return 0;
     }
 
     //! Get the integer value of the binary string of length len starting at position idx.
