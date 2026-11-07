@@ -40,16 +40,23 @@ namespace sdsl
  *
  * @ingroup rank_support_group
  */
-template <uint8_t t_b = 1, uint8_t t_pat_len = 1>
-class rank_support_v5 : public rank_support
+template <uint8_t t_b = 1, uint8_t t_pat_len = 1, class Vector = bit_vector>
+class rank_support_v5 : public rank_support_base<Vector>
 {
+protected:
+    using base_type = rank_support_base<Vector>;
+    using base_type::m_v;
+
+public:
+    using size_type = typename base_type::size_type;
+
 private:
     static_assert(t_b == 1u or t_b == 0u or t_b == 10u or t_b == 11u,
                   "rank_support_v5: bit pattern must be `0`,`1`,`10` or `01` or `11`");
     static_assert(t_pat_len == 1u or t_pat_len == 2u, "rank_support_v5: bit pattern length must be 1 or 2");
 
 public:
-    typedef bit_vector bit_vector_type;
+    typedef Vector bit_vector_type;
     typedef rank_support_trait<t_b, t_pat_len> trait_type;
     enum
     {
@@ -65,7 +72,7 @@ private:
     int_vector<64> m_basic_block;
 
 public:
-    explicit rank_support_v5(bit_vector const * v = nullptr)
+    explicit rank_support_v5(Vector const * v = nullptr)
     {
         set_vector(v);
         if (v == nullptr)
@@ -81,7 +88,7 @@ public:
         m_basic_block.resize(basic_block_size); // resize structure for basic_blocks
         if (m_basic_block.empty())
             return;
-        uint64_t const * data = m_v->data();
+        auto data = m_v->data();
         size_type i, j = 0;
         m_basic_block[0] = m_basic_block[1] = 0;
 
@@ -166,7 +173,7 @@ public:
         return written_bytes;
     }
 
-    void load(std::istream & in, bit_vector const * v = nullptr)
+    void load(std::istream & in, Vector const * v = nullptr)
     {
         set_vector(v);
         m_basic_block.load(in);
@@ -194,7 +201,7 @@ public:
         return !(*this == other);
     }
 
-    void set_vector(bit_vector const * v = nullptr)
+    void set_vector(Vector const * v = nullptr)
     {
         m_v = v;
     }

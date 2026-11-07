@@ -27,6 +27,7 @@
 #include <sdsl/config.hpp>
 #include <sdsl/io.hpp>
 #include <sdsl/memory_management.hpp>
+#include <sdsl/packed_word_iterator.hpp>
 #include <sdsl/sdsl_concepts.hpp>
 #include <sdsl/structure_tree.hpp>
 #include <sdsl/util.hpp>
@@ -53,7 +54,7 @@ template <class t_int_vector>
 class int_vector_reference;
 template <uint8_t, uint8_t>
 class rank_support_v;
-template <uint8_t, uint8_t>
+template <uint8_t, uint8_t, class>
 class select_support_mcl;
 
 namespace coder
@@ -154,8 +155,8 @@ public:
     typedef typename int_vector_trait<t_width>::int_width_type int_width_type;
     typedef rank_support_v<1, 1> rank_1_type;
     typedef rank_support_v<0, 1> rank_0_type;
-    typedef select_support_mcl<1, 1> select_1_type;
-    typedef select_support_mcl<0, 1> select_0_type;
+    typedef select_support_mcl<1, 1, bit_vector> select_1_type;
+    typedef select_support_mcl<0, 1, bit_vector> select_0_type;
     typedef typename int_vec_category_trait<t_width>::type index_category;
 
     friend struct int_vector_trait<t_width>;

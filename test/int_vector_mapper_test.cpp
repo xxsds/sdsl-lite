@@ -1,12 +1,17 @@
 #include <algorithm>
 #include <fcntl.h>
-#include <unistd.h>
 #include <random>
+#include <sstream>
 #include <string>
+#include <unistd.h>
 #include <utility>
 #include <vector>
 
 #include <sdsl/int_vector_mapper.hpp>
+#include <sdsl/packed_vector_view.hpp>
+#include <sdsl/rank_support_v5.hpp>
+#include <sdsl/select_support_mcl.hpp>
+#include <sdsl/select_support_scan.hpp>
 #include <sdsl/util.hpp>
 
 #include <gtest/gtest.h>
@@ -394,6 +399,104 @@ TEST_F(int_vector_mapper_test, mapping_failure_releases_descriptor)
     ::close(after);
     EXPECT_EQ(before, after);
     sdsl::remove(file);
+}
+
+// The view receives payload boundaries, not a serialized vector header.
+TEST_F(int_vector_mapper_test, packed_view_rank_select)
+{
+    if (temp_dir == "@")
+        GTEST_SKIP() << "Read-only OS mapping requires a disk file";
+    using view_type = sdsl::packed_vector_view<1>;
+    auto const file = temp_dir + "/packed_view_payload";
+    for (size_type size : {0, 1, 63, 64, 65, 2047, 2048, 2049, 100003})
+    {
+        for (unsigned offset = 0; offset < 8; ++offset)
+        {
+            sdsl::bit_vector expected(size, 0);
+            for (size_type i = 0; i < size; ++i)
+                expected[i] = (i * 17 % 101) < 43;
+            {
+                std::ofstream out(file, std::ios::binary);
+                out << std::string(offset, 'x');
+                if (size)
+                    out.write(reinterpret_cast<char const *>(expected.data()), ((size + 63) / 64) * 8);
+                out.put('!'); // permits an empty payload in an otherwise nonempty mapping
+            }
+            auto owner = std::make_shared<view_type::byte_mapper const>(file, true);
+            auto view = view_type::from_mapping(owner, offset, size);
+            auto alias = view;
+            owner.reset();
+            sdsl::rank_support_v5<1, 1, view_type> rank(&view);
+            sdsl::rank_support_v5<0, 1, view_type> rank_zero(&view);
+            sdsl::select_support_mcl<1, 1, view_type> select(&view);
+            sdsl::select_support_mcl<0, 1, view_type> select_zero(&view);
+            sdsl::select_support_scan<0, 1, view_type> scan_zero(&view);
+            size_type ones = 0, zeros = 0;
+            for (size_type i = 0; i < size; ++i)
+            {
+                ASSERT_EQ(ones, rank(i));
+                ASSERT_EQ(zeros, rank_zero(i));
+                ASSERT_EQ(expected[i], view[i]);
+                if (expected[i])
+                    ASSERT_EQ(i, select(++ones));
+                else
+                {
+                    ASSERT_EQ(i, select_zero(++zeros));
+                    if (zeros <= 4)
+                        ASSERT_EQ(i, scan_zero(zeros));
+                }
+            }
+            ASSERT_EQ(ones, rank(size));
+            ASSERT_EQ(zeros, rank_zero(size));
+            std::stringstream rs, ss;
+            rank.serialize(rs);
+            select.serialize(ss);
+            sdsl::rank_support_v5<1> native_rank;
+            sdsl::select_support_mcl<1> native_select;
+            native_rank.load(static_cast<std::istream &>(rs), &expected);
+            native_select.load(static_cast<std::istream &>(ss), &expected);
+            ASSERT_EQ(ones, native_rank(size));
+            if (ones)
+                ASSERT_EQ(select(ones), native_select(ones));
+            auto owned = std::move(view).into_owned();
+            ASSERT_EQ(expected, owned);
+            owned.resize(size + 65);
+            owned[size] = 1;
+            ASSERT_EQ(expected, alias.to_owned());
+        }
+    }
+    sdsl::remove(file);
+}
+
+TEST_F(int_vector_mapper_test, packed_view_ownership_and_bounds)
+{
+    sdsl::int_vector<> partial(43, 7, 3);
+    partial.width(5);
+    sdsl::packed_vector_view<> partial_view(std::move(partial));
+    ASSERT_EQ(129u, partial_view.to_owned().bit_size());
+    ASSERT_EQ(partial_view.get_int(125, 4), partial_view.to_owned().get_int(125, 4));
+    for (unsigned width : {1, 3, 5, 13, 32, 64})
+    {
+        sdsl::int_vector<> values(129, 7, width);
+        sdsl::packed_vector_view<> view(std::move(values));
+        auto const address = view.bytes().data();
+        auto owned = std::move(view).into_owned();
+        ASSERT_EQ(address, reinterpret_cast<std::byte const *>(owned.data()));
+        ASSERT_TRUE(view.empty());
+        view = sdsl::packed_vector_view<>(std::move(owned));
+        auto alias = view;
+        auto copy = std::move(view).into_owned();
+        copy[0] = 0;
+        ASSERT_NE(copy[0], alias[0]);
+        ASSERT_EQ(129u, alias.size());
+        ASSERT_EQ(width, alias.width());
+    }
+    auto bytes = std::make_shared<std::vector<std::byte>>(8);
+    using view_type = sdsl::packed_vector_view<1>;
+    EXPECT_THROW(view_type::from_bytes(bytes, *bytes, 65), std::invalid_argument);
+    EXPECT_THROW(view_type::from_bytes(bytes, *bytes, 64, 2), std::invalid_argument);
+    EXPECT_THROW(view_type::from_bytes({}, *bytes, 64), std::invalid_argument);
+    EXPECT_THROW(view_type::from_bytes(bytes, *bytes, UINT64_MAX), std::invalid_argument);
 }
 
 } // namespace
