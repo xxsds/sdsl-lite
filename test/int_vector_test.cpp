@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <chrono>
 #include <random>
+#include <sstream>
 #include <string>
 #include <type_traits>
 #include <utility>
@@ -50,6 +51,98 @@ TEST(int_vector_const_access, native_width_references)
     static_assert(!std::is_reference_v<sdsl::int_vector<2>::const_reference>);
     static_assert(!std::is_reference_v<sdsl::int_vector<4>::const_reference>);
     static_assert(!std::is_reference_v<sdsl::int_vector<7>::const_reference>);
+}
+
+template <uint8_t width>
+void check_independent_copies(uint8_t runtime_width = width)
+{
+    using vector_type = sdsl::int_vector<width>;
+    for (size_type size : {0, 1, 2, 63, 64, 65, 127, 129, 4099})
+    {
+        SCOPED_TRACE(::testing::Message() << "width=" << unsigned(runtime_width) << " size=" << size);
+        vector_type source(size, 0, runtime_width);
+        uint64_t const mask = sdsl::bits::lo_set[source.width()];
+        for (size_type i = 0; i < size; ++i)
+            source[i] = (i * 0x9e3779b97f4a7c15ULL + 1) & mask;
+
+        vector_type copy(source);
+        vector_type assigned(17, 1, runtime_width);
+        assigned = source;
+        for (auto * result : {&copy, &assigned})
+        {
+            EXPECT_EQ(source.size(), result->size());
+            EXPECT_EQ(source.bit_size(), result->bit_size());
+            EXPECT_EQ(source.width(), result->width());
+            EXPECT_EQ(source, *result);
+            if (size)
+            {
+                EXPECT_NE(source.data(), result->data());
+            }
+
+            std::stringstream original_bytes, copy_bytes;
+            source.serialize(original_bytes);
+            result->serialize(copy_bytes);
+            EXPECT_EQ(original_bytes.str(), copy_bytes.str());
+            vector_type restored;
+            restored.load(static_cast<std::istream &>(copy_bytes));
+            EXPECT_EQ(source, restored);
+
+            if (size)
+            {
+                value_type const old = source[size - 1];
+                (*result)[size - 1] = old ^ 1;
+                EXPECT_EQ(old, source[size - 1]);
+                EXPECT_NE(source, *result);
+                (*result)[size - 1] = old;
+            }
+            result->resize(size + 3);
+            for (size_type i = 0; i < size; ++i)
+                EXPECT_EQ(source[i], (*result)[i]);
+            for (size_type i = size; i < size + 3; ++i)
+                EXPECT_EQ(0u, (*result)[i]);
+            result->resize(size);
+            EXPECT_EQ(source, *result);
+        }
+    }
+}
+
+TEST(int_vector_copy, fixed_widths)
+{
+    check_independent_copies<1>();
+    check_independent_copies<3>();
+    check_independent_copies<7>();
+    check_independent_copies<8>();
+    check_independent_copies<16>();
+    check_independent_copies<31>();
+    check_independent_copies<32>();
+    check_independent_copies<63>();
+    check_independent_copies<64>();
+}
+
+TEST(int_vector_copy, dynamic_widths)
+{
+    for (uint8_t width = 1; width <= 64; ++width)
+        check_independent_copies<0>(width);
+}
+
+TEST(int_vector_copy, preserves_bits_after_width_change)
+{
+    sdsl::int_vector<> source(43, 7, 3); // 129 bits, crossing a word boundary.
+    source.width(5);
+    sdsl::int_vector<> copy(source);
+    sdsl::int_vector<> assigned;
+    assigned = source;
+    for (auto const * result : {&copy, &assigned})
+    {
+        EXPECT_EQ(source.size(), result->size());
+        ASSERT_EQ(source.bit_size(), result->bit_size());
+        EXPECT_EQ(source.width(), result->width());
+        EXPECT_EQ(source.get_int(128, 1), result->get_int(128, 1));
+        std::stringstream original_bytes, copy_bytes;
+        source.serialize(original_bytes);
+        result->serialize(copy_bytes);
+        EXPECT_EQ(original_bytes.str(), copy_bytes.str());
+    }
 }
 
 // The fixture for testing class int_vector.
