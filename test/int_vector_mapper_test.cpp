@@ -1,4 +1,6 @@
 #include <algorithm>
+#include <fcntl.h>
+#include <unistd.h>
 #include <random>
 #include <string>
 #include <utility>
@@ -372,6 +374,26 @@ TEST_F(int_vector_mapper_test, temp_buffer_test)
         sdsl::isfstream cfs(tmp_file_name);
         ASSERT_FALSE(cfs.is_open());
     }
+}
+
+TEST_F(int_vector_mapper_test, mapping_failure_releases_descriptor)
+{
+    if (temp_dir == "@")
+        GTEST_SKIP() << "Read-only OS mapping requires a disk file";
+    auto const file = temp_dir + "/mapper_empty_file";
+    {
+        std::ofstream out(file, std::ios::binary);
+    }
+    int const before = ::open(file.c_str(), O_RDONLY);
+    ASSERT_GE(before, 0);
+    ::close(before);
+    using mapper_type = sdsl::int_vector_mapper<8, std::ios_base::in>;
+    EXPECT_THROW(mapper_type(file, true), std::runtime_error);
+    int const after = ::open(file.c_str(), O_RDONLY);
+    ASSERT_GE(after, 0);
+    ::close(after);
+    EXPECT_EQ(before, after);
+    sdsl::remove(file);
 }
 
 } // namespace
