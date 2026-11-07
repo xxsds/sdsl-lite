@@ -499,6 +499,52 @@ TEST_F(int_vector_mapper_test, packed_view_ownership_and_bounds)
     EXPECT_THROW(view_type::from_bytes(bytes, *bytes, UINT64_MAX), std::invalid_argument);
 }
 
+TEST_F(int_vector_mapper_test, packed_comparison_preserves_payload_and_dimension_rules)
+{
+    using view_type = sdsl::packed_vector_view<>;
+    EXPECT_TRUE(sdsl::detail::equal_packed_bits(static_cast<uint64_t const *>(nullptr),
+                                               static_cast<uint64_t const *>(nullptr), 0));
+    for (uint64_t bits : {0, 1, 63, 64, 65, 127, 128, 129, 1024})
+    {
+        sdsl::int_vector<> a(bits, 1, 1), b(bits, 1, 1);
+        if (bits % 64)
+            b.data()[bits / 64] ^= ~sdsl::bits::lo_set[bits % 64];
+        ASSERT_EQ(a, b); // padding must not participate
+        for (size_t offset = 0; offset < 8; ++offset)
+        {
+            auto bytes = std::make_shared<std::vector<std::byte>>(offset + ((bits + 63) / 64) * 8);
+            if (bits)
+                std::memcpy(bytes->data() + offset, b.data(), ((bits + 63) / 64) * 8);
+            auto mapped = view_type::from_bytes(bytes, std::span(*bytes).subspan(offset), bits, 1);
+            view_type owned(a);
+            EXPECT_EQ(owned, mapped);
+            EXPECT_EQ(mapped, owned);
+            for (uint64_t pos : {uint64_t(0), bits / 2, bits ? bits - 1 : 0})
+            {
+                if (!bits)
+                    continue;
+                auto changed = a;
+                changed[pos] = uint64_t(changed[pos]) ^ 1;
+                EXPECT_FALSE(changed == b);
+                EXPECT_FALSE(view_type(std::move(changed)) == mapped);
+            }
+            if (bits)
+                EXPECT_FALSE(owned == view_type::from_bytes(bytes, std::span(*bytes).subspan(offset), bits - 1, 1));
+        }
+    }
+    // int_vector's same-template comparison uses bit size/payload; views also require equal widths.
+    sdsl::int_vector<> a(64, 1, 1), b(a);
+    b.width(2);
+    EXPECT_TRUE(a == b);
+    EXPECT_FALSE(view_type(a) == view_type(b));
+    // Payload bits still participate when fewer than one complete element remains.
+    sdsl::int_vector<> partial_a(1, 0, 1), partial_b(1, 1, 1);
+    partial_a.width(2);
+    partial_b.width(2);
+    EXPECT_FALSE(partial_a == partial_b);
+    EXPECT_FALSE(view_type(std::move(partial_a)) == view_type(std::move(partial_b)));
+}
+
 TEST_F(int_vector_mapper_test, packed_view_reuses_const_iterator)
 {
     using view_type = sdsl::packed_vector_view<>;

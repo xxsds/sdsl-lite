@@ -20,6 +20,7 @@
 #endif
 
 #include <bit>
+#include <sdsl/unaligned_access.hpp>
 #include <type_traits>
 #include <stddef.h>
 #include <stdint.h> // for uint64_t uint32_t declaration
@@ -973,6 +974,27 @@ template <typename T>
 constexpr uint8_t bits_impl<T>::lt_lo[256];
 
 using bits = bits_impl<>;
+
+namespace detail
+{
+// Compare bit_size payload bits, ignoring padding in the final word.
+// Readers may be aligned pointers or unaligned word iterators.
+// The rounded word capacity must be representable, as for int_vector storage.
+template <class LeftWords, class RightWords>
+inline bool equal_packed_bits(LeftWords left, RightWords right, uint64_t bit_size) noexcept
+{
+    if (!bit_size)
+        return true;
+    auto const word_count = (bit_size + 63) >> 6;
+    auto const last_word = word_count - 1;
+    for (uint64_t i = 0; i < last_word; ++i)
+        if (*left++ != *right++)
+            return false;
+    uint8_t const length = 64 - ((word_count << 6) - bit_size);
+    auto const mask = bits::lo_set[length];
+    return (*left & mask) == (*right & mask);
+}
+} // namespace detail
 
 } // end namespace sdsl
 

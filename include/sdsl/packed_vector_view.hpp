@@ -164,10 +164,7 @@ public:
     {
         if (bits_ != v.bits_ || width_ != v.width_)
             return false;
-        for (uint64_t p = 0; p < bits_; p += 64)
-            if (get_int(p, std::min<uint64_t>(64, bits_ - p)) != v.get_int(p, std::min<uint64_t>(64, bits_ - p)))
-                return false;
-        return true;
+        return detail::equal_packed_bits(data(), v.data(), bits_);
     }
 };
 static_assert(std::ranges::random_access_range<packed_vector_view<1>>);

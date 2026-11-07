@@ -9,6 +9,21 @@
 
 namespace
 {
+TEST(unaligned_access_test, integer_loads_at_each_byte_offset)
+{
+    constexpr uint64_t aligned = 0x0123456789abcdefULL;
+    static_assert(sdsl::detail::load_unaligned(&aligned) == aligned);
+    std::byte bytes[16];
+    for (size_t offset = 0; offset < 8; ++offset)
+    {
+        std::memcpy(bytes + offset, &aligned, sizeof(aligned));
+        EXPECT_EQ(sdsl::detail::load_unaligned<uint64_t>(static_cast<void const *>(bytes + offset)), aligned);
+        uint32_t expected;
+        std::memcpy(&expected, bytes + offset, sizeof(expected));
+        EXPECT_EQ(sdsl::detail::load_unaligned<uint32_t>(static_cast<void const *>(bytes + offset)), expected);
+    }
+}
+
 
 [[maybe_unused]] uint32_t cnt_naive(uint64_t x)
 {

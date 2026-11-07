@@ -102,17 +102,13 @@ private:
     //! Reads a 64-bit word from m_trunk, where encoded blocks start at arbitrary byte offsets.
     static uint64_t read_trunk_word(uint8_t const * ptr)
     {
-        uint64_t word;
-        std::memcpy(&word, ptr, sizeof(word));
-        return word;
+        return detail::load_unaligned<uint64_t>(static_cast<void const *>(ptr));
     }
 
     //! Reads a 32-bit word from m_sblock_header, whose entries are not 4-byte aligned for an odd k_sblock_rate.
     static uint32_t read_header_word(uint8_t const * ptr)
     {
-        uint32_t word;
-        std::memcpy(&word, ptr, sizeof(word));
-        return word;
+        return detail::load_unaligned<uint32_t>(static_cast<void const *>(ptr));
     }
 
 public:

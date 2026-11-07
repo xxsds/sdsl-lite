@@ -3,7 +3,7 @@
 #include <compare>
 #include <cstddef>
 #include <cstdint>
-#include <cstring>
+#include <sdsl/unaligned_access.hpp>
 namespace sdsl
 {
 // A word reader for potentially unaligned, word-padded packed storage.
@@ -18,9 +18,7 @@ public:
     {}
     uint64_t operator*() const
     {
-        uint64_t v;
-        std::memcpy(&v, p_, 8);
-        return v;
+        return detail::load_unaligned<uint64_t>(static_cast<void const *>(p_));
     }
     uint64_t operator[](ptrdiff_t n) const
     {
