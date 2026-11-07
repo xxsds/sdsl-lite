@@ -104,10 +104,6 @@ public:
     {
         return ((bits_ + 63) >> 6) << 6;
     }
-    bool empty() const
-    {
-        return !size();
-    }
     uint8_t width() const
     {
         return width_;

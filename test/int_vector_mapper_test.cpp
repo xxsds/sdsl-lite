@@ -505,6 +505,8 @@ TEST_F(int_vector_mapper_test, packed_view_reuses_const_iterator)
     static_assert(std::same_as<view_type::const_iterator, sdsl::random_access_const_iterator<view_type>>);
     static_assert(std::random_access_iterator<view_type::const_iterator>);
     view_type empty;
+    EXPECT_TRUE(empty.empty());
+    EXPECT_TRUE(std::as_const(empty).empty());
     EXPECT_EQ(empty.end() - empty.begin(), 0);
     EXPECT_EQ(view_type::const_iterator{} - view_type::const_iterator{}, 0);
     for (uint8_t width = 1; width <= 64; ++width)
@@ -521,6 +523,8 @@ TEST_F(int_vector_mapper_test, packed_view_reuses_const_iterator)
                 if (values.bit_size())
                     std::memcpy(bytes->data() + offset, values.data(), ((values.bit_size() + 63) / 64) * 8);
                 auto view = view_type::from_bytes(bytes, std::span(*bytes).subspan(offset), values.bit_size(), width);
+                EXPECT_EQ(view.empty(), size == 0);
+                EXPECT_EQ(std::as_const(view).empty(), size == 0);
                 EXPECT_EQ(view.end() - view.begin(), ptrdiff_t(size));
                 EXPECT_EQ(view.begin() - view.end(), -ptrdiff_t(size));
                 auto first = view.begin(), last = view.end();
