@@ -147,7 +147,9 @@ TYPED_TEST(hyb_query_test, serialization)
         ASSERT_EQ(bits[i], loaded[i]);
         ASSERT_EQ(ones, rank1(i));
         if (bits[i])
+        {
             ASSERT_EQ(i, select1(++ones));
+        }
     }
     EXPECT_EQ(ones, rank1(bits.size()));
 }
