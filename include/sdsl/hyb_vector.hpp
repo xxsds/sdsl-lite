@@ -102,9 +102,16 @@ private:
     static uint32_t const k_sblock_header_size;
     static uint32_t const k_sblock_size;
     static uint32_t const k_hblock_rate;
+    // A superblock header starts with a 30-bit payload offset relative to its hyperblock; bit 31 marks a
+    // superblock whose blocks are all zeros or all ones.
+    static constexpr uint32_t k_relative_offset_bits = 30;
     static constexpr uint32_t k_uniform_mask = uint32_t{1} << 31;
+    // A 16-bit block descriptor holds the block population in bits 0-8, a special bit in bit 9 and the payload
+    // size in bytes from bit 10.
+    static constexpr uint32_t k_population_mask = 0x1ff;
     static constexpr uint32_t k_special_bit_shift = 9;
     static constexpr uint32_t k_special_bit_mask = uint32_t{1} << k_special_bit_shift;
+    static constexpr uint32_t k_payload_size_shift = 10;
 
     size_type m_size = 0;           // original bitvector size
     int_vector<8> m_trunk;          // body of encoded blocks
@@ -326,7 +333,7 @@ public:
                 if (k_block_bytes <= best_enc_size)
                 {
                     // Use plain encoding.
-                    descriptor |= (k_block_bytes << 10);
+                    descriptor |= (k_block_bytes << k_payload_size_shift);
 
                     // Copy original 256 bits from bv into trunk.
                     if (block_end <= m_size)
@@ -356,7 +363,7 @@ public:
                     {
 
                         // Use runs encoding.
-                        descriptor |= (runs_enc_size << 10);
+                        descriptor |= (runs_enc_size << k_payload_size_shift);
                         descriptor |= (bv[block_beg] << k_special_bit_shift);
 
                         if (block_end <= m_size)
@@ -402,7 +409,7 @@ public:
                     {
                         // Use minority encoding.
                         // Update sblock header.
-                        descriptor |= (minority_enc_size << 10);
+                        descriptor |= (minority_enc_size << k_payload_size_shift);
                         if (ones < zeros)
                             descriptor |= k_special_bit_mask;
                         uint8_t keybit = (ones < zeros);
@@ -460,7 +467,7 @@ private:
         std::span<uint8_t const> bytes{&m_sblock_header[sblock * k_sblock_header_size],
                                       k_sblock_header_size};
         auto packed = detail::read_unaligned<uint32_t>(bytes);
-        return {static_cast<uint32_t>(packed & bits::lo_set[30]),
+        return {static_cast<uint32_t>(packed & bits::lo_set[k_relative_offset_bits]),
                 detail::read_unaligned<uint32_t>(bytes, 1),
                 (packed & k_uniform_mask) != 0, bytes.subspan(k_sblock_prefix_size)};
     }
@@ -495,7 +502,7 @@ private:
     template <typename T>
     static block_descriptor<T> decode_block(T const & packed)
     {
-        return {packed >> 10, packed & 0x1ff,
+        return {packed >> k_payload_size_shift, packed & k_population_mask,
                 static_cast<typename block_descriptor<T>::bit_type>((packed >> k_special_bit_shift) & 1)};
     }
 
