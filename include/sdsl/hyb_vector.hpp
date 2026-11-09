@@ -97,11 +97,12 @@ public:
 
 private:
     static constexpr uint32_t k_block_size = 256;
-    static constexpr uint32_t k_block_bytes = 32;
+    static constexpr uint32_t k_block_bytes = k_block_size / 8;
     static constexpr uint32_t k_sblock_prefix_size = 2 * sizeof(uint32_t);
-    static uint32_t const k_sblock_header_size;
-    static uint32_t const k_sblock_size;
-    static uint32_t const k_hblock_rate;
+    static constexpr uint32_t k_sblock_header_size = k_sblock_prefix_size + sizeof(uint16_t) * k_sblock_rate;
+    static constexpr uint32_t k_sblock_size = k_block_size * k_sblock_rate;
+    // A hyperblock spans at most 2^31 bits and a whole number of superblocks.
+    static constexpr uint32_t k_hblock_rate = (uint32_t{1} << 31) / k_block_size / k_sblock_rate * k_sblock_rate;
     // A superblock header starts with a 30-bit payload offset relative to its hyperblock; bit 31 marks a
     // superblock whose blocks are all zeros or all ones.
     static constexpr uint32_t k_relative_offset_bits = 30;
@@ -862,12 +863,6 @@ public:
     }
 };
 
-template <uint32_t k_sblock_rate>
-uint32_t const hyb_vector<k_sblock_rate>::k_sblock_header_size = k_sblock_prefix_size + 2 * k_sblock_rate;
-template <uint32_t k_sblock_rate>
-uint32_t const hyb_vector<k_sblock_rate>::k_sblock_size = 256 * k_sblock_rate;
-template <uint32_t k_sblock_rate>
-uint32_t const hyb_vector<k_sblock_rate>::k_hblock_rate = (1U << 31) / 256 / k_sblock_rate * k_sblock_rate;
 
 template <uint8_t t_bp>
 struct rank_result
