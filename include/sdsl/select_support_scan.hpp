@@ -34,25 +34,32 @@ class structure_tree_node;
  *  \tparam t_pat_len Length of the bit pattern.
  * @ingroup select_support_group
  */
-template <uint8_t t_b = 1, uint8_t t_pat_len = 1>
-class select_support_scan : public select_support
+template <uint8_t t_b = 1, uint8_t t_pat_len = 1, class Vector = bit_vector>
+class select_support_scan : public select_support_base<Vector>
 {
+protected:
+    using base_type = select_support_base<Vector>;
+    using base_type::m_v;
+
+public:
+    using size_type = typename base_type::size_type;
+
 private:
     static_assert(t_b == 1u or t_b == 0u or t_b == 10u,
                   "select_support_scan: bit pattern must be `0`,`1`,`10` or `01`");
     static_assert(t_pat_len == 1u or t_pat_len == 2u, "select_support_scan: bit pattern length must be 1 or 2");
 
 public:
-    typedef bit_vector bit_vector_type;
+    typedef Vector bit_vector_type;
     enum
     {
         bit_pat = t_b
     };
 
 public:
-    explicit select_support_scan(bit_vector const * v = nullptr) : select_support(v)
+    explicit select_support_scan(Vector const * v = nullptr) : base_type(v)
     {}
-    select_support_scan(select_support_scan<t_b, t_pat_len> const & ss) : select_support(ss.m_v)
+    select_support_scan(select_support_scan<t_b, t_pat_len, Vector> const & ss) : base_type(ss.m_v)
     {}
 
     inline size_type select(size_type i) const;
@@ -64,7 +71,7 @@ public:
     {
         return serialize_empty_object(out, v, name, this);
     }
-    void load(std::istream &, [[maybe_unused]] bit_vector const * v = nullptr)
+    void load(std::istream &, [[maybe_unused]] Vector const * v = nullptr)
     {
         set_vector(v);
     }
@@ -74,11 +81,11 @@ public:
     //!\brief Serialise (load) via cereal
     template <typename archive_t>
     void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar);
-    void set_vector(bit_vector const * v = nullptr)
+    void set_vector(Vector const * v = nullptr)
     {
         m_v = v;
     }
-    select_support_scan<t_b, t_pat_len> & operator=(select_support_scan const & ss)
+    select_support_scan<t_b, t_pat_len, Vector> & operator=(select_support_scan const & ss)
     {
         set_vector(ss.m_v);
         return *this;
@@ -97,21 +104,21 @@ public:
     }
 };
 
-template <uint8_t t_b, uint8_t t_pat_len>
+template <uint8_t t_b, uint8_t t_pat_len, class Vector>
 template <typename archive_t>
-void select_support_scan<t_b, t_pat_len>::CEREAL_SAVE_FUNCTION_NAME(archive_t &) const
+void select_support_scan<t_b, t_pat_len, Vector>::CEREAL_SAVE_FUNCTION_NAME(archive_t &) const
 {}
 
-template <uint8_t t_b, uint8_t t_pat_len>
+template <uint8_t t_b, uint8_t t_pat_len, class Vector>
 template <typename archive_t>
-void select_support_scan<t_b, t_pat_len>::CEREAL_LOAD_FUNCTION_NAME(archive_t &)
+void select_support_scan<t_b, t_pat_len, Vector>::CEREAL_LOAD_FUNCTION_NAME(archive_t &)
 {}
 
-template <uint8_t t_b, uint8_t t_pat_len>
-inline typename select_support_scan<t_b, t_pat_len>::size_type
-select_support_scan<t_b, t_pat_len>::select(size_type i) const
+template <uint8_t t_b, uint8_t t_pat_len, class Vector>
+inline typename select_support_scan<t_b, t_pat_len, Vector>::size_type
+select_support_scan<t_b, t_pat_len, Vector>::select(size_type i) const
 {
-    uint64_t const * data = m_v->data();
+    auto data = m_v->data();
     size_type word_pos = 0;
     size_type word_off = 0;
     uint64_t carry = select_support_trait<t_b, t_pat_len>::init_carry(data, word_pos);

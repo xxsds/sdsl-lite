@@ -29,19 +29,20 @@ class structure_tree_node;
 //! The base class of classes supporting select queries for a sdsl::bit_vector in constant time.
 /*! Abstract base class for classes supporting select queries.
  */
-class select_support
+template <class Vector>
+class select_support_base
 {
 protected:
-    int_vector<1> const * m_v; //!< Pointer to the select supported sdsl::bit_vector.
+    Vector const * m_v; //!< Pointer to the select supported sdsl::bit_vector.
 
 public:
-    typedef int_vector<1>::size_type size_type;
-    bit_vector const * vv;
+    typedef typename Vector::size_type size_type;
+    Vector const * vv;
 
     //! Constructor of select_support.
     /*!\param v The bit_vector to support rank queries.
      */
-    select_support(int_vector<1> const * f_v = nullptr) : vv(f_v)
+    select_support_base(Vector const * f_v = nullptr) : vv(f_v)
     {
         m_v = f_v;
     }
@@ -49,9 +50,9 @@ public:
     /*! Copy the whole select_support including the  pointer
      *  to the supported bit_vector.
      */
-    select_support(select_support const & f_v);
+    select_support_base(select_support_base const & f_v);
     //! Destructor of select_support.
-    virtual ~select_support() {};
+    virtual ~select_support_base() {};
 
     //! Select returns the index of the i-th 1-bit in the supported bit_vector.
     /*!	\param i Argument to calculate the index of the i-th 1-bit in the supported bit_vector.
@@ -71,11 +72,13 @@ public:
      * \param v The bit_vector to be supported.
      * \sa init, select.
      */
-    virtual void load(std::istream & in, int_vector<1> const * v = nullptr) = 0;
+    virtual void load(std::istream & in, Vector const * v = nullptr) = 0;
 
     //! This method sets the supported bit_vector
-    virtual void set_vector(int_vector<1> const * v = nullptr) = 0;
+    virtual void set_vector(Vector const * v = nullptr) = 0;
 };
+
+using select_support = select_support_base<bit_vector>;
 
 template <uint8_t bit_pattern, uint8_t pattern_len>
 struct select_support_trait
@@ -83,7 +86,8 @@ struct select_support_trait
     typedef select_support::size_type size_type;
 
     /* Count the number of arguments for the specific select support */
-    static size_type arg_cnt(bit_vector const &)
+    template <class Vector>
+    static size_type arg_cnt(Vector const &)
     {
         return 0;
     }
@@ -108,12 +112,14 @@ struct select_support_trait
         return 0;
     }
 
-    static bool found_arg(size_type, bit_vector const &)
+    template <class Vector>
+    static bool found_arg(size_type, Vector const &)
     {
         return 0;
     }
 
-    static uint64_t init_carry(uint64_t const *, size_type)
+    template <class WordIterator>
+    static uint64_t init_carry(WordIterator, size_type)
     {
         return 0;
     }
@@ -129,7 +135,8 @@ struct select_support_trait<0, 1>
 {
     typedef select_support::size_type size_type;
 
-    static size_type arg_cnt(bit_vector const & v)
+    template <class Vector>
+    static size_type arg_cnt(Vector const & v)
     {
         return v.bit_size() - util::cnt_one_bits(v);
     }
@@ -149,11 +156,13 @@ struct select_support_trait<0, 1>
     {
         return bits::sel(~w, (uint32_t)i);
     }
-    static bool found_arg(size_type i, bit_vector const & v)
+    template <class Vector>
+    static bool found_arg(size_type i, Vector const & v)
     {
         return !v[i];
     }
-    static uint64_t init_carry(uint64_t const *, size_type)
+    template <class WordIterator>
+    static uint64_t init_carry(WordIterator, size_type)
     {
         return 0;
     }
@@ -168,7 +177,8 @@ struct select_support_trait<1, 1>
 {
     typedef select_support::size_type size_type;
 
-    static size_type arg_cnt(bit_vector const & v)
+    template <class Vector>
+    static size_type arg_cnt(Vector const & v)
     {
         return util::cnt_one_bits(v);
     }
@@ -188,11 +198,13 @@ struct select_support_trait<1, 1>
     {
         return bits::sel(w, (uint32_t)i);
     }
-    static bool found_arg(size_type i, bit_vector const & v)
+    template <class Vector>
+    static bool found_arg(size_type i, Vector const & v)
     {
         return v[i] == 1;
     }
-    static uint64_t init_carry(uint64_t const *, size_type)
+    template <class WordIterator>
+    static uint64_t init_carry(WordIterator, size_type)
     {
         return 0;
     }
@@ -207,7 +219,8 @@ struct select_support_trait<10, 2>
 {
     typedef select_support::size_type size_type;
 
-    static size_type arg_cnt(bit_vector const & v)
+    template <class Vector>
+    static size_type arg_cnt(Vector const & v)
     {
         return util::cnt_onezero_bits(v);
     }
@@ -227,13 +240,15 @@ struct select_support_trait<10, 2>
     {
         return bits::sel(bits::map10(w, carry), (uint32_t)i);
     }
-    static bool found_arg(size_type i, bit_vector const & v)
+    template <class Vector>
+    static bool found_arg(size_type i, Vector const & v)
     {
         if (i > 0 and v[i - 1] and !v[i])
             return true;
         return false;
     }
-    static uint64_t init_carry(uint64_t const * data, size_type word_pos)
+    template <class WordIterator>
+    static uint64_t init_carry(WordIterator data, size_type word_pos)
     {
         return word_pos ? (*(data - 1) >> 63) : 0;
     }
@@ -248,7 +263,8 @@ struct select_support_trait<01, 2>
 {
     typedef select_support::size_type size_type;
 
-    static size_type arg_cnt(bit_vector const & v)
+    template <class Vector>
+    static size_type arg_cnt(Vector const & v)
     {
         return util::cnt_zeroone_bits(v);
     }
@@ -268,13 +284,15 @@ struct select_support_trait<01, 2>
     {
         return bits::sel(bits::map01(w, carry), (uint32_t)i);
     }
-    static bool found_arg(size_type i, bit_vector const & v)
+    template <class Vector>
+    static bool found_arg(size_type i, Vector const & v)
     {
         if (i > 0 and !v[i - 1] and v[i])
             return true;
         return false;
     }
-    static uint64_t init_carry(uint64_t const * data, size_type word_pos)
+    template <class WordIterator>
+    static uint64_t init_carry(WordIterator data, size_type word_pos)
     {
         return word_pos ? (*(data - 1) >> 63) : 1;
     }
@@ -289,9 +307,10 @@ struct select_support_trait<00, 2>
 {
     typedef select_support::size_type size_type;
 
-    static size_type arg_cnt(bit_vector const & v)
+    template <class Vector>
+    static size_type arg_cnt(Vector const & v)
     {
-        uint64_t const * data = v.data();
+        auto data = v.data();
         if (v.empty())
             return 0;
         uint64_t carry = rank_support_trait<00, 2>::init_carry();
@@ -331,11 +350,13 @@ struct select_support_trait<00, 2>
     {
         return bits::sel(~(((w << 1) | carry) | w), i);
     }
-    static bool found_arg(size_type i, bit_vector const & v)
+    template <class Vector>
+    static bool found_arg(size_type i, Vector const & v)
     {
         return i > 0 and !v[i - 1] and !v[i];
     }
-    static uint64_t init_carry(uint64_t const * data, size_type word_pos)
+    template <class WordIterator>
+    static uint64_t init_carry(WordIterator data, size_type word_pos)
     {
         return word_pos ? (*(data - 1) >> 63) : 1;
     }
@@ -350,9 +371,10 @@ struct select_support_trait<11, 2>
 {
     typedef select_support::size_type size_type;
 
-    static size_type arg_cnt(bit_vector const & v)
+    template <class Vector>
+    static size_type arg_cnt(Vector const & v)
     {
-        uint64_t const * data = v.data();
+        auto data = v.data();
         if (v.empty())
             return 0;
         uint64_t carry = rank_support_trait<11, 2>::init_carry();
@@ -392,13 +414,15 @@ struct select_support_trait<11, 2>
     {
         return bits::sel(((w << 1) | carry) & w, i);
     }
-    static bool found_arg(size_type i, bit_vector const & v)
+    template <class Vector>
+    static bool found_arg(size_type i, Vector const & v)
     {
         if (i > 0 and v[i - 1] and v[i])
             return true;
         return false;
     }
-    static uint64_t init_carry(uint64_t const * data, size_type word_pos)
+    template <class WordIterator>
+    static uint64_t init_carry(WordIterator data, size_type word_pos)
     {
         return word_pos ? (*(data - 1) >> 63) : 0;
     }
