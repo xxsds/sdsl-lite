@@ -130,14 +130,14 @@ private:
                 std::cerr << "int_vector_mapper: error closing file mapping'" << m_file_name << "': " << ret
                           << std::endl;
             }
-            if (m_delete_on_close)
+        }
+        if (m_delete_on_close && (m_fd != -1 || m_mapped_data))
+        {
+            int ret_code = sdsl::remove(m_file_name);
+            if (ret_code != 0)
             {
-                int ret_code = sdsl::remove(m_file_name);
-                if (ret_code != 0)
-                {
-                    std::cerr << "int_vector_mapper: error deleting file '" << m_file_name << "': " << ret_code
-                              << std::endl;
-                }
+                std::cerr << "int_vector_mapper: error deleting file '" << m_file_name << "': " << ret_code
+                          << std::endl;
             }
         }
         m_mapped_data = nullptr;
@@ -189,6 +189,16 @@ public:
         }
 
         m_file_size_bytes = util::file_size(m_file_name);
+        // int_vector reads whole 64-bit words, and serialize writes them.
+        uint64_t const header_bytes = static_cast<uint64_t>(m_data_offset);
+        uint64_t const payload_bytes = ((size_in_bits + 63) >> 6) << 3;
+        if (!is_plain
+            && (size_in_bits > UINT64_MAX - 63 || m_file_size_bytes < header_bytes
+                || m_file_size_bytes - header_bytes < payload_bytes))
+        {
+            throw std::runtime_error("int_vector_mapper: file " + m_file_name
+                                     + " is shorter than the size in its header.");
+        }
 
         if (is_plain)
         {
@@ -228,7 +238,18 @@ public:
         {
             std::string mmap_error =
                 std::string("int_vector_mapper: mmap error. ") + std::string(util::str_from_errno());
+            memory_manager::close_file_for_mmap(m_fd);
+            m_fd = -1;
             throw std::runtime_error(mmap_error);
+        }
+
+        // OS mappings remain valid after closing the file. Writable and RAM
+        // mappings retain their descriptor for resizing and backend dispatch.
+        if (!(t_mode & std::ios_base::out) && !is_ram_file(m_fd))
+        {
+            if (memory_manager::close_file_for_mmap(m_fd) != 0)
+                std::cerr << "int_vector_mapper: error closing mapped file '" << m_file_name << "'" << std::endl;
+            m_fd = -1;
         }
 
         m_wrapper.m_size = size_in_bits;
