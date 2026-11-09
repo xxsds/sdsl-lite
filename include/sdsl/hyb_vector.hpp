@@ -521,6 +521,8 @@ private:
     static uint32_t sum_lanes(descriptor_vector values)
     {
 #if defined(__AVX2__)
+        // PMADDWD widens and adds lane pairs in one step. A plain loop over the lanes also vectorizes, but with
+        // extra widening shuffles, and made select 3-16% and rank up to 8% slower with GCC 16 and Clang 23.
         // Each lane sums at most 64 nine-bit populations, fitting signed 16 bits.
         __m128i sums;
         if constexpr (k_descriptor_lanes == 16)
