@@ -69,13 +69,21 @@ inline constexpr uint8_t iterator_fixed_width = []
 }();
 
 // Whether int_vector<0>::operator[] const uses read_packed_integer_indexed. Measured on Zen 4: it speeds up
-// random reads with Clang; with GCC random reads gain nothing, and GCC -O3 stops versioning sequential index
-// loops for width 1.
+// random reads with Clang, but makes them about 30% slower with GCC 16, and GCC -O3 then stops versioning
+// sequential index loops for width 1. Its uint64_t offset also avoids a second mask that Clang derives for a
+// narrower offset (llvm/llvm-project#233901).
 #if defined(__clang__)
 inline constexpr bool runtime_width_indexed_reader = true;
 #else
 inline constexpr bool runtime_width_indexed_reader = false;
 #endif
+
+// Indexed reads of a fixed width that can cross a word load both words without a branch. From width 5 on, an
+// element crosses a word at least once per 16 positions, too often for the branch to predict well on random
+// access. Measured on Zen 4 with GCC 16 and Clang 23: iterator and vector indexing get 7-70% faster at every
+// such width from 5 to 63. Width 3 is up to 11% slower with GCC.
+template <uint8_t width>
+inline constexpr bool two_word_indexed_read = width >= 5 && 64 % width != 0;
 
 } // namespace detail
 
@@ -226,6 +234,9 @@ private:
     static decltype(auto) element_at(Self & self, size_type idx) noexcept
     {
         assert(idx < self.size());
+        if constexpr (std::is_const_v<Self> && t_width > 0 && detail::two_word_indexed_read<t_width>)
+            return iterator_at(self, idx).read_indexed();
+        else
 #if defined(__clang__) && defined(__x86_64__)
         // Keep indexed reads on the original decoder when specializing iterator scans.
         if constexpr (std::is_const_v<Self> && !(t_width >= 8 && std::has_single_bit(t_width)) && t_width > 1)
@@ -937,6 +948,8 @@ template <class Word>
 inline uint64_t
 read_packed_integer(Word * word,
 #if defined(__clang__) && defined(__x86_64__)
+                    // A uint64_t offset avoids duplicate 32/64-bit induction arithmetic for sub-byte scans
+                    // (the same narrow-mask issue as llvm/llvm-project#233901).
                     std::conditional_t<(t_scan_width > 1 && t_scan_width < 8), uint64_t, uint32_t> offset,
 #else
                     uint32_t offset,
@@ -952,6 +965,8 @@ read_packed_integer(Word * word,
     else
     {
 #if defined(__clang__) && defined(__x86_64__)
+        // Clang otherwise computes the cursor advance before the tail mask for sub-byte widths. Writing the
+        // shift this way makes fixed 2- to 7-bit scans 10-28% faster.
         if constexpr (t_scan_width > 1 && t_scan_width < 8)
             return value | std::rotr(word[1] & bits::lo_set[uint64_t(offset) - (64 - t_scan_width)], offset);
 #endif
@@ -968,6 +983,8 @@ inline uint64_t read_packed_integer_indexed(uint64_t const * word, indexed_offse
 {
     if (width > 64)
         __builtin_unreachable();
+    // With AVX512-VBMI2, Clang vectorizes this branch-free merge into funnel shifts. On AVX2-only x86 it becomes
+    // a scalar SHRD by CL, and the branchy reader below is 23-50% faster for sums.
 #if !defined(__clang__) || !defined(__x86_64__) || defined(__AVX512VBMI2__)
     if constexpr (runtime_width_indexed_reader)
     {
@@ -1035,6 +1052,7 @@ public:
      * \param x 64bit integer to assign
      * \return A const_reference to the assigned reference
      */
+    // GCC outlines this in large translation units, and the call then reloads the proxy fields from the stack.
     [[gnu::always_inline]] int_vector_reference & operator=(value_type x) noexcept
     {
         auto width = detail::iterator_fixed_width<t_int_vector> ? detail::iterator_fixed_width<t_int_vector> : m_len;
@@ -1053,8 +1071,11 @@ public:
     };
 
     //! Cast the reference to a int_vector<>::value_type
+    // GCC stops inlining this once a large client exhausts its inline-unit-growth budget.
     [[gnu::always_inline]] operator value_type() const noexcept
     {
+        // Passing the fixed width helps Clang. GCC 13 then clones a crossing iteration in jump threading and
+        // misjudges its probability, which made -O3 reverse scans 60% slower, so GCC keeps the runtime width.
 #if defined(__clang__) && defined(__x86_64__)
         if constexpr (detail::iterator_fixed_width<t_int_vector> > 1 && detail::iterator_fixed_width<t_int_vector> < 8)
             return detail::read_packed_integer<detail::iterator_fixed_width<t_int_vector>>(
@@ -1139,6 +1160,7 @@ public:
 
 // For C++11
 template <class t_int_vector>
+// Clang otherwise leaves this out of line in sorts. Forcing it inline with GCC makes -O3 sorts 8-39% slower.
 #if defined(__clang__) && defined(__x86_64__)
 [[gnu::always_inline]]
 #endif
@@ -1404,21 +1426,22 @@ public:
         return it -= i;
     }
 
+    friend Derived operator+(difference_type i, Derived const & it)
+    {
+        return it + i;
+    }
+
+    friend difference_type operator-(Derived const & x, Derived const & y) noexcept
+    {
+        return x.m_position >= y.m_position ? difference_type((x.m_position - y.m_position) / x.len())
+                                            : -difference_type((y.m_position - x.m_position) / x.len());
+    }
+
     decltype(auto) operator[](difference_type i) const
     {
         auto const & self = static_cast<Derived const &>(*this);
         Derived it = self;
         it.m_position += uint64_t(i) * self.len();
-#if defined(__clang__) && defined(__x86_64__) && defined(__BMI2__) && !defined(__AVX512VBMI2__)
-        if constexpr (std::is_const_v<Vector>
-                      && (detail::iterator_fixed_width<std::remove_const_t<Vector>> == 61
-                          || detail::iterator_fixed_width<std::remove_const_t<Vector>> == 63))
-            return (__builtin_constant_p(i) && i == 0)
-                        || (__builtin_constant_p(self.m_position) && self.m_position == 0)
-                     ? it.read_indexed()
-                     : it.read_iterator_indexed();
-        else
-#endif
             if constexpr (std::is_const_v<Vector>)
             return it.read_indexed();
         else
@@ -1500,20 +1523,7 @@ public:
         return reference(m_base + m_position / 64, m_position % 64, len());
     }
 
-    using base_type::operator-;
-    difference_type operator-(int_vector_iterator const & it) const noexcept
-    {
-        return m_position >= it.m_position ? difference_type((m_position - it.m_position) / len())
-                                           : -difference_type((it.m_position - m_position) / len());
-    }
 };
-
-template <class t_int_vector>
-inline int_vector_iterator<t_int_vector> operator+(typename int_vector_iterator<t_int_vector>::difference_type n,
-                                                   int_vector_iterator<t_int_vector> const & it)
-{
-    return it + n;
-}
 
 template <class t_int_vector>
 class int_vector_const_iterator :
@@ -1533,9 +1543,6 @@ public:
     typedef typename t_int_vector::size_type size_type;
     typedef typename t_int_vector::difference_type difference_type;
 
-    template <class X>
-    friend typename int_vector_const_iterator<X>::difference_type operator-(int_vector_const_iterator<X> const & x,
-                                                                            int_vector_const_iterator<X> const & y);
     friend class int_vector_iterator<t_int_vector>;
     friend class int_vector_iterator_base<t_int_vector>;
 
@@ -1549,6 +1556,7 @@ public:
     int_vector_const_iterator(int_vector_const_iterator const &) = default;
     int_vector_const_iterator & operator=(int_vector_const_iterator const &) = default;
 
+    // Same inline budget as int_vector_reference's conversion.
     [[gnu::always_inline]] const_reference operator*() const
     {
         if constexpr (detail::iterator_fixed_width<t_int_vector> == 1)
@@ -1573,59 +1581,23 @@ private:
     }
 #endif
 
-#if defined(__clang__) && defined(__x86_64__) && defined(__BMI2__) && !defined(__AVX512VBMI2__)
-    const_reference read_iterator_indexed() const
-    {
-        if constexpr (detail::iterator_fixed_width<t_int_vector> == 63)
-        {
-            auto offset = m_position % 64;
-            uint64_t first = m_base[m_position / 64];
-            uint64_t last = m_base[(m_position + 62) / 64];
-            // At offset zero, both loads address the same word.
-            return ((first >> offset) | (last << ((64 - offset) % 64))) & bits::lo_set[63];
-        }
-        else if constexpr (detail::iterator_fixed_width<t_int_vector> == 61)
-        {
-            auto word = m_base + m_position / 64;
-            constexpr auto width = detail::iterator_fixed_width<t_int_vector>;
-            auto offset = m_position % 64;
-            uint64_t value;
-            // SHRX masks its count; keep the word load independent of the boundary-test offset.
-            __asm__("{shrxq %2, %1, %0|shrx %0, %1, %2}" : "=r"(value) : "r"(word[0]), "r"(m_position));
-            if (offset > 64u - width)
-                value |= word[1] << (64 - offset);
-            return value & bits::lo_set[width];
-        }
-        else
-            return read_indexed();
-    }
-#endif
 
     const_reference read_indexed() const
     {
-        if constexpr (detail::iterator_fixed_width<t_int_vector> == 1)
+        constexpr auto width = detail::iterator_fixed_width<t_int_vector>;
+        if constexpr (width > 0 && detail::two_word_indexed_read<width>)
+        {
+            auto const offset = m_position % 64;
+            uint64_t const low = m_base[m_position / 64];
+            uint64_t const high = m_base[(m_position + width - 1) / 64];
+            return ((low >> offset) | (high << ((64 - offset) % 64))) & bits::lo_set[width];
+        }
+        else if constexpr (width == 1)
             return (m_base[m_position / 64] >> (m_position % 64)) & 1;
         else
             return detail::read_packed_integer_indexed(m_base + m_position / 64, uint32_t(m_position % 64), len());
     }
 };
-
-template <class t_int_vector>
-inline typename int_vector_const_iterator<t_int_vector>::difference_type
-operator-(int_vector_const_iterator<t_int_vector> const & x, int_vector_const_iterator<t_int_vector> const & y)
-{
-    using difference_type = typename int_vector_const_iterator<t_int_vector>::difference_type;
-    return x.m_position >= y.m_position ? difference_type((x.m_position - y.m_position) / x.len())
-                                        : -difference_type((y.m_position - x.m_position) / x.len());
-}
-
-template <class t_int_vector>
-inline int_vector_const_iterator<t_int_vector>
-operator+(typename int_vector_const_iterator<t_int_vector>::difference_type n,
-          int_vector_const_iterator<t_int_vector> const & it)
-{
-    return it + n;
-}
 
 template <class t_bv>
 inline typename std::enable_if<std::is_same<typename t_bv::index_category, bv_tag>::value, std::ostream &>::type
