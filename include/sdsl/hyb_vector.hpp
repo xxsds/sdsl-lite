@@ -554,18 +554,36 @@ private:
             result.ones_before += result.descriptor.ones * preceding;
             return result;
         }
-        if constexpr (std::has_single_bit(k_sblock_rate) && k_sblock_rate >= 8 && k_sblock_rate <= 1024)
+        if constexpr (k_sblock_rate >= k_descriptor_lanes && k_sblock_rate <= 1024)
         {
             descriptor_vector indices{};
             for (uint32_t lane = 0; lane < k_descriptor_lanes; ++lane)
                 indices[lane] = lane;
             descriptor_vector sizes{}, populations{};
-            for (size_type j = 0; j < k_sblock_rate; j += k_descriptor_lanes)
+            // Whole chunks only: a load never reads past this superblock's descriptors.
+            for (size_type j = 0; j + k_descriptor_lanes <= k_sblock_rate; j += k_descriptor_lanes)
             {
                 descriptor_vector values;
+                assert(2 * j + sizeof(values) <= descriptors.size());
                 std::memcpy(&values, &descriptors[2 * j], sizeof(values));
                 values &=
                     static_cast<descriptor_vector>(indices + static_cast<uint16_t>(j) < static_cast<uint16_t>(preceding));
+                auto decoded = decode_block(values);
+                sizes += decoded.payload_bytes;
+                populations += decoded.ones;
+            }
+            // For a rate that is not a multiple of the lane count, add one more chunk that
+            // ends at the last descriptor, masking off the lanes the loop already summed.
+            constexpr size_type full = k_sblock_rate / k_descriptor_lanes * k_descriptor_lanes;
+            if constexpr (full != k_sblock_rate)
+            {
+                constexpr size_type last = k_sblock_rate - k_descriptor_lanes;
+                descriptor_vector values;
+                static_assert(2 * last + sizeof(values) == 2 * k_sblock_rate);
+                std::memcpy(&values, &descriptors[2 * last], sizeof(values));
+                auto lane = indices + static_cast<uint16_t>(last);
+                values &= static_cast<descriptor_vector>((lane >= static_cast<uint16_t>(full))
+                                                         & (lane < static_cast<uint16_t>(preceding)));
                 auto decoded = decode_block(values);
                 sizes += decoded.payload_bytes;
                 populations += decoded.ones;
