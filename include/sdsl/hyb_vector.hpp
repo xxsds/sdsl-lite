@@ -96,7 +96,7 @@ public:
     friend class select_support_hyb<0, k_sblock_rate>;
 
 private:
-    static uint32_t const k_block_size;
+    static constexpr uint32_t k_block_size = 256;
     static constexpr uint32_t k_block_bytes = 32;
     static constexpr uint32_t k_sblock_prefix_size = 2 * sizeof(uint32_t);
     static uint32_t const k_sblock_header_size;
@@ -106,12 +106,13 @@ private:
     // superblock whose blocks are all zeros or all ones.
     static constexpr uint32_t k_relative_offset_bits = 30;
     static constexpr uint32_t k_uniform_mask = uint32_t{1} << 31;
-    // A 16-bit block descriptor holds the block population in bits 0-8, a special bit in bit 9 and the payload
-    // size in bytes from bit 10.
-    static constexpr uint32_t k_population_mask = 0x1ff;
-    static constexpr uint32_t k_special_bit_shift = 9;
+    // A 16-bit block descriptor holds the block population (0 to k_block_size) in its low bits, then a special
+    // bit, then the payload size in bytes.
+    static constexpr uint32_t k_population_bits = std::bit_width(k_block_size);
+    static constexpr uint32_t k_population_mask = bits::lo_set[k_population_bits];
+    static constexpr uint32_t k_special_bit_shift = k_population_bits;
     static constexpr uint32_t k_special_bit_mask = uint32_t{1} << k_special_bit_shift;
-    static constexpr uint32_t k_payload_size_shift = 10;
+    static constexpr uint32_t k_payload_size_shift = k_special_bit_shift + 1;
 
     size_type m_size = 0;           // original bitvector size
     int_vector<8> m_trunk;          // body of encoded blocks
@@ -861,8 +862,6 @@ public:
     }
 };
 
-template <uint32_t k_sblock_rate>
-uint32_t const hyb_vector<k_sblock_rate>::k_block_size = 256;
 template <uint32_t k_sblock_rate>
 uint32_t const hyb_vector<k_sblock_rate>::k_sblock_header_size = k_sblock_prefix_size + 2 * k_sblock_rate;
 template <uint32_t k_sblock_rate>
