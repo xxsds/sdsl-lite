@@ -570,7 +570,8 @@ private:
                 indices[lane] = lane;
             descriptor_vector sizes{}, populations{};
             // Whole chunks only: a load never reads past this superblock's descriptors.
-            for (size_type j = 0; j + k_descriptor_lanes <= k_sblock_rate; j += k_descriptor_lanes)
+            constexpr size_type full = k_sblock_rate / k_descriptor_lanes * k_descriptor_lanes;
+            for (size_type j = 0; j < full; j += k_descriptor_lanes)
             {
                 descriptor_vector values;
                 assert(2 * j + sizeof(values) <= descriptors.size());
@@ -583,7 +584,6 @@ private:
             }
             // For a rate that is not a multiple of the lane count, add one more chunk that
             // ends at the last descriptor, masking off the lanes the loop already summed.
-            constexpr size_type full = k_sblock_rate / k_descriptor_lanes * k_descriptor_lanes;
             if constexpr (full != k_sblock_rate)
             {
                 constexpr size_type last = k_sblock_rate - k_descriptor_lanes;
