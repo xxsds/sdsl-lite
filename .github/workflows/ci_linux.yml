@@ -32,8 +32,14 @@ jobs:
         build_type: ["RelWithDebInfo"]
         include:
           - toolchain: "clang-latest"
+            build_type: "RelWithDebInfo"
+            cxx_flags: "-mavx2"
+          - toolchain: "clang-latest"
             cereal: "ON"
             build_type: "Release"
+          - toolchain: "gcc-latest"
+            build_type: "RelWithDebInfo"
+            cxx_flags: "-mavx2"
           - toolchain: "gcc-latest"
             cereal: "ON"
             build_type: "Release"
@@ -62,7 +68,7 @@ jobs:
                    -DCMAKE_C_COMPILER_LAUNCHER=ccache \
                    -DCMAKE_CXX_LINKER_LAUNCHER=ccache \
                    -DCMAKE_C_LINKER_LAUNCHER=ccache \
-                   -DCMAKE_CXX_FLAGS="-pedantic -Wall -Wextra -Werror" \
+                   -DCMAKE_CXX_FLAGS="-pedantic -Wall -Wextra -Werror ${{ matrix.cxx_flags }}" \
                    -DCMAKE_CXX_STANDARD=20 \
                    -DSDSL_CEREAL=${{ matrix.cereal }}
           make gtest_build
