@@ -12,6 +12,18 @@ namespace sdsl
 // An input file stream that also maps the whole file read-only.
 // Loaders of types with view storage take their payloads from mapper()
 // instead of copying them. Types with owned storage read the stream as usual.
+//
+// The views are only as immutable as the file. The mapping is shared
+// (MAP_SHARED on POSIX) and lives as long as any view of it, also after the
+// stream is closed or the file is removed. Until then the file must not be
+// changed in place or truncated: views see writes to it, and reading a view
+// whose pages were truncated away raises SIGBUS. Replace the file by renaming
+// a new one over it instead; existing views keep the old contents.
+//
+// The stream and the mapping open the file by name separately. If the file is
+// replaced in between, they refer to different files. Loading then still stays
+// within the mapping (or throws), but may combine headers read from one file
+// with payloads from the other.
 class shared_mapper_ifstream : public std::ifstream
 {
 public:
