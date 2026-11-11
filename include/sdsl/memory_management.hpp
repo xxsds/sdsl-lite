@@ -35,6 +35,17 @@
 
 #include <sys/mman.h> // IWYU pragma: keep
 
+#if defined(__SANITIZE_ADDRESS__)
+#    define SDSL_ASAN_UNPOISON(address, size) ASAN_UNPOISON_MEMORY_REGION(address, size)
+#elif defined(__has_feature)
+#    if __has_feature(address_sanitizer)
+#        define SDSL_ASAN_UNPOISON(address, size) ASAN_UNPOISON_MEMORY_REGION(address, size)
+#    endif
+#endif
+#ifdef SDSL_ASAN_UNPOISON
+#    include <sanitizer/asan_interface.h>
+#endif
+
 namespace sdsl
 {
 
@@ -954,6 +965,17 @@ public:
         return -1;
     }
 
+#ifndef _WIN32
+    // Indexed int_vector reads load up to 7 bytes after an element (detail::single_load_indexed_read). A file
+    // mapping is readable up to the end of its last page, so only a file that ends on a page boundary needs
+    // one more page behind it.
+    static uint64_t mapping_tail_bytes(uint64_t file_size)
+    {
+        auto const page_size = static_cast<uint64_t>(sysconf(_SC_PAGESIZE));
+        return file_size % page_size == 0 ? page_size : 0;
+    }
+#endif
+
     static void * mmap_file(int fd, uint64_t file_size, std::ios_base::openmode mode)
     {
         if (file_size == 0)
@@ -966,6 +988,11 @@ public:
             if (ram_fs::file_size(fd) < file_size)
                 return nullptr;
             auto & file_content = ram_fs::content(fd);
+#ifdef SDSL_ASAN_UNPOISON
+            // The 8 bytes behind the content are allocated (track_allocator::allocate), but a standard library
+            // can mark unused vector capacity as unreadable.
+            SDSL_ASAN_UNPOISON(file_content.data() + file_content.size(), sizeof(uint64_t));
+#endif
             return file_content.data();
         }
         memory_monitor::record(file_size);
@@ -1000,11 +1027,28 @@ public:
         CloseHandle(fm);
         return map;
 #else
-        void * map = nullptr;
-        if (!(mode & std::ios_base::out))
-            map = mmap(NULL, file_size, PROT_READ, MAP_SHARED, fd, 0);
+        int const protection = (mode & std::ios_base::out) ? PROT_READ | PROT_WRITE : PROT_READ;
+        uint64_t const tail = mapping_tail_bytes(file_size);
+        void * map = MAP_FAILED;
+        if (tail == 0)
+        {
+            map = mmap(NULL, file_size, protection, MAP_SHARED, fd, 0);
+        }
         else
-            map = mmap(NULL, file_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+        {
+            // Reserve the file's range and one anonymous page, then map the file over the front of it.
+            void * reserved = mmap(NULL, file_size + tail, PROT_READ, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+            if (reserved != MAP_FAILED)
+            {
+                map = mmap(reserved, file_size, protection, MAP_SHARED | MAP_FIXED, fd, 0);
+                if (map == MAP_FAILED)
+                {
+                    int const mmap_errno = errno;
+                    munmap(reserved, file_size + tail);
+                    errno = mmap_errno;
+                }
+            }
+        }
         if (map == MAP_FAILED)
             map = nullptr; // unify windows and unix error behaviour
         return map;
@@ -1028,7 +1072,7 @@ public:
             return 0;
         return -1;
 #else
-        return munmap(addr, size);
+        return munmap(addr, size + mapping_tail_bytes(size));
 #endif
         return -1;
     }
@@ -1065,6 +1109,7 @@ public:
     }
 };
 
+#undef SDSL_ASAN_UNPOISON
 #undef ALIGNMENT
 #undef ALIGNSPLIT
 #undef ALIGN
