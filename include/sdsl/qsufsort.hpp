@@ -228,11 +228,11 @@ private:
         }
 
         v = choose_pivot(p, n);
-        pa = pb = p;         // pa: iterator for equal elements
-        pc = pd = p + n - 1; // pc = right border (inclusive)
+        pa = pb = p;     // pa: iterator for equal elements
+        pc = pd = p + n; // pc = right border (exclusive)
         while (1)
         { /* split-end partition.*/
-            while (pb <= pc && (f = key(pb)) <= v)
+            while (pb < pc && (f = key(pb)) <= v)
             { // go to the right as long as there are keys smaller equal than v
                 if (f == v)
                 {
@@ -241,28 +241,27 @@ private:
                 }
                 ++pb;
             }
-            while (pc >= pb && (f = key(pc)) >= v)
+            while (pc > pb && (f = key(pc - 1)) >= v)
             { // go to the left as long as there are keys bigger or equal to v
+                --pc;
                 if (f == v)
                 {
-                    swap(pc, pd);
-                    --pd; // swap equal chars to the right end
+                    --pd;
+                    swap(pc, pd); // swap equal chars to the right end
                 }
-                --pc;
             }
-            if (pb > pc)
+            if (pb == pc)
                 break;
-            swap(pb,
-                 pc); // swap element > v (pb) to the third part and element < v (pc) to the second
-            ++pb;
             --pc;
+            swap(pb, pc); // swap element > v (pb) to the third part and element < v (pc) to the second
+            ++pb;
         }
         pn = p + n;
         if ((s = pa - p) > (t = pb - pa))
             s = t;
         for (pl = p, pm = pb - s; s; --s, ++pl, ++pm)
             swap(pl, pm);
-        if ((s = pd - pc) > (t = pn - pd - 1))
+        if ((s = pd - pc) > (t = pn - pd))
             s = t;
         for (pl = pb, pm = pn - s; s; --s, ++pl, ++pm)
             swap(pl, pm);
@@ -310,8 +309,9 @@ private:
             x[i] = p[c = x[i]]; /* insert in linked list.*/
             p[c] = i;
         }
-        for (pi = p + k - 1, i = n; pi >= p; --pi)
+        for (pi = p + k, i = n; pi != p;)
         {
+            --pi;
             d = x[c = *pi]; /* c is position, d is next in list.*/
             x[c] = g = i;   /* last position equals group number.*/
             if (not_neg(d))
