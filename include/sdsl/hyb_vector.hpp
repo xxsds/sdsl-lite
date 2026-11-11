@@ -511,8 +511,12 @@ private:
 #if defined(__AVX2__)
     // Favor the default rate's shorter reduction; widen only for larger superblocks.
     static constexpr uint32_t k_descriptor_lanes = k_sblock_rate >= 64 ? 16 : 8;
+    // sum_lanes reads each lane as a signed 16-bit value (PMADDWD).
+    static constexpr uint32_t k_lane_sum_limit = INT16_MAX;
 #else
     static constexpr uint32_t k_descriptor_lanes = 8;
+    // Lanes accumulate in uint16_t.
+    static constexpr uint32_t k_lane_sum_limit = UINT16_MAX;
 #endif
     using lanes128 [[gnu::vector_size(16)]] = uint16_t;
     using lanes256 [[gnu::vector_size(32)]] = uint16_t;
@@ -573,6 +577,10 @@ private:
             descriptor_vector sizes{}, populations{};
             // Whole chunks only: a load never reads past this superblock's descriptors.
             constexpr size_type full = k_sblock_rate / k_descriptor_lanes * k_descriptor_lanes;
+            // The queried block is never summed, so a lane sums at most ceil((rate - 1) / lanes) populations.
+            constexpr size_type descriptors_per_lane = (k_sblock_rate + k_descriptor_lanes - 2) / k_descriptor_lanes;
+            static_assert(descriptors_per_lane * k_block_size <= k_lane_sum_limit,
+                          "Descriptor population sums overflow a 16-bit lane.");
             for (size_type j = 0; j < full; j += k_descriptor_lanes)
             {
                 descriptor_vector values;
