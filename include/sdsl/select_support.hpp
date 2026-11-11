@@ -32,6 +32,8 @@ class structure_tree_node;
 template <class Vector>
 class select_support_base
 {
+    static_assert(Vector::fixed_int_width == 1, "select_support_base: Vector must be a bit vector of fixed width 1");
+
 protected:
     Vector const * m_v; //!< Pointer to the select supported sdsl::bit_vector.
 

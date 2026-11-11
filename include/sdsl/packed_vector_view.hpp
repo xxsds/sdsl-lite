@@ -41,6 +41,8 @@ public:
     using size_type = uint64_t;
     using value_type = uint64_t;
     using difference_type = ptrdiff_t;
+    // As int_vector: the width if it is fixed, otherwise 0.
+    static constexpr uint8_t fixed_int_width = Width;
     packed_vector_view() = default;
     packed_vector_view(packed_vector_view const &) = default;
     packed_vector_view(packed_vector_view && v) noexcept
