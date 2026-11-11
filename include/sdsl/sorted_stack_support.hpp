@@ -52,6 +52,10 @@ private:
     }; // TODO: maybe we can speed this up with bit hacks
 
 public:
+    //! Default constructor, equivalent to sorted_stack_support(0).
+    sorted_stack_support() : sorted_stack_support(0)
+    {}
+
     //! Constructor
     /*!\param n Maximum that can be pushed onto the stack
      */
