@@ -5,6 +5,7 @@
 #define INCLUDED_SDSL_BIT_VECTOR_HELPER
 
 #include <cassert>
+#include <cstdint>
 #include <cstring>
 #include <span>
 #include <type_traits>
@@ -31,6 +32,12 @@ inline void write_unaligned(std::span<T, extent> data, Value value, size_t index
     assert(index < data.size_bytes() / sizeof(Value));
     auto bytes = std::as_writable_bytes(data);
     std::memcpy(&bytes[sizeof(Value) * index], &value, sizeof(value));
+}
+
+template <typename T, size_t extent>
+inline bool access_in_words(std::span<T, extent> data, uint64_t position)
+{
+    return (read_unaligned<uint64_t>(data, position / 64) >> (position % 64)) & 1;
 }
 
 } // namespace sdsl::detail
