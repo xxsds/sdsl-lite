@@ -7,6 +7,8 @@
 #include <sdsl/rank_support_v.hpp>
 #include <sdsl/rrr_vector.hpp>
 
+#include "common.hpp"
+
 #include <gtest/gtest.h>
 
 namespace
@@ -438,33 +440,13 @@ TYPED_TEST(k2_tree_test, serialize_test)
 }
 
 #if SDSL_HAS_CEREAL
-template <typename in_archive_t, typename out_archive_t, typename TypeParam>
-void do_serialisation(TypeParam const & l)
-{
-    std::stringstream ss;
-    {
-        out_archive_t oarchive{ss};
-        oarchive(l);
-    }
-
-    {
-        TypeParam in_l{};
-        in_archive_t iarchive{ss};
-        iarchive(in_l);
-        EXPECT_EQ(l, in_l);
-    }
-}
-
 TYPED_TEST(k2_tree_test, cereal)
 {
     vector<vector<int>> mat({{1, 0, 0, 0, 1}, {0, 0, 0, 0, 0}, {0, 0, 1, 1, 0}, {0, 0, 0, 0, 0}, {0, 0, 1, 0, 1}});
 
     TypeParam k2tree(mat);
 
-    do_serialisation<cereal::BinaryInputArchive, cereal::BinaryOutputArchive>(k2tree);
-    do_serialisation<cereal::PortableBinaryInputArchive, cereal::PortableBinaryOutputArchive>(k2tree);
-    do_serialisation<cereal::JSONInputArchive, cereal::JSONOutputArchive>(k2tree);
-    do_serialisation<cereal::XMLInputArchive, cereal::XMLOutputArchive>(k2tree);
+    test_cereal_archives(k2tree);
 }
 #endif // SDSL_HAS_CEREAL
 

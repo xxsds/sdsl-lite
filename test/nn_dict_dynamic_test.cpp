@@ -5,6 +5,8 @@
 #include <sdsl/nn_dict_dynamic.hpp>
 #include <sdsl/util.hpp>
 
+#include "common.hpp"
+
 #include <gtest/gtest.h>
 
 namespace
@@ -168,24 +170,6 @@ TEST_F(nn_dict_dynamic_test, serialize_and_load)
 }
 
 #if SDSL_HAS_CEREAL
-template <typename in_archive_t, typename out_archive_t>
-void do_serialisation(sdsl::nn_dict_dynamic const & l, std::string const & temp_file)
-{
-    {
-        std::ofstream os{temp_file, std::ios::binary};
-        out_archive_t oarchive{os};
-        oarchive(l);
-    }
-
-    {
-        sdsl::nn_dict_dynamic in_l(0);
-        std::ifstream is{temp_file, std::ios::binary};
-        in_archive_t iarchive{is};
-        iarchive(in_l);
-        EXPECT_EQ(l, in_l);
-    }
-}
-
 TEST_F(nn_dict_dynamic_test, cereal)
 {
     if (temp_dir != "@/")
@@ -215,10 +199,7 @@ TEST_F(nn_dict_dynamic_test, cereal)
             sdsl::store_to_file(nndd, file_name);
         }
 
-        do_serialisation<cereal::BinaryInputArchive, cereal::BinaryOutputArchive>(nndd, file_name);
-        do_serialisation<cereal::PortableBinaryInputArchive, cereal::PortableBinaryOutputArchive>(nndd, file_name);
-        do_serialisation<cereal::JSONInputArchive, cereal::JSONOutputArchive>(nndd, file_name);
-        do_serialisation<cereal::XMLInputArchive, cereal::XMLOutputArchive>(nndd, file_name);
+        test_cereal_archives(nndd);
 
         sdsl::remove(file_name);
     }

@@ -7,13 +7,7 @@
 #    include <iso646.h>
 #endif
 
-// this has to be declared before gtest is included
-template <class T>
-std::ostream & operator<<(std::ostream & os, std::pair<T, T> const & v)
-{
-    os << "[" << v.first << ", " << v.second << "]";
-    return os;
-}
+#include "common.hpp" // declares operator<< for std::pair before it includes gtest
 
 #include <gtest/gtest.h>
 
