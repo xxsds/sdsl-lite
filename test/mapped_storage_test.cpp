@@ -261,7 +261,8 @@ void for_each_bits(Check check)
 {
     unsigned seed = 1;
     // Below 100000 bits MCL uses its slow construction, above it the fast one.
-    for (uint64_t size : {0ull, 1ull, 64ull, 2049ull, 5000ull, 300000ull})
+    // 4096 ends at a superblock of rank_support_v (512 bits) and rank_support_v5 (2048 bits).
+    for (uint64_t size : {0ull, 1ull, 64ull, 2049ull, 4096ull, 5000ull, 300000ull})
         for (double density : {0.001, 0.5, 0.999})
             check(random_bits(size, density, seed++));
 }
@@ -298,16 +299,28 @@ TEST_F(mapped_storage_test, select_over_mapped_view)
     using V = packed_vector_view<1>;
     auto check = [&]<uint8_t t_b, uint8_t t_pat_len>(sdsl::bit_vector const & bits)
     {
-        write(bits, 3);
+        using Select = sdsl::select_support_mcl<t_b, t_pat_len, V>;
+        sdsl::select_support_mcl<t_b, t_pat_len> reference(&bits);
+        {
+            std::ostringstream out;
+            out << "xyz";
+            bits.serialize(out);
+            reference.serialize(out);
+            std::ofstream(file, std::ios::binary) << out.str();
+        }
         V mapped;
+        Select loaded; // Its samples are copied from the mapped stream.
         sdsl::shared_mapper_ifstream in(file, std::ios::binary);
         in.seekg(3);
         mapped.load(in);
-        sdsl::select_support_mcl<t_b, t_pat_len, V> select(&mapped);
+        loaded.load(in, &mapped);
+        ASSERT_TRUE(in);
+        Select select(&mapped);
         sdsl::select_support_scan<t_b, t_pat_len, V> scan(&mapped);
-        sdsl::select_support_mcl<t_b, t_pat_len> reference(&bits);
         EXPECT_EQ(serialized(reference), serialized(select));
+        EXPECT_EQ(serialized(reference), serialized(loaded));
         check_select(bits, mapped, select);
+        check_select(bits, mapped, loaded);
         auto const positions = pattern_positions<decltype(select)>(bits);
         for (uint64_t i = 0; i < std::min<uint64_t>(positions.size(), 100); ++i)
             ASSERT_EQ(positions[i], scan.select(i + 1));
