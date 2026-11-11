@@ -227,6 +227,8 @@ void check_support_storage(std::string const & file, sdsl::bit_vector const & bi
             mapped_bits.load(in);
             mapped.load(in, &mapped_bits);
             ASSERT_TRUE(in);
+            // The stream, the bit vector and the rank samples share the mapping.
+            ASSERT_EQ(3, in.mapper().use_count());
             ASSERT_EQ(prefix + serialized(owned_bits).size() + ref_bytes.size(), static_cast<size_t>(in.tellg()));
         }
         {
