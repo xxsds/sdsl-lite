@@ -20,7 +20,10 @@ namespace sdsl
 {
 // Immutable packed storage. Payloads contain whole 64-bit words but need not
 // be aligned in memory. Copies retain the shared storage. Iterators and
-// rank/select supports borrow the view object, which must outlive them.
+// rank/select supports refer to the view object, not to its storage: the
+// object must outlive them, and once it is moved from they see an empty view,
+// although the storage lives on in the moved-to view. Iterators of int_vector
+// follow the storage instead.
 // No mutable access is exposed. load() and serialize() use the int_vector<Width>
 // format; load() maps the payload from a shared_mapper_ifstream and copies it
 // from any other stream.
