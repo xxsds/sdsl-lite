@@ -1547,7 +1547,7 @@ inline int_vector<t_width>::int_vector(int_vector const & v) :
     m_width(v.m_width)
 {
     width(v.m_width);
-    resize(v.size());
+    bit_resize(v.bit_size());
     if (v.m_size > 0)
     {
         if (memcpy(m_data, v.data(), bit_data_size() << 3) == nullptr)
