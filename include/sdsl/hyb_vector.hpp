@@ -121,15 +121,6 @@ private:
     int_vector<8> m_sblock_header;  // sblock headers
     int_vector<64> m_hblock_header; // hblock headers
 
-    //! Reads a 64-bit word from m_trunk, where encoded blocks start at arbitrary byte offsets.
-    static uint64_t read_trunk_word(uint8_t const * ptr)
-    {
-        uint64_t word;
-        std::memcpy(&word, ptr, sizeof(word));
-        return word;
-    }
-
-
 public:
     //! Default constructor
     hyb_vector() = default;
