@@ -102,6 +102,45 @@ TEST_F(lcp_construct_test, construct_lcp)
     }
 }
 
+void check_byte_alphabet(void (*construct)(cache_config &))
+{
+    for (size_t max_symbol : {254, 255})
+        for (size_t repetitions : {1, 3})
+        {
+            cache_config config(false, temp_dir, "alphabet_" + to_string(util::pid()));
+            // 255 nonzero symbols plus the sentinel require an alphabet size of 256.
+            // Repetition also exercises the second phase for LCP values above 254.
+            int_vector<8> text(max_symbol * repetitions + 1, 0);
+            for (size_t i = 0; i + 1 < text.size(); ++i)
+                text[i] = i % max_symbol + 1;
+            ASSERT_TRUE(store_to_cache(text, conf::KEY_TEXT, config));
+            int_vector<> sa(text.size(), 0, bits::hi(text.size()) + 1);
+            algorithm::calculate_sa(reinterpret_cast<unsigned char const *>(text.data()), text.size(), sa);
+            ASSERT_TRUE(store_to_cache(sa, conf::KEY_SA, config));
+            construct_bwt<8>(config);
+            construct_lcp_kasai<8>(config);
+            int_vector<> expected;
+            ASSERT_TRUE(load_from_cache(expected, conf::KEY_LCP, config));
+            construct(config);
+            int_vector<> actual;
+            ASSERT_TRUE(load_from_cache(actual, conf::KEY_LCP, config));
+            ASSERT_EQ(expected.size(), actual.size());
+            for (size_t i = 0; i < expected.size(); ++i)
+                ASSERT_EQ(expected[i], actual[i]) << max_symbol << ':' << repetitions << ':' << i;
+            util::delete_all_files(config.file_map);
+        }
+}
+
+TEST(lcp_construct_alphabet_test, go_all_byte_values)
+{
+    check_byte_alphabet(construct_lcp_go);
+}
+
+TEST(lcp_construct_alphabet_test, goPHI_all_byte_values)
+{
+    check_byte_alphabet(construct_lcp_goPHI);
+}
+
 } // namespace
 
 int main(int argc, char ** argv)

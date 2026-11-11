@@ -364,7 +364,7 @@ inline void construct_lcp_go(cache_config & config)
     for (size_type i = 0; i < 256; ++i)
         prev_occ_in_bwt[i] = (size_type)-1; // initialize the array with -1
     unsigned char alphabet[257] = {0};
-    uint8_t sigma = 0;
+    uint16_t sigma = 0; // Up to 256 symbols, including the sentinel.
 
     tLI m_list[2][256];
     size_type m_char_count[2] = {0};
@@ -752,7 +752,7 @@ inline void construct_lcp_goPHI(cache_config & config)
     for (size_type i = 0; i < 256; ++i)
         prev_occ_in_bwt[i] = (size_type)-1; // initialize the array with -1
     unsigned char alphabet[257] = {0};
-    uint8_t sigma = 0;
+    uint16_t sigma = 0; // Up to 256 symbols, including the sentinel.
 
     size_type nn = 0; // n' for phase 2
     // phase 1: calculate lcp_sml;  memory consumption: 2n bytes (lcp_sml=n bytes, text=n bytes)
