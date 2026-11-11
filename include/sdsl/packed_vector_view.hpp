@@ -26,7 +26,9 @@ namespace sdsl
 // follow the storage instead.
 // No mutable access is exposed. load() and serialize() use the int_vector<Width>
 // format; load() maps the payload from a shared_mapper_ifstream and copies it
-// from any other stream.
+// from any other stream. Only an explicit shared_mapper_ifstream maps:
+// load_from_file() opens an isfstream and therefore copies. There is no cereal
+// support, so types with view storage cannot be serialized with cereal.
 template <uint8_t Width = 0>
 class packed_vector_view : public std::ranges::view_interface<packed_vector_view<Width>>
 {
