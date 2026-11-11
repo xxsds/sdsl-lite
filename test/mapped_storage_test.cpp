@@ -1,12 +1,16 @@
 // Types with view storage read their payloads from a shared_mapper_ifstream
 // without copying them, and behave like the owned types.
 #include <algorithm>
+#include <cerrno>
 #include <cstdio>
 #include <cstring>
 #include <fstream>
 #include <random>
+#include <span>
 #include <sstream>
 #include <string>
+#include <system_error>
+#include <unistd.h>
 #include <vector>
 
 #include <sdsl/packed_vector_view.hpp>
@@ -16,6 +20,8 @@
 #include <sdsl/select_support_scan.hpp>
 #include <sdsl/shared_mapper.hpp>
 #include <sdsl/util.hpp>
+
+#include <sys/mman.h>
 
 #include <gtest/gtest.h>
 
@@ -314,6 +320,27 @@ TEST_F(mapped_storage_test, select_over_mapped_view)
     check.template operator()<10, 2>(bits);
 }
 
+// Copy `size` bytes so that they end right before an inaccessible page. Reading
+// past them then faults in any build, not only under AddressSanitizer.
+std::span<std::byte const> copy_before_guard_page(std::shared_ptr<void const> & owner, void const * data, size_t size)
+{
+    size_t const page = static_cast<size_t>(sysconf(_SC_PAGESIZE));
+    size_t const length = (size + page - 1) / page * page + page;
+    void * const mapping = mmap(nullptr, length, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+    if (mapping == MAP_FAILED)
+        throw std::system_error(errno, std::generic_category(), "mmap");
+    owner = std::shared_ptr<void const>(static_cast<void const *>(mapping),
+                                        [length](void const * p)
+                                        {
+                                            munmap(const_cast<void *>(p), length);
+                                        });
+    auto * const guard = static_cast<std::byte *>(mapping) + length - page;
+    if (mprotect(guard, page, PROT_NONE) != 0)
+        throw std::system_error(errno, std::generic_category(), "mprotect");
+    std::memcpy(guard - size, data, size);
+    return {guard - size, size};
+}
+
 // Views have no padding word after a word-aligned end.
 TEST(packed_vector_view_test, supports_read_no_word_past_the_payload)
 {
@@ -321,9 +348,9 @@ TEST(packed_vector_view_test, supports_read_no_word_past_the_payload)
     for (uint64_t size : {64, 4096, 300032}) // MCL builds fast above 100000 bits
     {
         auto const bits = random_bits(size, 0.5, 7);
-        auto bytes = std::make_shared<std::vector<std::byte>>(size / 8);
-        std::memcpy(bytes->data(), bits.data(), bytes->size());
-        auto const view = V::from_bytes(bytes, *bytes, size);
+        std::shared_ptr<void const> owner;
+        auto const payload = copy_before_guard_page(owner, bits.data(), size / 8);
+        auto const view = V::from_bytes(owner, payload, size);
         auto const ones = sdsl::util::cnt_one_bits(bits);
         EXPECT_EQ(ones, (sdsl::rank_support_v<1, 1, V>(&view).rank(size)));
         EXPECT_EQ(ones, (sdsl::rank_support_v5<1, 1, V>(&view).rank(size)));
