@@ -1,3 +1,6 @@
+#include <algorithm>
+#include <sstream>
+
 #include <sdsl/rrr_vector.hpp>
 #include <sdsl/sd_vector.hpp>
 
@@ -80,6 +83,56 @@ TYPED_TEST(sd_vector_test, builder_empty_constructor)
     {
         ASSERT_FALSE((bool)sdv[i]);
     }
+}
+
+TYPED_TEST(sd_vector_test, lookup_bucket_boundaries)
+{
+    for (uint64_t size : {uint64_t{1}, uint64_t{65}, uint64_t{4097}, (uint64_t{1} << 40) + 65})
+        for (unsigned pattern = 0; pattern < 3; ++pattern)
+        {
+            SCOPED_TRACE(::testing::Message() << size << ":" << pattern);
+            std::vector<uint64_t> positions;
+            if (pattern == 1)
+                positions = {size - 1};
+            else if (pattern == 2)
+            {
+                for (uint64_t value : {uint64_t{0},
+                                       uint64_t{1},
+                                       uint64_t{4},
+                                       uint64_t{5},
+                                       uint64_t{6},
+                                       uint64_t{63},
+                                       uint64_t{64},
+                                       uint64_t{65},
+                                       size / 2,
+                                       size - 1})
+                    if (value < size)
+                        positions.push_back(value);
+                std::sort(positions.begin(), positions.end());
+                positions.erase(std::unique(positions.begin(), positions.end()), positions.end());
+            }
+            sd_vector_builder builder(size, positions.size());
+            for (auto value : positions)
+                builder.set(value);
+            TypeParam original(builder);
+            std::stringstream bytes;
+            original.serialize(bytes);
+            TypeParam restored;
+            restored.load(static_cast<std::istream &>(bytes));
+            std::vector<uint64_t> queries;
+            for (uint64_t i = 0; i < std::min(size, uint64_t{4097}); ++i)
+                queries.push_back(i);
+            for (auto value : positions)
+                for (uint64_t distance = 0; distance < 65 && distance <= value; ++distance)
+                    queries.push_back(value - distance);
+            queries.push_back(size - 1);
+            for (auto query : queries)
+            {
+                bool const expected = std::binary_search(positions.begin(), positions.end(), query);
+                EXPECT_EQ(expected, original[query]);
+                EXPECT_EQ(expected, restored[query]);
+            }
+        }
 }
 
 } // end namespace
