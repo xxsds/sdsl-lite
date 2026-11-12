@@ -669,7 +669,7 @@ void util::set_to_id(t_int_vec & v)
 template <class t_int_vec>
 typename t_int_vec::size_type util::cnt_one_bits(t_int_vec const & v)
 {
-    uint64_t const * data = v.data();
+    auto data = v.data();
     if (v.empty())
         return 0;
     typename t_int_vec::size_type result = bits::cnt(*data);
@@ -687,7 +687,7 @@ typename t_int_vec::size_type util::cnt_one_bits(t_int_vec const & v)
 template <class t_int_vec>
 typename t_int_vec::size_type util::cnt_onezero_bits(t_int_vec const & v)
 {
-    uint64_t const * data = v.data();
+    auto data = v.data();
     if (v.empty())
         return 0;
     uint64_t carry = 0, oldcarry = 0;
@@ -707,7 +707,7 @@ typename t_int_vec::size_type util::cnt_onezero_bits(t_int_vec const & v)
 template <class t_int_vec>
 typename t_int_vec::size_type util::cnt_zeroone_bits(t_int_vec const & v)
 {
-    uint64_t const * data = v.data();
+    auto data = v.data();
     if (v.empty())
         return 0;
     uint64_t carry = 1, oldcarry = 1;

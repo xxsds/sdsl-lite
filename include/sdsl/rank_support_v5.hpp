@@ -12,6 +12,7 @@
 #include <iosfwd>
 #include <stdint.h>
 #include <string>
+#include <type_traits>
 
 #include <sdsl/cereal.hpp>
 #include <sdsl/int_vector.hpp>
@@ -37,19 +38,32 @@ namespace sdsl
  *
  * \tparam t_b       Bit pattern `0`,`1`,`10`,`01` which should be ranked.
  * \tparam t_pat_len Length of the bit pattern.
+ * \tparam Vector    Type of the supported bit vector.
+ * \tparam t_storage Storage of the rank samples, e.g. packed_vector_view.
+ *                   Serialization with cereal requires int_vector.
  *
  * @ingroup rank_support_group
  */
-template <uint8_t t_b = 1, uint8_t t_pat_len = 1>
-class rank_support_v5 : public rank_support
+template <uint8_t t_b = 1,
+          uint8_t t_pat_len = 1,
+          class Vector = bit_vector,
+          template <uint8_t> class t_storage = int_vector>
+class rank_support_v5 : public rank_support_base<Vector>
 {
+protected:
+    using base_type = rank_support_base<Vector>;
+    using base_type::m_v;
+
+public:
+    using size_type = typename base_type::size_type;
+
 private:
     static_assert(t_b == 1u or t_b == 0u or t_b == 10u or t_b == 11u,
                   "rank_support_v5: bit pattern must be `0`,`1`,`10` or `01` or `11`");
     static_assert(t_pat_len == 1u or t_pat_len == 2u, "rank_support_v5: bit pattern length must be 1 or 2");
 
 public:
-    typedef bit_vector bit_vector_type;
+    typedef Vector bit_vector_type;
     typedef rank_support_trait<t_b, t_pat_len> trait_type;
     enum
     {
@@ -62,10 +76,10 @@ public:
 
 private:
     //      basic block for interleaved storage of superblockrank and blockrank
-    int_vector<64> m_basic_block;
+    t_storage<64> m_basic_block;
 
 public:
-    explicit rank_support_v5(bit_vector const * v = nullptr)
+    explicit rank_support_v5(Vector const * v = nullptr)
     {
         set_vector(v);
         if (v == nullptr)
@@ -74,16 +88,15 @@ public:
         }
         else if (v->empty())
         {
-            m_basic_block = int_vector<64>(2, 0);
+            m_basic_block = t_storage<64>(int_vector<64>(2, 0));
             return;
         }
         size_type basic_block_size = (((v->bit_size() + 63) >> 11) + 1) << 1;
-        m_basic_block.resize(basic_block_size); // resize structure for basic_blocks
-        if (m_basic_block.empty())
-            return;
-        uint64_t const * data = m_v->data();
+        // Build owned blocks, then hand them to the storage.
+        int_vector<64> basic_block(basic_block_size); // resize structure for basic_blocks
+        auto data = m_v->data();
         size_type i, j = 0;
-        m_basic_block[0] = m_basic_block[1] = 0;
+        basic_block[0] = basic_block[1] = 0;
 
         uint64_t carry = trait_type::init_carry();
         uint64_t sum = trait_type::args_in_the_word(*data, carry);
@@ -94,8 +107,8 @@ public:
             if (cnt_words == 32)
             {
                 j += 2;
-                m_basic_block[j - 1] = second_level_cnt;
-                m_basic_block[j] = m_basic_block[j - 2] + sum;
+                basic_block[j - 1] = second_level_cnt;
+                basic_block[j] = basic_block[j - 2] + sum;
                 second_level_cnt = sum = cnt_words = 0;
             }
             else if ((cnt_words % 6) == 0)
@@ -113,14 +126,15 @@ public:
         if (cnt_words == 32)
         {
             j += 2;
-            m_basic_block[j - 1] = second_level_cnt;
-            m_basic_block[j] = m_basic_block[j - 2] + sum;
-            m_basic_block[j + 1] = 0;
+            basic_block[j - 1] = second_level_cnt;
+            basic_block[j] = basic_block[j - 2] + sum;
+            basic_block[j + 1] = 0;
         }
         else
         {
-            m_basic_block[j + 1] = second_level_cnt;
+            basic_block[j + 1] = second_level_cnt;
         }
+        m_basic_block = t_storage<64>(std::move(basic_block));
     }
 
     rank_support_v5(rank_support_v5 const &) = default;
@@ -132,10 +146,12 @@ public:
     {
         assert(m_v != nullptr);
         assert(idx <= m_v->size());
-        uint64_t const * p = m_basic_block.data() + ((idx >> 10) & 0xFFFFFFFFFFFFFFFEULL); // (idx/2048)*2
+        auto p = m_basic_block.data() + ((idx >> 10) & 0xFFFFFFFFFFFFFFFEULL); // (idx/2048)*2
         //                     ( prefix sum of the 6x64bit blocks | (idx%2048)/(64*6) )
+        // Unlike int_vector, other vectors have no padding word to read at a word-aligned end.
+        bool const read_word = std::is_same_v<Vector, bit_vector> or (idx & 0x3F);
         size_type result = *p + ((*(p + 1) >> (60 - 12 * ((idx & 0x7FF) / (64 * 6)))) & 0x7FFULL)
-                         + trait_type::word_rank(m_v->data(), idx);
+                         + (read_word ? trait_type::word_rank(m_v->data(), idx) : 0);
         idx -= (idx & 0x3F);
         uint8_t to_do = ((idx >> 6) & 0x1FULL) % 6;
         --idx;
@@ -166,7 +182,7 @@ public:
         return written_bytes;
     }
 
-    void load(std::istream & in, bit_vector const * v = nullptr)
+    void load(std::istream & in, Vector const * v = nullptr)
     {
         set_vector(v);
         m_basic_block.load(in);
@@ -194,7 +210,7 @@ public:
         return !(*this == other);
     }
 
-    void set_vector(bit_vector const * v = nullptr)
+    void set_vector(Vector const * v = nullptr)
     {
         m_v = v;
     }

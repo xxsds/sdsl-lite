@@ -52,9 +52,9 @@ template <class t_int_vector>
 class int_vector_iterator_base;
 template <class t_int_vector>
 class int_vector_reference;
-template <uint8_t, uint8_t>
+template <uint8_t, uint8_t, class = bit_vector, template <uint8_t> class = int_vector>
 class rank_support_v;
-template <uint8_t, uint8_t>
+template <uint8_t, uint8_t, class = bit_vector>
 class select_support_mcl;
 
 namespace detail

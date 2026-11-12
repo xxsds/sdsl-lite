@@ -59,4 +59,4 @@ jobs:
 
       - name: Run tests
         working-directory: ci_build
-        run: ctest . -j --output-on-failure --no-tests=error -E 'faust|moby' -R '\-im'
+        run: ctest . -j --output-on-failure --no-tests=error -E 'faust|moby' -R '\-im|^mapped-storage-test$'

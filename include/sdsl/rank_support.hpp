@@ -27,25 +27,28 @@ class structure_tree_node;
 //! The base class of classes supporting rank_queries for a sdsl::bit_vector in constant time.
 /*!
  */
-class rank_support
+template <class Vector>
+class rank_support_base
 {
+    static_assert(Vector::fixed_int_width == 1, "rank_support_base: Vector must be a bit vector of fixed width 1");
+
 protected:
-    bit_vector const * m_v; //!< Pointer to the rank supported bit_vector
+    Vector const * m_v; //!< Pointer to the rank supported bit_vector
 
 public:
-    typedef bit_vector::size_type size_type;
+    typedef typename Vector::size_type size_type;
 
     //! Constructor
     /*!\param v The supported bit_vector.
      */
-    rank_support(bit_vector const * v = nullptr);
+    rank_support_base(Vector const * v = nullptr);
     //! Copy constructor
-    rank_support(rank_support const &) = default;
-    rank_support(rank_support &&) = default;
-    rank_support & operator=(rank_support const &) = default;
-    rank_support & operator=(rank_support &&) = default;
+    rank_support_base(rank_support_base const &) = default;
+    rank_support_base(rank_support_base &&) = default;
+    rank_support_base & operator=(rank_support_base const &) = default;
+    rank_support_base & operator=(rank_support_base &&) = default;
     //! Destructor
-    virtual ~rank_support()
+    virtual ~rank_support_base()
     {}
 
     //! Answers rank queries for the supported bit_vector.
@@ -65,21 +68,24 @@ public:
     /*!\param in In-Stream to load the rank_support data from.
      * \param v The supported bit_vector.
      */
-    virtual void load(std::istream & in, bit_vector const * v = nullptr) = 0;
+    virtual void load(std::istream & in, Vector const * v = nullptr) = 0;
     //! Sets the supported bit_vector to the given pointer.
     /*!\param v The new bit_vector to support.
      *  \note Method init has to be called before the next call of rank.
      *  \sa init, rank
      */
-    virtual void set_vector(bit_vector const * v = nullptr) = 0;
+    virtual void set_vector(Vector const * v = nullptr) = 0;
 };
 
-inline rank_support::rank_support(bit_vector const * v)
+template <class Vector>
+inline rank_support_base<Vector>::rank_support_base(Vector const * v)
 {
     m_v = v;
 }
 
 //----------------------------------------------------------------------
+
+using rank_support = rank_support_base<bit_vector>;
 
 template <uint8_t bit_pattern, uint8_t pattern_len>
 struct rank_support_trait
@@ -91,12 +97,14 @@ struct rank_support_trait
         return 0;
     }
 
-    static uint32_t word_rank(uint64_t const *, size_type)
+    template <class WordIterator>
+    static uint32_t word_rank(WordIterator, size_type)
     {
         return 0;
     }
 
-    static uint32_t full_word_rank(uint64_t const *, size_type)
+    template <class WordIterator>
+    static uint32_t full_word_rank(WordIterator, size_type)
     {
         return 0;
     }
@@ -117,12 +125,14 @@ struct rank_support_trait<0, 1>
         return bits::cnt(~w);
     }
 
-    static uint32_t word_rank(uint64_t const * data, size_type idx)
+    template <class WordIterator>
+    static uint32_t word_rank(WordIterator data, size_type idx)
     {
         return bits::cnt((~*(data + (idx >> 6))) & bits::lo_set[idx & 0x3F]);
     }
 
-    static uint32_t full_word_rank(uint64_t const * data, size_type idx)
+    template <class WordIterator>
+    static uint32_t full_word_rank(WordIterator data, size_type idx)
     {
         return bits::cnt((~*(data + (idx >> 6))));
     }
@@ -143,12 +153,14 @@ struct rank_support_trait<1, 1>
         return bits::cnt(w);
     }
 
-    static uint32_t word_rank(uint64_t const * data, size_type idx)
+    template <class WordIterator>
+    static uint32_t word_rank(WordIterator data, size_type idx)
     {
         return bits::cnt(*(data + (idx >> 6)) & bits::lo_set[idx & 0x3F]);
     }
 
-    static uint32_t full_word_rank(uint64_t const * data, size_type idx)
+    template <class WordIterator>
+    static uint32_t full_word_rank(WordIterator data, size_type idx)
     {
         return bits::cnt(*(data + (idx >> 6)));
     }
@@ -169,14 +181,16 @@ struct rank_support_trait<10, 2>
         return bits::cnt10(w, carry);
     }
 
-    static uint32_t word_rank(uint64_t const * data, size_type idx)
+    template <class WordIterator>
+    static uint32_t word_rank(WordIterator data, size_type idx)
     {
         data = data + (idx >> 6);
         uint64_t carry = (idx > 63) ? *(data - 1) >> 63 : 0;
         return bits::cnt(bits::map10(*data, carry) & bits::lo_set[idx & 0x3F]);
     }
 
-    static uint32_t full_word_rank(uint64_t const * data, size_type idx)
+    template <class WordIterator>
+    static uint32_t full_word_rank(WordIterator data, size_type idx)
     {
         data = data + (idx >> 6);
         uint64_t carry = (idx > 63) ? *(data - 1) >> 63 : 0;
@@ -199,14 +213,16 @@ struct rank_support_trait<01, 2>
         return bits::cnt01(w, carry);
     }
 
-    static uint32_t word_rank(uint64_t const * data, size_type idx)
+    template <class WordIterator>
+    static uint32_t word_rank(WordIterator data, size_type idx)
     {
         data = data + (idx >> 6);
         uint64_t carry = (idx > 63) ? *(data - 1) >> 63 : 1;
         return bits::cnt(bits::map01(*data, carry) & bits::lo_set[idx & 0x3F]);
     }
 
-    static uint32_t full_word_rank(uint64_t const * data, size_type idx)
+    template <class WordIterator>
+    static uint32_t full_word_rank(WordIterator data, size_type idx)
     {
         data = data + (idx >> 6);
         uint64_t carry = (idx > 63) ? *(data - 1) >> 63 : 1;
@@ -231,14 +247,16 @@ struct rank_support_trait<00, 2>
         return res;
     }
 
-    static uint32_t word_rank(uint64_t const * data, size_type idx)
+    template <class WordIterator>
+    static uint32_t word_rank(WordIterator data, size_type idx)
     {
         data = data + (idx >> 6);
         uint64_t carry = (idx > 63) ? *(data - 1) >> 63 : 1;
         return bits::cnt((~(*data | ((*data) << 1 | carry))) & bits::lo_set[idx & 0x3F]);
     }
 
-    static uint32_t full_word_rank(uint64_t const * data, size_type idx)
+    template <class WordIterator>
+    static uint32_t full_word_rank(WordIterator data, size_type idx)
     {
         data = data + (idx >> 6);
         uint64_t carry = (idx > 63) ? *(data - 1) >> 63 : 1;
@@ -263,14 +281,16 @@ struct rank_support_trait<11, 2>
         return res;
     }
 
-    static uint32_t word_rank(uint64_t const * data, size_type idx)
+    template <class WordIterator>
+    static uint32_t word_rank(WordIterator data, size_type idx)
     {
         data = data + (idx >> 6);
         uint64_t carry = (idx > 63) ? *(data - 1) >> 63 : 0;
         return bits::cnt((*data & ((*data) << 1 | carry)) & bits::lo_set[idx & 0x3F]);
     }
 
-    static uint32_t full_word_rank(uint64_t const * data, size_type idx)
+    template <class WordIterator>
+    static uint32_t full_word_rank(WordIterator data, size_type idx)
     {
         data = data + (idx >> 6);
         uint64_t carry = (idx > 63) ? *(data - 1) >> 63 : 0;
