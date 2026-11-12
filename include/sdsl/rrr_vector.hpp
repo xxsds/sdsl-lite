@@ -561,15 +561,6 @@ public:
         m_v = v;
     }
 
-    rank_support_rrr & operator=(rank_support_rrr const & rs)
-    {
-        if (this != &rs)
-        {
-            set_vector(rs.m_v);
-        }
-        return *this;
-    }
-
     //! Load the data structure from a stream and set the supported vector.
     void load(std::istream &, bit_vector_type const * v = nullptr)
     {
@@ -750,15 +741,6 @@ public:
     void set_vector(bit_vector_type const * v = nullptr)
     {
         m_v = v;
-    }
-
-    select_support_rrr & operator=(select_support_rrr const & rs)
-    {
-        if (this != &rs)
-        {
-            set_vector(rs.m_v);
-        }
-        return *this;
     }
 
     void load(std::istream &, bit_vector_type const * v = nullptr)
