@@ -705,25 +705,13 @@ constexpr uint32_t bits_impl<T>::sel11(uint64_t x, uint32_t i, uint32_t c)
 template <typename T>
 constexpr void bits_impl<T>::write_int(uint64_t * word, uint64_t x, uint8_t offset, uint8_t const len)
 {
-    x &= bits_impl<T>::lo_set[len];
-    if (offset + len < 64)
+    auto const mask = bits_impl<T>::lo_set[len];
+    x &= mask;
+    *word = (*word & ~(mask << offset)) | (x << offset);
+    if (offset + len > 64)
     {
-        *word &= ((bits_impl<T>::all_set << (offset + len)) | bits_impl<T>::lo_set[offset]); // mask 1..10..01..1
-        *word |= (x << offset);
-        //		*word ^= ((*word ^ x) & (bits_impl<T>::lo_set[len] << offset) );
-        //      surprisingly the above line is slower than the lines above
-    }
-    else
-    {
-        *word &= ((bits_impl<T>::lo_set[offset])); // mask 0....01..1
-        *word |= (x << offset);
-        if ((offset = (offset + len) & 0x3F))
-        {                                                   // offset+len > 64
-            *(word + 1) &= (~bits_impl<T>::lo_set[offset]); // mask 1...10..0
-            //			*(word+1) &= bits_impl<T>::lo_unset[offset]; // mask 1...10..0
-            //          surprisingly the above line is slower than the line above
-            *(word + 1) |= (x >> (len - offset));
-        }
+        auto const shift = 64 - offset;
+        word[1] = (word[1] & ~(mask >> shift)) | (x >> shift);
     }
 }
 

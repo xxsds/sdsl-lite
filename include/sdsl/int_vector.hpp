@@ -1002,18 +1002,6 @@ inline uint64_t read_packed_integer_indexed(uint64_t const * word, indexed_offse
     }
 }
 
-inline void write_packed_integer(uint64_t * word, uint64_t value, uint8_t offset, uint8_t width)
-{
-    auto mask = bits::lo_set[width];
-    value &= mask;
-    *word = (*word & ~(mask << offset)) | (value << offset);
-    if (offset + width > 64)
-    {
-        auto shift = 64 - offset;
-        word[1] = (word[1] & ~(mask >> shift)) | (value >> shift);
-    }
-}
-
 } // namespace detail
 
 template <class t_int_vector>
@@ -1056,7 +1044,7 @@ public:
     [[gnu::always_inline]] int_vector_reference & operator=(value_type x) noexcept
     {
         auto width = detail::iterator_fixed_width<t_int_vector> ? detail::iterator_fixed_width<t_int_vector> : m_len;
-        detail::write_packed_integer(m_word, x, m_offset, width);
+        bits::write_int(m_word, x, m_offset, width);
         return *this;
     };
 
