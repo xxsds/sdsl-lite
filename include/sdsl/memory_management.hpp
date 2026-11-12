@@ -35,14 +35,8 @@
 
 #include <sys/mman.h> // IWYU pragma: keep
 
-#if defined(__SANITIZE_ADDRESS__)
-#    define SDSL_ASAN_UNPOISON(address, size) ASAN_UNPOISON_MEMORY_REGION(address, size)
-#elif defined(__has_feature)
-#    if __has_feature(address_sanitizer)
-#        define SDSL_ASAN_UNPOISON(address, size) ASAN_UNPOISON_MEMORY_REGION(address, size)
-#    endif
-#endif
-#ifdef SDSL_ASAN_UNPOISON
+// Defines ASAN_UNPOISON_MEMORY_REGION, which does nothing unless AddressSanitizer is enabled.
+#if __has_include(<sanitizer/asan_interface.h>)
 #    include <sanitizer/asan_interface.h>
 #endif
 
@@ -988,10 +982,10 @@ public:
             if (ram_fs::file_size(fd) < file_size)
                 return nullptr;
             auto & file_content = ram_fs::content(fd);
-#ifdef SDSL_ASAN_UNPOISON
+#ifdef ASAN_UNPOISON_MEMORY_REGION
             // The 8 bytes behind the content are allocated (track_allocator::allocate), but a standard library
             // can mark unused vector capacity as unreadable.
-            SDSL_ASAN_UNPOISON(file_content.data() + file_content.size(), sizeof(uint64_t));
+            ASAN_UNPOISON_MEMORY_REGION(file_content.data() + file_content.size(), sizeof(uint64_t));
 #endif
             return file_content.data();
         }
@@ -1109,7 +1103,6 @@ public:
     }
 };
 
-#undef SDSL_ASAN_UNPOISON
 #undef ALIGNMENT
 #undef ALIGNSPLIT
 #undef ALIGN
