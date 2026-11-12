@@ -53,6 +53,9 @@ private:
     }; // maybe we can speed this up with bit hacks
 
 public:
+    //! Default constructor, equivalent to sorted_int_stack(0).
+    sorted_int_stack() : sorted_int_stack(0)
+    {}
     sorted_int_stack(size_type n);
     sorted_int_stack(sorted_int_stack const &) = default;
     sorted_int_stack(sorted_int_stack &&) = default;
