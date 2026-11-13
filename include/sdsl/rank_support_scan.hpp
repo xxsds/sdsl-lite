@@ -81,7 +81,7 @@ public:
     template <typename archive_t>
     void CEREAL_SAVE_FUNCTION_NAME(archive_t &) const
     {}
-    template <typename archive_t>
+    template <cereal_input_archive archive_t>
     void CEREAL_LOAD_FUNCTION_NAME(archive_t &)
     {}
 

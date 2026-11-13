@@ -297,7 +297,7 @@ public:
         ar(CEREAL_NVP(m_sigma));
     }
 
-    template <typename archive_t>
+    template <cereal_input_archive archive_t>
     void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
     {
         ar(CEREAL_NVP(m_char2comp));
@@ -556,7 +556,7 @@ public:
         ar(CEREAL_NVP(m_sigma));
     }
 
-    template <typename archive_t>
+    template <cereal_input_archive archive_t>
     void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
     {
         ar(CEREAL_NVP(m_char));
@@ -750,7 +750,7 @@ public:
         ar(CEREAL_NVP(m_sigma));
     }
 
-    template <typename archive_t>
+    template <cereal_input_archive archive_t>
     void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
     {
         ar(CEREAL_NVP(m_C));
@@ -1043,7 +1043,7 @@ public:
         ar(CEREAL_NVP(m_sigma));
     }
 
-    template <typename archive_t>
+    template <cereal_input_archive archive_t>
     void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
     {
         ar(CEREAL_NVP(m_char));
