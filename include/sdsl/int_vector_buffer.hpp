@@ -324,13 +324,13 @@ public:
     }
 
     //! Returns whether state of underlying streams are good
-    bool good()
+    bool good() const
     {
         return m_ifile.good() and (!m_ofile.is_open() or m_ofile.good());
     }
 
     //! Returns whether underlying streams are currently associated to a file
-    bool is_open()
+    bool is_open() const
     {
         return m_ifile.is_open();
     }
@@ -375,6 +375,34 @@ public:
         write(m_size, value);
     }
 
+    //! Writes the buffered elements and, unless the file is plain, the header to the file.
+    /*! Afterwards the file holds the current content, readable like a file written by close(),
+     *  and the buffer stays open for reading and writing.
+     */
+    void flush()
+    {
+        if (!m_ofile.is_open())
+            throw std::ios_base::failure("int_vector_buffer: not open for writing");
+        write_block();
+        if (0 < m_offset)
+        { // in case of int_vector, write header and trailing zeros
+            uint64_t size = m_size * width();
+            m_ofile.seekp(0, std::ios::beg);
+            int_vector<t_width>::write_header(size, width(), m_ofile);
+            assert(m_ofile.good());
+            uint64_t wb = (size + 7) / 8;
+            if (wb % 8)
+            {
+                m_ofile.seekp(m_offset + wb);
+                assert(m_ofile.good());
+                m_ofile.write("\0\0\0\0\0\0\0\0", 8 - wb % 8);
+                assert(m_ofile.good());
+            }
+        }
+        m_ofile.flush();
+        assert(m_ofile.good());
+    }
+
     //! Close the int_vector_buffer.
     /*! It is not possible to read from / write into the int_vector_buffer after calling this method
      *  \param remove_file If true, the underlying file will be removed on closing.
@@ -384,24 +412,7 @@ public:
         if (is_open())
         {
             if (!remove_file && m_ofile.is_open())
-            {
-                write_block();
-                if (0 < m_offset)
-                { // in case of int_vector, write header and trailing zeros
-                    uint64_t size = m_size * width();
-                    m_ofile.seekp(0, std::ios::beg);
-                    int_vector<t_width>::write_header(size, width(), m_ofile);
-                    assert(m_ofile.good());
-                    uint64_t wb = (size + 7) / 8;
-                    if (wb % 8)
-                    {
-                        m_ofile.seekp(m_offset + wb);
-                        assert(m_ofile.good());
-                        m_ofile.write("\0\0\0\0\0\0\0\0", 8 - wb % 8);
-                        assert(m_ofile.good());
-                    }
-                }
-            }
+                flush();
             m_ifile.close();
             assert(m_ifile.good());
             if (m_ofile.is_open())
