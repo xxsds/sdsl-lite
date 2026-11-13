@@ -65,7 +65,7 @@ TEST_F(int_vector_legacy_header_test, stream_load)
         auto const v = values(n, 13);
         std::istringstream in(v2_bytes(v));
         sdsl::int_vector<> loaded;
-        loaded.load(in);
+        loaded.load(static_cast<std::istream &>(in));
         EXPECT_EQ(v, loaded);
         EXPECT_EQ(13u, loaded.width());
 
@@ -74,7 +74,7 @@ TEST_F(int_vector_legacy_header_test, stream_load)
             bits[i] = 1;
         std::istringstream bits_in(v2_bytes(bits));
         sdsl::bit_vector loaded_bits;
-        loaded_bits.load(bits_in);
+        loaded_bits.load(static_cast<std::istream &>(bits_in));
         EXPECT_EQ(bits, loaded_bits);
     }
 }
@@ -89,7 +89,7 @@ TEST_F(int_vector_legacy_header_test, current_header_is_unchanged)
     EXPECT_EQ(13u, word >> 56);
     std::istringstream in(out.str());
     sdsl::int_vector<> loaded;
-    loaded.load(in);
+    loaded.load(static_cast<std::istream &>(in));
     EXPECT_EQ(v, loaded);
 }
 
@@ -100,7 +100,7 @@ TEST_F(int_vector_legacy_header_test, mapped_view_starts_after_the_longer_header
     sdsl::packed_vector_view<0> view;
     {
         sdsl::shared_mapper_ifstream in(temp_file);
-        view.load(in);
+        view.load(static_cast<std::istream &>(in));
         EXPECT_EQ(reinterpret_cast<std::byte const *>(in.mapper()->data()) + 9, view.bytes().data());
     }
     EXPECT_EQ(v, view.to_owned());
