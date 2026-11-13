@@ -12,6 +12,7 @@
 #include <fstream>
 #include <iterator>
 #include <stdint.h>
+#include <stdexcept>
 #include <string>
 
 #include <sdsl/int_vector.hpp>
@@ -162,7 +163,7 @@ public:
         }
         else
         {
-            m_offset = 8; // TODO: make this dependent on header size of int_vector<t_width>
+            m_offset = 8; // the header size of new files; reading an existing one sets it below
         }
 
         // Open file for IO
@@ -183,9 +184,12 @@ public:
             }
             else
             {
-                uint8_t width = 0;
-                int_vector<0>::read_header(size, width, m_ifile);
+                uint8_t width = t_width;
+                m_offset = int_vector<t_width>::read_header(size, width, m_ifile);
                 m_buffer.width(width);
+                // An sdsl v2 header is longer, and close() would overwrite it with the current one.
+                if (m_offset != 8 && (mode & std::ios::out))
+                    throw std::invalid_argument("int_vector_buffer: cannot write to a file with an sdsl v2 header");
             }
             assert(m_ifile.good());
             m_size = size / width();

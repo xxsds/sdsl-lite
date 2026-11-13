@@ -879,12 +879,28 @@ public:
     }
 
     //! Read the size and int_width of a int_vector
+    /*! Also reads the sdsl v2 layout: the size as a whole word, followed by
+     *  a byte with the width for int_vector<0>. It is recognised by a width
+     *  of 0 in the top byte, which the current layout never writes.
+     *  \return The number of bytes read.
+     */
     static size_t read_header(int_vector_size_type & size, int_width_type & int_width, std::istream & in)
     {
         uint64_t width_and_size = 0;
         read_member(width_and_size, in);
+        size_t bytes = sizeof(width_and_size);
         size = width_and_size & bits::lo_set[56];
         uint8_t read_int_width = (uint8_t)(width_and_size >> 56);
+        if (read_int_width == 0)
+        {
+            size = width_and_size;
+            read_int_width = t_width;
+            if (t_width == 0)
+            {
+                read_member(read_int_width, in);
+                bytes += sizeof(read_int_width);
+            }
+        }
         if (t_width == 0)
         {
             int_width = read_int_width;
@@ -895,7 +911,7 @@ public:
             std::cerr << " was specified as " << (size_type)read_int_width << std::endl;
             std::cerr << "Length is " << size << " bits" << std::endl;
         }
-        return sizeof(width_and_size);
+        return bytes;
     }
 
     //! Write the size and int_width of a int_vector
