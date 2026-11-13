@@ -87,23 +87,20 @@ inline constexpr bool runtime_width_indexed_reader = false;
 template <uint8_t width>
 inline constexpr bool two_word_indexed_read = width >= 5 && 64 % width != 0;
 
-// Indexed reads of a width up to 57 load the 8 bytes that start at the element's first byte. The load can
-// reach 7 bytes past the element's last word. These bytes are always readable: memory_manager::resize allocates
-// a spare word, and memory_manager::mmap_file keeps the bytes after a mapping readable. Measured on Zen 4 with
-// GCC 16 and Clang 23: sums of independent reads get 29-45% faster, reads that depend on the previous value
-// 4-6%.
-inline constexpr bool single_load_indexed_read = std::endian::native == std::endian::little;
-
-// Clang keeps the two-word read where the single load measured slower with -O2: runtime widths in sequential
-// index loops (8-12% at widths 1, 7, 8, 16 and 32) and at widths 63 and 64 (5-14%), and a fixed width of 5 in
-// sequential index loops (6%). GCC has no slower case.
+// Whether indexed reads of this width (0 for a runtime width up to 57) load the 8 bytes that start at the
+// element's first byte. The load can reach 7 bytes past the element's last word. These bytes are always readable:
+// memory_manager::resize allocates a spare word, and memory_manager::mmap_file keeps the bytes after a mapping
+// readable. Measured on Zen 4 with GCC 16 and Clang 23: sums of independent reads get 29-45% faster, reads that
+// depend on the previous value 4-6%. Clang keeps the two-word read for runtime widths and for a fixed width of 5,
+// where the single load measured 5-14% slower in some -O2 loops.
+template <uint8_t width>
+inline constexpr bool single_load_indexed_read =
+    std::endian::native == std::endian::little
+    && (width == 0 ? !runtime_width_indexed_reader : two_word_indexed_read<width> && width <= 57
 #if defined(__clang__)
-inline constexpr bool single_load_runtime_width_read = false;
-inline constexpr uint8_t single_load_min_fixed_width = 6;
-#else
-inline constexpr bool single_load_runtime_width_read = single_load_indexed_read;
-inline constexpr uint8_t single_load_min_fixed_width = 5;
+                                                          && width != 5
 #endif
+       );
 
 } // namespace detail
 
@@ -270,7 +267,7 @@ private:
 #endif
             if constexpr (std::is_const_v<Self> && t_width == 0 && detail::runtime_width_indexed_reader)
             return iterator_at(self, idx).read_indexed();
-        else if constexpr (std::is_const_v<Self> && t_width == 0 && detail::single_load_runtime_width_read)
+        else if constexpr (std::is_const_v<Self> && t_width == 0 && detail::single_load_indexed_read<0>)
         {
             // GCC keeps its scan reader for the widths that need two words (see runtime_width_indexed_reader).
             if (self.width() - 1u < 57u)
@@ -1622,8 +1619,7 @@ private:
         constexpr auto width = detail::iterator_fixed_width<t_int_vector>;
         if constexpr (width > 0 && detail::two_word_indexed_read<width>)
         {
-            if constexpr (width >= detail::single_load_min_fixed_width && width <= 57
-                          && detail::single_load_indexed_read)
+            if constexpr (detail::single_load_indexed_read<width>)
                 return detail::read_unaligned_word(m_base, m_position) & bits::lo_set[width];
             auto const offset = m_position % 64;
             uint64_t const low = m_base[m_position / 64];
@@ -1632,10 +1628,10 @@ private:
         }
         else if constexpr (width == 1)
             return (m_base[m_position / 64] >> (m_position % 64)) & 1;
-        else if constexpr (width == 0 && detail::single_load_runtime_width_read)
+        else if constexpr (width == 0 && detail::single_load_indexed_read<0>)
         {
-            // Both paths share one mask, so a loop keeps it in a register. Clang -O2 does not hoist a second
-            // lo_set lookup out of the loop.
+            // Both paths share one mask, so a loop keeps it in a register. GCC does not hoist a second lo_set
+            // lookup out of the loop.
             uint64_t const runtime_width = len();
             uint64_t const mask = ~uint64_t{0} >> (-runtime_width % 64);
             if (runtime_width - 1 < 57)
