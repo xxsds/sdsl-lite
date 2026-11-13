@@ -33,13 +33,26 @@ public:
     friend std::ostream & operator<<(std::ostream &, uint256_t const &);
 
 private:
+    //! Bits 64 to 127 of a built-in integer converted modulo 2^256.
     template <typename T>
-    static constexpr uint128_t sign_fill(T x)
+    static uint64_t mid_bits(T x)
     {
-        if constexpr (std::is_signed_v<T>)
-            return x < 0 ? ~uint128_t(0) : 0;
+        if constexpr (std::is_same_v<T, uint128_t>)
+            return uint64_t(x >> 64);
+        else if constexpr (std::is_signed_v<T>)
+            return x < 0 ? ~uint64_t(0) : uint64_t(0);
         else
             return 0;
+    }
+
+    //! Bits 128 to 255 of a built-in integer converted modulo 2^256.
+    template <typename T>
+    static uint128_t high_bits(T x)
+    {
+        if constexpr (std::is_signed_v<T>)
+            return x < 0 ? ~uint128_t(0) : uint128_t(0);
+        else
+            return uint128_t(0);
     }
 
     uint64_t m_lo;
@@ -52,7 +65,7 @@ public:
 
     //! Converts any built-in integer modulo 2^256, without truncating 128-bit values.
     template <detail::uint256_operand T>
-    uint256_t(T x) : m_lo(uint64_t(x)), m_mid(uint64_t(uint128_t(x) >> 64)), m_high(sign_fill(x))
+    uint256_t(T x) : m_lo(uint64_t(x)), m_mid(mid_bits(x)), m_high(high_bits(x))
     {}
 
     uint256_t(uint256_t const &) = default;
