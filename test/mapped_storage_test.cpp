@@ -399,6 +399,41 @@ TEST(packed_vector_view_test, ownership_and_bounds)
     EXPECT_THROW(V::from_bytes(bytes, *bytes, UINT64_MAX), std::invalid_argument);
 }
 
+TEST(packed_vector_view_test, into_owned_takes_sole_storage)
+{
+    sdsl::int_vector<> values(100, 0, 9);
+    for (size_t i = 0; i < values.size(); ++i)
+        values[i] = (i * 37) & 0x1ff;
+    auto expected = values;
+    auto const * words = values.data();
+
+    // The only view of a vector it was constructed from gives that vector back.
+    packed_vector_view<> sole(std::move(values));
+    auto taken = std::move(sole).into_owned();
+    EXPECT_EQ(words, taken.data());
+    EXPECT_EQ(expected, taken);
+    EXPECT_TRUE(sole.empty());
+
+    // A shared vector is copied, and the other view keeps it.
+    packed_vector_view<> first(std::move(taken));
+    auto second = first;
+    auto copy = std::move(first).into_owned();
+    EXPECT_NE(reinterpret_cast<std::byte const *>(copy.data()), second.bytes().data());
+    EXPECT_EQ(expected, copy);
+    EXPECT_TRUE(first.empty());
+    EXPECT_EQ(expected, second.to_owned());
+
+    // Storage from another owner is copied even when no other view shares it.
+    auto bytes = std::make_shared<std::vector<std::byte>>(8, std::byte{0xff});
+    auto borrowed = packed_vector_view<1>::from_bytes(std::move(bytes), {}, 0);
+    EXPECT_TRUE(std::move(borrowed).into_owned().empty());
+    auto buffer = std::make_shared<std::vector<std::byte>>(8, std::byte{0xff});
+    auto other = packed_vector_view<1>::from_bytes(buffer, *buffer, 64);
+    buffer.reset();
+    auto bits = std::move(other).into_owned();
+    EXPECT_EQ(sdsl::bit_vector(64, 1), bits);
+}
+
 TEST(packed_vector_view_test, comparison_ignores_padding_and_checks_width)
 {
     using V = packed_vector_view<>;
