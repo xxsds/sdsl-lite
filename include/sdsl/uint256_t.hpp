@@ -10,6 +10,7 @@
 
 #include <iostream>
 #include <stdint.h>
+#include <compare>
 #include <concepts>
 #include <type_traits>
 #include <utility>
@@ -53,6 +54,16 @@ private:
             return x < 0 ? ~uint128_t(0) : uint128_t(0);
         else
             return uint128_t(0);
+    }
+
+    //! a < b, using only != and < on the high word, which the uint128_t fallback class provides.
+    static bool less(uint256_t const & a, uint256_t const & b)
+    {
+        if (a.m_high != b.m_high)
+            return a.m_high < b.m_high;
+        if (a.m_mid != b.m_mid)
+            return a.m_mid < b.m_mid;
+        return a.m_lo < b.m_lo;
     }
 
     uint64_t m_lo;
@@ -240,33 +251,9 @@ public:
     }
 
     template <detail::uint256_operand T>
-    bool operator!=(T x) const
+    std::strong_ordering operator<=>(T x) const
     {
-        return *this != uint256_t(x);
-    }
-
-    template <detail::uint256_operand T>
-    bool operator<(T x) const
-    {
-        return *this < uint256_t(x);
-    }
-
-    template <detail::uint256_operand T>
-    bool operator<=(T x) const
-    {
-        return *this <= uint256_t(x);
-    }
-
-    template <detail::uint256_operand T>
-    bool operator>(T x) const
-    {
-        return *this > uint256_t(x);
-    }
-
-    template <detail::uint256_operand T>
-    bool operator>=(T x) const
-    {
-        return *this >= uint256_t(x);
+        return *this <=> uint256_t(x);
     }
 
     template <std::integral T>
@@ -332,92 +319,19 @@ public:
         return *this = uint256_t(x);
     }
 
-    inline bool operator==(uint256_t const & x) const
-    {
-        return (m_lo == x.m_lo) and (m_mid == x.m_mid) and (m_high == x.m_high);
-    }
+    bool operator==(uint256_t const &) const = default;
 
-    inline bool operator!=(uint256_t const & x) const
+    std::strong_ordering operator<=>(uint256_t const & x) const
     {
-        return !(*this == x);
-    }
-
-    inline bool operator>=(uint256_t const & x) const
-    {
-        if (m_high != x.m_high)
-        {
-            return m_high > x.m_high;
-        }
-        if (m_mid != x.m_mid)
-        {
-            return m_mid > x.m_mid;
-        }
-        else
-        {
-            return m_lo >= x.m_lo;
-        }
-    }
-
-    inline bool operator<=(uint256_t const & x) const
-    {
-        if (m_high != x.m_high)
-        {
-            return m_high < x.m_high;
-        }
-        if (m_mid != x.m_mid)
-        {
-            return m_mid < x.m_mid;
-        }
-        else
-        {
-            return m_lo <= x.m_lo;
-        }
-    }
-
-    inline bool operator>(uint256_t const & x) const
-    {
-        if (m_high != x.m_high)
-        {
-            return m_high > x.m_high;
-        }
-        if (m_mid != x.m_mid)
-        {
-            return m_mid > x.m_mid;
-        }
-        else
-        {
-            return m_lo > x.m_lo;
-        }
-    }
-
-    inline bool operator>(uint64_t const & x) const
-    {
-        if (m_high > (uint128_t)0ULL or m_mid > (uint128_t)0ULL)
-        {
-            return true;
-        }
-        return m_lo > x;
-    }
-
-    inline bool operator<(uint256_t const & x) const
-    {
-        if (m_high != x.m_high)
-        {
-            return m_high < x.m_high;
-        }
-        if (m_mid != x.m_mid)
-        {
-            return m_mid < x.m_mid;
-        }
-        else
-        {
-            return m_lo < x.m_lo;
-        }
+        // Written with less(), so that a synthesized `a >= b` compiles to `!less(a, b)`.
+        if (less(*this, x))
+            return std::strong_ordering::less;
+        return less(x, *this) ? std::strong_ordering::greater : std::strong_ordering::equal;
     }
 
     explicit operator bool() const
     {
-        return m_lo || m_mid || m_high;
+        return (m_lo | m_mid) || m_high != uint128_t(0);
     }
 
     explicit operator uint128_t() const
@@ -430,42 +344,6 @@ public:
         return m_lo;
     }
 };
-
-template <detail::uint256_operand T>
-inline bool operator==(T number, uint256_t const & x)
-{
-    return x.operator==(number);
-}
-
-template <detail::uint256_operand T>
-inline bool operator!=(T number, uint256_t const & x)
-{
-    return x.operator!=(number);
-}
-
-template <detail::uint256_operand T>
-inline bool operator<(T number, uint256_t const & x)
-{
-    return x.operator>(number);
-}
-
-template <detail::uint256_operand T>
-inline bool operator<=(T number, uint256_t const & x)
-{
-    return x.operator>=(number);
-}
-
-template <detail::uint256_operand T>
-inline bool operator>(T number, uint256_t const & x)
-{
-    return x.operator<(number);
-}
-
-template <detail::uint256_operand T>
-inline bool operator>=(T number, uint256_t const & x)
-{
-    return x.operator<=(number);
-}
 
 inline std::ostream & operator<<(std::ostream & os, uint256_t const & x)
 {

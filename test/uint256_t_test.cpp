@@ -47,8 +47,9 @@ TEST(uint256_t_test, const_operations)
 
 TEST(uint256_t_test, builtin_operands)
 {
-    static_assert(std::is_trivially_copyable_v<sdsl::uint256_t>);
-    auto const low = (sdsl::uint128_t{1} << 100) | 7;
+    // The uint128_t fallback class is not trivially copyable, so uint256_t cannot be either.
+    static_assert(!std::is_trivially_copyable_v<sdsl::uint128_t> || std::is_trivially_copyable_v<sdsl::uint256_t>);
+    auto const low = (sdsl::uint128_t{1} << 100) | sdsl::uint128_t{7};
     sdsl::uint256_t const value = single_bit(201) | low;
     EXPECT_EQ(low, static_cast<sdsl::uint128_t>(value));
     EXPECT_EQ(sdsl::uint256_t(low), value & low);
