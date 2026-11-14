@@ -4,9 +4,11 @@
 #include <string>
 #include <vector>
 
+#include <sdsl/bit_vectors.hpp>
 #include <sdsl/construct.hpp>
 #include <sdsl/csa_wt.hpp>
 #include <sdsl/io.hpp>
+#include <sdsl/wavelet_trees.hpp>
 
 #include <gtest/gtest.h>
 
@@ -79,6 +81,38 @@ TEST(IoTest, RamFilePrefix)
     EXPECT_TRUE(sdsl::is_ram_file(std::string("@name")));
     EXPECT_FALSE(sdsl::is_ram_file(std::string("name")));
     EXPECT_FALSE(sdsl::is_ram_file(std::string("path/@name")));
+}
+
+template <class t_structure>
+void expect_load_from_stringstream(t_structure const & original)
+{
+    std::stringstream stream;
+    original.serialize(stream);
+    t_structure loaded;
+    loaded.load(stream); // the stream type is derived from std::istream
+    std::stringstream expected, actual;
+    original.serialize(expected);
+    loaded.serialize(actual);
+    EXPECT_EQ(expected.str(), actual.str());
+}
+
+TEST(IoTest, LoadFromDerivedStream)
+{
+    sdsl::int_vector<> values = {3, 1, 4, 1, 5, 9, 2, 6};
+    sdsl::bit_vector bits = {1, 0, 0, 1, 1, 0, 1, 0, 0, 0, 1};
+    expect_load_from_stringstream(values);
+    expect_load_from_stringstream(sdsl::bit_vector_il<>(bits));
+    expect_load_from_stringstream(sdsl::rrr_vector<>(bits));
+    expect_load_from_stringstream(sdsl::sd_vector<>(bits));
+    sdsl::wt_int<> wt;
+    sdsl::construct_im(wt, values);
+    expect_load_from_stringstream(wt);
+    sdsl::wt_huff<> huff;
+    sdsl::construct_im(huff, std::string("mississippi"), 1);
+    expect_load_from_stringstream(huff);
+    sdsl::csa_wt<> csa;
+    sdsl::construct_im(csa, std::string("banana"), 1);
+    expect_load_from_stringstream(csa);
 }
 
 } // namespace

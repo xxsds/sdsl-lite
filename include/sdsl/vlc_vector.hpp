@@ -156,7 +156,7 @@ public:
     void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const;
 
     //!\brief Serialise (load) via cereal
-    template <typename archive_t>
+    template <cereal_input_archive archive_t>
     void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar);
 
     //! Returns the ith sample of vlc_vector
@@ -308,7 +308,7 @@ void vlc_vector<t_coder, t_dens, t_width>::CEREAL_SAVE_FUNCTION_NAME(archive_t &
 }
 
 template <class t_coder, uint32_t t_dens, uint8_t t_width>
-template <typename archive_t>
+template <cereal_input_archive archive_t>
 void vlc_vector<t_coder, t_dens, t_width>::CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
 {
     ar(CEREAL_NVP(m_size));

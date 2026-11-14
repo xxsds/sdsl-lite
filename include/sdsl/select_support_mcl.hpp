@@ -117,7 +117,7 @@ public:
     template <typename archive_t>
     void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const;
     //!\brief Serialise (load) via cereal
-    template <typename archive_t>
+    template <cereal_input_archive archive_t>
     void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar);
     select_support_mcl<t_b, t_pat_len, Vector> & operator=(select_support_mcl const & ss);
     select_support_mcl<t_b, t_pat_len, Vector> & operator=(select_support_mcl &&);
@@ -601,7 +601,7 @@ void select_support_mcl<t_b, t_pat_len, Vector>::CEREAL_SAVE_FUNCTION_NAME(archi
 }
 
 template <uint8_t t_b, uint8_t t_pat_len, class Vector>
-template <typename archive_t>
+template <cereal_input_archive archive_t>
 void select_support_mcl<t_b, t_pat_len, Vector>::CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
 {
     delete[] m_longsuperblock;

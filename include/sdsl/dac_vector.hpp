@@ -199,7 +199,7 @@ public:
     template <typename archive_t>
     void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const;
 
-    template <typename archive_t>
+    template <cereal_input_archive archive_t>
     void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar);
 
     bool operator==(dac_vector const & v) const
@@ -407,7 +407,7 @@ void dac_vector<t_b, t_rank>::CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
 }
 
 template <uint8_t t_b, typename t_rank>
-template <typename archive_t>
+template <cereal_input_archive archive_t>
 void dac_vector<t_b, t_rank>::CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
 {
     ar(CEREAL_NVP(m_max_level));

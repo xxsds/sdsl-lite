@@ -271,7 +271,7 @@ public:
     void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const;
 
     //!\brief Serialise (load) via cereal
-    template <typename archive_t>
+    template <cereal_input_archive archive_t>
     void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar);
 
 private:
@@ -437,7 +437,7 @@ template <class t_wt,
           class t_sa_sample_strat,
           class t_isa,
           class t_alphabet_strat>
-template <typename archive_t>
+template <cereal_input_archive archive_t>
 void csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::CEREAL_LOAD_FUNCTION_NAME(
     archive_t & ar)
 {

@@ -462,7 +462,7 @@ public:
         ar(CEREAL_NVP(m_high_0_select));
     }
 
-    template <typename archive_t>
+    template <cereal_input_archive archive_t>
     void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
     {
         ar(CEREAL_NVP(m_size));
@@ -606,7 +606,7 @@ public:
     void CEREAL_SAVE_FUNCTION_NAME(archive_t &) const
     {}
 
-    template <typename archive_t>
+    template <cereal_input_archive archive_t>
     void CEREAL_LOAD_FUNCTION_NAME(archive_t &)
     {}
 
@@ -732,7 +732,7 @@ public:
     void CEREAL_SAVE_FUNCTION_NAME(archive_t &) const
     {}
 
-    template <typename archive_t>
+    template <cereal_input_archive archive_t>
     void CEREAL_LOAD_FUNCTION_NAME(archive_t &)
     {}
 
@@ -962,7 +962,7 @@ public:
         ar(CEREAL_NVP(m_rank1));
     }
 
-    template <typename archive_t>
+    template <cereal_input_archive archive_t>
     void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
     {
         ar(CEREAL_NVP(m_pointer));

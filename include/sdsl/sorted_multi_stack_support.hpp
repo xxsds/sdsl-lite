@@ -95,7 +95,7 @@ public:
     void load(std::istream & in);
     template <typename archive_t>
     void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const;
-    template <typename archive_t>
+    template <cereal_input_archive archive_t>
     void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar);
 };
 
@@ -217,7 +217,7 @@ void sorted_multi_stack_support::CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
     ar(CEREAL_NVP(m_duplication_stack));
 }
 
-template <typename archive_t>
+template <cereal_input_archive archive_t>
 void sorted_multi_stack_support::CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
 {
     ar(CEREAL_NVP(m_n));
