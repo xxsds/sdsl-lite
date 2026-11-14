@@ -8,6 +8,7 @@
 #ifndef INCLUDED_INT_VECTOR_BUFFER
 #define INCLUDED_INT_VECTOR_BUFFER
 
+#include <algorithm>
 #include <cassert>
 #include <fstream>
 #include <iterator>
@@ -45,6 +46,13 @@ private:
     uint64_t m_size = 0;       // size of int_vector_buffer
     uint64_t m_begin = 0;      // number in elements
 
+    //! Throws std::ios_base::failure naming the file if the stream failed.
+    void check(std::ios & stream, char const * what) const
+    {
+        if (!stream.good())
+            throw std::ios_base::failure(std::string("int_vector_buffer: ") + what + " " + m_filename);
+    }
+
     //! Read block containing element at index idx.
     void read_block(uint64_t const idx)
     {
@@ -56,13 +64,9 @@ private:
         else
         {
             m_ifile.seekg(m_offset + (m_begin * width()) / 8);
-            assert(m_ifile.good());
-            m_ifile.read((char *)m_buffer.data(), (m_buffersize * width()) / 8);
-            if ((uint64_t)m_ifile.gcount() < (m_buffersize * width()) / 8)
-            {
-                m_ifile.clear();
-            }
-            assert(m_ifile.good());
+            uint64_t const bytes = std::min(m_buffersize * width(), (m_size - m_begin) * width() + 7) / 8;
+            m_ifile.read((char *)m_buffer.data(), bytes);
+            check(m_ifile, "cannot read from");
             for (uint64_t i = m_size - m_begin; i < m_buffersize; ++i)
             {
                 m_buffer[i] = 0;
@@ -76,7 +80,6 @@ private:
         if (m_need_to_write)
         {
             m_ofile.seekp(m_offset + (m_begin * width()) / 8);
-            assert(m_ofile.good());
             if (m_begin + m_buffersize >= m_size)
             {
                 // last block in file
@@ -88,7 +91,7 @@ private:
                 m_ofile.write((char *)m_buffer.data(), (m_buffersize * width()) / 8);
             }
             m_ofile.flush();
-            assert(m_ofile.good());
+            check(m_ofile, "cannot write to");
             m_need_to_write = false;
         }
     }
@@ -169,10 +172,10 @@ public:
         if (mode & std::ios::out)
         {
             m_ofile.open(m_filename, mode | std::ios::binary);
-            assert(m_ofile.good());
+            check(m_ofile, "cannot open for writing");
         }
         m_ifile.open(m_filename, std::ios::in | std::ios::binary);
-        assert(m_ifile.good());
+        check(m_ifile, "cannot open for reading");
         if (mode & std::ios::in)
         {
             uint64_t size = 0;
@@ -187,7 +190,7 @@ public:
                 int_vector<0>::read_header(size, width, m_ifile);
                 m_buffer.width(width);
             }
-            assert(m_ifile.good());
+            check(m_ifile, "cannot read the header of");
             m_size = size / width();
         }
         buffersize(buffer_size);
@@ -212,12 +215,12 @@ public:
         if (open)
         {
             m_ifile.open(m_filename, std::ios::in | std::ios::binary);
-            assert(m_ifile.good());
+            check(m_ifile, "cannot reopen for reading");
         }
         if (writable)
         {
             m_ofile.open(m_filename, std::ios::in | std::ios::out | std::ios::binary);
-            assert(m_ofile.good());
+            check(m_ofile, "cannot reopen for writing");
         }
         // set ivb to default-constructor state
         ivb.m_filename = "";
@@ -230,9 +233,17 @@ public:
     }
 
     //! Destructor.
+    /*! Errors while writing the remaining data are ignored here, like in std::fstream.
+     *  Call close() first to get them as exceptions.
+     */
     ~int_vector_buffer()
     {
-        close();
+        try
+        {
+            close();
+        }
+        catch (std::ios_base::failure const &)
+        {} // a destructor must not throw
     }
 
     //! Move assignment operator.
@@ -251,12 +262,12 @@ public:
         if (open)
         {
             m_ifile.open(m_filename, std::ios::in | std::ios::binary);
-            assert(m_ifile.good());
+            check(m_ifile, "cannot reopen for reading");
         }
         if (writable)
         {
             m_ofile.open(m_filename, std::ios::in | std::ios::out | std::ios::binary);
-            assert(m_ofile.good());
+            check(m_ofile, "cannot reopen for writing");
         }
         // assign the values of ivb to this
         m_buffer = (int_vector<t_width> &&)ivb.m_buffer;
@@ -324,13 +335,13 @@ public:
     }
 
     //! Returns whether state of underlying streams are good
-    bool good()
+    bool good() const
     {
         return m_ifile.good() and (!m_ofile.is_open() or m_ofile.good());
     }
 
     //! Returns whether underlying streams are currently associated to a file
-    bool is_open()
+    bool is_open() const
     {
         return m_ifile.is_open();
     }
@@ -341,15 +352,12 @@ public:
         if (!m_ofile.is_open())
             throw std::ios_base::failure("int_vector_buffer: not open for writing");
         // reset file
-        assert(m_ifile.good());
-        assert(m_ofile.good());
         m_ifile.close();
         m_ofile.close();
         m_ofile.open(m_filename, std::ios::out | std::ios::binary);
-        assert(m_ofile.good());
+        check(m_ofile, "cannot reopen for writing");
         m_ifile.open(m_filename, std::ios::in | std::ios::binary);
-        assert(m_ifile.good());
-        assert(m_ofile.good());
+        check(m_ifile, "cannot reopen for reading");
         // reset member variables
         m_need_to_write = false;
         m_size = 0;
@@ -375,6 +383,31 @@ public:
         write(m_size, value);
     }
 
+    //! Writes the buffered elements and, unless the file is plain, the header to the file.
+    /*! Afterwards the file holds the current content, readable like a file written by close(),
+     *  and the buffer stays open for reading and writing.
+     */
+    void flush()
+    {
+        if (!m_ofile.is_open())
+            throw std::ios_base::failure("int_vector_buffer: not open for writing");
+        write_block();
+        if (0 < m_offset)
+        { // in case of int_vector, write header and trailing zeros
+            uint64_t size = m_size * width();
+            m_ofile.seekp(0, std::ios::beg);
+            int_vector<t_width>::write_header(size, width(), m_ofile);
+            uint64_t wb = (size + 7) / 8;
+            if (wb % 8)
+            {
+                m_ofile.seekp(m_offset + wb);
+                m_ofile.write("\0\0\0\0\0\0\0\0", 8 - wb % 8);
+            }
+        }
+        m_ofile.flush();
+        check(m_ofile, "cannot write to");
+    }
+
     //! Close the int_vector_buffer.
     /*! It is not possible to read from / write into the int_vector_buffer after calling this method
      *  \param remove_file If true, the underlying file will be removed on closing.
@@ -384,30 +417,13 @@ public:
         if (is_open())
         {
             if (!remove_file && m_ofile.is_open())
-            {
-                write_block();
-                if (0 < m_offset)
-                { // in case of int_vector, write header and trailing zeros
-                    uint64_t size = m_size * width();
-                    m_ofile.seekp(0, std::ios::beg);
-                    int_vector<t_width>::write_header(size, width(), m_ofile);
-                    assert(m_ofile.good());
-                    uint64_t wb = (size + 7) / 8;
-                    if (wb % 8)
-                    {
-                        m_ofile.seekp(m_offset + wb);
-                        assert(m_ofile.good());
-                        m_ofile.write("\0\0\0\0\0\0\0\0", 8 - wb % 8);
-                        assert(m_ofile.good());
-                    }
-                }
-            }
+                flush();
             m_ifile.close();
-            assert(m_ifile.good());
+            check(m_ifile, "cannot close");
             if (m_ofile.is_open())
             {
                 m_ofile.close();
-                assert(m_ofile.good());
+                check(m_ofile, "cannot close");
             }
             if (remove_file)
             {

@@ -1,3 +1,4 @@
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -483,6 +484,101 @@ TEST_F(int_vector_buffer_test, file_handling)
     test_plain_file_handling<sdsl::int_vector_buffer<16>>(16);
     test_plain_file_handling<sdsl::int_vector_buffer<32>>(32);
     test_plain_file_handling<sdsl::int_vector_buffer<64>>(64);
+}
+
+template <class t_T, class t_V>
+void test_flush(uint8_t width)
+{
+    std::string file_name = temp_dir + "/int_vector_buffer_flush";
+    t_V expected;
+    expected.width(width);
+    t_T ivb(file_name, std::ios::out, 64, width);
+    t_T const & read_only = ivb;
+    EXPECT_TRUE(read_only.is_open());
+    // Several 64-byte blocks, then a partial block and a size that is no multiple of 64 bits.
+    for (uint64_t size : {0, 1, 700, 1001})
+    {
+        while (expected.size() < size)
+        {
+            uint64_t const value = (expected.size() * 0x9e3779b97f4a7c15ULL) & sdsl::bits::lo_set[width];
+            expected.resize(expected.size() + 1);
+            expected[expected.size() - 1] = value;
+            ivb.push_back(value);
+        }
+        ivb.flush();
+        EXPECT_TRUE(read_only.good());
+        t_V loaded;
+        ASSERT_TRUE(sdsl::load_from_file(loaded, file_name));
+        ASSERT_EQ(expected, loaded) << "size=" << size;
+    }
+    // The buffer stays usable after flush.
+    ivb[0] = ivb[1];
+    expected[0] = expected[1];
+    ivb.close();
+    t_V loaded;
+    ASSERT_TRUE(sdsl::load_from_file(loaded, file_name));
+    EXPECT_EQ(expected, loaded);
+    sdsl::remove(file_name);
+}
+
+TEST_F(int_vector_buffer_test, flush)
+{
+    for (uint8_t width : {1, 3, 8, 13, 64})
+        test_flush<sdsl::int_vector_buffer<>, sdsl::int_vector<>>(width);
+    test_flush<sdsl::int_vector_buffer<1>, sdsl::int_vector<1>>(1);
+    test_flush<sdsl::int_vector_buffer<13>, sdsl::int_vector<13>>(13);
+}
+
+template <class t_function>
+void expect_failure_naming(std::string const & file_name, t_function && function)
+{
+    try
+    {
+        function();
+        ADD_FAILURE() << "no std::ios_base::failure for " << file_name;
+    }
+    catch (std::ios_base::failure const & e)
+    {
+        EXPECT_NE(std::string(e.what()).find(file_name), std::string::npos) << e.what();
+    }
+}
+
+TEST_F(int_vector_buffer_test, open_missing_file)
+{
+    std::string const file_name = temp_dir + "/int_vector_buffer_missing";
+    sdsl::remove(file_name);
+    expect_failure_naming(file_name, [&] { sdsl::int_vector_buffer<> ivb(file_name, std::ios::in); });
+}
+
+TEST_F(int_vector_buffer_test, truncated_file)
+{
+    if (sdsl::is_ram_file(temp_dir))
+        GTEST_SKIP() << "RAM files cannot be truncated through the file system";
+    std::string const file_name = temp_dir + "/int_vector_buffer_truncated";
+    sdsl::int_vector<> values(10000, 7, 13);
+    ASSERT_TRUE(sdsl::store_to_file(values, file_name));
+    std::filesystem::resize_file(file_name, 1000);
+    sdsl::int_vector_buffer<> ivb(file_name, std::ios::in, 64);
+    EXPECT_EQ(7u, ivb[0]);
+    expect_failure_naming(file_name, [&] { (void)uint64_t(ivb[9999]); });
+}
+
+TEST_F(int_vector_buffer_test, failed_write)
+{
+    std::string const file_name = "/dev/full";
+    if (!std::filesystem::exists(file_name))
+        GTEST_SKIP() << file_name << " is not available";
+    expect_failure_naming(file_name,
+                          [&]
+                          {
+                              sdsl::int_vector_buffer<> ivb(file_name, std::ios::out, 64);
+                              for (uint64_t i = 0; i < 1000; ++i)
+                                  ivb.push_back(i);
+                              ivb.close();
+                          });
+    // The destructor ignores the error.
+    sdsl::int_vector_buffer<> ivb(file_name, std::ios::out, 1024);
+    ivb.push_back(1);
 }
 
 template <class t_T>
