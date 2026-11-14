@@ -118,7 +118,7 @@ TYPED_TEST(sd_vector_test, lookup_bucket_boundaries)
             std::stringstream bytes;
             original.serialize(bytes);
             TypeParam restored;
-            restored.load(static_cast<std::istream &>(bytes));
+            restored.load(bytes);
             std::vector<uint64_t> queries;
             for (uint64_t i = 0; i < std::min(size, uint64_t{4097}); ++i)
                 queries.push_back(i);
