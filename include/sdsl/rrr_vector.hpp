@@ -14,6 +14,7 @@
 #include <iostream>
 #include <stdint.h>
 #include <string>
+#include <utility>
 
 #include <sdsl/bits.hpp>
 #include <sdsl/cereal.hpp>
@@ -295,6 +296,90 @@ public:
         uint16_t btnrlen = rrr_helper_type::space_for_bt(bt);
         number_type btnr = rrr_helper_type::decode_btnr(m_btnr, btnrp, btnrlen);
         return rrr_helper_type::decode_bit(bt, btnr, off);
+    }
+
+    //! Calculates how many occurrences of bit v[i] are in the prefix [0..i-1].
+    /*!\param i An index i with \f$ 0 \leq i < size()  \f$.
+     * \return The pair (rank(v[i], i), v[i]), as for the wavelet trees.
+     * The result equals the one of operator[] and rank_1_type or rank_0_type, but the block is decoded only once.
+     */
+    std::pair<size_type, bool> inverse_select(size_type i) const
+    {
+        assert(i < size());
+        size_type bt_idx = i / t_bs;
+        size_type sample_pos = bt_idx / t_k;
+        size_type rank = m_rank[sample_pos];
+#ifndef RRR_NO_OPT
+        if (sample_pos + 1 < m_rank.size())
+        {
+            size_type diff_rank = m_rank[sample_pos + 1] - rank;
+            if (diff_rank == (size_type)0)
+            {
+                return {i - rank, false};
+            }
+            else if (diff_rank == (size_type)t_bs * t_k)
+            {
+                return {rank + i - sample_pos * t_k * t_bs, true};
+            }
+        }
+#endif
+        bool const inv = m_invert[sample_pos];
+        size_type btnrp = m_btnrp[sample_pos];
+        for (size_type j = sample_pos * t_k; j < bt_idx; ++j)
+        {
+            uint16_t r = m_bt[j];
+            rank += (inv ? t_bs - r : r);
+            btnrp += rrr_helper_type::space_for_bt(r);
+        }
+        uint16_t bt = inv ? t_bs - m_bt[bt_idx] : m_bt[bt_idx];
+        uint16_t btnrlen = rrr_helper_type::space_for_bt(bt);
+        number_type btnr = rrr_helper_type::decode_btnr(m_btnr, btnrp, btnrlen);
+        auto res = rrr_helper_type::decode_bit_and_popcount(bt, btnr, i % t_bs);
+        rank += res.second;
+        return {res.first ? rank : i - rank, res.first};
+    }
+
+    //! The number of 1-bits in the prefix [0..i] if the i-th bit is set, and 0 otherwise.
+    /*!\param i An index i with \f$ 0 \leq i < size()  \f$.
+     */
+    size_type conditional_rank(size_type i) const
+    {
+        assert(i < size());
+        size_type bt_idx = i / t_bs;
+        size_type sample_pos = bt_idx / t_k;
+        bool const inv = m_invert[sample_pos];
+        uint16_t bt = inv ? t_bs - m_bt[bt_idx] : m_bt[bt_idx];
+        if (bt == 0)
+        {
+            return 0;
+        }
+#ifndef RRR_NO_OPT
+        if (bt == t_bs and sample_pos + 1 < m_rank.size()
+            and m_rank[sample_pos + 1] - m_rank[sample_pos] == (size_type)t_bs * t_k)
+        {
+            return m_rank[sample_pos] + i - sample_pos * t_k * t_bs + 1;
+        }
+#endif
+        size_type btnrp = m_btnrp[sample_pos];
+        for (size_type j = sample_pos * t_k; j < bt_idx; ++j)
+        {
+            btnrp += rrr_helper_type::space_for_bt(m_bt[j]);
+        }
+        uint16_t btnrlen = rrr_helper_type::space_for_bt(bt);
+        number_type btnr = rrr_helper_type::decode_btnr(m_btnr, btnrp, btnrlen);
+        auto res = rrr_helper_type::decode_bit_and_popcount(bt, btnr, i % t_bs);
+        if (!res.first)
+        {
+            return 0;
+        }
+        // the rank is summed only for set bits, so unset bits cost no more than operator[]
+        size_type rank = m_rank[sample_pos] + res.second + 1;
+        for (size_type j = sample_pos * t_k; j < bt_idx; ++j)
+        {
+            uint16_t r = m_bt[j];
+            rank += (inv ? t_bs - r : r);
+        }
+        return rank;
     }
 
     //! Get the integer value of the binary string of length len starting at position idx.

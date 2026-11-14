@@ -41,6 +41,10 @@ void check_queries(sdsl::bit_vector const & bits)
         ASSERT_EQ(bit, vector[pos]) << pos;
         ASSERT_EQ(ones, rank1(pos)) << pos;
         ASSERT_EQ(pos - ones, rank0(pos)) << pos;
+        auto inverse = vector.inverse_select(pos);
+        ASSERT_EQ(bit ? ones : pos - ones, inverse.first) << pos;
+        ASSERT_EQ(bit, inverse.second) << pos;
+        ASSERT_EQ(bit ? ones + 1 : 0, vector.conditional_rank(pos)) << pos;
         if (bit)
             ASSERT_EQ(pos, select1(++ones)) << pos;
         else
