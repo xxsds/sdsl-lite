@@ -10,6 +10,9 @@
 
 #include <iostream>
 #include <stdint.h>
+#include <compare>
+#include <concepts>
+#include <type_traits>
 #include <utility>
 
 #include <sdsl/bits.hpp>
@@ -18,12 +21,51 @@
 namespace sdsl
 {
 
+namespace detail
+{
+//! Built-in integers that mix with uint256_t; libstdc++ counts uint128_t as integral only in GNU modes.
+template <typename T>
+concept uint256_operand = std::integral<T> || std::same_as<T, uint128_t>;
+} // namespace detail
+
 class uint256_t
 {
 public:
     friend std::ostream & operator<<(std::ostream &, uint256_t const &);
 
 private:
+    //! Bits 64 to 127 of a built-in integer converted modulo 2^256.
+    template <typename T>
+    static uint64_t mid_bits(T x)
+    {
+        if constexpr (std::is_same_v<T, uint128_t>)
+            return uint64_t(x >> 64);
+        else if constexpr (std::is_signed_v<T>)
+            return x < 0 ? ~uint64_t(0) : uint64_t(0);
+        else
+            return 0;
+    }
+
+    //! Bits 128 to 255 of a built-in integer converted modulo 2^256.
+    template <typename T>
+    static uint128_t high_bits(T x)
+    {
+        if constexpr (std::is_signed_v<T>)
+            return x < 0 ? ~uint128_t(0) : uint128_t(0);
+        else
+            return uint128_t(0);
+    }
+
+    //! a < b, using only != and < on the high word, which the uint128_t fallback class provides.
+    static bool less(uint256_t const & a, uint256_t const & b)
+    {
+        if (a.m_high != b.m_high)
+            return a.m_high < b.m_high;
+        if (a.m_mid != b.m_mid)
+            return a.m_mid < b.m_mid;
+        return a.m_lo < b.m_lo;
+    }
+
     uint64_t m_lo;
     uint64_t m_mid;
     uint128_t m_high;
@@ -32,35 +74,23 @@ public:
     inline uint256_t(uint64_t lo = 0, uint64_t mid = 0, uint128_t high = 0) : m_lo(lo), m_mid(mid), m_high(high)
     {}
 
-    inline uint256_t(uint256_t const & x) : m_lo(x.m_lo), m_mid(x.m_mid), m_high(x.m_high)
+    //! Converts any built-in integer modulo 2^256, without truncating 128-bit values.
+    template <detail::uint256_operand T>
+    uint256_t(T x) : m_lo(uint64_t(x)), m_mid(mid_bits(x)), m_high(high_bits(x))
     {}
 
-    inline uint256_t(uint256_t && x) : m_lo(std::move(x.m_lo)), m_mid(std::move(x.m_mid)), m_high(std::move(x.m_high))
-    {}
+    uint256_t(uint256_t const &) = default;
+    uint256_t(uint256_t &&) = default;
+    uint256_t & operator=(uint256_t const &) = default;
+    uint256_t & operator=(uint256_t &&) = default;
 
-    uint256_t & operator=(uint256_t const & x)
-    {
-        m_lo = x.m_lo;
-        m_mid = x.m_mid;
-        m_high = x.m_high;
-        return *this;
-    }
-
-    uint256_t & operator=(uint256_t && x)
-    {
-        m_lo = std::move(x.m_lo);
-        m_mid = std::move(x.m_mid);
-        m_high = std::move(x.m_high);
-        return *this;
-    }
-
-    inline uint16_t popcount()
+    inline uint16_t popcount() const
     {
         return ((uint16_t)bits::cnt(m_lo)) + (uint16_t)bits::cnt(m_mid) + (uint16_t)bits::cnt(m_high >> 64)
              + (uint16_t)bits::cnt(m_high);
     }
 
-    inline uint16_t hi()
+    inline uint16_t hi() const
     {
         if (m_high == (uint128_t)0ULL)
         {
@@ -87,7 +117,7 @@ public:
         }
     }
 
-    inline uint16_t select(uint32_t i)
+    inline uint16_t select(uint32_t i) const
     {
         uint16_t x = 0;
         if ((x = (uint16_t)bits::cnt(m_lo)) >= i)
@@ -121,14 +151,14 @@ public:
         //			return uint256_t(lo, mid, m_high + x.m_high + (mid >> 64));
     }
 
-    inline uint256_t operator+(uint256_t const & x)
+    inline uint256_t operator+(uint256_t const & x) const
     {
         uint128_t lo = ((uint128_t)m_lo) + x.m_lo;
         uint128_t mid = (uint128_t)m_mid + x.m_mid + (lo >> 64);
         return uint256_t(lo, mid, m_high + x.m_high + (mid >> 64));
     }
 
-    inline uint256_t operator-(uint256_t const & x)
+    inline uint256_t operator-(uint256_t const & x) const
     {
         //			add two's complement of x
         uint128_t lo = (uint128_t)m_lo + (~x.m_lo) + (uint128_t)1ULL;
@@ -147,7 +177,7 @@ public:
         return *this;
     }
 
-    inline uint256_t operator|(uint256_t const & x)
+    inline uint256_t operator|(uint256_t const & x) const
     {
         return uint256_t(m_lo | x.m_lo, m_mid | x.m_mid, m_high | x.m_high);
     }
@@ -160,7 +190,7 @@ public:
         return *this;
     }
 
-    inline uint256_t operator&(uint256_t const & x)
+    inline uint256_t operator&(uint256_t const & x) const
     {
         return uint256_t(m_lo & x.m_lo, m_mid & x.m_mid, m_high & x.m_high);
     }
@@ -170,7 +200,64 @@ public:
      * }
      */
 
-    inline uint256_t operator<<(int x) const
+    inline uint256_t & operator&=(uint256_t const & x)
+    {
+        return *this = *this & x;
+    }
+
+    inline uint256_t & operator<<=(int x)
+    {
+        return *this = *this << x;
+    }
+
+    inline uint256_t & operator>>=(int x)
+    {
+        return *this = *this >> x;
+    }
+
+    inline uint256_t operator~() const
+    {
+        return uint256_t(~m_lo, ~m_mid, ~m_high);
+    }
+
+    template <detail::uint256_operand T>
+    uint256_t operator+(T x) const
+    {
+        return *this + uint256_t(x);
+    }
+
+    template <detail::uint256_operand T>
+    uint256_t operator-(T x) const
+    {
+        return *this - uint256_t(x);
+    }
+
+    template <detail::uint256_operand T>
+    uint256_t operator|(T x) const
+    {
+        return *this | uint256_t(x);
+    }
+
+    template <detail::uint256_operand T>
+    uint256_t operator&(T x) const
+    {
+        return *this & uint256_t(x);
+    }
+
+    template <detail::uint256_operand T>
+    bool operator==(T x) const
+    {
+        return *this == uint256_t(x);
+    }
+
+    template <detail::uint256_operand T>
+    std::strong_ordering operator<=>(T x) const
+    {
+        return *this <=> uint256_t(x);
+    }
+
+    template <std::integral T>
+    inline uint256_t operator<<(T x) const
     {
         if (x >= 128)
         {
@@ -198,7 +285,8 @@ public:
         return uint256_t(lo, mid, (uint128_t(high_hi) << 64) | high_lo);
     }
 
-    inline uint256_t operator>>(int x) const
+    template <std::integral T>
+    inline uint256_t operator>>(T x) const
     {
         if (x >= 128)
         {
@@ -225,98 +313,33 @@ public:
         return uint256_t(lo, mid, (uint128_t(high_hi) << 64) | high_lo);
     }
 
-    inline uint256_t & operator=(uint64_t const & x)
+    template <detail::uint256_operand T>
+    uint256_t & operator=(T x)
     {
-        m_high = 0;
-        m_mid = 0;
-        m_lo = x;
-        return *this;
+        return *this = uint256_t(x);
     }
 
-    inline bool operator==(uint256_t const & x) const
+    bool operator==(uint256_t const &) const = default;
+
+    std::strong_ordering operator<=>(uint256_t const & x) const
     {
-        return (m_lo == x.m_lo) and (m_mid == x.m_mid) and (m_high == x.m_high);
+        // Written with less(), so that a synthesized `a >= b` compiles to `!less(a, b)`.
+        if (less(*this, x))
+            return std::strong_ordering::less;
+        return less(x, *this) ? std::strong_ordering::greater : std::strong_ordering::equal;
     }
 
-    inline bool operator!=(uint256_t const & x) const
+    explicit operator bool() const
     {
-        return !(*this == x);
+        return (m_lo | m_mid) || m_high != uint128_t(0);
     }
 
-    inline bool operator>=(uint256_t const & x) const
+    explicit operator uint128_t() const
     {
-        if (m_high != x.m_high)
-        {
-            return m_high > x.m_high;
-        }
-        if (m_mid != x.m_mid)
-        {
-            return m_mid > x.m_mid;
-        }
-        else
-        {
-            return m_lo >= x.m_lo;
-        }
+        return (uint128_t(m_mid) << 64) | m_lo;
     }
 
-    inline bool operator<=(uint256_t const & x) const
-    {
-        if (m_high != x.m_high)
-        {
-            return m_high < x.m_high;
-        }
-        if (m_mid != x.m_mid)
-        {
-            return m_mid < x.m_mid;
-        }
-        else
-        {
-            return m_lo <= x.m_lo;
-        }
-    }
-
-    inline bool operator>(uint256_t const & x) const
-    {
-        if (m_high != x.m_high)
-        {
-            return m_high > x.m_high;
-        }
-        if (m_mid != x.m_mid)
-        {
-            return m_mid > x.m_mid;
-        }
-        else
-        {
-            return m_lo > x.m_lo;
-        }
-    }
-
-    inline bool operator>(uint64_t const & x) const
-    {
-        if (m_high > (uint128_t)0ULL or m_mid > (uint128_t)0ULL)
-        {
-            return true;
-        }
-        return m_lo > x;
-    }
-
-    inline bool operator<(uint256_t const & x) const
-    {
-        if (m_high != x.m_high)
-        {
-            return m_high < x.m_high;
-        }
-        if (m_mid != x.m_mid)
-        {
-            return m_mid < x.m_mid;
-        }
-        else
-        {
-            return m_lo < x.m_lo;
-        }
-    }
-
-    inline operator uint64_t()
+    inline operator uint64_t() const
     {
         return m_lo;
     }
