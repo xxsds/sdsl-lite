@@ -58,10 +58,12 @@ struct track_allocator
 
     T * allocate(std::size_t n)
     {
-        if (n <= std::numeric_limits<std::size_t>::max() / sizeof(T))
+        if (n <= (std::numeric_limits<std::size_t>::max() - sizeof(uint64_t)) / sizeof(T))
         {
             size_t s = n * sizeof(T);
-            if (auto ptr = std::malloc(s))
+            // Indexed int_vector reads load up to 7 bytes after an element (detail::single_load_indexed_read),
+            // and a RAM file's buffer can be mapped as an int_vector. Keep 8 bytes behind every buffer.
+            if (auto ptr = std::malloc(s + sizeof(uint64_t)))
             {
                 memory_monitor_record(s);
                 return static_cast<T *>(ptr);
