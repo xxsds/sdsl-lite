@@ -64,7 +64,6 @@ private:
         else
         {
             m_ifile.seekg(m_offset + (m_begin * width()) / 8);
-            check(m_ifile, "cannot seek in");
             uint64_t const bytes = std::min(m_buffersize * width(), (m_size - m_begin) * width() + 7) / 8;
             m_ifile.read((char *)m_buffer.data(), bytes);
             check(m_ifile, "cannot read from");
@@ -81,7 +80,6 @@ private:
         if (m_need_to_write)
         {
             m_ofile.seekp(m_offset + (m_begin * width()) / 8);
-            check(m_ofile, "cannot seek in");
             if (m_begin + m_buffersize >= m_size)
             {
                 // last block in file
@@ -399,14 +397,11 @@ public:
             uint64_t size = m_size * width();
             m_ofile.seekp(0, std::ios::beg);
             int_vector<t_width>::write_header(size, width(), m_ofile);
-            check(m_ofile, "cannot write to");
             uint64_t wb = (size + 7) / 8;
             if (wb % 8)
             {
                 m_ofile.seekp(m_offset + wb);
-                check(m_ofile, "cannot write to");
                 m_ofile.write("\0\0\0\0\0\0\0\0", 8 - wb % 8);
-                check(m_ofile, "cannot write to");
             }
         }
         m_ofile.flush();
