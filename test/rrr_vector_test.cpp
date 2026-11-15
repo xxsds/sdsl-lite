@@ -63,6 +63,8 @@ using params = std::integer_sequence<uint16_t, t_bs, t_k>;
 
 using block_sizes = ::testing::Types<params<3, 32>,
                                      params<15, 32>,
+                                     params<16, 32>,
+                                     params<17, 32>,
                                      params<31, 4>,
                                      params<63, 32>,
                                      params<64, 8>,

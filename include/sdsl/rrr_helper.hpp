@@ -436,6 +436,8 @@ struct rrr_helper
     //! Decode the bit at position \f$ off \f$ of the block encoded by the pair (k, nr).
     static inline bool decode_bit(uint16_t k, number_type nr, uint16_t off)
     {
+        if constexpr (n <= 16)
+            return decode_bit_and_popcount(k, nr, off).first;
         if (k == 0 or k == n)
             return k > 0;
         bool flip = complement_dense(k, nr);
@@ -480,6 +482,28 @@ struct rrr_helper
     {
         if (k == 0 or k == n)
             return {k > 0, k > 0 ? off : 0};
+        if constexpr (n <= 16)
+        {
+            // For short blocks, stop at the queried position rather than finding the next one beyond it.
+            uint16_t m = n;
+            uint16_t count = 0;
+            while (k > 1 and n - m < off)
+            {
+                if (nr >= binomial::data.table[k][m - 1])
+                {
+                    nr -= binomial::data.table[k][m - 1];
+                    --k;
+                    ++count;
+                }
+                --m;
+            }
+            if (k == 1)
+            {
+                uint16_t pos = n - static_cast<uint16_t>(static_cast<uint64_t>(nr)) - 1;
+                return {pos == off, count + (pos < off)};
+            }
+            return {nr >= binomial::data.table[k][m - 1], count};
+        }
         bool flip = complement_dense(k, nr);
         uint16_t m = n;
         uint16_t count = 0;
