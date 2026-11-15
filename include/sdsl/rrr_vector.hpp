@@ -367,7 +367,12 @@ public:
         }
         uint16_t btnrlen = rrr_helper_type::space_for_bt(bt);
         number_type btnr = rrr_helper_type::decode_btnr(m_btnr, btnrp, btnrlen);
-        auto res = rrr_helper_type::decode_bit_and_popcount(bt, btnr, i % t_bs);
+        // If the only set bit is queried, its rank within the block is zero.
+        auto res = bt == 1
+                       ? std::pair<bool, uint16_t>{t_bs - static_cast<uint16_t>(static_cast<uint64_t>(btnr)) - 1
+                                                      == i % t_bs,
+                                                  0}
+                       : rrr_helper_type::decode_bit_and_popcount(bt, btnr, i % t_bs);
         if (!res.first)
         {
             return 0;
