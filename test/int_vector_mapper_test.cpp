@@ -500,6 +500,49 @@ TEST_F(int_vector_mapper_test, read_only_delete_on_close_survives_moves)
     sdsl::remove(first);
 }
 
+// Indexed reads load up to 7 bytes after an element, so the end of a mapping must stay readable. 8191 words
+// and the 8-byte header of a fixed-width vector make a 65536-byte file, which ends on a page boundary for 4,
+// 16 and 64 KiB pages. A RAM file ends at its last word.
+template <uint8_t t_width>
+void check_tail_reads(std::string const & filename, uint8_t width)
+{
+    sdsl::int_vector<t_width> expected(8191 * 64 / width, 0, width);
+    std::mt19937_64 random(width);
+    for (auto && value : expected)
+        value = random();
+    ASSERT_TRUE(sdsl::store_to_file(expected, filename));
+    {
+        sdsl::int_vector_mapper<t_width, std::ios_base::in> const mapped(filename);
+        ASSERT_EQ(mapped.size(), expected.size());
+        auto const first = mapped.begin();
+        for (size_t i = expected.size() - 64; i < expected.size(); ++i)
+        {
+            ASSERT_EQ(mapped[i], expected[i]);
+            ASSERT_EQ(first[i], expected[i]);
+        }
+    }
+    {
+        // Growing a writable mapping maps the file again.
+        sdsl::int_vector_mapper<t_width> mapped(filename);
+        auto const & view = mapped;
+        for (size_t i = expected.size() - 64; i < expected.size(); ++i)
+            ASSERT_EQ(view[i], expected[i]);
+        mapped.push_back(1);
+        ASSERT_EQ(view[expected.size()], 1u);
+        ASSERT_EQ(view.begin()[expected.size() - 1], expected[expected.size() - 1]);
+    }
+    sdsl::remove(filename);
+}
+
+TEST_F(int_vector_mapper_test, indexed_reads_at_the_end_of_the_mapping)
+{
+    check_tail_reads<5>(temp_dir + "/mapper_tail_fixed", 5);
+    check_tail_reads<13>(temp_dir + "/mapper_tail_fixed", 13);
+    check_tail_reads<57>(temp_dir + "/mapper_tail_fixed", 57);
+    check_tail_reads<0>(temp_dir + "/mapper_tail_dynamic", 13);
+    check_tail_reads<0>(temp_dir + "/mapper_tail_dynamic", 57);
+}
+
 } // namespace
 
 int main(int argc, char ** argv)

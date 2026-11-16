@@ -19,10 +19,12 @@
 #include <iostream> // for cerr
 #include <iterator>
 #include <new>
+#include <span>
 #include <string>
 #include <type_traits>
 #include <utility>
 
+#include <sdsl/bit_vector_helper.hpp>
 #include <sdsl/bits.hpp>
 #include <sdsl/cereal.hpp>
 #include <sdsl/config.hpp>
@@ -84,6 +86,21 @@ inline constexpr bool runtime_width_indexed_reader = false;
 // such width from 5 to 63. Width 3 is up to 11% slower with GCC.
 template <uint8_t width>
 inline constexpr bool two_word_indexed_read = width >= 5 && 64 % width != 0;
+
+// Whether indexed reads of this width (0 for a runtime width up to 57) load the 8 bytes that start at the
+// element's first byte. The load can reach 7 bytes past the element's last word. These bytes are always readable:
+// memory_manager::resize allocates a spare word, and memory_manager::mmap_file keeps the bytes after a mapping
+// readable. Measured on Zen 4 with GCC 16 and Clang 23: sums of independent reads get 29-45% faster, reads that
+// depend on the previous value 4-6%. Clang keeps the two-word read for runtime widths and for a fixed width of 5,
+// where the single load measured 5-14% slower in some -O2 loops.
+template <uint8_t width>
+inline constexpr bool single_load_indexed_read =
+    std::endian::native == std::endian::little
+    && (width == 0 ? !runtime_width_indexed_reader : two_word_indexed_read<width> && width <= 57
+#if defined(__clang__)
+                                                          && width != 5
+#endif
+       );
 
 } // namespace detail
 
@@ -250,6 +267,13 @@ private:
 #endif
             if constexpr (std::is_const_v<Self> && t_width == 0 && detail::runtime_width_indexed_reader)
             return iterator_at(self, idx).read_indexed();
+        else if constexpr (std::is_const_v<Self> && t_width == 0 && detail::single_load_indexed_read<0>)
+        {
+            // GCC keeps its scan reader for the widths that need two words (see runtime_width_indexed_reader).
+            if (self.width() - 1u < 57u)
+                return iterator_at(self, idx).read_indexed();
+            return *iterator_at(self, idx);
+        }
         else
             return *iterator_at(self, idx);
     }
@@ -975,11 +999,19 @@ read_packed_integer(Word * word,
     return value;
 }
 
+// The 64 bits that start at a bit position. See single_load_indexed_read for the bytes this may touch.
+inline uint64_t read_unaligned_word(uint64_t const * base, uint64_t position)
+{
+    std::span const bytes{reinterpret_cast<std::byte const *>(base) + position / 8, sizeof(uint64_t)};
+    return read_unaligned<uint64_t>(bytes) >> (position % 8);
+}
+
 // Indexed reads cannot predict whether an element crosses a word boundary, so merge the next word
 // without a separate mask lookup. Sequential scans predict that branch and keep read_packed_integer.
 using indexed_offset_type = std::conditional_t<runtime_width_indexed_reader, uint64_t, uint32_t>;
 
-inline uint64_t read_packed_integer_indexed(uint64_t const * word, indexed_offset_type offset, uint8_t width)
+inline uint64_t
+read_packed_integer_indexed(uint64_t const * word, indexed_offset_type offset, uint8_t width, uint64_t mask)
 {
     if (width > 64)
         __builtin_unreachable();
@@ -990,7 +1022,7 @@ inline uint64_t read_packed_integer_indexed(uint64_t const * word, indexed_offse
     {
         uint64_t low = word[0];
         uint64_t high = offset > 64u - width ? word[1] : 0;
-        return (offset ? (low >> offset) | (high << (64 - offset)) : low) & bits::lo_set[width];
+        return (offset ? (low >> offset) | (high << (64 - offset)) : low) & mask;
     }
     else
 #endif
@@ -998,7 +1030,7 @@ inline uint64_t read_packed_integer_indexed(uint64_t const * word, indexed_offse
         uint64_t value = *word >> offset;
         if (offset > 64u - width)
             value |= word[1] << (64 - uint64_t(offset));
-        return value & bits::lo_set[width];
+        return value & mask;
     }
 }
 
@@ -1575,6 +1607,8 @@ private:
         constexpr auto width = detail::iterator_fixed_width<t_int_vector>;
         if constexpr (width > 0 && detail::two_word_indexed_read<width>)
         {
+            if constexpr (detail::single_load_indexed_read<width>)
+                return detail::read_unaligned_word(m_base, m_position) & bits::lo_set[width];
             auto const offset = m_position % 64;
             uint64_t const low = m_base[m_position / 64];
             uint64_t const high = m_base[(m_position + width - 1) / 64];
@@ -1582,8 +1616,26 @@ private:
         }
         else if constexpr (width == 1)
             return (m_base[m_position / 64] >> (m_position % 64)) & 1;
+        else if constexpr (width == 0 && detail::single_load_indexed_read<0>)
+        {
+            // Both paths share one mask, so a loop keeps it in a register. GCC does not hoist a second lo_set
+            // lookup out of the loop.
+            uint64_t const runtime_width = len();
+            uint64_t const mask = ~uint64_t{0} >> (-runtime_width % 64);
+            if (runtime_width - 1 < 57)
+                return detail::read_unaligned_word(m_base, m_position) & mask;
+            return detail::read_packed_integer_indexed(m_base + m_position / 64,
+                                                       uint32_t(m_position % 64),
+                                                       runtime_width,
+                                                       mask);
+        }
         else
-            return detail::read_packed_integer_indexed(m_base + m_position / 64, uint32_t(m_position % 64), len());
+        {
+            return detail::read_packed_integer_indexed(m_base + m_position / 64,
+                                                       uint32_t(m_position % 64),
+                                                       len(),
+                                                       bits::lo_set[len()]);
+        }
     }
 };
 
