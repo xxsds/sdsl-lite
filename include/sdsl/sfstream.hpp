@@ -90,7 +90,7 @@ public:
     }
 
     //! Is the stream close?
-    bool is_open()
+    bool is_open() const
     {
         if (nullptr == m_streambuf)
             return false;
@@ -228,7 +228,7 @@ public:
     }
 
     //! Is the stream close?
-    bool is_open()
+    bool is_open() const
     {
         if (nullptr == m_streambuf)
             return false;
