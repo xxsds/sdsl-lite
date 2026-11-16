@@ -265,7 +265,7 @@ public:
         ar(CEREAL_NVP(m_rank_marked));
     }
 
-    template <typename archive_t>
+    template <cereal_input_archive archive_t>
     void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
     {
         base_type::CEREAL_LOAD_FUNCTION_NAME(ar);
@@ -504,7 +504,7 @@ public:
         ar(CEREAL_NVP(m_inv_perm));
     }
 
-    template <typename archive_t>
+    template <cereal_input_archive archive_t>
     void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
     {
         ar(CEREAL_NVP(m_marked_sa));
@@ -713,7 +713,7 @@ public:
         ar(CEREAL_NVP(m_rank_marked));
     }
 
-    template <typename archive_t>
+    template <cereal_input_archive archive_t>
     void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
     {
         base_type::CEREAL_LOAD_FUNCTION_NAME(ar);
@@ -810,7 +810,7 @@ public:
         base_type::CEREAL_SAVE_FUNCTION_NAME(ar);
     }
 
-    template <typename archive_t>
+    template <cereal_input_archive archive_t>
     void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
     {
         base_type::CEREAL_LOAD_FUNCTION_NAME(ar);
@@ -946,7 +946,7 @@ public:
         ar(CEREAL_NVP(m_select_marked));
     }
 
-    template <typename archive_t>
+    template <cereal_input_archive archive_t>
     void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar, sa_type const * sa_sample = nullptr)
     {
         ar(CEREAL_NVP(m_inv_perm));
@@ -1123,7 +1123,7 @@ public:
         ar(CEREAL_NVP(m_select_marked_sa));
     }
 
-    template <typename archive_t>
+    template <cereal_input_archive archive_t>
     void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar, sa_type const * sa_sample = nullptr)
     {
         ar(CEREAL_NVP(m_select_marked_sa));

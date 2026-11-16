@@ -84,7 +84,7 @@ void check_independent_copies(uint8_t runtime_width = width)
             result->serialize(copy_bytes);
             EXPECT_EQ(original_bytes.str(), copy_bytes.str());
             vector_type restored;
-            restored.load(static_cast<std::istream &>(copy_bytes));
+            restored.load(copy_bytes);
             EXPECT_EQ(source, restored);
 
             if (size)

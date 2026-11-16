@@ -696,14 +696,14 @@ public:
     CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const;
 
     //!\brief Serialise (load) via cereal if archive is not binary
-    template <typename archive_t>
+    template <cereal_input_archive archive_t>
     inline typename std::enable_if<
         !cereal::traits::is_input_serializable<cereal::BinaryData<int_vector<t_width>>, archive_t>::value,
         void>::type
     CEREAL_LOAD_FUNCTION_NAME(archive_t & ar);
 
     //!\brief Serialise (save) via cereal if archive is binary
-    template <typename archive_t>
+    template <cereal_input_archive archive_t>
     inline typename std::enable_if<
         cereal::traits::is_input_serializable<cereal::BinaryData<int_vector<t_width>>, archive_t>::value,
         void>::type
@@ -1910,7 +1910,7 @@ int_vector<t_width>::CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const
 }
 
 template <uint8_t t_width>
-template <typename archive_t>
+template <cereal_input_archive archive_t>
 inline typename std::enable_if<
     cereal::traits::is_input_serializable<cereal::BinaryData<int_vector<t_width>>, archive_t>::value,
     void>::type
@@ -1924,7 +1924,7 @@ int_vector<t_width>::CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
 }
 
 template <uint8_t t_width>
-template <typename archive_t>
+template <cereal_input_archive archive_t>
 inline typename std::enable_if<
     !cereal::traits::is_input_serializable<cereal::BinaryData<int_vector<t_width>>, archive_t>::value,
     void>::type

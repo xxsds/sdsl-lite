@@ -143,7 +143,7 @@ public:
     }
 
     //!\brief Loads from the archive.
-    template <typename archive_t>
+    template <cereal_input_archive archive_t>
     void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
     {
         ar(CEREAL_NVP(word));
@@ -414,7 +414,7 @@ public:
     }
 
     //!\brief Loads from the archive.
-    template <typename archive_t>
+    template <cereal_input_archive archive_t>
     void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
     {
         ar(CEREAL_NVP(superblocks));
@@ -624,7 +624,7 @@ struct rank_support_int_v<alphabet_size, words_per_block, blocks_per_superblock>
     }
 
     //!\brief Loads from the archive.
-    template <typename archive_t>
+    template <cereal_input_archive archive_t>
     void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
     {
         ar(CEREAL_NVP(superblocks));

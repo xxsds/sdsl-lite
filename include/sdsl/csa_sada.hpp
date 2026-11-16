@@ -288,7 +288,7 @@ public:
     template <typename archive_t>
     void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const;
 
-    template <typename archive_t>
+    template <cereal_input_archive archive_t>
     void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar);
 
     uint32_t get_sample_dens() const
@@ -558,7 +558,7 @@ template <class t_enc_vec,
           class t_sa_sample_strat,
           class t_isa,
           class t_alphabet_strat>
-template <typename archive_t>
+template <cereal_input_archive archive_t>
 void csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::CEREAL_LOAD_FUNCTION_NAME(
     archive_t & ar)
 {

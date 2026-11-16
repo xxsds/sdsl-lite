@@ -8,6 +8,7 @@
 #ifndef INCLUDED_SDSL_CEREAL
 #define INCLUDED_SDSL_CEREAL
 
+#include <istream>
 #include <type_traits>
 
 #if defined(__has_include)
@@ -71,4 +72,18 @@ t1 binary_data(t1 const &, t2 const &)
 
 } // namespace cereal
 #endif
+
+namespace sdsl
+{
+//! Archives accepted by the cereal `load` members.
+//! Streams are excluded so that `load(std::ifstream &)` calls the sdsl overload taking `std::istream &`.
+#if SDSL_HAS_CEREAL
+template <typename archive_t>
+concept cereal_input_archive = std::is_base_of_v<cereal::detail::InputArchiveBase, archive_t>;
+#else
+template <typename archive_t>
+concept cereal_input_archive = false;
+#endif // SDSL_HAS_CEREAL
+} // namespace sdsl
+
 #endif

@@ -167,7 +167,7 @@ struct _node
         ar(CEREAL_NVP(child[1]));
     }
 
-    template <typename archive_t>
+    template <cereal_input_archive archive_t>
     void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
     {
         ar(CEREAL_NVP(bv_pos));
@@ -396,7 +396,7 @@ struct _byte_tree
         ar(CEREAL_NVP(m_path));
     }
 
-    template <typename archive_t>
+    template <cereal_input_archive archive_t>
     void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
     {
         ar(CEREAL_NVP(m_nodes));
@@ -720,7 +720,7 @@ struct _int_tree
         ar(CEREAL_NVP(m_path));
     }
 
-    template <typename archive_t>
+    template <cereal_input_archive archive_t>
     void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
     {
         ar(CEREAL_NVP(m_nodes));

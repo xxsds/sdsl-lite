@@ -543,7 +543,7 @@ public:
     }
 
     //!\brief Load via cereal
-    template <typename archive_t>
+    template <cereal_input_archive archive_t>
     typename std::enable_if<cereal::traits::is_output_serializable<k2_tree, archive_t>::value, void>::type
     CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
     {

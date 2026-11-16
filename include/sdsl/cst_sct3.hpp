@@ -517,7 +517,7 @@ public:
     void CEREAL_SAVE_FUNCTION_NAME(archive_t & ar) const;
 
     //!\brief Serialise (load) via cereal
-    template <typename archive_t>
+    template <cereal_input_archive archive_t>
     void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar);
 
     //! Equality operator.
@@ -1357,7 +1357,7 @@ void cst_sct3<t_csa, t_lcp, t_bp_support, t_bv, t_rank, t_sel>::CEREAL_SAVE_FUNC
 }
 
 template <class t_csa, class t_lcp, class t_bp_support, class t_bv, class t_rank, class t_sel>
-template <typename archive_t>
+template <cereal_input_archive archive_t>
 void cst_sct3<t_csa, t_lcp, t_bp_support, t_bv, t_rank, t_sel>::CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
 {
     ar(CEREAL_NVP(m_csa));

@@ -138,7 +138,7 @@ TYPED_TEST(hyb_query_test, serialization)
     std::stringstream stream;
     vector.serialize(stream);
     vector_type loaded;
-    loaded.load(static_cast<std::istream &>(stream));
+    loaded.load(stream);
     typename vector_type::rank_1_type rank1(&loaded);
     typename vector_type::select_1_type select1(&loaded);
     uint64_t ones = 0;
@@ -286,8 +286,8 @@ TEST(hyb_select_test, derived_samples_preserve_support_stream)
 
     sdsl::hyb_vector<>::select_1_type loaded_ones;
     sdsl::hyb_vector<>::select_0_type loaded_zeros;
-    loaded_ones.load(static_cast<std::istream &>(stream), &vector);
-    loaded_zeros.load(static_cast<std::istream &>(stream), &vector);
+    loaded_ones.load(stream, &vector);
+    loaded_zeros.load(stream, &vector);
     EXPECT_EQ(uint64_t{17}, loaded_ones(1));
     EXPECT_EQ(uint64_t{32768}, loaded_ones(2));
     EXPECT_EQ(uint64_t{65538}, loaded_ones(3));

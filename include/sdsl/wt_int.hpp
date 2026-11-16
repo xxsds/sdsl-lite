@@ -828,7 +828,7 @@ public:
         ar(CEREAL_NVP(m_tree_select0));
     }
 
-    template <typename archive_t>
+    template <cereal_input_archive archive_t>
     void CEREAL_LOAD_FUNCTION_NAME(archive_t & ar)
     {
         ar(CEREAL_NVP(m_size));

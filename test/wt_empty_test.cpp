@@ -39,7 +39,7 @@ TYPED_TEST(wt_empty_test, deterministic_serialization)
 
     TypeParam restored;
     std::istringstream in(serialized);
-    restored.load(static_cast<std::istream &>(in));
+    restored.load(in);
     ASSERT_TRUE(in.good());
     EXPECT_EQ(0u, restored.size());
     EXPECT_EQ(0u, restored.sigma);
