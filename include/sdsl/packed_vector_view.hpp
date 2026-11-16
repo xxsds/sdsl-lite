@@ -40,6 +40,14 @@ class packed_vector_view : public std::ranges::view_interface<packed_vector_view
 {
     static_assert(Width <= 64);
     using vector_type = int_vector<Width>;
+    // Deleter of the int_vector a view takes over. into_owned() looks for it.
+    struct owned_deleter
+    {
+        void operator()(vector_type const * p) const noexcept
+        {
+            delete p;
+        }
+    };
     std::shared_ptr<void const> owner_;
     std::byte const * bytes_ = nullptr;
     uint64_t bits_ = 0;
@@ -67,7 +75,7 @@ public:
     }
     explicit packed_vector_view(vector_type value)
     {
-        auto p = std::make_shared<vector_type const>(std::move(value));
+        std::shared_ptr<vector_type const> p(new vector_type(std::move(value)), owned_deleter{});
         bytes_ = reinterpret_cast<std::byte const *>(p->data());
         bits_ = p->bit_size();
         width_ = p->width();
@@ -184,6 +192,18 @@ public:
         v.bit_resize(bits_);
         if (bits_)
             std::memcpy(v.data(), bytes_, bytes().size());
+        return v;
+    }
+    // Leaves the view empty. Returns the int_vector this view was constructed
+    // from without copying it if no other view shares it, otherwise a copy.
+    vector_type into_owned() &&
+    {
+        vector_type v;
+        if (owner_.use_count() == 1 && std::get_deleter<owned_deleter>(owner_))
+            v = std::move(*static_cast<vector_type *>(const_cast<void *>(owner_.get())));
+        else
+            v = to_owned();
+        *this = packed_vector_view();
         return v;
     }
     using const_iterator = random_access_const_iterator<packed_vector_view>;
