@@ -8,6 +8,7 @@
 #ifndef INCLUDED_SDSL_UINT128
 #define INCLUDED_SDSL_UINT128
 
+#include <concepts>
 #include <iostream>
 #include <stdint.h>
 
@@ -31,7 +32,12 @@ private:
     uint64_t m_high;
 
 public:
-    inline uint128_t(uint64_t lo = 0, uint64_t high = 0) : m_lo(lo), m_high(high)
+    inline uint128_t() : m_lo(0), m_high(0)
+    {}
+
+    //! Integers only, so that a class converting to uint64_t, such as uint256_t, is not truncated here.
+    template <std::integral T>
+    inline uint128_t(T lo, uint64_t high = 0) : m_lo(lo), m_high(high)
     {}
 
     inline uint128_t(uint128_t const & x) : m_lo(x.m_lo), m_high(x.m_high)
