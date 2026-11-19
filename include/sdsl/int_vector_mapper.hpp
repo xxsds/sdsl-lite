@@ -185,6 +185,12 @@ public:
             if (!is_plain)
             {
                 m_data_offset = int_vector<t_width>::read_header(size_in_bits, int_width, f);
+                // The 9-byte sdsl v2 header of int_vector<0> leaves the words unaligned for mapping.
+                if (m_data_offset % sizeof(uint64_t) != 0)
+                {
+                    throw std::runtime_error("int_vector_mapper: file " + m_file_name
+                                             + " has an sdsl v2 header and cannot be mapped; load it instead.");
+                }
             }
         }
 
